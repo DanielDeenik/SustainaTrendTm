@@ -14,3 +14,32 @@ externalPort = 3001
 [[ports]]
 localPort = 8000
 externalPort = 8000
+
+[workflows]
+runButton = "Project"
+
+[[workflows.workflow]]
+name = "Project"
+mode = "parallel"
+author = "agent"
+
+[[workflows.workflow.tasks]]
+task = "workflow.run"
+args = "FastAPI Server"
+
+[[workflows.workflow]]
+name = "FastAPI Server"
+author = "agent"
+
+[workflows.workflow.metadata]
+agentRequireRestartOnSave = false
+
+[[workflows.workflow.tasks]]
+task = "packager.installForAll"
+
+[[workflows.workflow.tasks]]
+task = "shell.exec"
+args = "cd backend && ./start.sh"
+
+[deployment]
+run = ["sh", "-c", "cd backend && ./start.sh"]

@@ -5,7 +5,7 @@ from datetime import datetime
 import logging
 import sys
 import psycopg2
-from psycopg2.extras import RealDictCursor
+from psycopg2.extras import RealDictCursor, Json
 from typing import List, Optional
 from pydantic import BaseModel
 
@@ -95,7 +95,7 @@ async def create_metric(metric: MetricCreate):
             VALUES (%s, %s, %s, %s, %s)
             RETURNING id, name, category, value, unit, metadata, timestamp
             """,
-            (metric.name, metric.category, metric.value, metric.unit, metric.metadata)
+            (metric.name, metric.category, metric.value, metric.unit, Json(metric.metadata))
         )
 
         new_metric = cur.fetchone()
