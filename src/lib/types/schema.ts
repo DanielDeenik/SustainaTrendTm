@@ -1,6 +1,7 @@
 import { pgTable, serial, text, timestamp, numeric, integer, jsonb } from 'drizzle-orm/pg-core';
 import { relations, sql } from 'drizzle-orm';
 import { createInsertSchema } from 'drizzle-zod';
+import { z } from 'zod';
 
 // Metrics table to store environmental data points
 export const metrics = pgTable('metrics', {
@@ -10,7 +11,7 @@ export const metrics = pgTable('metrics', {
   value: numeric('value').notNull(),
   unit: text('unit').notNull(),
   timestamp: timestamp('timestamp').default(sql`CURRENT_TIMESTAMP`),
-  metadata: jsonb('metadata').default({})
+  metric_metadata: jsonb('metric_metadata').default({})
 });
 
 // Reports table for sustainability reporting
@@ -47,10 +48,23 @@ export const analysesRelations = relations(analyses, ({ one }) => ({
   })
 }));
 
-// Define insert schemas for validation
-export const insertMetricSchema = createInsertSchema(metrics).omit({ id: true });
-export const insertReportSchema = createInsertSchema(reports).omit({ id: true, created_at: true });
-export const insertAnalysisSchema = createInsertSchema(analyses).omit({ id: true, created_at: true });
+// Define insert schemas
+export const insertMetricSchema = createInsertSchema(metrics)
+  .omit({ id: true, timestamp: true })
+  .extend({
+    category: z.enum(['emissions', 'water', 'energy', 'waste', 'social', 'governance']),
+    value: z.number().min(0),
+    metric_metadata: z.record(z.string(), z.any()).default({})
+  });
+
+export const insertReportSchema = createInsertSchema(reports)
+  .omit({ id: true, created_at: true })
+  .extend({
+    status: z.enum(['draft', 'published', 'archived']).default('draft')
+  });
+
+export const insertAnalysisSchema = createInsertSchema(analyses)
+  .omit({ id: true, created_at: true });
 
 // Define types
 export type Metric = typeof metrics.$inferSelect;
