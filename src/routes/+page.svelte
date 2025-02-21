@@ -2,6 +2,7 @@
   import { onMount } from 'svelte';
   import { Search } from 'lucide-svelte';
   import { sustainabilityMetrics, isLoading, error, fetchSustainabilityMetrics } from '$lib/stores/sustainability';
+  import MetricCard from '$lib/components/sustainability/metric-card.svelte';
 
   let searchQuery = "";
   let demoCompanyId = "demo-company-1"; // For demonstration
@@ -37,34 +38,21 @@
   {:else}
     <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 w-full max-w-6xl">
       {#each filteredMetrics as metrics}
-        <div class="p-6 rounded-lg border hover:shadow-lg transition-shadow">
-          <h3 class="text-xl font-semibold mb-4">ESG Metrics Overview</h3>
-
-          <div class="space-y-4">
-            <div>
-              <h4 class="font-medium text-primary">Environmental</h4>
-              <p>Carbon Emissions: {metrics.environmental.carbonEmissions}</p>
-              <p>Energy Usage: {metrics.environmental.energyUsage}</p>
-            </div>
-
-            <div>
-              <h4 class="font-medium text-secondary">Social</h4>
-              <p>Employee Satisfaction: {metrics.social.employeeSatisfaction}%</p>
-              <p>Diversity Score: {metrics.social.diversityScore}%</p>
-            </div>
-
-            <div>
-              <h4 class="font-medium text-accent">Governance</h4>
-              <p>Policy Compliance: {metrics.governance.policyCompliance}%</p>
-              <p>Risk Management: {metrics.governance.riskManagementScore}%</p>
-            </div>
-
-            <div class="mt-4 pt-4 border-t">
-              <p class="font-bold">Overall Score: {metrics.overallScore}%</p>
-              <p class="text-sm text-gray-500">Last Updated: {new Date(metrics.lastUpdated).toLocaleDateString()}</p>
-            </div>
-          </div>
-        </div>
+        <MetricCard
+          title="Environmental Metrics"
+          metrics={metrics.environmental}
+          type="environmental"
+        />
+        <MetricCard
+          title="Social Metrics"
+          metrics={metrics.social}
+          type="social"
+        />
+        <MetricCard
+          title="Governance Metrics"
+          metrics={metrics.governance}
+          type="governance"
+        />
       {/each}
     </div>
   {/if}
