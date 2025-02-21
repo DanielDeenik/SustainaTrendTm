@@ -9,6 +9,7 @@ sleep 5
 
 # Start FastAPI backend
 cd backend && ./start.sh &
+backend_pid=$!
 
 # Wait for backend to be ready - check port 8000
 echo "Waiting for backend to be ready..."
@@ -33,5 +34,5 @@ ORIGIN=http://localhost:3000 \
 HOST=0.0.0.0 \
 PORT=3000
 
-# Use a more focused watching strategy with Vite
-NODE_OPTIONS="--max-old-space-size=512" vite dev --host 0.0.0.0 --port 3000 --force
+# Use exec to replace the shell with the final command
+exec NODE_OPTIONS="--max-old-space-size=512" vite dev --host 0.0.0.0 --port 3000 --force

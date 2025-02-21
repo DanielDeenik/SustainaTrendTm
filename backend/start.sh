@@ -9,4 +9,4 @@ pkill -f "uvicorn main:app" || true
 sleep 5
 
 # Start the FastAPI server with proper host binding and minimal workers
-uvicorn main:app --host 0.0.0.0 --port 8000 --reload --workers 1 --reload-dir /home/runner/workspace/backend
+exec uvicorn main:app --host 0.0.0.0 --port 8000 --reload --workers 1 --reload-dir /home/runner/workspace/backend
