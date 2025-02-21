@@ -2,16 +2,15 @@
   import { fade } from 'svelte/transition';
   import { onMount } from 'svelte';
   import type { Metric } from '$lib/types/schema';
+  import { config } from '$lib/config';
 
   let metrics: Metric[] = [];
   let loading = true;
   let error: string | null = null;
 
-  const BACKEND_URL = import.meta.env.VITE_BACKEND_URL || 'http://localhost:8000';
-
   onMount(async () => {
     try {
-      const response = await fetch(`${BACKEND_URL}/api/metrics`);
+      const response = await fetch(`${config.apiUrl}/api/metrics`);
       if (!response.ok) {
         throw new Error(`HTTP error! status: ${response.status}`);
       }

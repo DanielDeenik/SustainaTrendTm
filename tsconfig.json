@@ -8,7 +8,9 @@
     "skipLibCheck": true,
     "sourceMap": true,
     "strict": true,
+    "module": "esnext",
     "moduleResolution": "bundler",
+    "target": "esnext",
     "paths": {
       "$lib": ["./src/lib"],
       "$lib/*": ["./src/lib/*"]

@@ -13,6 +13,7 @@ mkdir -p logs
 
 # Ensure backend start.sh is executable
 chmod +x backend/start.sh
+chmod +x backend/main.py
 
 # Start FastAPI backend with proper logging
 cd backend && ./start.sh > ../logs/backend.log 2>&1 &
@@ -33,9 +34,6 @@ while ! nc -z localhost 8000; do
 done
 echo "Backend is ready!"
 
-# Navigate back to root directory
-cd ..
-
 # Set environment variables for frontend
 export VITE_BACKEND_URL="http://localhost:8000"
 export NODE_ENV=development
@@ -43,5 +41,6 @@ export ORIGIN=http://localhost:3000
 export HOST=0.0.0.0
 export PORT=3000
 
-# Start the frontend application with proper logging
-npm run dev -- --host 0.0.0.0 --port 3000 > logs/frontend.log 2>&1
+# Return to project root and start frontend
+cd ..
+exec npm run dev -- --host 0.0.0.0 --port 3000
