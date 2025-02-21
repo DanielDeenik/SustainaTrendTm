@@ -1,11 +1,15 @@
 #!/bin/bash
+set -e
 
-# Kill any existing process on ports (using pkill instead of lsof)
+# Kill any existing processes on ports
 pkill -f "uvicorn main:app" || true
 pkill -f "vite" || true
 
-# Wait a moment for ports to clear
-sleep 5
+# Wait for ports to clear
+sleep 2
+
+# Ensure backend start.sh is executable
+chmod +x backend/start.sh
 
 # Start FastAPI backend
 cd backend && ./start.sh &
@@ -26,7 +30,6 @@ done
 echo "Backend is ready!"
 
 # Start the SvelteKit application with proper environment variables
-echo "Starting SvelteKit application..."
 cd ..
 export VITE_BACKEND_URL="http://localhost:8000" \
 NODE_ENV=development \
@@ -35,4 +38,4 @@ HOST=0.0.0.0 \
 PORT=3000
 
 # Use exec to replace the shell with the final command
-exec NODE_OPTIONS="--max-old-space-size=512" vite dev --host 0.0.0.0 --port 3000 --force
+exec npm run dev -- --host 0.0.0.0 --port 3000
