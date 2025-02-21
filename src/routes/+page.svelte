@@ -5,13 +5,19 @@
 
   let metrics: Metric[] = [];
   let loading = true;
+  let error: string | null = null;
 
   onMount(async () => {
     try {
-      const response = await fetch('/api/metrics');
+      const response = await fetch('http://localhost:8000/api/metrics');
+      if (!response.ok) {
+        throw new Error(`HTTP error! status: ${response.status}`);
+      }
       metrics = await response.json();
-    } catch (error) {
-      console.error('Error fetching metrics:', error);
+      console.log('Fetched metrics:', metrics);
+    } catch (err) {
+      console.error('Error fetching metrics:', err);
+      error = err instanceof Error ? err.message : 'Failed to load metrics';
     } finally {
       loading = false;
     }
@@ -42,6 +48,15 @@
     {#if loading}
       <div class="flex justify-center items-center h-64">
         <div class="animate-spin rounded-full h-12 w-12 border-b-2 border-primary"></div>
+      </div>
+    {:else if error}
+      <div class="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded relative" role="alert">
+        <strong class="font-bold">Error!</strong>
+        <span class="block sm:inline"> {error}</span>
+      </div>
+    {:else if Object.keys(metricsByCategory).length === 0}
+      <div class="text-center py-12">
+        <p class="text-gray-500 dark:text-gray-400">No metrics data available.</p>
       </div>
     {:else}
       <!-- Metrics Grid -->

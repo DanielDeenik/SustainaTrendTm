@@ -1,5 +1,11 @@
 #!/bin/bash
 
+# Start FastAPI backend
+cd backend && ./start.sh &
+
+# Wait for backend to start
+sleep 5
+
 # Start the SvelteKit application
 echo "Starting SvelteKit application..."
 NODE_OPTIONS="--experimental-modules" \

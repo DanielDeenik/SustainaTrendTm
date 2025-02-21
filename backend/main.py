@@ -23,10 +23,10 @@ logger = logging.getLogger(__name__)
 # Initialize FastAPI app
 app = FastAPI(title="Sustainability Intelligence API")
 
-# Configure CORS
+# Configure CORS to allow frontend requests
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["*"],
+    allow_origins=["http://localhost:3000", "http://0.0.0.0:3000"],
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
@@ -46,10 +46,12 @@ async def get_metrics(
     db: Session = Depends(get_db)
 ):
     try:
+        logger.info(f"Fetching metrics with category filter: {category}")
         query = db.query(MetricModel)
         if category:
             query = query.filter(MetricModel.category == category)
         metrics = query.order_by(MetricModel.timestamp.desc()).all()
+        logger.info(f"Found {len(metrics)} metrics")
         return metrics
     except Exception as e:
         logger.error(f"Error fetching metrics: {str(e)}")
@@ -61,7 +63,7 @@ async def create_metric(
     db: Session = Depends(get_db)
 ):
     try:
-        metric_data = metric.model_dump()  # Using model_dump instead of deprecated dict()
+        metric_data = metric.model_dump()
         logger.info(f"Processing metric data: {metric_data}")
 
         db_metric = MetricModel(**metric_data)
@@ -79,4 +81,4 @@ async def create_metric(
 
 if __name__ == "__main__":
     import uvicorn
-    uvicorn.run(app, host="0.0.0.0", port=8000)
+    uvicorn.run(app, host="0.0.0.0", port=8000, reload=True)
