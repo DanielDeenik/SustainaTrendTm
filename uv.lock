@@ -253,12 +253,12 @@ dependencies = [
 
 [package.metadata]
 requires-dist = [
-    { name = "fastapi", specifier = ">=0.115.8" },
-    { name = "psycopg2-binary", specifier = ">=2.9.10" },
-    { name = "pydantic", specifier = ">=2.10.6" },
-    { name = "python-dotenv", specifier = ">=1.0.1" },
-    { name = "sqlalchemy", specifier = ">=2.0.38" },
-    { name = "uvicorn", specifier = ">=0.34.0" },
+    { name = "fastapi", specifier = "==0.115.8" },
+    { name = "psycopg2-binary", specifier = "==2.9.10" },
+    { name = "pydantic", specifier = "==2.10.6" },
+    { name = "python-dotenv", specifier = "==1.0.1" },
+    { name = "sqlalchemy", specifier = "==2.0.38" },
+    { name = "uvicorn", specifier = "==0.34.0" },
 ]
 
 [[package]]

@@ -1,83 +1,154 @@
 import os
-from fastapi import FastAPI, HTTPException, Depends
+from fastapi import FastAPI, HTTPException, Depends, Request
 from fastapi.middleware.cors import CORSMiddleware
 from datetime import datetime
-import logging
 import sys
 from typing import List, Optional
 from sqlalchemy.orm import Session
 
 from models import MetricModel, MetricCreate, Metric
 from database import get_db, init_db
-
-# Configure logging
-logging.basicConfig(
-    level=logging.INFO,
-    format='%(asctime)s - %(name)s - %(levelname)s - %(message)s',
-    handlers=[
-        logging.StreamHandler(sys.stdout)
-    ]
-)
-logger = logging.getLogger(__name__)
+from middleware.logging import RequestLoggingMiddleware
+from middleware.error_handler import http_exception_handler, generic_exception_handler
+from utils.logger import logger
 
 # Initialize FastAPI app
 app = FastAPI(title="Sustainability Intelligence API")
 
-# Configure CORS to allow frontend requests
+# Add middleware
+app.add_middleware(RequestLoggingMiddleware)
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["*"],  # Allow all origins in development
+    allow_origins=["http://localhost:3000", "http://0.0.0.0:3000"],
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
 )
 
+# Add exception handlers
+app.add_exception_handler(HTTPException, http_exception_handler)
+app.add_exception_handler(Exception, generic_exception_handler)
+
 # Initialize database tables
-init_db()
-logger.info("Database tables initialized")
+try:
+    init_db()
+    logger.info("Database tables initialized successfully")
+except Exception as e:
+    logger.error("Failed to initialize database", exc_info=True)
+    raise
 
 @app.get("/")
-async def read_root():
-    return {"message": "Welcome to Sustainability Intelligence API"}
+async def read_root(request: Request):
+    logger.info(
+        "Health check request",
+        extra={
+            "extra_data": {
+                "request_id": request.state.request_id
+            }
+        }
+    )
+    return {
+        "message": "Welcome to Sustainability Intelligence API",
+        "status": "healthy",
+        "request_id": request.state.request_id
+    }
 
 @app.get("/api/metrics", response_model=List[Metric])
 async def get_metrics(
+    request: Request,
     category: Optional[str] = None,
     db: Session = Depends(get_db)
 ):
     try:
-        logger.info(f"Fetching metrics with category filter: {category}")
+        logger.info(
+            "Fetching metrics",
+            extra={
+                "extra_data": {
+                    "request_id": request.state.request_id,
+                    "category": category
+                }
+            }
+        )
+
         query = db.query(MetricModel)
         if category:
             query = query.filter(MetricModel.category == category)
         metrics = query.order_by(MetricModel.timestamp.desc()).all()
-        logger.info(f"Found {len(metrics)} metrics")
+
+        logger.info(
+            "Metrics fetched successfully",
+            extra={
+                "extra_data": {
+                    "request_id": request.state.request_id,
+                    "count": len(metrics)
+                }
+            }
+        )
         return metrics
     except Exception as e:
-        logger.error(f"Error fetching metrics: {str(e)}")
-        raise HTTPException(status_code=500, detail=str(e))
+        logger.error(
+            "Error fetching metrics",
+            extra={
+                "extra_data": {
+                    "request_id": request.state.request_id,
+                    "error": str(e)
+                }
+            },
+            exc_info=True
+        )
+        raise HTTPException(
+            status_code=500,
+            detail=f"Internal server error: {str(e)}"
+        )
 
 @app.post("/api/metrics", response_model=Metric)
 async def create_metric(
+    request: Request,
     metric: MetricCreate,
     db: Session = Depends(get_db)
 ):
     try:
-        metric_data = metric.model_dump()
-        logger.info(f"Processing metric data: {metric_data}")
+        logger.info(
+            "Creating new metric",
+            extra={
+                "extra_data": {
+                    "request_id": request.state.request_id,
+                    "metric_data": metric.dict(exclude_unset=True)
+                }
+            }
+        )
 
-        db_metric = MetricModel(**metric_data)
-        logger.info(f"Created MetricModel instance")
-
+        db_metric = MetricModel(**metric.dict())
         db.add(db_metric)
         db.commit()
         db.refresh(db_metric)
 
+        logger.info(
+            "Metric created successfully",
+            extra={
+                "extra_data": {
+                    "request_id": request.state.request_id,
+                    "metric_id": db_metric.id
+                }
+            }
+        )
         return db_metric
     except Exception as e:
-        logger.error(f"Error creating metric: {str(e)}")
+        logger.error(
+            "Error creating metric",
+            extra={
+                "extra_data": {
+                    "request_id": request.state.request_id,
+                    "error": str(e)
+                }
+            },
+            exc_info=True
+        )
         db.rollback()
-        raise HTTPException(status_code=500, detail=str(e))
+        raise HTTPException(
+            status_code=500,
+            detail=f"Failed to create metric: {str(e)}"
+        )
 
 if __name__ == "__main__":
     import uvicorn
