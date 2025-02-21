@@ -2,11 +2,15 @@ from fastapi import Request
 from starlette.middleware.base import BaseHTTPMiddleware
 import time
 import uuid
-from utils.logger import logger
-from typing import Optional
+from backend.utils.logger import logger
+from typing import Optional, Callable
+from starlette.types import ASGIApp
 
 class RequestLoggingMiddleware(BaseHTTPMiddleware):
-    async def dispatch(self, request: Request, call_next):
+    def __init__(self, app: ASGIApp):
+        super().__init__(app)
+
+    async def dispatch(self, request: Request, call_next: Callable):
         request_id = str(uuid.uuid4())
         start_time = time.time()
 

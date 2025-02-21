@@ -4,93 +4,70 @@ from pydantic import ValidationError
 from typing import Union, Dict, Any
 from backend.utils.logger import logger
 
-async def http_exception_handler(request: Request, exc: HTTPException) -> JSONResponse:
-    """Handle HTTP exceptions with proper error formatting"""
-    error_detail = {
-        "status_code": exc.status_code,
-        "detail": str(exc.detail),
-        "type": "http_error",
-        "request_id": getattr(request.state, "request_id", None)
-    }
-
-    logger.error(
-        f"HTTP Exception: {exc.status_code}",
-        extra={
-            "extra_data": error_detail
+async def error_handler(request: Request, exc: Exception) -> JSONResponse:
+    """Unified error handler for all exceptions"""
+    if isinstance(exc, HTTPException):
+        status_code = exc.status_code
+        message = str(exc.detail)
+        error_type = "http_error"
+        logger_level = logger.error
+    elif isinstance(exc, ValidationError):
+        status_code = status.HTTP_422_UNPROCESSABLE_ENTITY
+        message = "Validation error"
+        error_type = "validation_error"
+        errors = exc.errors()
+        logger_level = logger.error
+        
+        error_response = {
+            "error": {
+                "message": message,
+                "status": status_code,
+                "errors": errors,
+                "request_id": getattr(request.state, "request_id", None)
+            }
         }
-    )
 
-    return JSONResponse(
-        status_code=exc.status_code,
-        content=error_detail
-    )
-
-async def validation_exception_handler(request: Request, exc: ValidationError) -> JSONResponse:
-    """Handle validation errors with detailed feedback"""
-    error_detail = {
-        "status_code": status.HTTP_422_UNPROCESSABLE_ENTITY,
-        "detail": "Validation error",
-        "type": "validation_error",
-        "errors": [{"field": ".".join(map(str, e["loc"])), "message": e["msg"]} for e in exc.errors()],
-        "request_id": getattr(request.state, "request_id", None)
-    }
-
-    logger.error(
-        "Validation error",
-        extra={
-            "extra_data": error_detail
+    elif isinstance(exc, Exception) and status_code == status.HTTP_404_NOT_FOUND:
+        status_code = status.HTTP_404_NOT_FOUND
+        message = "The requested resource could not be found"
+        error_type = "not_found"
+        logger_level = logger.warning
+        error_response = {
+            "error": {
+                "message": message,
+                "status": status_code,
+                "path": request.url.path,
+                "request_id": getattr(request.state, "request_id", None)
+            }
         }
-    )
 
-    return JSONResponse(
-        status_code=status.HTTP_422_UNPROCESSABLE_ENTITY,
-        content=error_detail
-    )
-
-async def not_found_exception_handler(request: Request) -> JSONResponse:
-    """Handle 404 Not Found errors with a user-friendly message"""
-    error_detail = {
-        "status_code": status.HTTP_404_NOT_FOUND,
-        "detail": "The requested resource could not be found",
-        "type": "not_found",
-        "path": request.url.path,
-        "request_id": getattr(request.state, "request_id", None)
-    }
-
-    logger.warning(
-        f"Resource not found: {request.url.path}",
-        extra={
-            "extra_data": error_detail
+    else:
+        status_code = status.HTTP_500_INTERNAL_SERVER_ERROR
+        message = "Internal server error"
+        error_type = "server_error"
+        logger_level = logger.error
+        error_response = {
+            "error": {
+                "message": message,
+                "status": status_code,
+                "request_id": getattr(request.state, "request_id", None)
+            }
         }
-    )
 
-    return JSONResponse(
-        status_code=status.HTTP_404_NOT_FOUND,
-        content=error_detail
-    )
-
-async def generic_exception_handler(request: Request, exc: Exception) -> JSONResponse:
-    """Handle any unhandled exceptions with a safe error response"""
-    error_detail = {
-        "status_code": status.HTTP_500_INTERNAL_SERVER_ERROR,
-        "detail": "An unexpected error occurred",
-        "type": "server_error",
-        "request_id": getattr(request.state, "request_id", None)
-    }
-
-    logger.error(
-        "Unhandled exception",
+    logger_level(
+        f"{error_type.replace('_',' ').title()}: {message}",
         extra={
             "extra_data": {
-                **error_detail,
+                **error_response["error"],
                 "error_type": exc.__class__.__name__,
                 "error_message": str(exc)
             }
         },
-        exc_info=True
+        exc_info=isinstance(exc, Exception) and status_code == 500
     )
 
+
     return JSONResponse(
-        status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-        content=error_detail
+        status_code=status_code,
+        content=error_response
     )
