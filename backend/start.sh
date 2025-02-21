@@ -2,5 +2,11 @@
 # Install Python dependencies if needed
 pip install fastapi uvicorn psycopg2-binary pydantic python-dotenv sqlalchemy
 
-# Start the FastAPI server
-uvicorn main:app --host 0.0.0.0 --port 8000 --reload
+# Forcefully kill any existing uvicorn processes
+pkill -f "uvicorn main:app" || true
+
+# Wait longer to ensure port is freed
+sleep 5
+
+# Start the FastAPI server with proper host binding
+uvicorn main:app --host 0.0.0.0 --port 8000 --reload --workers 1
