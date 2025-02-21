@@ -7,9 +7,11 @@
   let loading = true;
   let error: string | null = null;
 
+  const BACKEND_URL = import.meta.env.VITE_BACKEND_URL || 'http://localhost:8000';
+
   onMount(async () => {
     try {
-      const response = await fetch('http://localhost:8000/api/metrics');
+      const response = await fetch(`${BACKEND_URL}/api/metrics`);
       if (!response.ok) {
         throw new Error(`HTTP error! status: ${response.status}`);
       }
