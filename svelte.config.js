@@ -7,7 +7,19 @@ const config = {
 		adapter: adapter(),
 		csrf: {
 			checkOrigin: false,
-		}
+		},
+    // Add Vite configuration
+    vite: {
+      server: {
+        host: '0.0.0.0',
+        port: 3000,
+        strictPort: true,
+        // Allow Replit domain
+        hmr: {
+          clientPort: 443
+        }
+      }
+    }
 	},
 	preprocess: vitePreprocess()
 };
