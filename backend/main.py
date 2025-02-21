@@ -1,12 +1,13 @@
-import uuid
+import os
 from fastapi import FastAPI, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
 from datetime import datetime
-from typing import List
-import uvicorn
 import logging
 import sys
-from models import SustainabilityMetrics
+import psycopg2
+from psycopg2.extras import RealDictCursor
+from typing import List, Optional
+from pydantic import BaseModel
 
 # Configure logging
 logging.basicConfig(
@@ -20,59 +21,93 @@ logger = logging.getLogger(__name__)
 
 app = FastAPI(title="Sustainability Intelligence API")
 
-# Configure CORS with more specific settings
+# Configure CORS
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["*"],  # Allow all origins in development
+    allow_origins=["*"],
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
 )
 
-# In-memory storage for development
-sustainability_data: List[SustainabilityMetrics] = []
+# Database connection
+def get_db_connection():
+    try:
+        conn = psycopg2.connect(
+            os.environ["DATABASE_URL"],
+            cursor_factory=RealDictCursor
+        )
+        return conn
+    except Exception as e:
+        logger.error(f"Database connection error: {str(e)}")
+        raise HTTPException(status_code=500, detail="Database connection error")
+
+# Pydantic models for request/response
+class MetricBase(BaseModel):
+    name: str
+    category: str
+    value: float
+    unit: str
+    metadata: dict = {}
+
+class MetricCreate(MetricBase):
+    pass
+
+class Metric(MetricBase):
+    id: int
+    timestamp: datetime
 
 @app.get("/")
 async def read_root():
-    logger.info("Root endpoint accessed")
     return {"message": "Welcome to Sustainability Intelligence API"}
 
-@app.get("/api/sustainability/{company_id}")
-async def get_sustainability_metrics(company_id: str):
-    logger.info(f"Fetching metrics for company_id: {company_id}")
-    metrics = [m for m in sustainability_data if m.company_id == company_id]
-    if not metrics:
-        logger.warning(f"No metrics found for company_id: {company_id}")
-        raise HTTPException(status_code=404, detail="Metrics not found")
-    return metrics
-
-@app.post("/api/sustainability")
-async def create_sustainability_metrics(metrics: SustainabilityMetrics):
-    logger.info("Creating new sustainability metrics")
+@app.get("/api/metrics", response_model=List[Metric])
+async def get_metrics(category: Optional[str] = None):
     try:
-        metrics.id = str(uuid.uuid4())
-        metrics.last_updated = datetime.utcnow()
-        sustainability_data.append(metrics)
-        logger.info(f"Successfully created metrics with id: {metrics.id}")
+        conn = get_db_connection()
+        cur = conn.cursor()
+
+        if category:
+            cur.execute(
+                "SELECT * FROM metrics WHERE category = %s ORDER BY timestamp DESC",
+                (category,)
+            )
+        else:
+            cur.execute("SELECT * FROM metrics ORDER BY timestamp DESC")
+
+        metrics = cur.fetchall()
+        cur.close()
+        conn.close()
         return metrics
     except Exception as e:
-        logger.error(f"Error creating metrics: {str(e)}")
+        logger.error(f"Error fetching metrics: {str(e)}")
         raise HTTPException(status_code=500, detail=str(e))
 
-@app.put("/api/sustainability/{metrics_id}")
-async def update_sustainability_metrics(metrics_id: uuid.UUID, updated_metrics: SustainabilityMetrics):
-    for i, metrics in enumerate(sustainability_data):
-        if metrics.id == metrics_id:
-            updated_metrics.id = metrics_id
-            updated_metrics.last_updated = datetime.utcnow()
-            sustainability_data[i] = updated_metrics
-            return updated_metrics
-    raise HTTPException(status_code=404, detail="Metrics not found")
+@app.post("/api/metrics", response_model=Metric)
+async def create_metric(metric: MetricCreate):
+    try:
+        conn = get_db_connection()
+        cur = conn.cursor()
+
+        cur.execute(
+            """
+            INSERT INTO metrics (name, category, value, unit, metadata)
+            VALUES (%s, %s, %s, %s, %s)
+            RETURNING id, name, category, value, unit, metadata, timestamp
+            """,
+            (metric.name, metric.category, metric.value, metric.unit, metric.metadata)
+        )
+
+        new_metric = cur.fetchone()
+        conn.commit()
+        cur.close()
+        conn.close()
+
+        return new_metric
+    except Exception as e:
+        logger.error(f"Error creating metric: {str(e)}")
+        raise HTTPException(status_code=500, detail=str(e))
 
 if __name__ == "__main__":
-    try:
-        logger.info("Starting FastAPI server...")
-        uvicorn.run(app, host="0.0.0.0", port=8000, log_level="info")
-    except Exception as e:
-        logger.error(f"Failed to start server: {str(e)}")
-        sys.exit(1)
+    import uvicorn
+    uvicorn.run(app, host="0.0.0.0", port=8000)
