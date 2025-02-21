@@ -4,18 +4,16 @@ from sqlalchemy.orm import sessionmaker
 from sqlalchemy.ext.declarative import declarative_base
 import os
 from contextlib import contextmanager
-from urllib.parse import urlparse, parse_qs
 import time
 from typing import Optional
 
 # Configure logging
 logger = logging.getLogger(__name__)
 
-# Get database URL from environment and configure SSL
+# Get database URL from environment
 DATABASE_URL = os.environ["DATABASE_URL"]
-parsed_url = urlparse(DATABASE_URL)
 
-# Cloud-optimized database configuration
+# Create engine with optimized settings
 engine = create_engine(
     DATABASE_URL,
     # Connection pooling settings
@@ -26,14 +24,6 @@ engine = create_engine(
     # Performance settings
     echo=False,                   # Disable SQL logging in production
     future=True,                  # Use SQLAlchemy 2.0 features
-    connect_args={
-        "keepalives": 1,
-        "keepalives_idle": 30,
-        "keepalives_interval": 10,
-        "keepalives_count": 5,
-        "connect_timeout": 10,    # Connection timeout in seconds
-        "application_name": "sustainability_intelligence"
-    }
 )
 
 # Create sessionmaker with optimized settings
@@ -46,6 +36,19 @@ SessionLocal = sessionmaker(
 
 # Create Base class for declarative models
 Base = declarative_base()
+
+@contextmanager
+def get_db():
+    """Get database session with proper error handling"""
+    db = SessionLocal()
+    try:
+        yield db
+    except Exception as e:
+        logger.error(f"Database session error: {str(e)}")
+        db.rollback()
+        raise
+    finally:
+        db.close()
 
 def verify_db_connection(max_retries: int = 3, retry_delay: int = 1) -> bool:
     """
@@ -67,27 +70,8 @@ def verify_db_connection(max_retries: int = 3, retry_delay: int = 1) -> bool:
                 return False
     return False
 
-def verify_table_exists(table_name: str) -> bool:
-    """Verify if a table exists in the database"""
-    try:
-        inspector = inspect(engine)
-        return table_name in inspector.get_table_names()
-    except Exception as e:
-        logger.error(f"Error verifying table {table_name}: {str(e)}")
-        return False
-
-def verify_table_structure(table_name: str) -> bool:
-    """Verify if a table has the correct structure"""
-    try:
-        inspector = inspect(engine)
-        columns = inspector.get_columns(table_name)
-        return len(columns) > 0
-    except Exception as e:
-        logger.error(f"Error verifying table structure for {table_name}: {str(e)}")
-        return False
-
 def init_db():
-    """Initialize database with proper error handling and verification"""
+    """Initialize database with proper error handling"""
     try:
         logger.info("Starting database initialization...")
 
@@ -97,33 +81,7 @@ def init_db():
 
         # Create tables if they don't exist
         Base.metadata.create_all(bind=engine)
-
-        # Verify critical tables
-        tables_to_verify = ['metrics', 'reports', 'analyses']
-        for table in tables_to_verify:
-            if verify_table_exists(table):
-                logger.info(f"Table '{table}' exists")
-                if verify_table_structure(table):
-                    logger.info(f"Table '{table}' structure verified")
-                else:
-                    raise Exception(f"Table '{table}' structure verification failed")
-            else:
-                raise Exception(f"Table '{table}' was not created properly")
-
         logger.info("Database initialization completed successfully")
     except Exception as e:
         logger.error(f"Database initialization failed: {str(e)}")
         raise
-
-@contextmanager
-def get_db():
-    """Get database session with proper error handling"""
-    db = SessionLocal()
-    try:
-        yield db
-    except Exception as e:
-        logger.error(f"Database session error: {str(e)}")
-        db.rollback()
-        raise
-    finally:
-        db.close()

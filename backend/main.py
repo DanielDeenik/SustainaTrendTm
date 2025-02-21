@@ -13,7 +13,7 @@ from backend.middleware.error_handler import (
     validation_exception_handler,
     generic_exception_handler
 )
-from backend.routes import metrics
+from backend.routes.metrics import router as metrics_router
 from backend.utils.logger import logger
 
 # Initialize FastAPI app
@@ -60,8 +60,12 @@ for attempt in range(MAX_RETRIES):
             logger.error(f"Database initialization failed after {MAX_RETRIES} attempts: {str(e)}")
             raise
 
-# Include routers
-app.include_router(metrics.router, prefix="/api")
+# Include routers with explicit prefix and tags
+app.include_router(
+    metrics_router,
+    prefix="/api",
+    tags=["metrics"]
+)
 
 @app.get("/health")
 async def health_check() -> Dict[str, Any]:
