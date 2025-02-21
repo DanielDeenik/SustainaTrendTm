@@ -1,21 +1,35 @@
 <script lang="ts">
   import "../app.css";
+  import { fade } from 'svelte/transition';
+  import ErrorBoundary from '$lib/components/ErrorBoundary.svelte';
+  import { dev } from '$app/environment';
+  import { logger } from '$lib/services/logger';
+
+  // Log application startup
+  logger.info('Application initialized', { dev });
 </script>
 
-<div class="min-h-screen bg-white dark:bg-gray-900">
-  <header class="border-b border-gray-200 dark:border-gray-800">
-    <nav class="container mx-auto px-4 py-4">
-      <h1 class="text-2xl font-bold text-primary">Sustainability Intelligence</h1>
-    </nav>
-  </header>
+<ErrorBoundary>
+  <div class="min-h-screen bg-white dark:bg-gray-900" in:fade>
+    <header class="bg-white dark:bg-gray-800 shadow">
+      <nav class="max-w-7xl mx-auto px-4 py-4 flex items-center justify-between">
+        <h1 class="text-2xl font-bold text-primary">Sustainability Intelligence</h1>
+        <div class="flex gap-4">
+          <a href="/" class="text-gray-600 hover:text-primary dark:text-gray-300">Dashboard</a>
+          <a href="/metrics" class="text-gray-600 hover:text-primary dark:text-gray-300">Metrics</a>
+          <a href="/reports" class="text-gray-600 hover:text-primary dark:text-gray-300">Reports</a>
+        </div>
+      </nav>
+    </header>
 
-  <main class="container mx-auto px-4 py-8">
-    <slot />
-  </main>
+    <main class="max-w-7xl mx-auto px-4 py-8">
+      <slot />
+    </main>
 
-  <footer class="border-t border-gray-200 dark:border-gray-800 mt-auto">
-    <div class="container mx-auto px-4 py-4 text-center text-gray-600 dark:text-gray-400">
-      © {new Date().getFullYear()} Sustainability Intelligence Platform
-    </div>
-  </footer>
-</div>
+    <footer class="border-t border-gray-200 dark:border-gray-800 mt-auto">
+      <div class="max-w-7xl mx-auto px-4 py-4 text-center text-gray-600 dark:text-gray-400">
+        © {new Date().getFullYear()} Sustainability Intelligence Platform
+      </div>
+    </footer>
+  </div>
+</ErrorBoundary>

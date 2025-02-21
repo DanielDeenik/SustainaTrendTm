@@ -10,6 +10,7 @@
   "license": "ISC",
   "description": "",
   "dependencies": {
+    "@anthropic-ai/sdk": "^0.36.3",
     "@neondatabase/serverless": "^0.10.4",
     "@sveltejs/adapter-auto": "^4.0.0",
     "@sveltejs/adapter-node": "^5.2.12",

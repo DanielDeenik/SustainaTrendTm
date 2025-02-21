@@ -3,55 +3,68 @@ from starlette.middleware.base import BaseHTTPMiddleware
 import time
 import uuid
 from utils.logger import logger
+from typing import Optional
 
 class RequestLoggingMiddleware(BaseHTTPMiddleware):
     async def dispatch(self, request: Request, call_next):
         request_id = str(uuid.uuid4())
         start_time = time.time()
-        
+
         # Add request_id to request state
         request.state.request_id = request_id
-        
+
+        # Extract useful request information
+        request_info = {
+            "request_id": request_id,
+            "method": request.method,
+            "url": str(request.url),
+            "client_host": request.client.host if request.client else None,
+            "user_agent": request.headers.get("user-agent"),
+            "referer": request.headers.get("referer"),
+        }
+
         # Log request details
         logger.info(
             "Incoming request",
             extra={
-                "extra_data": {
-                    "request_id": request_id,
-                    "method": request.method,
-                    "url": str(request.url),
-                    "client_host": request.client.host if request.client else None,
-                }
+                "extra_data": request_info
             }
         )
-        
+
         try:
+            # Process the request
             response = await call_next(request)
             process_time = time.time() - start_time
-            
+
             # Log response details
-            logger.info(
+            response_info = {
+                **request_info,
+                "status_code": response.status_code,
+                "process_time_ms": round(process_time * 1000, 2)
+            }
+
+            log_level = "error" if response.status_code >= 500 else "warning" if response.status_code >= 400 else "info"
+            getattr(logger, log_level)(
                 "Request completed",
                 extra={
-                    "extra_data": {
-                        "request_id": request_id,
-                        "status_code": response.status_code,
-                        "process_time_ms": round(process_time * 1000, 2)
-                    }
+                    "extra_data": response_info
                 }
             )
-            
-            # Add request ID to response headers
+
+            # Add request ID and timing headers
             response.headers["X-Request-ID"] = request_id
+            response.headers["X-Process-Time"] = str(process_time)
             return response
-            
+
         except Exception as e:
+            process_time = time.time() - start_time
             logger.error(
                 "Request failed",
                 extra={
                     "extra_data": {
-                        "request_id": request_id,
-                        "error": str(e)
+                        **request_info,
+                        "error": str(e),
+                        "process_time_ms": round(process_time * 1000, 2)
                     }
                 },
                 exc_info=True

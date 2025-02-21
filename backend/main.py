@@ -5,15 +5,24 @@ from datetime import datetime
 import sys
 from typing import List, Optional
 from sqlalchemy.orm import Session
+from pydantic import ValidationError
 
 from models import MetricModel, MetricCreate, Metric
 from database import get_db, init_db
 from middleware.logging import RequestLoggingMiddleware
-from middleware.error_handler import http_exception_handler, generic_exception_handler
+from middleware.error_handler import (
+    http_exception_handler,
+    validation_exception_handler,
+    generic_exception_handler
+)
 from utils.logger import logger
 
 # Initialize FastAPI app
-app = FastAPI(title="Sustainability Intelligence API")
+app = FastAPI(
+    title="Sustainability Intelligence API",
+    description="API for sustainability metrics and reporting",
+    version="1.0.0"
+)
 
 # Add middleware
 app.add_middleware(RequestLoggingMiddleware)
@@ -27,6 +36,7 @@ app.add_middleware(
 
 # Add exception handlers
 app.add_exception_handler(HTTPException, http_exception_handler)
+app.add_exception_handler(ValidationError, validation_exception_handler)
 app.add_exception_handler(Exception, generic_exception_handler)
 
 # Initialize database tables
@@ -34,7 +44,11 @@ try:
     init_db()
     logger.info("Database tables initialized successfully")
 except Exception as e:
-    logger.error("Failed to initialize database", exc_info=True)
+    logger.error(
+        "Failed to initialize database",
+        extra={"error": str(e)},
+        exc_info=True
+    )
     raise
 
 @app.get("/")
@@ -50,7 +64,8 @@ async def read_root(request: Request):
     return {
         "message": "Welcome to Sustainability Intelligence API",
         "status": "healthy",
-        "request_id": request.state.request_id
+        "request_id": request.state.request_id,
+        "version": "1.0.0"
     }
 
 @app.get("/api/metrics", response_model=List[Metric])
@@ -72,7 +87,13 @@ async def get_metrics(
 
         query = db.query(MetricModel)
         if category:
+            if category not in {'emissions', 'water', 'energy', 'waste', 'social', 'governance'}:
+                raise HTTPException(
+                    status_code=400,
+                    detail=f"Invalid category: {category}"
+                )
             query = query.filter(MetricModel.category == category)
+
         metrics = query.order_by(MetricModel.timestamp.desc()).all()
 
         logger.info(
@@ -85,6 +106,8 @@ async def get_metrics(
             }
         )
         return metrics
+    except HTTPException:
+        raise
     except Exception as e:
         logger.error(
             "Error fetching metrics",
@@ -98,7 +121,7 @@ async def get_metrics(
         )
         raise HTTPException(
             status_code=500,
-            detail=f"Internal server error: {str(e)}"
+            detail="Internal server error while fetching metrics"
         )
 
 @app.post("/api/metrics", response_model=Metric)
@@ -133,6 +156,9 @@ async def create_metric(
             }
         )
         return db_metric
+    except ValidationError as e:
+        # Let the validation_exception_handler handle this
+        raise
     except Exception as e:
         logger.error(
             "Error creating metric",
@@ -147,7 +173,7 @@ async def create_metric(
         db.rollback()
         raise HTTPException(
             status_code=500,
-            detail=f"Failed to create metric: {str(e)}"
+            detail="Internal server error while creating metric"
         )
 
 if __name__ == "__main__":
