@@ -1,15 +1,24 @@
 from datetime import datetime
 from typing import Optional, Dict, Any
 from pydantic import BaseModel, Field, validator
-from sqlalchemy import Column, Integer, String, Float, DateTime, JSON
+from sqlalchemy import Column, Integer, String, Float, DateTime, JSON, ForeignKey
 from sqlalchemy.ext.declarative import declarative_base
 import json
 import logging
+from enum import Enum
 
 logger = logging.getLogger(__name__)
 
 # SQLAlchemy Models
 Base = declarative_base()
+
+class MetricCategory(str, Enum):
+    EMISSIONS = "emissions"
+    WATER = "water"
+    ENERGY = "energy"
+    WASTE = "waste"
+    SOCIAL = "social"
+    GOVERNANCE = "governance"
 
 class MetricModel(Base):
     __tablename__ = "metrics"
@@ -41,8 +50,8 @@ class MetricModel(Base):
 # Pydantic models for request/response validation
 class MetricBase(BaseModel):
     name: str = Field(..., min_length=1, description="Name of the metric")
-    category: str = Field(..., min_length=1, description="Category of the metric")
-    value: float = Field(..., description="Value of the metric")
+    category: MetricCategory = Field(..., description="Category of the metric")
+    value: float = Field(..., ge=0, description="Value of the metric")
     unit: str = Field(..., min_length=1, description="Unit of measurement")
     metric_metadata: Dict[str, Any] = Field(default_factory=dict, description="Additional metadata")
 
@@ -57,20 +66,10 @@ class MetricBase(BaseModel):
 
     class Config:
         from_attributes = True
+        use_enum_values = True
 
 class MetricCreate(MetricBase):
-    @validator('value')
-    def validate_value(cls, v):
-        if v < 0:
-            raise ValueError('Value cannot be negative')
-        return v
-
-    @validator('category')
-    def validate_category(cls, v):
-        valid_categories = {'emissions', 'water', 'energy', 'waste', 'social', 'governance'}
-        if v.lower() not in valid_categories:
-            raise ValueError(f'Invalid category. Must be one of: {", ".join(valid_categories)}')
-        return v.lower()
+    pass
 
 class Metric(MetricBase):
     id: int

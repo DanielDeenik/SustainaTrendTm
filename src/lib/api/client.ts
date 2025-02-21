@@ -16,8 +16,8 @@ export class APIError extends Error {
 const DEFAULT_TIMEOUT = 30000; // 30 seconds
 
 async function handleResponse(response: Response) {
-  const requestId = response.headers.get('X-Request-ID');
-  const processTime = response.headers.get('X-Process-Time');
+  const requestId = response.headers.get('X-Request-ID') || undefined;
+  const processTime = response.headers.get('X-Process-Time') || undefined;
 
   if (!response.ok) {
     let errorData;
@@ -30,7 +30,7 @@ async function handleResponse(response: Response) {
     const error = new APIError(
       errorData.message || 'An unexpected error occurred',
       response.status,
-      requestId || undefined,
+      requestId,
       errorData
     );
 
@@ -70,7 +70,7 @@ export async function apiRequest<T>(
     const data = await handleResponse(response);
     logger.info(`API request to ${endpoint} succeeded`, {
       requestId,
-      processTime: response.headers.get('X-Process-Time')
+      processTime: response.headers.get('X-Process-Time') || undefined
     });
     return data;
   } catch (error) {
