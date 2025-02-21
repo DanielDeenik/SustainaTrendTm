@@ -44,8 +44,5 @@ export HOST=0.0.0.0
 # Return to project root
 cd ..
 
-# Install missing dependencies
-npm install
-
-# Start Vite dev server
+# Start SvelteKit dev server
 exec npm run dev -- --host 0.0.0.0 --port 3000
