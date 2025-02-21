@@ -14,7 +14,6 @@ const config = {
         host: '0.0.0.0',
         port: 3000,
         strictPort: true,
-        // Allow Replit domain
         hmr: {
           clientPort: 443
         }

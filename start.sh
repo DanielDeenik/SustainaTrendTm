@@ -1,2 +1,2 @@
 #!/bin/bash
-npx vite dev --port 3000 --host 0.0.0.0
+npm run dev -- --host 0.0.0.0 --port 3000
