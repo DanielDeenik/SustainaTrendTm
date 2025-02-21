@@ -23,7 +23,7 @@ app = FastAPI(title="Sustainability Intelligence API")
 # Configure CORS with more specific settings
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["http://localhost:3001", "http://0.0.0.0:3001"],
+    allow_origins=["*"],  # Allow all origins in development
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],

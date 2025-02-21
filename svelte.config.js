@@ -8,16 +8,10 @@ const config = {
 		csrf: {
 			checkOrigin: false,
 		},
-    // Add Vite configuration
-    vite: {
-      server: {
-        host: '0.0.0.0',
-        port: 3000,
-        strictPort: true,
-        hmr: {
-          clientPort: 443
-        }
-      }
+    server: {
+      host: '0.0.0.0',
+      port: 3001,
+      strictPort: true,
     }
 	},
 	preprocess: vitePreprocess()
