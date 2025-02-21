@@ -4,14 +4,11 @@ from fastapi.middleware.cors import CORSMiddleware
 from datetime import datetime
 import logging
 import sys
-import json
 from typing import List, Optional
 from sqlalchemy.orm import Session
-from psycopg2.extras import Json
 
 from models import MetricModel, MetricCreate, Metric
-from database import get_db, engine, SessionLocal
-import models
+from database import get_db, init_db
 
 # Configure logging
 logging.basicConfig(
@@ -23,9 +20,7 @@ logging.basicConfig(
 )
 logger = logging.getLogger(__name__)
 
-# Create database tables
-models.Base.metadata.create_all(bind=engine)
-
+# Initialize FastAPI app
 app = FastAPI(title="Sustainability Intelligence API")
 
 # Configure CORS
@@ -36,6 +31,10 @@ app.add_middleware(
     allow_methods=["*"],
     allow_headers=["*"],
 )
+
+# Initialize database tables
+init_db()
+logger.info("Database tables initialized")
 
 @app.get("/")
 async def read_root():
@@ -62,23 +61,11 @@ async def create_metric(
     db: Session = Depends(get_db)
 ):
     try:
-        # Convert Pydantic model to dict
-        metric_data = metric.dict()
+        metric_data = metric.model_dump()  # Using model_dump instead of deprecated dict()
+        logger.info(f"Processing metric data: {metric_data}")
 
-        # Explicitly serialize the metadata to JSON string
-        metadata_json = json.dumps(metric_data['metadata'])
-        logger.info(f"Serialized metadata: {metadata_json}")
-
-        # Create database model instance with properly adapted JSON
-        db_metric = MetricModel(
-            name=metric_data['name'],
-            category=metric_data['category'],
-            value=metric_data['value'],
-            unit=metric_data['unit'],
-            metadata=Json(json.loads(metadata_json))  # Use psycopg2's Json adapter
-        )
-
-        logger.info(f"Created MetricModel instance with metadata type: {type(db_metric.metadata)}")
+        db_metric = MetricModel(**metric_data)
+        logger.info(f"Created MetricModel instance")
 
         db.add(db_metric)
         db.commit()

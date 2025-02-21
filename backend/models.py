@@ -1,11 +1,9 @@
 from datetime import datetime
 from typing import Optional, Dict, Any
-from uuid import UUID
 from pydantic import BaseModel, Field
-from sqlalchemy import Column, Integer, String, Float, DateTime, ForeignKey
+from sqlalchemy import Column, Integer, String, Float, DateTime
 from sqlalchemy.dialects.postgresql import JSONB
 from sqlalchemy.ext.declarative import declarative_base
-from sqlalchemy.orm import relationship
 
 # SQLAlchemy Models
 Base = declarative_base()
@@ -19,31 +17,7 @@ class MetricModel(Base):
     value = Column(Float, nullable=False)
     unit = Column(String, nullable=False)
     timestamp = Column(DateTime, default=datetime.utcnow)
-    metadata = Column(JSONB, nullable=False, server_default='{}')
-
-class ReportModel(Base):
-    __tablename__ = "reports"
-
-    id = Column(Integer, primary_key=True)
-    title = Column(String, nullable=False)
-    description = Column(String)
-    period_start = Column(DateTime, nullable=False)
-    period_end = Column(DateTime, nullable=False)
-    status = Column(String, nullable=False, default='draft')
-    created_at = Column(DateTime, default=datetime.utcnow)
-    data = Column(JSONB, nullable=False, server_default='{}')
-    analyses = relationship("AnalysisModel", back_populates="report")
-
-class AnalysisModel(Base):
-    __tablename__ = "analyses"
-
-    id = Column(Integer, primary_key=True)
-    report_id = Column(Integer, ForeignKey('reports.id'))
-    type = Column(String, nullable=False)
-    results = Column(JSONB, nullable=False, server_default='{}')
-    created_at = Column(DateTime, default=datetime.utcnow)
-    model_version = Column(String, nullable=False)
-    report = relationship("ReportModel", back_populates="analyses")
+    metric_metadata = Column(JSONB, nullable=True, server_default='{}')
 
 # Pydantic models for request/response validation
 class MetricBase(BaseModel):
@@ -51,13 +25,10 @@ class MetricBase(BaseModel):
     category: str
     value: float
     unit: str
-    metadata: Dict[str, Any] = Field(default_factory=dict)
+    metric_metadata: Dict[str, Any] = Field(default_factory=dict)
 
     class Config:
         from_attributes = True
-        json_encoders = {
-            datetime: lambda v: v.isoformat()
-        }
 
 class MetricCreate(MetricBase):
     pass
@@ -68,7 +39,11 @@ class Metric(MetricBase):
 
     class Config:
         from_attributes = True
+        json_encoders = {
+            datetime: lambda v: v.isoformat()
+        }
 
+# Domain-specific models for validation
 class EnvironmentalMetrics(BaseModel):
     carbon_emissions: float = Field(ge=0)
     energy_usage: float = Field(ge=0)
