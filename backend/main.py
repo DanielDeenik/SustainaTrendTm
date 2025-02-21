@@ -1,13 +1,17 @@
 import os
-from fastapi import FastAPI, HTTPException
+from fastapi import FastAPI, HTTPException, Depends
 from fastapi.middleware.cors import CORSMiddleware
 from datetime import datetime
 import logging
 import sys
-import psycopg2
-from psycopg2.extras import RealDictCursor, Json
+import json
 from typing import List, Optional
-from pydantic import BaseModel
+from sqlalchemy.orm import Session
+from psycopg2.extras import Json
+
+from models import MetricModel, MetricCreate, Metric
+from database import get_db, engine, SessionLocal
+import models
 
 # Configure logging
 logging.basicConfig(
@@ -18,6 +22,9 @@ logging.basicConfig(
     ]
 )
 logger = logging.getLogger(__name__)
+
+# Create database tables
+models.Base.metadata.create_all(bind=engine)
 
 app = FastAPI(title="Sustainability Intelligence API")
 
@@ -30,82 +37,57 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-# Database connection
-def get_db_connection():
-    try:
-        conn = psycopg2.connect(
-            os.environ["DATABASE_URL"],
-            cursor_factory=RealDictCursor
-        )
-        return conn
-    except Exception as e:
-        logger.error(f"Database connection error: {str(e)}")
-        raise HTTPException(status_code=500, detail="Database connection error")
-
-# Pydantic models for request/response
-class MetricBase(BaseModel):
-    name: str
-    category: str
-    value: float
-    unit: str
-    metadata: dict = {}
-
-class MetricCreate(MetricBase):
-    pass
-
-class Metric(MetricBase):
-    id: int
-    timestamp: datetime
-
 @app.get("/")
 async def read_root():
     return {"message": "Welcome to Sustainability Intelligence API"}
 
 @app.get("/api/metrics", response_model=List[Metric])
-async def get_metrics(category: Optional[str] = None):
+async def get_metrics(
+    category: Optional[str] = None,
+    db: Session = Depends(get_db)
+):
     try:
-        conn = get_db_connection()
-        cur = conn.cursor()
-
+        query = db.query(MetricModel)
         if category:
-            cur.execute(
-                "SELECT * FROM metrics WHERE category = %s ORDER BY timestamp DESC",
-                (category,)
-            )
-        else:
-            cur.execute("SELECT * FROM metrics ORDER BY timestamp DESC")
-
-        metrics = cur.fetchall()
-        cur.close()
-        conn.close()
+            query = query.filter(MetricModel.category == category)
+        metrics = query.order_by(MetricModel.timestamp.desc()).all()
         return metrics
     except Exception as e:
         logger.error(f"Error fetching metrics: {str(e)}")
         raise HTTPException(status_code=500, detail=str(e))
 
 @app.post("/api/metrics", response_model=Metric)
-async def create_metric(metric: MetricCreate):
+async def create_metric(
+    metric: MetricCreate,
+    db: Session = Depends(get_db)
+):
     try:
-        conn = get_db_connection()
-        cur = conn.cursor()
+        # Convert Pydantic model to dict
+        metric_data = metric.dict()
 
-        cur.execute(
-            """
-            INSERT INTO metrics (name, category, value, unit, metadata)
-            VALUES (%s, %s, %s, %s, %s)
-            RETURNING id, name, category, value, unit, metadata, timestamp
-            """,
-            (metric.name, metric.category, metric.value, metric.unit, Json(metric.metadata))
+        # Explicitly serialize the metadata to JSON string
+        metadata_json = json.dumps(metric_data['metadata'])
+        logger.info(f"Serialized metadata: {metadata_json}")
+
+        # Create database model instance with properly adapted JSON
+        db_metric = MetricModel(
+            name=metric_data['name'],
+            category=metric_data['category'],
+            value=metric_data['value'],
+            unit=metric_data['unit'],
+            metadata=Json(json.loads(metadata_json))  # Use psycopg2's Json adapter
         )
 
-        new_metric = cur.fetchone()
-        conn.commit()
-        cur.close()
-        conn.close()
+        logger.info(f"Created MetricModel instance with metadata type: {type(db_metric.metadata)}")
 
-        return new_metric
+        db.add(db_metric)
+        db.commit()
+        db.refresh(db_metric)
+
+        return db_metric
     except Exception as e:
         logger.error(f"Error creating metric: {str(e)}")
+        db.rollback()
         raise HTTPException(status_code=500, detail=str(e))
 
 if __name__ == "__main__":
