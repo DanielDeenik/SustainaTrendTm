@@ -11,10 +11,12 @@ from backend.middleware.logging import RequestLoggingMiddleware
 from backend.middleware.error_handler import (
     http_exception_handler,
     validation_exception_handler,
-    generic_exception_handler
+    generic_exception_handler,
+    not_found_exception_handler
 )
 from backend.routes.metrics import router as metrics_router
 from backend.utils.logger import logger
+from pydantic import ValidationError
 
 # Initialize FastAPI app
 app = FastAPI(
@@ -41,6 +43,8 @@ app.add_middleware(RequestLoggingMiddleware)
 
 # Add exception handlers
 app.add_exception_handler(HTTPException, http_exception_handler)
+app.add_exception_handler(ValidationError, validation_exception_handler)
+app.add_exception_handler(404, not_found_exception_handler)
 app.add_exception_handler(Exception, generic_exception_handler)
 
 # Initialize database with retries

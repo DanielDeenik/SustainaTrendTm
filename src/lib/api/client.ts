@@ -24,11 +24,17 @@ async function handleResponse(response: Response) {
     try {
       errorData = await response.json();
     } catch {
-      errorData = { message: 'Failed to parse error response' };
+      errorData = { 
+        detail: response.status === 404 ? 
+          'The requested resource was not found' : 
+          'An unexpected error occurred'
+      };
     }
 
+    const errorMessage = errorData.detail || errorData.message || 'An unexpected error occurred';
+
     const error = new APIError(
-      errorData.message || 'An unexpected error occurred',
+      errorMessage,
       response.status,
       requestId,
       errorData
@@ -38,7 +44,16 @@ async function handleResponse(response: Response) {
     throw error;
   }
 
-  return response.json();
+  try {
+    return await response.json();
+  } catch (error) {
+    logger.error('Failed to parse JSON response', { error, processTime }, requestId);
+    throw new APIError(
+      'Invalid response format from server',
+      response.status,
+      requestId
+    );
+  }
 }
 
 export async function apiRequest<T>(
@@ -82,8 +97,7 @@ export async function apiRequest<T>(
       const apiError = new APIError(
         'Request timed out',
         408,
-        requestId,
-        { originalError: error }
+        requestId
       );
       logger.error('API request timed out', apiError, requestId);
       throw apiError;
