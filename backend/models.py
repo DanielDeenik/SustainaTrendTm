@@ -57,9 +57,6 @@ class MetricBase(BaseModel):
 
     class Config:
         from_attributes = True
-        json_encoders = {
-            datetime: lambda v: v.isoformat()
-        }
 
 class MetricCreate(MetricBase):
     @validator('value')
@@ -79,13 +76,7 @@ class Metric(MetricBase):
     id: int
     timestamp: datetime
 
-    class Config:
-        from_attributes = True
-        json_encoders = {
-            datetime: lambda v: v.isoformat()
-        }
-
-# Keep other models unchanged below this line
+# Other models remain unchanged
 class EnvironmentalMetrics(BaseModel):
     carbon_emissions: float = Field(ge=0)
     energy_usage: float = Field(ge=0)

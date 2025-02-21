@@ -4,6 +4,7 @@ set -e
 # Kill any existing processes on ports
 pkill -f "uvicorn main:app" || true
 pkill -f "vite" || true
+pkill -f "node" || true
 
 # Wait for ports to clear
 sleep 2
@@ -39,8 +40,12 @@ export VITE_BACKEND_URL="http://localhost:8000"
 export NODE_ENV=development
 export ORIGIN=http://localhost:3000
 export HOST=0.0.0.0
-export PORT=3000
 
-# Return to project root and start frontend
+# Return to project root
 cd ..
+
+# Install missing dependencies
+npm install
+
+# Start Vite dev server
 exec npm run dev -- --host 0.0.0.0 --port 3000
