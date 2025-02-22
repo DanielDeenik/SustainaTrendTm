@@ -15,8 +15,8 @@
   async function fetchReports() {
     try {
       loading = true;
-      reports = await apiRequest<Report[]>('/api/reports');
       error = null;
+      reports = await apiRequest<Report[]>('/api/reports');
     } catch (err) {
       console.error('Error fetching reports:', err);
       error = err instanceof Error ? err : new Error('Failed to load reports');
@@ -25,7 +25,7 @@
     }
   }
 
-  onMount(fetchReports);
+  onMount(() => fetchReports());
 
   function formatDate(dateString: string): string {
     return new Date(dateString).toLocaleDateString('en-US', {
@@ -55,14 +55,19 @@
     <Loading size="lg" />
   {:else if error}
     <Alert variant="error">
-      <strong class="font-bold">Error!</strong>
-      <span class="block sm:inline ml-2">{error.message}</span>
-      <button
-        class="mt-4 bg-red-500 text-white px-4 py-2 rounded hover:bg-red-600"
-        on:click={fetchReports}
-      >
-        Retry
-      </button>
+      <div class="flex flex-col gap-2">
+        <div class="font-bold">Error Loading Reports</div>
+        <p>{error.message}</p>
+        {#if 'data' in error && error.data?.error}
+          <p class="text-sm opacity-75">{error.data.error}</p>
+        {/if}
+        <button
+          class="mt-4 bg-red-500 text-white px-4 py-2 rounded hover:bg-red-600 w-fit"
+          on:click={fetchReports}
+        >
+          Try Again
+        </button>
+      </div>
     </Alert>
   {:else if reports.length === 0}
     <Alert variant="default">

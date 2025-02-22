@@ -23,15 +23,19 @@ async function handleResponse(response: Response) {
     let errorData;
     try {
       errorData = await response.json();
+      // Handle our new error format
+      if (errorData.detail && typeof errorData.detail === 'object') {
+        errorData = errorData.detail;
+      }
     } catch {
       errorData = { 
-        detail: response.status === 404 ? 
+        message: response.status === 404 ? 
           'The requested resource was not found' : 
           'An unexpected error occurred'
       };
     }
 
-    const errorMessage = errorData.detail || errorData.message || 'An unexpected error occurred';
+    const errorMessage = errorData.message || errorData.detail || 'An unexpected error occurred';
 
     const error = new APIError(
       errorMessage,

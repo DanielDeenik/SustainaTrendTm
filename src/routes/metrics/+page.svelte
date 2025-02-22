@@ -16,11 +16,11 @@
   async function fetchMetrics(category?: string) {
     try {
       loading = true;
+      error = null;
       const endpoint = category 
         ? `/api/metrics?category=${encodeURIComponent(category)}`
         : '/api/metrics';
       metrics = await apiRequest<Metric[]>(endpoint);
-      error = null;
     } catch (err) {
       console.error('Error fetching metrics:', err);
       error = err instanceof Error ? err : new Error('Failed to load metrics');
@@ -66,14 +66,23 @@
     <Loading size="lg" />
   {:else if error}
     <Alert variant="error">
-      <strong class="font-bold">Error!</strong>
-      <span class="block sm:inline ml-2">{error.message}</span>
-      <button
-        class="mt-4 bg-red-500 text-white px-4 py-2 rounded hover:bg-red-600"
-        on:click={() => fetchMetrics(selectedCategory ?? undefined)}
-      >
-        Retry
-      </button>
+      <div class="flex flex-col gap-2">
+        <div class="font-bold">Error Loading Metrics</div>
+        <p>{error.message}</p>
+        {#if 'data' in error && error.data?.error}
+          <p class="text-sm opacity-75">{error.data.error}</p>
+        {/if}
+        <button
+          class="mt-4 bg-red-500 text-white px-4 py-2 rounded hover:bg-red-600 w-fit"
+          on:click={() => fetchMetrics(selectedCategory ?? undefined)}
+        >
+          Try Again
+        </button>
+      </div>
+    </Alert>
+  {:else if metrics.length === 0}
+    <Alert variant="default">
+      <p>No metrics available{selectedCategory ? ` for category: ${selectedCategory}` : ''}.</p>
     </Alert>
   {:else}
     <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
