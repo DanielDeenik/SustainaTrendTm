@@ -1,6 +1,7 @@
 <script lang="ts">
   import "../app.css";
   import { fade } from 'svelte/transition';
+  import Navigation from '$lib/components/Navigation.svelte';
   import ErrorBoundary from '$lib/components/ErrorBoundary.svelte';
   import { dev } from '$app/environment';
   import { logger } from '$lib/services/logger';
@@ -11,16 +12,7 @@
 
 <ErrorBoundary>
   <div class="min-h-screen bg-white dark:bg-gray-900" in:fade>
-    <header class="bg-white dark:bg-gray-800 shadow">
-      <nav class="max-w-7xl mx-auto px-4 py-4 flex items-center justify-between">
-        <h1 class="text-2xl font-bold text-primary">Sustainability Intelligence</h1>
-        <div class="flex gap-4">
-          <a href="/" class="text-gray-600 hover:text-primary dark:text-gray-300">Dashboard</a>
-          <a href="/metrics" class="text-gray-600 hover:text-primary dark:text-gray-300">Metrics</a>
-          <a href="/reports" class="text-gray-600 hover:text-primary dark:text-gray-300">Reports</a>
-        </div>
-      </nav>
-    </header>
+    <Navigation />
 
     <main class="max-w-7xl mx-auto px-4 py-8">
       <slot />

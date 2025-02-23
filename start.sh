@@ -41,8 +41,6 @@ export NODE_ENV=development
 export ORIGIN=http://localhost:3000
 export HOST=0.0.0.0
 
-# Return to project root
+# Return to project root and start the dev server
 cd /home/runner/workspace
-
-# Start SvelteKit dev server
-exec npm run dev -- --host 0.0.0.0 --port 3000
+npx vite dev --host 0.0.0.0 --port 3000
