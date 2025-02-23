@@ -19,11 +19,16 @@ async function handleResponse(response: Response) {
   const requestId = response.headers.get('X-Request-ID') || undefined;
   const processTime = response.headers.get('X-Process-Time') || undefined;
 
+  logger.debug('API Response received', {
+    status: response.status,
+    requestId,
+    processTime
+  });
+
   if (!response.ok) {
     let errorData;
     try {
       errorData = await response.json();
-      // Handle our new error format
       if (errorData.detail && typeof errorData.detail === 'object') {
         errorData = errorData.detail;
       }
@@ -36,7 +41,6 @@ async function handleResponse(response: Response) {
     }
 
     const errorMessage = errorData.message || errorData.detail || 'An unexpected error occurred';
-
     const error = new APIError(
       errorMessage,
       response.status,
@@ -49,7 +53,9 @@ async function handleResponse(response: Response) {
   }
 
   try {
-    return await response.json();
+    const data = await response.json();
+    logger.debug('API Response parsed successfully', { requestId });
+    return data;
   } catch (error) {
     logger.error('Failed to parse JSON response', { error, processTime }, requestId);
     throw new APIError(
@@ -69,12 +75,13 @@ export async function apiRequest<T>(
   const controller = new AbortController();
   const timeout = setTimeout(() => controller.abort(), DEFAULT_TIMEOUT);
 
-  try {
-    logger.info(`Making API request to ${endpoint}`, {
-      method: options.method || 'GET',
-      requestId
-    });
+  logger.debug(`Making API request`, {
+    url,
+    method: options.method || 'GET',
+    requestId
+  });
 
+  try {
     const response = await fetch(url, {
       ...options,
       signal: controller.signal,
@@ -87,9 +94,10 @@ export async function apiRequest<T>(
     });
 
     const data = await handleResponse(response);
-    logger.info(`API request to ${endpoint} succeeded`, {
+    logger.info(`API request succeeded`, {
+      url,
       requestId,
-      processTime: response.headers.get('X-Process-Time') || undefined
+      processTime: response.headers.get('X-Process-Time')
     });
     return data;
   } catch (error) {

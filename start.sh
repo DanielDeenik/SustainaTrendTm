@@ -42,5 +42,5 @@ export ORIGIN=http://0.0.0.0:3000
 export HOST=0.0.0.0
 export PORT=3000
 
-# Return to project root and start the dev server
-cd /home/runner/workspace && npm run dev -- --host 0.0.0.0 --port 3000
+# Return to project root and start the dev server with logging
+cd /home/runner/workspace && npm run dev -- --host 0.0.0.0 --port 3000 > logs/frontend.log 2>&1
