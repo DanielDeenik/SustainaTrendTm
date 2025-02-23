@@ -18,6 +18,7 @@
   },
   "include": [
     "vite.config.ts",
+    "vitest.config.ts",
     "src/**/*.js",
     "src/**/*.ts",
     "src/**/*.svelte"

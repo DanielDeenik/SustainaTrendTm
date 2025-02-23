@@ -1,8 +1,9 @@
 from fastapi import FastAPI, HTTPException, status
 from fastapi.middleware.cors import CORSMiddleware
-from typing import List
+from typing import List, Dict, Any
 from datetime import datetime
 import psycopg2
+from psycopg2.extras import RealDictCursor
 from psycopg2.errors import OperationalError
 
 from backend.models import Metric, MetricCreate
@@ -23,7 +24,7 @@ app.add_exception_handler(Exception, handle_error)
 # Add CORS middleware with proper configuration
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["http://localhost:3000", "http://0.0.0.0:3000"],
+    allow_origins=["*"],  # Allow all origins in development
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
@@ -42,8 +43,9 @@ async def root():
 async def get_metrics():
     """Get all metrics with improved error handling"""
     try:
+        metrics: List[Metric] = []
         with get_db() as conn:
-            with conn.cursor() as cur:
+            with conn.cursor(cursor_factory=RealDictCursor) as cur:
                 cur.execute("""
                     SELECT id, name, category, value, unit, timestamp, metric_metadata
                     FROM metrics 
@@ -51,36 +53,36 @@ async def get_metrics():
                 """)
                 rows = cur.fetchall()
 
-                metrics = []
                 for row in rows:
-                    metric = Metric(
-                        id=row['id'],
-                        name=row['name'],
-                        category=row['category'],
-                        value=float(row['value']),
-                        unit=row['unit'],
-                        timestamp=row['timestamp']
-                    )
-                    metrics.append(metric)
+                    if row is None:
+                        continue
+                    try:
+                        metric_dict: Dict[str, Any] = dict(row)
+                        metrics.append(Metric(
+                            id=metric_dict['id'],
+                            name=metric_dict['name'],
+                            category=metric_dict['category'],
+                            value=float(metric_dict['value']),
+                            unit=metric_dict['unit'],
+                            timestamp=metric_dict['timestamp']
+                        ))
+                    except (KeyError, ValueError) as e:
+                        logger.error(f"Error converting row to metric: {e}", extra={"row": row})
+                        continue
+
                 return metrics
 
     except OperationalError as e:
         logger.error("Database connection failed", extra={"error": str(e)})
         raise HTTPException(
             status_code=status.HTTP_503_SERVICE_UNAVAILABLE,
-            detail={
-                "message": "Database is currently unavailable",
-                "error": str(e)
-            }
+            detail="Database is currently unavailable"
         )
     except Exception as e:
         logger.error("Failed to fetch metrics", extra={"error": str(e)})
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-            detail={
-                "message": "Failed to fetch metrics",
-                "error": str(e)
-            }
+            detail="Failed to fetch metrics"
         )
 
 @app.post("/api/metrics", response_model=Metric, status_code=status.HTTP_201_CREATED)
@@ -88,7 +90,7 @@ async def create_metric(metric: MetricCreate):
     """Create a new metric with improved error handling"""
     try:
         with get_db() as conn:
-            with conn.cursor() as cur:
+            with conn.cursor(cursor_factory=RealDictCursor) as cur:
                 cur.execute(
                     """
                     INSERT INTO metrics (name, category, value, unit)
@@ -98,31 +100,33 @@ async def create_metric(metric: MetricCreate):
                     metric.model_dump()
                 )
                 row = cur.fetchone()
+                if row is None:
+                    raise HTTPException(
+                        status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+                        detail="Failed to create metric: No data returned"
+                    )
+
+                metric_dict: Dict[str, Any] = dict(row)
                 return Metric(
-                    id=row['id'],
-                    name=row['name'],
-                    category=row['category'],
-                    value=float(row['value']),
-                    unit=row['unit'],
-                    timestamp=row['timestamp']
+                    id=metric_dict['id'],
+                    name=metric_dict['name'],
+                    category=metric_dict['category'],
+                    value=float(metric_dict['value']),
+                    unit=metric_dict['unit'],
+                    timestamp=metric_dict['timestamp']
                 )
+
     except psycopg2.IntegrityError as e:
         logger.error("Invalid metric data", extra={"error": str(e)})
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,
-            detail={
-                "message": "Invalid metric data",
-                "error": str(e)
-            }
+            detail="Invalid metric data"
         )
     except Exception as e:
         logger.error("Failed to create metric", extra={"error": str(e)})
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-            detail={
-                "message": "Failed to create metric",
-                "error": str(e)
-            }
+            detail="Failed to create metric"
         )
 
 @app.on_event("startup")
