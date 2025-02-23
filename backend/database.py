@@ -1,7 +1,7 @@
 import os
 import logging
 from contextlib import contextmanager
-from typing import Dict, Any
+from typing import Dict, Any, Generator
 import psycopg2
 from psycopg2.extras import RealDictCursor
 from psycopg2.extensions import connection
@@ -28,7 +28,7 @@ def get_db_config() -> Dict[str, Any]:
     }
 
 @contextmanager
-def get_db() -> connection:
+def get_db() -> Generator[connection, None, None]:
     """Database connection context manager with improved error handling"""
     conn = None
     try:

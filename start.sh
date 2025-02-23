@@ -36,11 +36,11 @@ done
 echo "Backend is ready!"
 
 # Set environment variables for frontend
-export VITE_BACKEND_URL="http://localhost:8000"
+export VITE_BACKEND_URL="http://0.0.0.0:8000"
 export NODE_ENV=development
-export ORIGIN=http://localhost:3000
+export ORIGIN=http://0.0.0.0:3000
 export HOST=0.0.0.0
+export PORT=3000
 
 # Return to project root and start the dev server
-cd /home/runner/workspace
-npx vite dev --host 0.0.0.0 --port 3000
+cd /home/runner/workspace && npm run dev -- --host 0.0.0.0 --port 3000
