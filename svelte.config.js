@@ -7,6 +7,12 @@ const config = {
     adapter: adapter(),
     csrf: {
       checkOrigin: false,
+    },
+    paths: {
+      base: ''
+    },
+    alias: {
+      $lib: './src/lib'
     }
   },
   preprocess: vitePreprocess()

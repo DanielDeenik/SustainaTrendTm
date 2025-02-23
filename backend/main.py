@@ -20,10 +20,10 @@ app = FastAPI(
 # Add error handler
 app.add_exception_handler(Exception, handle_error)
 
-# Add CORS middleware
+# Add CORS middleware with proper configuration
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["*"],
+    allow_origins=["http://localhost:3000", "http://0.0.0.0:3000"],
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
@@ -65,6 +65,7 @@ async def get_metrics():
                 return metrics
 
     except OperationalError as e:
+        logger.error("Database connection failed", extra={"error": str(e)})
         raise HTTPException(
             status_code=status.HTTP_503_SERVICE_UNAVAILABLE,
             detail={
@@ -73,6 +74,7 @@ async def get_metrics():
             }
         )
     except Exception as e:
+        logger.error("Failed to fetch metrics", extra={"error": str(e)})
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
             detail={
@@ -105,6 +107,7 @@ async def create_metric(metric: MetricCreate):
                     timestamp=row['timestamp']
                 )
     except psycopg2.IntegrityError as e:
+        logger.error("Invalid metric data", extra={"error": str(e)})
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,
             detail={
@@ -113,6 +116,7 @@ async def create_metric(metric: MetricCreate):
             }
         )
     except Exception as e:
+        logger.error("Failed to create metric", extra={"error": str(e)})
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
             detail={

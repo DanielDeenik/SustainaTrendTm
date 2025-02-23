@@ -2,7 +2,7 @@
 set -e
 
 # Kill any existing processes on ports
-pkill -f "uvicorn main:app" || true
+pkill -f "uvicorn backend.main:app" || true
 pkill -f "vite" || true
 pkill -f "node" || true
 
