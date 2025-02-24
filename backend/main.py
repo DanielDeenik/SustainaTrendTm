@@ -1,11 +1,11 @@
 from fastapi import FastAPI, HTTPException, status
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.staticfiles import StaticFiles
+from fastapi.responses import FileResponse
 from typing import List, Dict, Any
 from datetime import datetime
-import psycopg2
-from psycopg2.extras import RealDictCursor
-from psycopg2.errors import OperationalError
+import os
+from pathlib import Path
 
 from backend.models import Metric, MetricCreate
 from backend.database import get_db, verify_db_connection
@@ -44,9 +44,8 @@ async def root():
 async def get_metrics():
     """Get all metrics with improved error handling"""
     try:
-        metrics: List[Metric] = []
         with get_db() as conn:
-            with conn.cursor(cursor_factory=RealDictCursor) as cur:
+            with conn.cursor() as cur:
                 cur.execute("""
                     SELECT id, name, category, value, unit, timestamp, metric_metadata
                     FROM metrics 
@@ -54,11 +53,12 @@ async def get_metrics():
                 """)
                 rows = cur.fetchall()
 
+                metrics = []
                 for row in rows:
                     if row is None:
                         continue
                     try:
-                        metric_dict: Dict[str, Any] = dict(row)
+                        metric_dict = dict(row)
                         metrics.append(Metric(
                             id=metric_dict['id'],
                             name=metric_dict['name'],
@@ -73,12 +73,6 @@ async def get_metrics():
 
                 return metrics
 
-    except OperationalError as e:
-        logger.error("Database connection failed", extra={"error": str(e)})
-        raise HTTPException(
-            status_code=status.HTTP_503_SERVICE_UNAVAILABLE,
-            detail="Database is currently unavailable"
-        )
     except Exception as e:
         logger.error("Failed to fetch metrics", extra={"error": str(e)})
         raise HTTPException(
@@ -91,7 +85,7 @@ async def create_metric(metric: MetricCreate):
     """Create a new metric with improved error handling"""
     try:
         with get_db() as conn:
-            with conn.cursor(cursor_factory=RealDictCursor) as cur:
+            with conn.cursor() as cur:
                 cur.execute(
                     """
                     INSERT INTO metrics (name, category, value, unit)
@@ -107,7 +101,7 @@ async def create_metric(metric: MetricCreate):
                         detail="Failed to create metric: No data returned"
                     )
 
-                metric_dict: Dict[str, Any] = dict(row)
+                metric_dict = dict(row)
                 return Metric(
                     id=metric_dict['id'],
                     name=metric_dict['name'],
@@ -117,12 +111,6 @@ async def create_metric(metric: MetricCreate):
                     timestamp=metric_dict['timestamp']
                 )
 
-    except psycopg2.IntegrityError as e:
-        logger.error("Invalid metric data", extra={"error": str(e)})
-        raise HTTPException(
-            status_code=status.HTTP_400_BAD_REQUEST,
-            detail="Invalid metric data"
-        )
     except Exception as e:
         logger.error("Failed to create metric", extra={"error": str(e)})
         raise HTTPException(
@@ -141,8 +129,15 @@ async def startup_event():
         logger.error(f"Startup error: {str(e)}")
         raise
 
-# Mount the frontend static files - this must be done last after all API routes
-app.mount("/", StaticFiles(directory="../dist", html=True), name="frontend")
+# Serve frontend static files
+static_path = Path(__file__).parent.parent / "dist"
+app.mount("/", StaticFiles(directory=str(static_path), html=True), name="frontend")
+
+# Fallback route for SPA
+@app.get("/{full_path:path}")
+async def serve_spa(full_path: str):
+    """Serve the SPA index.html for all routes"""
+    return FileResponse(str(static_path / "index.html"))
 
 if __name__ == "__main__":
     import uvicorn
