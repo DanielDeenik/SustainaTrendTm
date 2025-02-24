@@ -1,7 +1,7 @@
 from fastapi import FastAPI, HTTPException, status
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.staticfiles import StaticFiles
-from fastapi.responses import FileResponse
+from fastapi.responses import FileResponse, JSONResponse
 from typing import List
 from datetime import datetime
 import os
@@ -37,8 +37,9 @@ static_path = Path(__file__).parent.parent / "dist"
 # Create the dist directory if it doesn't exist
 static_path.mkdir(parents=True, exist_ok=True)
 
-# Mount static files first
-app.mount("/assets", StaticFiles(directory=str(static_path / "assets")), name="assets")
+# First mount the assets directory if it exists
+if (static_path / "assets").exists():
+    app.mount("/assets", StaticFiles(directory=str(static_path / "assets")), name="assets")
 
 @app.get("/api")
 async def root():
@@ -92,30 +93,26 @@ async def get_metrics():
 @app.get("/{full_path:path}")
 async def serve_spa(full_path: str):
     """Serve the SPA index.html for all non-API routes"""
-    # Skip API routes
     if full_path.startswith("api/"):
         raise HTTPException(status_code=404, detail="Not found")
 
-    # Check for static assets first
-    if full_path.startswith("assets/"):
-        asset_path = static_path / full_path
-        if asset_path.exists():
-            logger.info(f"Serving static asset: {full_path}")
-            return FileResponse(str(asset_path))
-
+    # Get the index.html path
     index_path = static_path / "index.html"
 
-    # Detailed logging for debugging
-    logger.info("SPA route accessed", extra={
+    # Log the state for debugging
+    logger.info("Serving SPA request", extra={
         "path": full_path,
         "static_path": str(static_path),
         "index_exists": index_path.exists(),
-        "files_in_dist": os.listdir(str(static_path)) if static_path.exists() else []
+        "dist_contents": os.listdir(str(static_path)) if static_path.exists() else []
     })
 
     if not index_path.exists():
-        logger.error(f"Index file not found at {index_path}")
-        raise HTTPException(status_code=404, detail="Frontend not built")
+        # Try to serve the index.html from the root directory
+        index_path = static_path / "src" / "index.html"
+        if not index_path.exists():
+            logger.error("Frontend not built - index.html not found")
+            raise HTTPException(status_code=404, detail="Frontend not built")
 
     logger.info(f"Serving index.html for path: {full_path}")
     return FileResponse(str(index_path))
