@@ -12,9 +12,10 @@ sleep 2
 # Create logs directory if it doesn't exist
 mkdir -p logs
 
-# Ensure backend start.sh is executable
+# Ensure scripts are executable
 chmod +x backend/start.sh
 chmod +x backend/main.py
+chmod +x start-frontend.sh
 
 # Add the project root to PYTHONPATH
 export PYTHONPATH="/home/runner/workspace:${PYTHONPATH}"
@@ -38,12 +39,24 @@ while ! nc -z localhost 8000; do
 done
 echo "Backend is ready!"
 
-# Set environment variables for frontend
-export VITE_BACKEND_URL="http://0.0.0.0:8000"
-export NODE_ENV=development
-export ORIGIN=http://0.0.0.0:3000
-export HOST=0.0.0.0
-export PORT=3000
+# Return to project root and start the frontend
+cd /home/runner/workspace
+./start-frontend.sh > logs/frontend.log 2>&1 &
+frontend_pid=$!
 
-# Return to project root and start the dev server with logging
-cd /home/runner/workspace && npm run dev -- --host 0.0.0.0 --port 3000 > logs/frontend.log 2>&1
+# Wait for frontend to be ready
+echo "Waiting for frontend to be ready..."
+counter=0
+while ! nc -z localhost 3000; do
+  if [ $counter -eq $timeout ]; then
+    echo "Frontend failed to start within $timeout seconds"
+    cat logs/frontend.log
+    exit 1
+  fi
+  counter=$((counter+1))
+  sleep 1
+done
+echo "Frontend is ready!"
+
+# Keep the script running
+wait $backend_pid $frontend_pid
