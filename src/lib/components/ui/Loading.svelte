@@ -9,5 +9,5 @@
 </script>
 
 <div class="loading">
-  <div class="spinner {sizeClasses[size]}" />
+  <div class="spinner {sizeClasses[size]}"></div>
 </div>

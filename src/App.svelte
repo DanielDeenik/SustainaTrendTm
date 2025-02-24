@@ -5,20 +5,23 @@
   import Badge from './lib/components/ui/Badge.svelte';
   import Loading from './lib/components/ui/Loading.svelte';
   import Navigation from './lib/components/Navigation.svelte';
+  import { logger } from '$lib/services/logger';
+  import { apiRequest } from '$lib/api/client';
+  import type { Metric } from '$lib/types/schema';
 
-  let metrics = [];
+  let metrics: Metric[] = [];
   let loading = true;
-  let error = null;
+  let error: Error | null = null;
 
   async function fetchLatestMetrics() {
     try {
       loading = true;
       error = null;
-      const response = await fetch('/api/metrics');
-      if (!response.ok) throw new Error('Failed to fetch metrics');
-      metrics = await response.json();
+      metrics = await apiRequest<Metric[]>('/api/metrics');
+      logger.info('Dashboard metrics loaded', { count: metrics.length });
     } catch (err) {
       error = err instanceof Error ? err : new Error('Failed to load metrics');
+      logger.error('Failed to load metrics', { error });
     } finally {
       loading = false;
     }
@@ -40,65 +43,40 @@
         <Loading size="lg" />
       </div>
     {:else if error}
-      <div class="card" style="background-color: #fee2e2; color: #991b1b;">
+      <div class="card" style="background-color: var(--error); color: white;">
         <strong class="font-bold">Error!</strong>
         <p>{error.message}</p>
         <button 
-          class="badge badge-error mt-4"
+          class="badge badge-default mt-4"
+          style="background: white; color: var(--error);"
           on:click={fetchLatestMetrics}
         >
           Try Again
         </button>
       </div>
     {:else}
-      <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3">
-        <Card title="Environmental Impact">
-          <div class="space-y-4">
-            <div class="flex justify-between items-center">
-              <span>Carbon Emissions</span>
-              <Badge variant="error">Critical</Badge>
-            </div>
-            {#if metrics.find(m => m.category === 'emissions')}
-              {@const emission = metrics.find(m => m.category === 'emissions')}
-              <p class="text-2xl font-bold text-primary">{emission.value} {emission.unit}</p>
-              <p class="card-subtitle">Latest measurement</p>
-            {:else}
-              <p class="text-2xl font-bold card-subtitle">No Data</p>
-            {/if}
-          </div>
-        </Card>
-
-        <Card title="Water Usage">
-          <div class="space-y-4">
-            <div class="flex justify-between items-center">
-              <span>Consumption Rate</span>
-              <Badge variant="warning">Moderate</Badge>
-            </div>
-            {#if metrics.find(m => m.category === 'water')}
-              {@const water = metrics.find(m => m.category === 'water')}
-              <p class="text-2xl font-bold text-primary">{water.value} {water.unit}</p>
-              <p class="card-subtitle">Latest measurement</p>
-            {:else}
-              <p class="text-2xl font-bold card-subtitle">No Data</p>
-            {/if}
-          </div>
-        </Card>
-
-        <Card title="Energy Efficiency">
-          <div class="space-y-4">
-            <div class="flex justify-between items-center">
-              <span>Power Usage</span>
-              <Badge variant="success">Optimal</Badge>
-            </div>
-            {#if metrics.find(m => m.category === 'energy')}
-              {@const energy = metrics.find(m => m.category === 'energy')}
-              <p class="text-2xl font-bold text-primary">{energy.value} {energy.unit}</p>
-              <p class="card-subtitle">Latest measurement</p>
-            {:else}
-              <p class="text-2xl font-bold card-subtitle">No Data</p>
-            {/if}
-          </div>
-        </Card>
+      <div class="grid grid-cols-1">
+        {#each ['emissions', 'water', 'energy'] as category}
+          {#if metrics.find(m => m.category === category)}
+            {@const metric = metrics.find(m => m.category === category)}
+            <Card title={category === 'emissions' ? 'Environmental Impact' : 
+                        category === 'water' ? 'Water Usage' : 'Energy Efficiency'}>
+              <div class="space-y-4">
+                <div class="flex justify-between items-center">
+                  <span>{category === 'emissions' ? 'Carbon Emissions' :
+                         category === 'water' ? 'Consumption Rate' : 'Power Usage'}</span>
+                  <Badge variant={category === 'emissions' ? 'error' :
+                                category === 'water' ? 'warning' : 'success'}>
+                    {category === 'emissions' ? 'Critical' :
+                     category === 'water' ? 'Moderate' : 'Optimal'}
+                  </Badge>
+                </div>
+                <p class="text-2xl font-bold text-primary">{metric?.value} {metric?.unit}</p>
+                <p class="card-subtitle">Latest measurement</p>
+              </div>
+            </Card>
+          {/if}
+        {/each}
       </div>
     {/if}
   </main>

@@ -28,14 +28,13 @@ export default defineConfig({
     emptyOutDir: true,
     sourcemap: true,
     rollupOptions: {
-      input: {
-        main: path.resolve(__dirname, 'src/index.html')
-      }
+      input: path.resolve(__dirname, 'src/index.html')
     }
   },
   resolve: {
     alias: {
-      '$lib': path.resolve(__dirname, 'src/lib')
+      '$lib': path.resolve(__dirname, 'src/lib'),
+      '$app/stores': path.resolve(__dirname, 'src/app/stores.ts')
     }
   }
 });

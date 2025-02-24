@@ -2,7 +2,7 @@ from fastapi import FastAPI, HTTPException, status
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.staticfiles import StaticFiles
 from fastapi.responses import FileResponse
-from typing import List, Dict, Any
+from typing import List
 from datetime import datetime
 import os
 from pathlib import Path
@@ -129,15 +129,23 @@ async def startup_event():
         logger.error(f"Startup error: {str(e)}")
         raise
 
-# Serve frontend static files
+# Get the absolute path to the dist directory
 static_path = Path(__file__).parent.parent / "dist"
+
+# Create the dist directory if it doesn't exist
+static_path.mkdir(parents=True, exist_ok=True)
+
+# Mount the static files directory
 app.mount("/", StaticFiles(directory=str(static_path), html=True), name="frontend")
 
 # Fallback route for SPA
 @app.get("/{full_path:path}")
 async def serve_spa(full_path: str):
     """Serve the SPA index.html for all routes"""
-    return FileResponse(str(static_path / "index.html"))
+    index_path = static_path / "index.html"
+    if index_path.exists():
+        return FileResponse(str(index_path))
+    raise HTTPException(status_code=404, detail="File not found")
 
 if __name__ == "__main__":
     import uvicorn
