@@ -21,10 +21,10 @@ app = FastAPI(
 # Add error handler
 app.add_exception_handler(Exception, handle_error)
 
-# Add CORS middleware
+# Add CORS middleware - Allow all origins during development
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["http://localhost:3000", "http://0.0.0.0:3000"],
+    allow_origins=["*"],  # Allow all origins temporarily
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
@@ -64,7 +64,8 @@ async def get_metrics():
                             "category": metric_dict['category'],
                             "value": float(metric_dict['value']),
                             "unit": metric_dict['unit'],
-                            "timestamp": metric_dict['timestamp'].isoformat()
+                            "timestamp": metric_dict['timestamp'].isoformat(),
+                            "metric_metadata": metric_dict.get('metric_metadata', {})
                         })
                     except (KeyError, ValueError) as e:
                         logger.error(f"Error converting row to metric: {e}", extra={"row": row})
@@ -93,8 +94,9 @@ if __name__ == "__main__":
     import uvicorn
     logger.info("Starting FastAPI server...")
     uvicorn.run(
-        "backend.main:app",
+        "main:app",
         host="0.0.0.0",
         port=8000,
-        reload=True
+        reload=True,
+        log_level="info"
     )
