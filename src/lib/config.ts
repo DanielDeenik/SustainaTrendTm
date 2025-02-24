@@ -1,7 +1,7 @@
 // Frontend configuration
 export const config = {
-  apiUrl: import.meta.env.VITE_BACKEND_URL || 'http://0.0.0.0:8000',
-  development: import.meta.env.DEV || false,
+  apiUrl: 'http://0.0.0.0:8000',  // Hardcode for development
+  development: true,
   version: '1.0.0',
   api: {
     metrics: '/api/metrics',

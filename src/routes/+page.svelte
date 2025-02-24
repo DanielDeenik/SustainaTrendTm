@@ -2,6 +2,7 @@
   import { fade } from 'svelte/transition';
   import Card from '$lib/components/ui/Card.svelte';
   import Badge from '$lib/components/ui/Badge.svelte';
+  import Loading from '$lib/components/ui/Loading.svelte';
   import { onMount } from 'svelte';
   import { apiRequest } from '$lib/api/client';
   import type { Metric } from '$lib/types/schema';
@@ -16,13 +17,18 @@
     try {
       loading = true;
       error = null;
-      logger.debug('Fetching metrics from API', { endpoint: config.api.metrics });
-      metrics = await apiRequest<Metric[]>(config.api.metrics);
+      logger.info('Starting to fetch metrics from API', { endpoint: config.api.metrics });
+      console.log('Fetching metrics from:', config.apiUrl + '/api/metrics'); // Debug log
+
+      metrics = await apiRequest<Metric[]>('/api/metrics');
+
+      console.log('Received metrics:', metrics); // Debug log
       logger.info('Dashboard metrics loaded successfully', { 
         count: metrics.length,
         categories: metrics.map(m => m.category)
       });
     } catch (err) {
+      console.error('Failed to fetch metrics:', err); // Debug log
       error = err instanceof Error ? err : new Error('Failed to load metrics');
       logger.error('Failed to load dashboard metrics', error);
     } finally {
@@ -34,27 +40,23 @@
     logger.info('Dashboard component mounted');
     fetchLatestMetrics();
   });
-
-  let pageTitle = "Sustainability Intelligence Dashboard";
 </script>
 
 <div class="space-y-6" in:fade>
   <h1 class="text-3xl font-bold text-gray-900 dark:text-white mb-8">
-    {pageTitle}
+    Sustainability Intelligence Dashboard
   </h1>
 
   {#if loading}
-    <div class="flex justify-center">
-      <div class="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
+    <div class="flex justify-center items-center min-h-[200px]">
+      <Loading size="lg" />
     </div>
   {:else if error}
-    <div class="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded">
-      <p>Error loading dashboard data: {error.message}</p>
-      {#if 'data' in error && error.data?.error}
-        <p class="text-sm opacity-75">{error.data.error}</p>
-      {/if}
+    <div class="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded relative">
+      <strong class="font-bold">Error!</strong>
+      <p class="block sm:inline"> {error.message}</p>
       <button 
-        class="mt-2 text-sm underline"
+        class="mt-2 bg-red-500 text-white px-4 py-2 rounded hover:bg-red-600"
         on:click={fetchLatestMetrics}
       >
         Try Again
@@ -62,6 +64,7 @@
     </div>
   {:else}
     <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+      <!-- Carbon Emissions Card -->
       <Card title="Environmental Impact">
         <div class="space-y-4">
           <div class="flex justify-between items-center">
@@ -78,6 +81,7 @@
         </div>
       </Card>
 
+      <!-- Water Usage Card -->
       <Card title="Water Usage">
         <div class="space-y-4">
           <div class="flex justify-between items-center">
@@ -94,6 +98,7 @@
         </div>
       </Card>
 
+      <!-- Energy Efficiency Card -->
       <Card title="Energy Efficiency">
         <div class="space-y-4">
           <div class="flex justify-between items-center">

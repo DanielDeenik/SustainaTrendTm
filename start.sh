@@ -16,6 +16,9 @@ mkdir -p logs
 chmod +x backend/start.sh
 chmod +x backend/main.py
 
+# Add the project root to PYTHONPATH
+export PYTHONPATH="/home/runner/workspace:${PYTHONPATH}"
+
 # Start FastAPI backend with proper logging
 cd backend && ./start.sh > ../logs/backend.log 2>&1 &
 backend_pid=$!

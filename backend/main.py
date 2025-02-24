@@ -21,10 +21,10 @@ app = FastAPI(
 # Add error handler
 app.add_exception_handler(Exception, handle_error)
 
-# Add CORS middleware with proper configuration
+# Add CORS middleware with correct configuration for development
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["*"],  # Allow all origins in development
+    allow_origins=["http://0.0.0.0:3000", "http://localhost:3000"],
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
