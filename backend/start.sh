@@ -18,7 +18,9 @@ mkdir -p logs
 
 # Build the frontend first
 echo "Building frontend..."
+cd ..
 npx vite build
+cd backend
 
 # Set proper permissions
 chmod +x main.py
@@ -37,4 +39,5 @@ exec uvicorn backend.main:app \
   --workers 1 \
   --log-level info \
   --reload-dir /home/runner/workspace/backend \
-  --access-log
+  --access-log \
+  --timeout-keep-alive 75

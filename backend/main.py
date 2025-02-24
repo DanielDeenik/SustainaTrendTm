@@ -135,24 +135,33 @@ static_path = Path(__file__).parent.parent / "dist"
 # Create the dist directory if it doesn't exist
 static_path.mkdir(parents=True, exist_ok=True)
 
-# Mount the static files directory
-app.mount("/", StaticFiles(directory=str(static_path), html=True), name="frontend")
+# Mount the static files directory first
+app.mount("/assets", StaticFiles(directory=str(static_path / "assets")), name="assets")
 
-# Fallback route for SPA
+# Serve index.html for all non-API routes
 @app.get("/{full_path:path}")
 async def serve_spa(full_path: str):
-    """Serve the SPA index.html for all routes"""
+    """Serve the SPA index.html for all non-API routes"""
+    # Skip API routes
+    if full_path.startswith("api/"):
+        raise HTTPException(status_code=404, detail="Not found")
+
     index_path = static_path / "index.html"
-    if index_path.exists():
-        return FileResponse(str(index_path))
-    raise HTTPException(status_code=404, detail="File not found")
+    if not index_path.exists():
+        logger.error(f"Index file not found at {index_path}")
+        raise HTTPException(status_code=404, detail="Frontend not built")
+
+    logger.info(f"Serving index.html for path: {full_path}")
+    return FileResponse(str(index_path))
 
 if __name__ == "__main__":
     import uvicorn
+    logger.info("Starting FastAPI server...")
     uvicorn.run(
-        app,
-        host="0.0.0.0",  # Bind to all network interfaces
+        "backend.main:app",
+        host="0.0.0.0",
         port=8000,
         reload=True,
-        access_log=True
+        access_log=True,
+        log_level="info"
     )

@@ -34,7 +34,8 @@ export default defineConfig({
   resolve: {
     alias: {
       '$lib': path.resolve(__dirname, 'src/lib'),
-      '$app/stores': path.resolve(__dirname, 'src/app/stores.ts')
+      '$app/stores': path.resolve(__dirname, 'src/app/stores.ts'),
+      '$app/environment': path.resolve(__dirname, 'src/app/environment.ts')
     }
   }
 });

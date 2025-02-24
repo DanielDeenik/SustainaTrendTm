@@ -1,4 +1,4 @@
-import { dev } from '$app/environment';
+import { dev } from '../app/environment';
 
 type LogLevel = 'info' | 'warn' | 'error' | 'debug';
 
