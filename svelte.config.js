@@ -8,9 +8,6 @@ const config = {
     csrf: {
       checkOrigin: false,
     },
-    paths: {
-      base: ''
-    },
     alias: {
       $lib: './src/lib'
     }
