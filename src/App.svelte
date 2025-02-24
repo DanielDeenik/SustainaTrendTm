@@ -1,39 +1,30 @@
 <script lang="ts">
   import "./app.css";
   import { onMount } from 'svelte';
-
-  // Direct imports without $lib alias for now
-  import Navigation from './lib/components/Navigation.svelte';
-  import Card from './lib/components/ui/Card.svelte';
-  import Badge from './lib/components/ui/Badge.svelte';
-  import Loading from './lib/components/ui/Loading.svelte';
-  import Alert from './lib/components/ui/Alert.svelte';
+  import Card from '$lib/components/ui/Card.svelte';
+  import Badge from '$lib/components/ui/Badge.svelte';
+  import Loading from '$lib/components/ui/Loading.svelte';
+  import Navigation from '$lib/components/Navigation.svelte';
 
   let metrics = [];
   let loading = true;
-  let error: Error | null = null;
+  let error = null;
 
   async function fetchLatestMetrics() {
     try {
       loading = true;
       error = null;
-      console.log('Attempting to fetch metrics...');
-      const response = await fetch('http://0.0.0.0:8000/api/metrics');
+      const response = await fetch('/api/metrics');
       if (!response.ok) throw new Error('Failed to fetch metrics');
       metrics = await response.json();
-      console.log('Successfully fetched metrics:', metrics);
     } catch (err) {
-      console.error('Error fetching metrics:', err);
       error = err instanceof Error ? err : new Error('Failed to load metrics');
     } finally {
       loading = false;
     }
   }
 
-  onMount(() => {
-    console.log('App component mounted');
-    fetchLatestMetrics();
-  });
+  onMount(fetchLatestMetrics);
 </script>
 
 <div class="min-h-screen bg-white dark:bg-gray-900">
@@ -50,21 +41,18 @@
           <Loading size="lg" />
         </div>
       {:else if error}
-        <Alert variant="error">
-          <div class="flex flex-col gap-2">
-            <strong class="font-bold">Error!</strong>
-            <p class="block sm:inline"> {error.message}</p>
-            <button 
-              class="mt-2 bg-red-500 text-white px-4 py-2 rounded hover:bg-red-600"
-              on:click={fetchLatestMetrics}
-            >
-              Try Again
-            </button>
-          </div>
-        </Alert>
+        <div class="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded relative">
+          <strong class="font-bold">Error!</strong>
+          <p class="block sm:inline"> {error.message}</p>
+          <button 
+            class="mt-2 bg-red-500 text-white px-4 py-2 rounded hover:bg-red-600"
+            on:click={fetchLatestMetrics}
+          >
+            Try Again
+          </button>
+        </div>
       {:else}
         <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-          <!-- Carbon Emissions Card -->
           <Card title="Environmental Impact">
             <div class="space-y-4">
               <div class="flex justify-between items-center">
@@ -81,7 +69,6 @@
             </div>
           </Card>
 
-          <!-- Water Usage Card -->
           <Card title="Water Usage">
             <div class="space-y-4">
               <div class="flex justify-between items-center">
@@ -98,7 +85,6 @@
             </div>
           </Card>
 
-          <!-- Energy Efficiency Card -->
           <Card title="Energy Efficiency">
             <div class="space-y-4">
               <div class="flex justify-between items-center">

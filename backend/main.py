@@ -1,5 +1,6 @@
 from fastapi import FastAPI, HTTPException, status
 from fastapi.middleware.cors import CORSMiddleware
+from fastapi.staticfiles import StaticFiles
 from typing import List, Dict, Any
 from datetime import datetime
 import psycopg2
@@ -21,16 +22,16 @@ app = FastAPI(
 # Add error handler
 app.add_exception_handler(Exception, handle_error)
 
-# Add CORS middleware with correct configuration for development
+# Add CORS middleware
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["http://0.0.0.0:3000", "http://localhost:3000"],
+    allow_origins=["*"],
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
 )
 
-@app.get("/")
+@app.get("/api")
 async def root():
     """Root endpoint for health check"""
     return {
@@ -139,6 +140,9 @@ async def startup_event():
     except Exception as e:
         logger.error(f"Startup error: {str(e)}")
         raise
+
+# Mount the frontend static files - this must be done last after all API routes
+app.mount("/", StaticFiles(directory="../dist", html=True), name="frontend")
 
 if __name__ == "__main__":
     import uvicorn
