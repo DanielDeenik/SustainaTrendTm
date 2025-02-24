@@ -4,20 +4,21 @@
   import Card from './lib/components/ui/Card.svelte';
   import Badge from './lib/components/ui/Badge.svelte';
   import Loading from './lib/components/ui/Loading.svelte';
-  import Navigation from './lib/components/Navigation.svelte';
   import { logger } from '$lib/services/logger';
-  import { apiRequest } from '$lib/api/client';
   import type { Metric } from '$lib/types/schema';
 
   let metrics: Metric[] = [];
   let loading = true;
   let error: Error | null = null;
+  let currentView = 'dashboard'; // 'dashboard', 'metrics', or 'reports'
 
-  async function fetchLatestMetrics() {
+  async function fetchMetrics() {
     try {
       loading = true;
       error = null;
-      metrics = await apiRequest<Metric[]>('/api/metrics');
+      const response = await fetch('http://0.0.0.0:8000/api/metrics');
+      if (!response.ok) throw new Error('Failed to fetch metrics');
+      metrics = await response.json();
       logger.info('Dashboard metrics loaded', { count: metrics.length });
     } catch (err) {
       error = err instanceof Error ? err : new Error('Failed to load metrics');
@@ -27,11 +28,37 @@
     }
   }
 
-  onMount(fetchLatestMetrics);
+  onMount(fetchMetrics);
 </script>
 
-<div class="min-h-screen">
-  <Navigation />
+<div class="min-h-screen bg-white">
+  <nav class="nav">
+    <div class="container">
+      <div class="nav-content">
+        <div class="nav-brand">Sustainability Intelligence</div>
+        <div class="nav-links">
+          <button 
+            class="nav-link {currentView === 'dashboard' ? 'active' : ''}"
+            on:click={() => currentView = 'dashboard'}
+          >
+            Dashboard
+          </button>
+          <button 
+            class="nav-link {currentView === 'metrics' ? 'active' : ''}"
+            on:click={() => currentView = 'metrics'}
+          >
+            Metrics
+          </button>
+          <button 
+            class="nav-link {currentView === 'reports' ? 'active' : ''}"
+            on:click={() => currentView = 'reports'}
+          >
+            Reports
+          </button>
+        </div>
+      </div>
+    </div>
+  </nav>
 
   <main class="container">
     <h1 class="text-2xl font-bold mb-4">
@@ -39,40 +66,36 @@
     </h1>
 
     {#if loading}
-      <div class="flex justify-center items-center" style="min-height: 200px;">
+      <div class="loading">
         <Loading size="lg" />
       </div>
     {:else if error}
-      <div class="card" style="background-color: var(--error); color: white;">
-        <strong class="font-bold">Error!</strong>
+      <div class="error">
+        <strong>Error!</strong>
         <p>{error.message}</p>
-        <button 
-          class="badge badge-default mt-4"
-          style="background: white; color: var(--error);"
-          on:click={fetchLatestMetrics}
-        >
+        <button class="retry-button" on:click={fetchMetrics}>
           Try Again
         </button>
       </div>
     {:else}
-      <div class="grid grid-cols-1">
+      <div class="grid">
         {#each ['emissions', 'water', 'energy'] as category}
           {#if metrics.find(m => m.category === category)}
             {@const metric = metrics.find(m => m.category === category)}
             <Card title={category === 'emissions' ? 'Environmental Impact' : 
-                        category === 'water' ? 'Water Usage' : 'Energy Efficiency'}>
-              <div class="space-y-4">
-                <div class="flex justify-between items-center">
+                      category === 'water' ? 'Water Usage' : 'Energy Efficiency'}>
+              <div class="metric-content">
+                <div class="metric-header">
                   <span>{category === 'emissions' ? 'Carbon Emissions' :
                          category === 'water' ? 'Consumption Rate' : 'Power Usage'}</span>
                   <Badge variant={category === 'emissions' ? 'error' :
-                                category === 'water' ? 'warning' : 'success'}>
+                               category === 'water' ? 'warning' : 'success'}>
                     {category === 'emissions' ? 'Critical' :
                      category === 'water' ? 'Moderate' : 'Optimal'}
                   </Badge>
                 </div>
-                <p class="text-2xl font-bold text-primary">{metric?.value} {metric?.unit}</p>
-                <p class="card-subtitle">Latest measurement</p>
+                <p class="metric-value">{metric?.value} {metric?.unit}</p>
+                <p class="metric-timestamp">Latest measurement</p>
               </div>
             </Card>
           {/if}
@@ -81,9 +104,125 @@
     {/if}
   </main>
 
-  <footer class="nav mt-4">
-    <div class="container text-center card-subtitle">
+  <footer class="footer">
+    <div class="container">
       © {new Date().getFullYear()} Sustainability Intelligence Platform
     </div>
   </footer>
 </div>
+
+<style>
+  .container {
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 0 1rem;
+  }
+
+  .nav {
+    background: white;
+    border-bottom: 1px solid #e5e7eb;
+    padding: 1rem 0;
+  }
+
+  .nav-content {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+  }
+
+  .nav-brand {
+    font-size: 1.25rem;
+    font-weight: bold;
+    color: var(--primary);
+  }
+
+  .nav-links {
+    display: flex;
+    gap: 2rem;
+  }
+
+  .nav-link {
+    color: #4b5563;
+    text-decoration: none;
+    padding: 0.5rem 1rem;
+    border-radius: 0.375rem;
+    transition: all 0.2s;
+  }
+
+  .nav-link:hover {
+    background: #f3f4f6;
+  }
+
+  .nav-link.active {
+    color: var(--primary);
+    background: #f3f4f6;
+  }
+
+  .grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+    gap: 1.5rem;
+    margin: 1.5rem 0;
+  }
+
+  .loading {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    min-height: 200px;
+  }
+
+  .error {
+    background: #fee2e2;
+    border: 1px solid #ef4444;
+    color: #991b1b;
+    padding: 1rem;
+    border-radius: 0.5rem;
+    margin: 1rem 0;
+  }
+
+  .retry-button {
+    margin-top: 1rem;
+    padding: 0.5rem 1rem;
+    background: #ef4444;
+    color: white;
+    border-radius: 0.375rem;
+    border: none;
+    cursor: pointer;
+  }
+
+  .retry-button:hover {
+    background: #dc2626;
+  }
+
+  .metric-content {
+    padding: 1rem 0;
+  }
+
+  .metric-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 1rem;
+  }
+
+  .metric-value {
+    font-size: 1.5rem;
+    font-weight: bold;
+    color: var(--primary);
+  }
+
+  .metric-timestamp {
+    font-size: 0.875rem;
+    color: #6b7280;
+    margin-top: 0.5rem;
+  }
+
+  .footer {
+    margin-top: 2rem;
+    padding: 1.5rem 0;
+    border-top: 1px solid #e5e7eb;
+    text-align: center;
+    color: #6b7280;
+  }
+</style>
