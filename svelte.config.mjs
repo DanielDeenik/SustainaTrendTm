@@ -7,7 +7,8 @@ const config = {
     adapter: adapter({
       out: 'build',
       precompress: false,
-      fallback: 'index.html'
+      fallback: 'index.html',
+      polyfill: true
     }),
     csrf: {
       checkOrigin: false

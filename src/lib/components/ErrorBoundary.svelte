@@ -1,6 +1,5 @@
 <script lang="ts">
-  import { onError } from 'svelte';
-  import { page } from '$app/stores';
+  import { browser } from '$app/environment';
   import { logger } from '$lib/services/logger';
   import Alert from './ui/Alert.svelte';
   import type { APIError } from '$lib/api/client';
@@ -8,11 +7,13 @@
   let error: Error | null = null;
   let isAPIError = false;
 
-  onError(({ error: e }) => {
-    error = e;
-    isAPIError = e instanceof Error && 'requestId' in e;
-    logger.error('Error caught by boundary:', e);
-  });
+  if (browser) {
+    window.addEventListener('error', (event) => {
+      error = event.error;
+      isAPIError = error instanceof Error && 'requestId' in error;
+      logger.error('Error caught by boundary:', error);
+    });
+  }
 </script>
 
 {#if error}
