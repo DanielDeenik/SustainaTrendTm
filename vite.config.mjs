@@ -6,7 +6,13 @@ import { fileURLToPath } from 'url';
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 
 export default defineConfig({
-  plugins: [svelte()],
+  plugins: [
+    svelte({
+      compilerOptions: {
+        dev: process.env.NODE_ENV !== 'production'
+      }
+    })
+  ],
   server: {
     host: '0.0.0.0',
     port: 3000,
@@ -17,18 +23,22 @@ export default defineConfig({
       }
     }
   },
-  resolve: {
-    alias: {
-      '$lib': path.resolve(__dirname, './src/lib')
-    }
-  },
   build: {
     outDir: 'dist',
-    target: 'esnext', // Retained from original
+    emptyOutDir: true,
+    sourcemap: true,
     rollupOptions: {
       input: {
-        main: path.resolve(__dirname, 'src/app.html')
+        main: path.resolve(__dirname, 'src/index.html')
       }
     }
+  },
+  resolve: {
+    alias: {
+      '$lib': path.resolve(__dirname, 'src/lib')
+    }
+  },
+  optimizeDeps: {
+    include: ['@sveltejs/kit']
   }
 });
