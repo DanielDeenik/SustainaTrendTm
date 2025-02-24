@@ -20,10 +20,10 @@ mkdir -p logs
 pip install --quiet fastapi uvicorn psycopg2-binary pydantic python-dotenv sqlalchemy
 
 # Set PYTHONPATH to include the project root
-cd "$(dirname "$0")/.."
-export PYTHONPATH="${PWD}:${PYTHONPATH}"
+cd ..
+export PYTHONPATH="${PWD}"
 
-# Start the FastAPI server
+# Change to backend directory and start the FastAPI server
 cd backend
 exec uvicorn main:app \
   --host 0.0.0.0 \
@@ -31,5 +31,4 @@ exec uvicorn main:app \
   --reload \
   --workers 1 \
   --log-level info \
-  --reload-dir . \
   --access-log

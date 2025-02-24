@@ -18,9 +18,11 @@ chmod +x start.sh
 ./start.sh > ../logs/backend.log 2>&1 &
 BACKEND_PID=$!
 
-# Return to root and start Vite dev server
+# Return to root directory
 cd ..
-npm run dev > logs/frontend.log 2>&1 &
+
+# Start Vite dev server directly
+npx vite --host 0.0.0.0 --port 3000 > logs/frontend.log 2>&1 &
 FRONTEND_PID=$!
 
 # Wait for services to be ready
