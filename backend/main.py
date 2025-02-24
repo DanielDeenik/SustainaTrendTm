@@ -1,7 +1,6 @@
 from fastapi import FastAPI, HTTPException, status
 from fastapi.middleware.cors import CORSMiddleware
-from fastapi.staticfiles import StaticFiles
-from fastapi.responses import FileResponse, JSONResponse
+from fastapi.responses import JSONResponse
 from typing import List
 from datetime import datetime
 import os
@@ -22,24 +21,14 @@ app = FastAPI(
 # Add error handler
 app.add_exception_handler(Exception, handle_error)
 
-# Add CORS middleware with proper configuration
+# Add CORS middleware
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["*"],  # In production, replace with specific origins
+    allow_origins=["http://localhost:3000", "http://0.0.0.0:3000"],
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
 )
-
-# Get the absolute path to the dist directory
-static_path = Path(__file__).parent.parent / "dist"
-
-# Create the dist directory if it doesn't exist
-static_path.mkdir(parents=True, exist_ok=True)
-
-# First mount the assets directory if it exists
-if (static_path / "assets").exists():
-    app.mount("/assets", StaticFiles(directory=str(static_path / "assets")), name="assets")
 
 @app.get("/api")
 async def root():
@@ -82,77 +71,11 @@ async def get_metrics():
                         continue
 
                 return metrics
-
     except Exception as e:
         logger.error("Failed to fetch metrics", extra={"error": str(e)})
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
             detail="Failed to fetch metrics"
-        )
-
-@app.get("/{full_path:path}")
-async def serve_spa(full_path: str):
-    """Serve the SPA index.html for all non-API routes"""
-    if full_path.startswith("api/"):
-        raise HTTPException(status_code=404, detail="Not found")
-
-    # Get the index.html path
-    index_path = static_path / "index.html"
-
-    # Log the state for debugging
-    logger.info("Serving SPA request", extra={
-        "path": full_path,
-        "static_path": str(static_path),
-        "index_exists": index_path.exists(),
-        "dist_contents": os.listdir(str(static_path)) if static_path.exists() else []
-    })
-
-    if not index_path.exists():
-        # Try to serve the index.html from the root directory
-        index_path = static_path / "src" / "index.html"
-        if not index_path.exists():
-            logger.error("Frontend not built - index.html not found")
-            raise HTTPException(status_code=404, detail="Frontend not built")
-
-    logger.info(f"Serving index.html for path: {full_path}")
-    return FileResponse(str(index_path))
-
-@app.post("/api/metrics", response_model=Metric, status_code=status.HTTP_201_CREATED)
-async def create_metric(metric: MetricCreate):
-    """Create a new metric with improved error handling"""
-    try:
-        with get_db() as conn:
-            with conn.cursor() as cur:
-                cur.execute(
-                    """
-                    INSERT INTO metrics (name, category, value, unit)
-                    VALUES (%(name)s, %(category)s, %(value)s, %(unit)s)
-                    RETURNING id, name, category, value, unit, timestamp
-                    """,
-                    metric.model_dump()
-                )
-                row = cur.fetchone()
-                if row is None:
-                    raise HTTPException(
-                        status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-                        detail="Failed to create metric: No data returned"
-                    )
-
-                metric_dict = dict(row)
-                return Metric(
-                    id=metric_dict['id'],
-                    name=metric_dict['name'],
-                    category=metric_dict['category'],
-                    value=float(metric_dict['value']),
-                    unit=metric_dict['unit'],
-                    timestamp=metric_dict['timestamp']
-                )
-
-    except Exception as e:
-        logger.error("Failed to create metric", extra={"error": str(e)})
-        raise HTTPException(
-            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-            detail="Failed to create metric"
         )
 
 @app.on_event("startup")
@@ -173,7 +96,5 @@ if __name__ == "__main__":
         "backend.main:app",
         host="0.0.0.0",
         port=8000,
-        reload=True,
-        access_log=True,
-        log_level="info"
+        reload=True
     )
