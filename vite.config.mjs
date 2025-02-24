@@ -37,8 +37,5 @@ export default defineConfig({
     alias: {
       '$lib': path.resolve(__dirname, 'src/lib')
     }
-  },
-  optimizeDeps: {
-    include: ['@sveltejs/kit']
   }
 });

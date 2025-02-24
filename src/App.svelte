@@ -27,43 +27,43 @@
   onMount(fetchLatestMetrics);
 </script>
 
-<div class="min-h-screen bg-white dark:bg-gray-900">
+<div class="min-h-screen">
   <Navigation />
 
-  <main class="max-w-7xl mx-auto px-4 py-8">
-    <h1 class="text-3xl font-bold text-gray-900 dark:text-white mb-8">
+  <main class="container">
+    <h1 class="text-2xl font-bold mb-4">
       Sustainability Intelligence Dashboard
     </h1>
 
     {#if loading}
-      <div class="flex justify-center items-center min-h-[200px]">
+      <div class="flex justify-center items-center" style="min-height: 200px;">
         <Loading size="lg" />
       </div>
     {:else if error}
-      <div class="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded relative">
+      <div class="card" style="background-color: #fee2e2; color: #991b1b;">
         <strong class="font-bold">Error!</strong>
-        <p class="block sm:inline"> {error.message}</p>
+        <p>{error.message}</p>
         <button 
-          class="mt-2 bg-red-500 text-white px-4 py-2 rounded hover:bg-red-600"
+          class="badge badge-error mt-4"
           on:click={fetchLatestMetrics}
         >
           Try Again
         </button>
       </div>
     {:else}
-      <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+      <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3">
         <Card title="Environmental Impact">
           <div class="space-y-4">
             <div class="flex justify-between items-center">
-              <span class="text-gray-600 dark:text-gray-400">Carbon Emissions</span>
+              <span>Carbon Emissions</span>
               <Badge variant="error">Critical</Badge>
             </div>
             {#if metrics.find(m => m.category === 'emissions')}
               {@const emission = metrics.find(m => m.category === 'emissions')}
               <p class="text-2xl font-bold text-primary">{emission.value} {emission.unit}</p>
-              <p class="text-sm text-gray-500">Latest measurement</p>
+              <p class="card-subtitle">Latest measurement</p>
             {:else}
-              <p class="text-2xl font-bold text-gray-400">No Data</p>
+              <p class="text-2xl font-bold card-subtitle">No Data</p>
             {/if}
           </div>
         </Card>
@@ -71,15 +71,15 @@
         <Card title="Water Usage">
           <div class="space-y-4">
             <div class="flex justify-between items-center">
-              <span class="text-gray-600 dark:text-gray-400">Consumption Rate</span>
+              <span>Consumption Rate</span>
               <Badge variant="warning">Moderate</Badge>
             </div>
             {#if metrics.find(m => m.category === 'water')}
               {@const water = metrics.find(m => m.category === 'water')}
               <p class="text-2xl font-bold text-primary">{water.value} {water.unit}</p>
-              <p class="text-sm text-gray-500">Latest measurement</p>
+              <p class="card-subtitle">Latest measurement</p>
             {:else}
-              <p class="text-2xl font-bold text-gray-400">No Data</p>
+              <p class="text-2xl font-bold card-subtitle">No Data</p>
             {/if}
           </div>
         </Card>
@@ -87,15 +87,15 @@
         <Card title="Energy Efficiency">
           <div class="space-y-4">
             <div class="flex justify-between items-center">
-              <span class="text-gray-600 dark:text-gray-400">Power Usage</span>
+              <span>Power Usage</span>
               <Badge variant="success">Optimal</Badge>
             </div>
             {#if metrics.find(m => m.category === 'energy')}
               {@const energy = metrics.find(m => m.category === 'energy')}
               <p class="text-2xl font-bold text-primary">{energy.value} {energy.unit}</p>
-              <p class="text-sm text-gray-500">Latest measurement</p>
+              <p class="card-subtitle">Latest measurement</p>
             {:else}
-              <p class="text-2xl font-bold text-gray-400">No Data</p>
+              <p class="text-2xl font-bold card-subtitle">No Data</p>
             {/if}
           </div>
         </Card>
@@ -103,8 +103,8 @@
     {/if}
   </main>
 
-  <footer class="border-t border-gray-200 dark:border-gray-800 mt-auto">
-    <div class="max-w-7xl mx-auto px-4 py-4 text-center text-gray-600 dark:text-gray-400">
+  <footer class="nav mt-4">
+    <div class="container text-center card-subtitle">
       © {new Date().getFullYear()} Sustainability Intelligence Platform
     </div>
   </footer>
