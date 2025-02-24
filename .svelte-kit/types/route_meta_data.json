@@ -1,0 +1,21 @@
+{
+	"/": [
+		"src/routes/+layout.ts",
+		"src/routes/+layout.ts"
+	],
+	"/api/analyses": [
+		"src/routes/api/analyses/+server.ts"
+	],
+	"/api/metrics": [
+		"src/routes/api/metrics/+server.ts"
+	],
+	"/api/reports": [
+		"src/routes/api/reports/+server.ts"
+	],
+	"/metrics": [
+		"src/routes/+layout.ts"
+	],
+	"/reports": [
+		"src/routes/+layout.ts"
+	]
+}

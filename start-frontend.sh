@@ -5,12 +5,15 @@ set -e
 pkill -f "vite" || true
 
 # Set environment variables for frontend
-export NODE_ENV=development
+export NODE_ENV=production
 export HOST=0.0.0.0
 export PORT=3000
 
 # Clean up any previous build artifacts
-rm -rf dist || true
+rm -rf build || true
 
-# Start the frontend development server with debug logging
-exec npx vite --host 0.0.0.0 --port 3000 --force
+# Rebuild the SvelteKit application
+npm run build
+
+# Start the SvelteKit server
+exec node build/index.js

@@ -12,5 +12,11 @@ export default defineConfig({
         changeOrigin: true
       }
     }
+  },
+  build: {
+    target: 'esnext',
+    modulePreload: {
+      polyfill: true
+    }
   }
 });

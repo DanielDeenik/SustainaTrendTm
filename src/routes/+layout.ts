@@ -1,5 +1,6 @@
-export const ssr = false;
+export const ssr = true;
 export const prerender = false;
-
-// Ensure client-side routing works properly
 export const csr = true;
+
+// Handle proper module loading
+export const trailingSlash = 'never';
