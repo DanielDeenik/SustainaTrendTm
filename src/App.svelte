@@ -1,12 +1,13 @@
 <script lang="ts">
   import "./app.css";
-  import Navigation from '$lib/components/Navigation.svelte';
-  import Card from '$lib/components/ui/Card.svelte';
-  import Badge from '$lib/components/ui/Badge.svelte';
-  import Loading from '$lib/components/ui/Loading.svelte';
-  import Alert from '$lib/components/ui/Alert.svelte';
   import { onMount } from 'svelte';
-  import { logger } from '$lib/services/logger';
+
+  // Direct imports without $lib alias for now
+  import Navigation from './lib/components/Navigation.svelte';
+  import Card from './lib/components/ui/Card.svelte';
+  import Badge from './lib/components/ui/Badge.svelte';
+  import Loading from './lib/components/ui/Loading.svelte';
+  import Alert from './lib/components/ui/Alert.svelte';
 
   let metrics = [];
   let loading = true;
@@ -16,12 +17,13 @@
     try {
       loading = true;
       error = null;
+      console.log('Attempting to fetch metrics...');
       const response = await fetch('http://0.0.0.0:8000/api/metrics');
       if (!response.ok) throw new Error('Failed to fetch metrics');
       metrics = await response.json();
-      console.log('Fetched metrics:', metrics);
+      console.log('Successfully fetched metrics:', metrics);
     } catch (err) {
-      console.error('Error:', err);
+      console.error('Error fetching metrics:', err);
       error = err instanceof Error ? err : new Error('Failed to load metrics');
     } finally {
       loading = false;
@@ -29,7 +31,7 @@
   }
 
   onMount(() => {
-    logger.info('App mounted, fetching metrics');
+    console.log('App component mounted');
     fetchLatestMetrics();
   });
 </script>
