@@ -1,5 +1,3 @@
-import { dev } from '../app/environment';
-
 type LogLevel = 'info' | 'warn' | 'error' | 'debug';
 
 interface LogEntry {
@@ -12,14 +10,13 @@ interface LogEntry {
 }
 
 class Logger {
-  private static instance: Logger;
-  private logLevel: LogLevel = dev ? 'debug' : 'info';
+  private logLevel: LogLevel = process.env.NODE_ENV === 'development' ? 'debug' : 'info';
 
   private formatError(error: Error): any {
     return {
       name: error.name,
       message: error.message,
-      stack: dev ? error.stack : undefined,
+      stack: process.env.NODE_ENV === 'development' ? error.stack : undefined,
       ...(error instanceof Error && 'data' in error ? { data: (error as any).data } : {})
     };
   }
@@ -60,24 +57,6 @@ class Logger {
     }
   }
 
-  log(level: LogLevel, message: string, data?: any, requestId?: string, error?: Error) {
-    const entry: LogEntry = {
-      timestamp: new Date().toISOString(),
-      level,
-      message,
-      data,
-      requestId,
-      error
-    };
-
-    this.logToConsole(entry);
-
-    // In production, we could send logs to a service here
-    if (!dev && (level === 'error' || level === 'warn')) {
-      // TODO: Implement remote error logging service integration
-    }
-  }
-
   debug(message: string, data?: any, requestId?: string) {
     this.log('debug', message, data, requestId);
   }
@@ -98,8 +77,17 @@ class Logger {
     }
   }
 
-  setLogLevel(level: LogLevel) {
-    this.logLevel = level;
+  private log(level: LogLevel, message: string, data?: any, requestId?: string, error?: Error) {
+    const entry: LogEntry = {
+      timestamp: new Date().toISOString(),
+      level,
+      message,
+      data,
+      requestId,
+      error
+    };
+
+    this.logToConsole(entry);
   }
 }
 

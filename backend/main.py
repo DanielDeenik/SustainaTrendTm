@@ -31,6 +31,15 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
+# Get the absolute path to the dist directory
+static_path = Path(__file__).parent.parent / "dist"
+
+# Create the dist directory if it doesn't exist
+static_path.mkdir(parents=True, exist_ok=True)
+
+# Mount static files first
+app.mount("/assets", StaticFiles(directory=str(static_path / "assets")), name="assets")
+
 @app.get("/api")
 async def root():
     """Root endpoint for health check"""
@@ -40,7 +49,7 @@ async def root():
         "timestamp": datetime.utcnow().isoformat()
     }
 
-@app.get("/api/metrics", response_model=List[Metric])
+@app.get("/api/metrics")
 async def get_metrics():
     """Get all metrics with improved error handling"""
     try:
@@ -59,14 +68,14 @@ async def get_metrics():
                         continue
                     try:
                         metric_dict = dict(row)
-                        metrics.append(Metric(
-                            id=metric_dict['id'],
-                            name=metric_dict['name'],
-                            category=metric_dict['category'],
-                            value=float(metric_dict['value']),
-                            unit=metric_dict['unit'],
-                            timestamp=metric_dict['timestamp']
-                        ))
+                        metrics.append({
+                            "id": metric_dict['id'],
+                            "name": metric_dict['name'],
+                            "category": metric_dict['category'],
+                            "value": float(metric_dict['value']),
+                            "unit": metric_dict['unit'],
+                            "timestamp": metric_dict['timestamp'].isoformat()
+                        })
                     except (KeyError, ValueError) as e:
                         logger.error(f"Error converting row to metric: {e}", extra={"row": row})
                         continue
@@ -79,6 +88,37 @@ async def get_metrics():
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
             detail="Failed to fetch metrics"
         )
+
+@app.get("/{full_path:path}")
+async def serve_spa(full_path: str):
+    """Serve the SPA index.html for all non-API routes"""
+    # Skip API routes
+    if full_path.startswith("api/"):
+        raise HTTPException(status_code=404, detail="Not found")
+
+    # Check for static assets first
+    if full_path.startswith("assets/"):
+        asset_path = static_path / full_path
+        if asset_path.exists():
+            logger.info(f"Serving static asset: {full_path}")
+            return FileResponse(str(asset_path))
+
+    index_path = static_path / "index.html"
+
+    # Detailed logging for debugging
+    logger.info("SPA route accessed", extra={
+        "path": full_path,
+        "static_path": str(static_path),
+        "index_exists": index_path.exists(),
+        "files_in_dist": os.listdir(str(static_path)) if static_path.exists() else []
+    })
+
+    if not index_path.exists():
+        logger.error(f"Index file not found at {index_path}")
+        raise HTTPException(status_code=404, detail="Frontend not built")
+
+    logger.info(f"Serving index.html for path: {full_path}")
+    return FileResponse(str(index_path))
 
 @app.post("/api/metrics", response_model=Metric, status_code=status.HTTP_201_CREATED)
 async def create_metric(metric: MetricCreate):
@@ -128,31 +168,6 @@ async def startup_event():
     except Exception as e:
         logger.error(f"Startup error: {str(e)}")
         raise
-
-# Get the absolute path to the dist directory
-static_path = Path(__file__).parent.parent / "dist"
-
-# Create the dist directory if it doesn't exist
-static_path.mkdir(parents=True, exist_ok=True)
-
-# Mount the static files directory first
-app.mount("/assets", StaticFiles(directory=str(static_path / "assets")), name="assets")
-
-# Serve index.html for all non-API routes
-@app.get("/{full_path:path}")
-async def serve_spa(full_path: str):
-    """Serve the SPA index.html for all non-API routes"""
-    # Skip API routes
-    if full_path.startswith("api/"):
-        raise HTTPException(status_code=404, detail="Not found")
-
-    index_path = static_path / "index.html"
-    if not index_path.exists():
-        logger.error(f"Index file not found at {index_path}")
-        raise HTTPException(status_code=404, detail="Frontend not built")
-
-    logger.info(f"Serving index.html for path: {full_path}")
-    return FileResponse(str(index_path))
 
 if __name__ == "__main__":
     import uvicorn

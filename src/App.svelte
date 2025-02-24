@@ -1,16 +1,12 @@
 <script lang="ts">
   import "./app.css";
   import { onMount } from 'svelte';
-  import Card from './lib/components/ui/Card.svelte';
-  import Badge from './lib/components/ui/Badge.svelte';
-  import Loading from './lib/components/ui/Loading.svelte';
   import { logger } from '$lib/services/logger';
-  import type { Metric } from '$lib/types/schema';
 
-  let metrics: Metric[] = [];
+  let route = window.location.pathname;
+  let metrics = [];
   let loading = true;
-  let error: Error | null = null;
-  let currentView = 'dashboard'; // 'dashboard', 'metrics', or 'reports'
+  let error = null;
 
   async function fetchMetrics() {
     try {
@@ -29,29 +25,38 @@
   }
 
   onMount(fetchMetrics);
+
+  function navigate(path) {
+    route = path;
+    window.history.pushState(null, '', path);
+  }
+
+  window.addEventListener('popstate', () => {
+    route = window.location.pathname;
+  });
 </script>
 
-<div class="min-h-screen bg-white">
+<div class="min-h-screen">
   <nav class="nav">
     <div class="container">
       <div class="nav-content">
         <div class="nav-brand">Sustainability Intelligence</div>
         <div class="nav-links">
           <button 
-            class="nav-link {currentView === 'dashboard' ? 'active' : ''}"
-            on:click={() => currentView = 'dashboard'}
+            class="nav-link {route === '/' ? 'active' : ''}"
+            on:click={() => navigate('/')}
           >
             Dashboard
           </button>
           <button 
-            class="nav-link {currentView === 'metrics' ? 'active' : ''}"
-            on:click={() => currentView = 'metrics'}
+            class="nav-link {route === '/metrics' ? 'active' : ''}"
+            on:click={() => navigate('/metrics')}
           >
             Metrics
           </button>
           <button 
-            class="nav-link {currentView === 'reports' ? 'active' : ''}"
-            on:click={() => currentView = 'reports'}
+            class="nav-link {route === '/reports' ? 'active' : ''}"
+            on:click={() => navigate('/reports')}
           >
             Reports
           </button>
@@ -61,13 +66,9 @@
   </nav>
 
   <main class="container">
-    <h1 class="text-2xl font-bold mb-4">
-      Sustainability Intelligence Dashboard
-    </h1>
-
     {#if loading}
       <div class="loading">
-        <Loading size="lg" />
+        <div class="spinner"></div>
       </div>
     {:else if error}
       <div class="error">
@@ -79,26 +80,18 @@
       </div>
     {:else}
       <div class="grid">
-        {#each ['emissions', 'water', 'energy'] as category}
-          {#if metrics.find(m => m.category === category)}
-            {@const metric = metrics.find(m => m.category === category)}
-            <Card title={category === 'emissions' ? 'Environmental Impact' : 
-                      category === 'water' ? 'Water Usage' : 'Energy Efficiency'}>
-              <div class="metric-content">
-                <div class="metric-header">
-                  <span>{category === 'emissions' ? 'Carbon Emissions' :
-                         category === 'water' ? 'Consumption Rate' : 'Power Usage'}</span>
-                  <Badge variant={category === 'emissions' ? 'error' :
-                               category === 'water' ? 'warning' : 'success'}>
-                    {category === 'emissions' ? 'Critical' :
-                     category === 'water' ? 'Moderate' : 'Optimal'}
-                  </Badge>
-                </div>
-                <p class="metric-value">{metric?.value} {metric?.unit}</p>
-                <p class="metric-timestamp">Latest measurement</p>
+        {#each metrics as metric}
+          <div class="card">
+            <h3 class="card-title">{metric.name}</h3>
+            <div class="metric-content">
+              <div class="metric-header">
+                <span>{metric.category}</span>
+                <span class="badge {metric.category}">{metric.category}</span>
               </div>
-            </Card>
-          {/if}
+              <p class="metric-value">{metric.value} {metric.unit}</p>
+              <p class="metric-timestamp">Latest measurement</p>
+            </div>
+          </div>
         {/each}
       </div>
     {/if}
@@ -145,8 +138,10 @@
     color: #4b5563;
     text-decoration: none;
     padding: 0.5rem 1rem;
+    border: none;
+    background: none;
+    cursor: pointer;
     border-radius: 0.375rem;
-    transition: all 0.2s;
   }
 
   .nav-link:hover {
@@ -158,18 +153,25 @@
     background: #f3f4f6;
   }
 
-  .grid {
-    display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
-    gap: 1.5rem;
-    margin: 1.5rem 0;
-  }
-
   .loading {
     display: flex;
     justify-content: center;
     align-items: center;
     min-height: 200px;
+  }
+
+  .spinner {
+    border: 3px solid #f3f3f3;
+    border-top: 3px solid var(--primary);
+    border-radius: 50%;
+    width: 40px;
+    height: 40px;
+    animation: spin 1s linear infinite;
+  }
+
+  @keyframes spin {
+    0% { transform: rotate(0deg); }
+    100% { transform: rotate(360deg); }
   }
 
   .error {
@@ -186,13 +188,29 @@
     padding: 0.5rem 1rem;
     background: #ef4444;
     color: white;
-    border-radius: 0.375rem;
     border: none;
+    border-radius: 0.375rem;
     cursor: pointer;
   }
 
-  .retry-button:hover {
-    background: #dc2626;
+  .grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+    gap: 1.5rem;
+    margin: 1.5rem 0;
+  }
+
+  .card {
+    background: white;
+    border-radius: 0.5rem;
+    padding: 1.5rem;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+  }
+
+  .card-title {
+    font-size: 1.25rem;
+    font-weight: 600;
+    margin-bottom: 1rem;
   }
 
   .metric-content {
@@ -204,6 +222,27 @@
     justify-content: space-between;
     align-items: center;
     margin-bottom: 1rem;
+  }
+
+  .badge {
+    padding: 0.25rem 0.75rem;
+    border-radius: 9999px;
+    font-size: 0.875rem;
+  }
+
+  .badge.emissions {
+    background: #fee2e2;
+    color: #991b1b;
+  }
+
+  .badge.water {
+    background: #e0f2fe;
+    color: #075985;
+  }
+
+  .badge.energy {
+    background: #d1fae5;
+    color: #065f46;
   }
 
   .metric-value {
