@@ -16,6 +16,10 @@ done
 # Create logs directory if it doesn't exist
 mkdir -p logs
 
+# Build the frontend first
+echo "Building frontend..."
+npx vite build
+
 # Set proper permissions
 chmod +x main.py
 
@@ -33,4 +37,4 @@ exec uvicorn backend.main:app \
   --workers 1 \
   --log-level info \
   --reload-dir /home/runner/workspace/backend \
-  --log-config /home/runner/workspace/backend/logging.conf
+  --access-log
