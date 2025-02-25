@@ -9,6 +9,9 @@ export FLASK_APP=app.py
 export FLASK_ENV=development
 export FLASK_DEBUG=1
 
-# Start Flask server
+# Give execute permission to app.py
+chmod +x app.py
+
+# Start Flask server with proper output handling
 echo "Starting Flask server on port 5000..."
-exec python -m flask run --host=0.0.0.0 --port=5000
+exec python app.py 2>&1

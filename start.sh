@@ -9,21 +9,10 @@ pkill -f "flask" || true
 # Create logs directory
 mkdir -p logs
 
-# Start Flask app
-echo "Starting Flask application..."
+# Make scripts executable
 chmod +x start-flask.sh
-./start-flask.sh > logs/flask.log 2>&1 &
-FLASK_PID=$!
+chmod +x app.py
 
-# Wait until port 5000 is available
-echo "Waiting for Flask server to start..."
-until $(curl --output /dev/null --silent --head --fail http://localhost:5000); do
-    if ! ps -p $FLASK_PID > /dev/null; then
-        echo "Flask server failed to start. Check logs at logs/flask.log"
-        exit 1
-    fi
-    sleep 1
-done
-
-echo "Flask server is running!"
-wait $FLASK_PID
+# Start Flask app directly
+echo "Starting Flask application..."
+./start-flask.sh

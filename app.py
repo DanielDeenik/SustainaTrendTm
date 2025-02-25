@@ -10,13 +10,7 @@ logger = logging.getLogger(__name__)
 
 app = Flask(__name__)
 
-# Database configuration using environment variables
-required_vars = ['DATABASE_URL', 'PGDATABASE', 'PGUSER', 'PGPASSWORD', 'PGHOST', 'PGPORT']
-missing_vars = [var for var in required_vars if not os.getenv(var)]
-
-if missing_vars:
-    raise EnvironmentError(f"Missing required environment variables: {', '.join(missing_vars)}")
-
+# Database configuration
 app.config['SQLALCHEMY_DATABASE_URI'] = os.environ.get('DATABASE_URL')
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 db = SQLAlchemy(app)
@@ -44,7 +38,6 @@ class Metric(db.Model):
 def dashboard():
     try:
         metrics = Metric.query.order_by(Metric.timestamp.desc()).all()
-        # Group metrics by category
         metrics_by_category = {}
         for metric in metrics:
             if metric.category not in metrics_by_category:
@@ -70,16 +63,49 @@ def get_metrics():
         logger.error(f"Error fetching metrics: {str(e)}")
         return jsonify({'error': 'Failed to fetch metrics'}), 500
 
-# Initialize database tables
-with app.app_context():
+@app.route('/health')
+def health():
     try:
-        logger.info("Creating database tables if they don't exist...")
-        db.create_all()
-        logger.info("Database tables created successfully")
+        db.session.execute('SELECT 1')
+        return jsonify({
+            'status': 'healthy',
+            'database': 'connected',
+            'timestamp': datetime.now().isoformat()
+        })
     except Exception as e:
-        logger.error(f"Error creating tables: {str(e)}")
+        logger.error(f"Health check failed: {str(e)}")
+        return jsonify({
+            'status': 'unhealthy',
+            'error': str(e),
+            'timestamp': datetime.now().isoformat()
+        }), 500
+
+def init_db():
+    """Initialize database and create sample data"""
+    try:
+        logger.info("Creating database tables...")
+        db.create_all()
+
+        # Add sample data if no metrics exist
+        if not Metric.query.first():
+            sample_metrics = [
+                Metric(name='Carbon Footprint', category='emissions', value=156.7, unit='kg CO2e'),
+                Metric(name='Water Usage', category='water', value=2450.5, unit='gallons'),
+                Metric(name='Energy Consumption', category='energy', value=4500, unit='kWh')
+            ]
+            db.session.bulk_save_objects(sample_metrics)
+            db.session.commit()
+            logger.info("Added sample metrics")
+    except Exception as e:
+        logger.error(f"Database initialization failed: {str(e)}")
         raise
 
 if __name__ == '__main__':
-    # Ensure the app runs on port 5000 and is accessible from outside
-    app.run(host='0.0.0.0', port=5000, debug=True)
+    try:
+        with app.app_context():
+            init_db()
+        logger.info("Starting Flask server on port 5000...")
+        app.run(host='0.0.0.0', port=5000, debug=True)
+    except Exception as e:
+        logger.error(f"Failed to start server: {str(e)}")
+        raise
