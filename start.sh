@@ -4,13 +4,10 @@ set -e
 # Kill any existing processes
 pkill -f "node" || true
 pkill -f "uvicorn" || true
+pkill -f "flask" || true
 
 # Create logs directory
 mkdir -p logs
-
-# Install dependencies
-echo "Installing dependencies..."
-npm install
 
 # Wait for port function
 wait_for_port() {
@@ -30,30 +27,17 @@ wait_for_port() {
   echo "Port $port is available"
 }
 
-# Start FastAPI backend
-cd backend
-chmod +x start.sh
-./start.sh > ../logs/backend.log 2>&1 &
-BACKEND_PID=$!
+# Start Flask app
+echo "Starting Flask application..."
+cd ../
+chmod +x start-flask.sh
+./start-flask.sh > logs/flask.log 2>&1 &
+FLASK_PID=$!
 
-# Wait for backend to be ready
-wait_for_port 8000 || {
-  echo "Backend failed to start"
-  cat ../logs/backend.log
-  exit 1
-}
-
-# Return to root directory
-cd ..
-
-# Start Vite dev server
-npx vite --host 0.0.0.0 --port 3000 > logs/frontend.log 2>&1 &
-FRONTEND_PID=$!
-
-# Wait for frontend to be ready
-wait_for_port 3000 || {
-  echo "Frontend failed to start"
-  cat logs/frontend.log
+# Wait for Flask to be ready
+wait_for_port 5000 || {
+  echo "Flask server failed to start"
+  cat logs/flask.log
   exit 1
 }
 
