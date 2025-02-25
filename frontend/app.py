@@ -130,7 +130,7 @@ def health():
         }), 500
 
 def init_db():
-    """Initialize database with proper error handling"""
+    """Initialize database and create sample data"""
     try:
         logger.info("Creating database tables...")
         db.create_all()

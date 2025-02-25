@@ -1,5 +1,6 @@
 {pkgs}: {
   deps = [
+    pkgs.glibcLocales
     pkgs.redis
     pkgs.iana-etc
     pkgs.netcat
