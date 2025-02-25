@@ -6,6 +6,26 @@
     <title>{{ page_title|default('Sustainability Intelligence Platform') }}</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="https://unpkg.com/htmx.org@1.9.10"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/4.7.2/socket.io.min.js"></script>
+    <script>
+        // Initialize Socket.IO
+        const socket = io();
+
+        // Handle real-time updates
+        socket.on('metric_update', function(data) {
+            htmx.trigger('#metrics-container', 'metrics-updated');
+        });
+
+        // Handle connection status
+        socket.on('connect', () => {
+            console.log('Connected to WebSocket');
+        });
+
+        socket.on('disconnect', () => {
+            console.log('Disconnected from WebSocket');
+        });
+    </script>
 </head>
 <body class="bg-gray-50 dark:bg-gray-900">
     <nav class="bg-white shadow-sm dark:bg-gray-800">

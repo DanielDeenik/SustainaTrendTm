@@ -1,5 +1,7 @@
 from flask import Flask, render_template, jsonify
 from flask_sqlalchemy import SQLAlchemy
+from flask_caching import Cache
+from flask_socketio import SocketIO
 from datetime import datetime
 import os
 import logging
@@ -10,10 +12,20 @@ logger = logging.getLogger(__name__)
 
 app = Flask(__name__)
 
+# Redis Cache Configuration
+cache = Cache(app, config={
+    'CACHE_TYPE': 'redis',
+    'CACHE_REDIS_URL': os.getenv('REDIS_URL', 'redis://localhost:6379/0'),
+    'CACHE_DEFAULT_TIMEOUT': 300
+})
+
 # Database configuration
 app.config['SQLALCHEMY_DATABASE_URI'] = os.environ.get('DATABASE_URL')
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 db = SQLAlchemy(app)
+
+# Initialize SocketIO
+socketio = SocketIO(app, async_mode='eventlet', message_queue=os.getenv('REDIS_URL'))
 
 # Metric model
 class Metric(db.Model):
@@ -35,6 +47,7 @@ class Metric(db.Model):
         }
 
 @app.route('/')
+@cache.cached(timeout=60)  # Cache the dashboard for 60 seconds
 def dashboard():
     try:
         metrics = Metric.query.order_by(Metric.timestamp.desc()).all()
@@ -55,6 +68,7 @@ def dashboard():
         return render_template('error.html', error="Failed to load dashboard data"), 500
 
 @app.route('/api/metrics')
+@cache.cached(timeout=30)  # Cache API responses for 30 seconds
 def get_metrics():
     try:
         metrics = Metric.query.order_by(Metric.timestamp.desc()).all()
@@ -64,6 +78,7 @@ def get_metrics():
         return jsonify({'error': 'Failed to fetch metrics'}), 500
 
 @app.route('/health')
+@cache.cached(timeout=10)  # Cache health check for 10 seconds
 def health():
     try:
         db.session.execute('SELECT 1')
@@ -104,8 +119,8 @@ if __name__ == '__main__':
     try:
         with app.app_context():
             init_db()
-        logger.info("Starting Flask server on port 5000...")
-        app.run(host='0.0.0.0', port=5000, debug=True)
+        # Use SocketIO instead of app.run for WebSocket support
+        socketio.run(app, host='0.0.0.0', port=5000, debug=True)
     except Exception as e:
         logger.error(f"Failed to start server: {str(e)}")
         raise
