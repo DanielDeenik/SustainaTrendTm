@@ -1,31 +1,50 @@
-from flask import Flask, render_template, jsonify
+from flask import Flask, jsonify
 from flask_sqlalchemy import SQLAlchemy
 from flask_caching import Cache
 from flask_socketio import SocketIO
+from dash import Dash, html, dcc
+import dash_bootstrap_components as dbc
 from datetime import datetime
 import os
 import logging
+from dash.dependencies import Input, Output
+import plotly.express as px
+import pandas as pd
 
 # Configure logging
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
 
-app = Flask(__name__)
+# Initialize Flask
+server = Flask(__name__)
+
+# Initialize Dash
+app = Dash(
+    __name__,
+    server=server,
+    external_stylesheets=[dbc.themes.BOOTSTRAP],
+    suppress_callback_exceptions=True,
+    url_base_pathname='/'
+)
 
 # Redis Cache Configuration
-cache = Cache(app, config={
+cache = Cache(server, config={
     'CACHE_TYPE': 'redis',
     'CACHE_REDIS_URL': os.getenv('REDIS_URL', 'redis://localhost:6379/0'),
-    'CACHE_DEFAULT_TIMEOUT': 300
+    'CACHE_DEFAULT_TIMEOUT': 300,
+    'CACHE_OPTIONS': {
+        'maxmemory': '256mb',
+        'maxmemory-policy': 'allkeys-lru'
+    }
 })
 
 # Database configuration
-app.config['SQLALCHEMY_DATABASE_URI'] = os.environ.get('DATABASE_URL')
-app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
-db = SQLAlchemy(app)
+server.config['SQLALCHEMY_DATABASE_URI'] = os.environ.get('DATABASE_URL')
+server.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
+db = SQLAlchemy(server)
 
 # Initialize SocketIO
-socketio = SocketIO(app, async_mode='eventlet', message_queue=os.getenv('REDIS_URL'))
+socketio = SocketIO(server, async_mode='eventlet', message_queue=os.getenv('REDIS_URL'))
 
 # Metric model
 class Metric(db.Model):
@@ -46,29 +65,44 @@ class Metric(db.Model):
             'timestamp': self.timestamp.isoformat()
         }
 
-@app.route('/')
-@cache.cached(timeout=60)  # Cache the dashboard for 60 seconds
-def dashboard():
-    try:
-        metrics = Metric.query.order_by(Metric.timestamp.desc()).all()
-        metrics_by_category = {}
-        for metric in metrics:
-            if metric.category not in metrics_by_category:
-                metrics_by_category[metric.category] = []
-            metrics_by_category[metric.category].append(metric)
+# Navigation bar
+navbar = dbc.NavbarSimple(
+    children=[
+        dbc.NavItem(dbc.NavLink("Dashboard", href="/")),
+        dbc.NavItem(dbc.NavLink("AI Insights", href="/ai-insights")),
+        dbc.NavItem(dbc.NavLink("Analytics", href="/analytics")),
+    ],
+    brand="Sustainability Intelligence Platform",
+    brand_href="/",
+    color="primary",
+    dark=True,
+    className="mb-4"
+)
 
-        return render_template(
-            'dashboard.html',
-            metrics_by_category=metrics_by_category,
-            page_title='Sustainability Dashboard',
-            now=datetime.now()
-        )
-    except Exception as e:
-        logger.error(f"Error loading dashboard: {str(e)}")
-        return render_template('error.html', error="Failed to load dashboard data"), 500
+# Dash Layout
+app.layout = html.Div([
+    navbar,
+    dbc.Container([
+        dbc.Row([
+            dbc.Col(html.H1("Sustainability Metrics Dashboard", className="text-center mb-4"), width=12)
+        ]),
+        dbc.Row([
+            dbc.Col([
+                dcc.Graph(id='metrics-chart'),
+                dcc.Interval(id='interval-component', interval=30000)  # Updates every 30 seconds
+            ], width=12)
+        ]),
+        dbc.Row([
+            dbc.Col([
+                html.Div(id='metrics-cards', className="mt-4")
+            ], width=12)
+        ])
+    ], fluid=True)
+])
 
-@app.route('/api/metrics')
-@cache.cached(timeout=30)  # Cache API responses for 30 seconds
+# API Routes
+@server.route('/api/metrics')
+@cache.cached(timeout=30)
 def get_metrics():
     try:
         metrics = Metric.query.order_by(Metric.timestamp.desc()).all()
@@ -77,8 +111,8 @@ def get_metrics():
         logger.error(f"Error fetching metrics: {str(e)}")
         return jsonify({'error': 'Failed to fetch metrics'}), 500
 
-@app.route('/health')
-@cache.cached(timeout=10)  # Cache health check for 10 seconds
+@server.route('/health')
+@cache.cached(timeout=10)
 def health():
     try:
         db.session.execute('SELECT 1')
@@ -115,12 +149,87 @@ def init_db():
         logger.error(f"Database initialization failed: {str(e)}")
         raise
 
+# Dash Callbacks
+@app.callback(
+    Output('metrics-chart', 'figure'),
+    Input('interval-component', 'n_intervals')
+)
+def update_metrics_chart(_):
+    try:
+        metrics = Metric.query.order_by(Metric.timestamp.desc()).all()
+        df = pd.DataFrame([metric.to_dict() for metric in metrics])
+
+        if df.empty:
+            return {}
+
+        # Convert timestamp strings to datetime
+        df['timestamp'] = pd.to_datetime(df['timestamp'])
+
+        # Create line chart
+        fig = px.line(
+            df,
+            x='timestamp',
+            y='value',
+            color='category',
+            title='Sustainability Metrics Over Time'
+        )
+
+        fig.update_layout(
+            template='plotly_dark',
+            xaxis_title='Time',
+            yaxis_title='Value',
+            hovermode='x unified',
+            legend_title='Category',
+            plot_bgcolor='rgba(0,0,0,0)',
+            paper_bgcolor='rgba(0,0,0,0)',
+        )
+
+        return fig
+    except Exception as e:
+        logger.error(f"Error updating metrics chart: {str(e)}")
+        return {}
+
+@app.callback(
+    Output('metrics-cards', 'children'),
+    Input('interval-component', 'n_intervals')
+)
+def update_metrics_cards(_):
+    try:
+        metrics = Metric.query.order_by(Metric.timestamp.desc()).all()
+
+        cards = []
+        for metric in metrics:
+            card = dbc.Card([
+                dbc.CardHeader(metric.name),
+                dbc.CardBody([
+                    html.H4(f"{metric.value} {metric.unit}", className="card-title"),
+                    html.P(f"Category: {metric.category}", className="card-text"),
+                    html.P(f"Last updated: {metric.timestamp.strftime('%Y-%m-%d %H:%M:%S')}", 
+                          className="card-text text-muted")
+                ])
+            ], className="mb-3")
+            cards.append(card)
+
+        return cards
+    except Exception as e:
+        logger.error(f"Error updating metrics cards: {str(e)}")
+        return []
+
+# WebSocket Events
+@socketio.on('connect')
+def handle_connect():
+    logger.info('Client connected to WebSocket')
+
+@socketio.on('disconnect')
+def handle_disconnect():
+    logger.info('Client disconnected from WebSocket')
+
 if __name__ == '__main__':
     try:
-        with app.app_context():
+        with server.app_context():
             init_db()
         # Use SocketIO instead of app.run for WebSocket support
-        socketio.run(app, host='0.0.0.0', port=5000, debug=True)
+        socketio.run(server, host='0.0.0.0', port=5000, debug=True)
     except Exception as e:
         logger.error(f"Failed to start server: {str(e)}")
         raise

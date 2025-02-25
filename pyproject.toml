@@ -21,4 +21,8 @@ dependencies = [
     "eventlet>=0.39.0",
     "gunicorn>=23.0.0",
     "redis>=5.2.1",
+    "dash-core-components>=2.0.0",
+    "dash-html-components>=2.0.0",
+    "dash>=2.9.3",
+    "dash-bootstrap-components>=1.7.1",
 ]
