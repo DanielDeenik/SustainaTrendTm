@@ -4,6 +4,7 @@
   import { fade } from 'svelte/transition';
   import Navigation from './lib/components/Navigation.svelte';
   import ErrorBoundary from './lib/components/ErrorBoundary.svelte';
+  import { apiRequest } from '$lib/api/client';
 
   let metrics = [];
   let loading = true;
@@ -13,9 +14,8 @@
     try {
       loading = true;
       error = null;
-      const response = await fetch('/api/metrics');
-      if (!response.ok) throw new Error('Failed to fetch metrics');
-      metrics = await response.json();
+      // Use apiRequest which handles proxying and error handling
+      metrics = await apiRequest('/api/metrics');
       console.log('Dashboard metrics loaded', { count: metrics.length });
     } catch (err) {
       error = err instanceof Error ? err : new Error('Failed to load metrics');
