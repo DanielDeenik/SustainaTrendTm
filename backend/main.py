@@ -3,9 +3,8 @@ from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse
 from datetime import datetime
 import os
-from pathlib import Path
 
-from backend.database import get_db, verify_db_connection
+from backend.database import get_db, verify_db_connection, init_db
 from backend.utils.logger import logger
 from backend.middleware.error_handler import handle_error
 
@@ -19,10 +18,10 @@ app = FastAPI(
 # Add error handler
 app.add_exception_handler(Exception, handle_error)
 
-# Configure CORS for development
+# Configure CORS
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["*"],  # Allow all origins in development
+    allow_origins=["*"],
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
@@ -31,7 +30,24 @@ app.add_middleware(
 @app.get("/health")
 async def health_check():
     """Health check endpoint"""
-    return {"status": "healthy", "timestamp": datetime.now().isoformat()}
+    try:
+        if verify_db_connection():
+            return {
+                "status": "healthy",
+                "database": "connected",
+                "timestamp": datetime.now().isoformat()
+            }
+        return {
+            "status": "unhealthy",
+            "database": "disconnected",
+            "timestamp": datetime.now().isoformat()
+        }
+    except Exception as e:
+        logger.error(f"Health check failed: {str(e)}")
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail="Health check failed"
+        )
 
 @app.get("/api/metrics")
 async def get_metrics():
@@ -69,11 +85,11 @@ async def get_metrics():
 
 @app.on_event("startup")
 async def startup_event():
-    """Verify database connection on startup"""
+    """Initialize database on startup"""
     try:
-        if not verify_db_connection():
-            raise Exception("Database connection failed")
-        logger.info("Successfully connected to database")
+        # Initialize database and create tables
+        init_db()
+        logger.info("Successfully initialized database")
     except Exception as e:
         logger.error(f"Startup error: {str(e)}")
         raise

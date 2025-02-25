@@ -6,7 +6,7 @@ echo "Starting FastAPI server..."
 # Kill any existing uvicorn processes
 pkill -f "uvicorn" || true
 
-# Create logs directory if it doesn't exist
+# Create logs directory
 mkdir -p logs
 
 # Install Python dependencies if not already installed
@@ -26,11 +26,17 @@ uvicorn main:app \
   --reload \
   --workers 1 \
   --log-level info \
-  --access-log &
+  --access-log > ../logs/backend.log 2>&1 &
+
+BACKEND_PID=$!
 
 # Wait for the server to be ready
 echo "Waiting for FastAPI server to be ready..."
 until $(curl --output /dev/null --silent --fail http://localhost:8000/health); do
+    if ! ps -p $BACKEND_PID > /dev/null; then
+        echo "Backend server failed to start. Check logs at ../logs/backend.log"
+        exit 1
+    fi
     echo "Waiting for server to be ready..."
     sleep 2
 done
@@ -38,4 +44,4 @@ done
 echo "FastAPI server is ready!"
 
 # Keep the script running
-wait
+wait $BACKEND_PID
