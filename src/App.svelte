@@ -2,95 +2,80 @@
   import "./app.css";
   import { onMount } from 'svelte';
   import { fade } from 'svelte/transition';
-  import Navigation from './lib/components/Navigation.svelte';
-  import ErrorBoundary from './lib/components/ErrorBoundary.svelte';
+  import MetricCard from '$lib/components/sustainability/MetricCard.svelte';
   import { apiRequest } from '$lib/api/client';
+  import type { APIError } from '$lib/api/client';
+  import type { Metric } from '$lib/types/schema';
 
-  let metrics = [];
+  let metrics: Metric[] = [];
   let loading = true;
-  let error = null;
+  let error: Error | APIError | null = null;
+  let aiEnabled = false;
 
-  async function fetchMetrics() {
+  async function fetchData() {
     try {
       loading = true;
       error = null;
       metrics = await apiRequest('/api/metrics');
     } catch (err) {
-      error = err instanceof Error ? err : new Error('Failed to load metrics');
-      console.error('Failed to load metrics:', error);
+      error = err instanceof Error ? err : new Error('Failed to load data');
+      console.error('Failed to load data:', error);
     } finally {
       loading = false;
     }
   }
 
-  onMount(fetchMetrics);
+  onMount(fetchData);
 </script>
 
 <div class="min-h-screen bg-white dark:bg-gray-900">
-  <Navigation />
-
-  <main class="max-w-7xl mx-auto px-4 py-8">
-    <ErrorBoundary>
-      {#if loading}
-        <div class="flex justify-center items-center min-h-[200px]">
-          <div class="spinner"></div>
-        </div>
-      {:else if error}
-        <div class="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded">
-          <p class="font-bold">Error loading data</p>
-          <p>{error.message}</p>
-          <button 
-            class="mt-4 bg-red-500 text-white px-4 py-2 rounded hover:bg-red-600"
-            on:click={fetchMetrics}
-          >
-            Try Again
-          </button>
-        </div>
-      {:else}
-        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-          {#each metrics as metric}
-            <div class="bg-white rounded-lg shadow p-6">
-              <div class="flex justify-between items-start mb-4">
-                <h3 class="text-lg font-semibold">{metric.name}</h3>
-                <span class="px-2 py-1 rounded-full text-sm capitalize
-                  {metric.category === 'emissions' ? 'bg-red-100 text-red-800' :
-                   metric.category === 'water' ? 'bg-blue-100 text-blue-800' :
-                   'bg-green-100 text-green-800'}">
-                  {metric.category}
-                </span>
-              </div>
-              <p class="text-3xl font-bold text-green-600">
-                {metric.value} {metric.unit}
-              </p>
-              <p class="text-sm text-gray-500 mt-2">
-                Last updated: {new Date(metric.timestamp).toLocaleString()}
-              </p>
-            </div>
-          {/each}
-        </div>
-      {/if}
-    </ErrorBoundary>
-  </main>
-
-  <footer class="border-t border-gray-200 dark:border-gray-800 mt-auto">
-    <div class="max-w-7xl mx-auto px-4 py-4 text-center text-gray-600 dark:text-gray-400">
-      © {new Date().getFullYear()} Sustainability Intelligence Platform
+  <header class="bg-white shadow dark:bg-gray-800">
+    <div class="max-w-7xl mx-auto py-6 px-4">
+      <div class="flex justify-between items-center">
+        <h1 class="text-3xl font-bold text-gray-900 dark:text-white">
+          Sustainability Intelligence
+        </h1>
+        <button
+          class="px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors"
+          class:opacity-50={loading}
+          disabled={loading}
+          on:click={() => aiEnabled = !aiEnabled}
+        >
+          {aiEnabled ? 'Disable AI' : 'Enable AI'}
+        </button>
+      </div>
     </div>
-  </footer>
+  </header>
+
+  <main class="max-w-7xl mx-auto px-4 py-8" in:fade>
+    {#if loading}
+      <div class="flex justify-center items-center min-h-[200px]">
+        <div class="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-green-500"></div>
+      </div>
+    {:else if error}
+      <div class="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded relative">
+        <strong class="font-bold">Error!</strong>
+        <p class="block sm:inline">{error.message}</p>
+        <button
+          class="mt-4 bg-red-500 text-white px-4 py-2 rounded hover:bg-red-600 transition-colors"
+          on:click={fetchData}
+        >
+          Try Again
+        </button>
+      </div>
+    {:else}
+      <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+        {#each metrics as metric (metric.id)}
+          <MetricCard {metric} {aiEnabled} />
+        {/each}
+      </div>
+    {/if}
+  </main>
 </div>
 
 <style>
-  .spinner {
-    border: 4px solid #f3f3f3;
-    border-top: 4px solid #22c55e;
-    border-radius: 50%;
-    width: 40px;
-    height: 40px;
-    animation: spin 1s linear infinite;
-  }
-
-  @keyframes spin {
-    0% { transform: rotate(0deg); }
-    100% { transform: rotate(360deg); }
+  :global(body) {
+    margin: 0;
+    font-family: system-ui, -apple-system, sans-serif;
   }
 </style>
