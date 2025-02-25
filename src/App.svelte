@@ -12,6 +12,18 @@
   let error: Error | APIError | null = null;
   let aiEnabled = false;
 
+  // Group metrics by name for historical data
+  $: metricsByName = metrics.reduce((acc, metric) => {
+    const name = metric.name;
+    if (!acc[name]) acc[name] = [];
+    acc[name].push(metric);
+    acc[name].sort((a, b) => new Date(a.timestamp).getTime() - new Date(b.timestamp).getTime());
+    return acc;
+  }, {} as Record<string, Metric[]>);
+
+  // Get unique latest metrics
+  $: latestMetrics = Object.values(metricsByName).map(group => group[group.length - 1]);
+
   async function fetchData() {
     try {
       loading = true;
@@ -65,8 +77,12 @@
       </div>
     {:else}
       <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-        {#each metrics as metric (metric.id)}
-          <MetricCard {metric} {aiEnabled} />
+        {#each latestMetrics as metric (metric.id)}
+          <MetricCard 
+            {metric}
+            historicalMetrics={metricsByName[metric.name].slice(0, -1)}
+            {aiEnabled} 
+          />
         {/each}
       </div>
     {/if}
