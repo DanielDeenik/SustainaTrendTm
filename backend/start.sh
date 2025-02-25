@@ -25,10 +25,24 @@ export PYTHONPATH="${PWD}"
 
 # Change to backend directory and start the FastAPI server
 cd backend
-exec uvicorn main:app \
+
+# Start server and wait for it to be ready
+uvicorn main:app \
   --host 0.0.0.0 \
   --port 8000 \
   --reload \
   --workers 1 \
   --log-level info \
-  --access-log
+  --access-log &
+
+# Wait for the server to be ready
+echo "Waiting for FastAPI server to be ready..."
+until $(curl --output /dev/null --silent --fail http://localhost:8000/api/metrics); do
+    echo "Waiting for server to be ready..."
+    sleep 2
+done
+
+echo "FastAPI server is ready!"
+
+# Keep the script running
+wait

@@ -2,7 +2,8 @@
   import "./app.css";
   import { onMount } from 'svelte';
   import { fade } from 'svelte/transition';
-  import MetricCard from '$lib/components/sustainability/MetricCard.svelte';
+  import { LineChart } from "@carbon/charts-svelte";
+  import Badge from '$lib/components/ui/Badge.svelte';
   import { apiRequest } from '$lib/api/client';
   import type { APIError } from '$lib/api/client';
   import type { Metric } from '$lib/types/schema';
@@ -10,19 +11,6 @@
   let metrics: Metric[] = [];
   let loading = true;
   let error: Error | APIError | null = null;
-  let aiEnabled = false;
-
-  // Group metrics by name for historical data
-  $: metricsByName = metrics.reduce((acc, metric) => {
-    const name = metric.name;
-    if (!acc[name]) acc[name] = [];
-    acc[name].push(metric);
-    acc[name].sort((a, b) => new Date(a.timestamp).getTime() - new Date(b.timestamp).getTime());
-    return acc;
-  }, {} as Record<string, Metric[]>);
-
-  // Get unique latest metrics
-  $: latestMetrics = Object.values(metricsByName).map(group => group[group.length - 1]);
 
   async function fetchData() {
     try {
@@ -38,24 +26,40 @@
   }
 
   onMount(fetchData);
+
+  // Prepare chart data
+  $: chartData = metrics.map(m => ({
+    group: m.category,
+    date: new Date(m.timestamp),
+    value: m.value
+  }));
+
+  $: chartOptions = {
+    title: 'Sustainability Metrics',
+    axes: {
+      bottom: {
+        title: 'Time',
+        mapsTo: 'date',
+        scaleType: 'time'
+      },
+      left: {
+        mapsTo: 'value',
+        scaleType: 'linear'
+      }
+    },
+    height: '400px',
+    toolbar: {
+      enabled: false
+    }
+  };
 </script>
 
 <div class="min-h-screen bg-white dark:bg-gray-900">
   <header class="bg-white shadow dark:bg-gray-800">
     <div class="max-w-7xl mx-auto py-6 px-4">
-      <div class="flex justify-between items-center">
-        <h1 class="text-3xl font-bold text-gray-900 dark:text-white">
-          Sustainability Intelligence
-        </h1>
-        <button
-          class="px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors"
-          class:opacity-50={loading}
-          disabled={loading}
-          on:click={() => aiEnabled = !aiEnabled}
-        >
-          {aiEnabled ? 'Disable AI' : 'Enable AI'}
-        </button>
-      </div>
+      <h1 class="text-3xl font-bold text-gray-900 dark:text-white">
+        Sustainability Intelligence
+      </h1>
     </div>
   </header>
 
@@ -76,13 +80,32 @@
         </button>
       </div>
     {:else}
+      <!-- Chart Section -->
+      {#if metrics.length > 0}
+        <div class="bg-white dark:bg-gray-800 rounded-lg shadow p-6 mb-8">
+          <LineChart data={chartData} options={chartOptions} />
+        </div>
+      {/if}
+
+      <!-- Metrics Grid -->
       <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-        {#each latestMetrics as metric (metric.id)}
-          <MetricCard 
-            {metric}
-            historicalMetrics={metricsByName[metric.name].slice(0, -1)}
-            {aiEnabled} 
-          />
+        {#each metrics as metric (metric.id)}
+          <div class="bg-white dark:bg-gray-800 rounded-lg shadow p-6">
+            <div class="flex justify-between items-start">
+              <h3 class="text-lg font-semibold text-gray-900 dark:text-white">
+                {metric.name}
+              </h3>
+              <Badge variant={metric.category === 'emissions' ? 'error' : 'default'}>
+                {metric.category}
+              </Badge>
+            </div>
+            <p class="text-3xl font-bold text-green-600 dark:text-green-400 mt-4">
+              {metric.value} {metric.unit}
+            </p>
+            <p class="text-sm text-gray-500 dark:text-gray-400 mt-2">
+              Last updated: {new Date(metric.timestamp).toLocaleString()}
+            </p>
+          </div>
         {/each}
       </div>
     {/if}

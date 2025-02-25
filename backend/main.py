@@ -1,12 +1,10 @@
 from fastapi import FastAPI, HTTPException, status
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse
-from typing import List
 from datetime import datetime
 import os
 from pathlib import Path
 
-from backend.models import Metric, MetricCreate
 from backend.database import get_db, verify_db_connection
 from backend.utils.logger import logger
 from backend.middleware.error_handler import handle_error
@@ -30,6 +28,11 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
+@app.get("/health")
+async def health_check():
+    """Health check endpoint"""
+    return {"status": "healthy", "timestamp": datetime.now().isoformat()}
+
 @app.get("/api/metrics")
 async def get_metrics():
     """Get all metrics with improved error handling"""
@@ -37,7 +40,7 @@ async def get_metrics():
         with get_db() as conn:
             with conn.cursor() as cur:
                 cur.execute("""
-                    SELECT id, name, category, value, unit, timestamp, metric_metadata
+                    SELECT id, name, category, value, unit, timestamp
                     FROM metrics 
                     ORDER BY timestamp DESC
                 """)
@@ -45,26 +48,20 @@ async def get_metrics():
 
                 metrics = []
                 for row in rows:
-                    if row is None:
-                        continue
-                    try:
-                        metric_dict = dict(row)
-                        metrics.append({
-                            "id": metric_dict['id'],
-                            "name": metric_dict['name'],
-                            "category": metric_dict['category'],
-                            "value": float(metric_dict['value']),
-                            "unit": metric_dict['unit'],
-                            "timestamp": metric_dict['timestamp'].isoformat(),
-                            "metric_metadata": metric_dict.get('metric_metadata', {})
-                        })
-                    except (KeyError, ValueError) as e:
-                        logger.error(f"Error converting row to metric: {e}", extra={"row": row})
-                        continue
+                    metric_dict = dict(row)
+                    metrics.append({
+                        "id": metric_dict['id'],
+                        "name": metric_dict['name'],
+                        "category": metric_dict['category'],
+                        "value": float(metric_dict['value']),
+                        "unit": metric_dict['unit'],
+                        "timestamp": metric_dict['timestamp'].isoformat()
+                    })
 
+                logger.info(f"Successfully fetched {len(metrics)} metrics")
                 return metrics
     except Exception as e:
-        logger.error("Failed to fetch metrics", extra={"error": str(e)})
+        logger.error(f"Failed to fetch metrics: {str(e)}")
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
             detail="Failed to fetch metrics"
