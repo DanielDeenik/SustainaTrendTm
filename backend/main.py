@@ -21,23 +21,14 @@ app = FastAPI(
 # Add error handler
 app.add_exception_handler(Exception, handle_error)
 
-# Add CORS middleware - Allow all origins during development
+# Configure CORS for development
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["*"],  # Allow all origins temporarily
+    allow_origins=["*"],  # Allow all origins in development
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
 )
-
-@app.get("/api")
-async def root():
-    """Root endpoint for health check"""
-    return {
-        "status": "ok",
-        "message": "Sustainability Metrics API is running",
-        "timestamp": datetime.utcnow().isoformat()
-    }
 
 @app.get("/api/metrics")
 async def get_metrics():

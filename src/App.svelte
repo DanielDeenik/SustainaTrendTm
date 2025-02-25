@@ -14,12 +14,10 @@
     try {
       loading = true;
       error = null;
-      // Use apiRequest which handles proxying and error handling
       metrics = await apiRequest('/api/metrics');
-      console.log('Dashboard metrics loaded', { count: metrics.length });
     } catch (err) {
       error = err instanceof Error ? err : new Error('Failed to load metrics');
-      console.error('Failed to load metrics', { error });
+      console.error('Failed to load metrics:', error);
     } finally {
       loading = false;
     }
@@ -39,7 +37,7 @@
         </div>
       {:else if error}
         <div class="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded">
-          <p class="font-bold">Error!</p>
+          <p class="font-bold">Error loading data</p>
           <p>{error.message}</p>
           <button 
             class="mt-4 bg-red-500 text-white px-4 py-2 rounded hover:bg-red-600"

@@ -1,6 +1,6 @@
 // Frontend configuration
 export const config = {
-  apiUrl: 'http://0.0.0.0:8000',  // FastAPI backend
+  apiUrl: '', // Empty base URL to use Vite's proxy
   development: true,
   version: '1.0.0',
   api: {

@@ -1,6 +1,6 @@
-export const ssr = true;
+export const ssr = false;
 export const prerender = false;
 export const csr = true;
 
-// Handle proper module loading
+// Force trailing slash handling
 export const trailingSlash = 'never';

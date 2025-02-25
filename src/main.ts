@@ -1,8 +1,12 @@
 import App from './App.svelte';
 import './app.css';
 
-const app = new App({
-  target: document.getElementById('app') || document.body,
-});
+// Force SPA mode and ensure proper DOM mounting
+const target = document.getElementById('app') || document.body;
+if (!target.hasChildNodes()) {
+  const app = new App({
+    target,
+  });
 
-export default app;
+  export default app;
+}
