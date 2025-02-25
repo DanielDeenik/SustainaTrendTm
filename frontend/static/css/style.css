@@ -1,0 +1,30 @@
+/* Basic styling for the dashboard */
+body {
+    background-color: #f8f9fa;
+    min-height: 100vh;
+}
+
+.metrics-card {
+    background: white;
+    border-radius: 8px;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+    margin-bottom: 1rem;
+    transition: transform 0.2s;
+}
+
+.metrics-card:hover {
+    transform: translateY(-2px);
+}
+
+.chart-container {
+    background: white;
+    border-radius: 8px;
+    padding: 1rem;
+    margin-bottom: 2rem;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+}
+
+/* Dark theme support for plotly charts */
+.js-plotly-plot .plotly .main-svg {
+    background: transparent !important;
+}
