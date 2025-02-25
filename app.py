@@ -70,8 +70,8 @@ def get_metrics():
         logger.error(f"Error fetching metrics: {str(e)}")
         return jsonify({'error': 'Failed to fetch metrics'}), 500
 
-@app.before_first_request
-def create_tables():
+# Initialize database tables
+with app.app_context():
     try:
         logger.info("Creating database tables if they don't exist...")
         db.create_all()

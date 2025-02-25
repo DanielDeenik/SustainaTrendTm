@@ -9,37 +9,21 @@ pkill -f "flask" || true
 # Create logs directory
 mkdir -p logs
 
-# Wait for port function
-wait_for_port() {
-  local port=$1
-  local timeout=${2:-30}
-  local count=0
-
-  echo "Waiting for port $port..."
-  while ! nc -z localhost $port; do
-    if [ $count -ge $timeout ]; then
-      echo "Timeout waiting for port $port"
-      return 1
-    fi
-    sleep 1
-    count=$((count + 1))
-  done
-  echo "Port $port is available"
-}
-
 # Start Flask app
 echo "Starting Flask application..."
-cd ../
 chmod +x start-flask.sh
 ./start-flask.sh > logs/flask.log 2>&1 &
 FLASK_PID=$!
 
-# Wait for Flask to be ready
-wait_for_port 5000 || {
-  echo "Flask server failed to start"
-  cat logs/flask.log
-  exit 1
-}
+# Wait until port 5000 is available
+echo "Waiting for Flask server to start..."
+until $(curl --output /dev/null --silent --head --fail http://localhost:5000); do
+    if ! ps -p $FLASK_PID > /dev/null; then
+        echo "Flask server failed to start. Check logs at logs/flask.log"
+        exit 1
+    fi
+    sleep 1
+done
 
-echo "All services started successfully"
-wait
+echo "Flask server is running!"
+wait $FLASK_PID
