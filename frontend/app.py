@@ -1,4 +1,4 @@
-from flask import Flask, jsonify
+from flask import Flask, jsonify, render_template
 from flask_sqlalchemy import SQLAlchemy
 from flask_caching import Cache
 from flask_socketio import SocketIO
@@ -31,11 +31,7 @@ app = Dash(
 cache = Cache(server, config={
     'CACHE_TYPE': 'redis',
     'CACHE_REDIS_URL': os.getenv('REDIS_URL', 'redis://localhost:6379/0'),
-    'CACHE_DEFAULT_TIMEOUT': 300,
-    'CACHE_OPTIONS': {
-        'maxmemory': '256mb',
-        'maxmemory-policy': 'allkeys-lru'
-    }
+    'CACHE_DEFAULT_TIMEOUT': 300
 })
 
 # Database configuration
@@ -89,7 +85,7 @@ app.layout = html.Div([
         dbc.Row([
             dbc.Col([
                 dcc.Graph(id='metrics-chart'),
-                dcc.Interval(id='interval-component', interval=30000)  # Updates every 30 seconds
+                dcc.Interval(id='interval-component', interval=30000)
             ], width=12)
         ]),
         dbc.Row([
@@ -100,7 +96,6 @@ app.layout = html.Div([
     ], fluid=True)
 ])
 
-# API Routes
 @server.route('/api/metrics')
 @cache.cached(timeout=30)
 def get_metrics():
@@ -112,7 +107,6 @@ def get_metrics():
         return jsonify({'error': 'Failed to fetch metrics'}), 500
 
 @server.route('/health')
-@cache.cached(timeout=10)
 def health():
     try:
         db.session.execute('SELECT 1')
@@ -129,26 +123,6 @@ def health():
             'timestamp': datetime.now().isoformat()
         }), 500
 
-def init_db():
-    """Initialize database and create sample data"""
-    try:
-        logger.info("Creating database tables...")
-        db.create_all()
-
-        # Add sample data if no metrics exist
-        if not Metric.query.first():
-            sample_metrics = [
-                Metric(name='Carbon Footprint', category='emissions', value=156.7, unit='kg CO2e'),
-                Metric(name='Water Usage', category='water', value=2450.5, unit='gallons'),
-                Metric(name='Energy Consumption', category='energy', value=4500, unit='kWh')
-            ]
-            db.session.bulk_save_objects(sample_metrics)
-            db.session.commit()
-            logger.info("Added sample metrics")
-    except Exception as e:
-        logger.error(f"Database initialization failed: {str(e)}")
-        raise
-
 # Dash Callbacks
 @app.callback(
     Output('metrics-chart', 'figure'),
@@ -162,10 +136,6 @@ def update_metrics_chart(_):
         if df.empty:
             return {}
 
-        # Convert timestamp strings to datetime
-        df['timestamp'] = pd.to_datetime(df['timestamp'])
-
-        # Create line chart
         fig = px.line(
             df,
             x='timestamp',
@@ -196,7 +166,6 @@ def update_metrics_chart(_):
 def update_metrics_cards(_):
     try:
         metrics = Metric.query.order_by(Metric.timestamp.desc()).all()
-
         cards = []
         for metric in metrics:
             card = dbc.Card([
@@ -209,27 +178,12 @@ def update_metrics_cards(_):
                 ])
             ], className="mb-3")
             cards.append(card)
-
         return cards
     except Exception as e:
         logger.error(f"Error updating metrics cards: {str(e)}")
         return []
 
-# WebSocket Events
-@socketio.on('connect')
-def handle_connect():
-    logger.info('Client connected to WebSocket')
-
-@socketio.on('disconnect')
-def handle_disconnect():
-    logger.info('Client disconnected from WebSocket')
-
 if __name__ == '__main__':
-    try:
-        with server.app_context():
-            init_db()
-        # Use SocketIO instead of app.run for WebSocket support
-        socketio.run(server, host='0.0.0.0', port=5000, debug=True)
-    except Exception as e:
-        logger.error(f"Failed to start server: {str(e)}")
-        raise
+    with server.app_context():
+        db.create_all()
+    socketio.run(server, host='0.0.0.0', port=5000, debug=True)

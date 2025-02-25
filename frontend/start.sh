@@ -4,6 +4,10 @@ set -e
 # Create logs directory if it doesn't exist
 mkdir -p logs
 
+# Kill any existing processes to avoid port conflicts
+pkill -f "gunicorn" || true
+pkill -f "redis-server" || true
+
 # Install Python dependencies
 pip install --quiet flask flask-sqlalchemy psycopg2-binary python-dotenv redis flask-caching \
     celery flask-socketio eventlet gunicorn dash dash-bootstrap-components pandas plotly

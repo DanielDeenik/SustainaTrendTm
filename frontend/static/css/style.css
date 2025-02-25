@@ -1,10 +1,16 @@
-/* Basic styling for the dashboard */
+/* Base styles */
 body {
     background-color: #f8f9fa;
     min-height: 100vh;
 }
 
-.metrics-card {
+/* Dashboard layout */
+.container-fluid {
+    padding: 2rem;
+}
+
+/* Card styling */
+.card {
     background: white;
     border-radius: 8px;
     box-shadow: 0 2px 4px rgba(0,0,0,0.1);
@@ -12,11 +18,12 @@ body {
     transition: transform 0.2s;
 }
 
-.metrics-card:hover {
+.card:hover {
     transform: translateY(-2px);
 }
 
-.chart-container {
+/* Chart container */
+.dash-graph {
     background: white;
     border-radius: 8px;
     padding: 1rem;
@@ -24,7 +31,20 @@ body {
     box-shadow: 0 2px 4px rgba(0,0,0,0.1);
 }
 
+/* Navigation styling */
+.navbar {
+    margin-bottom: 2rem;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+}
+
 /* Dark theme support for plotly charts */
 .js-plotly-plot .plotly .main-svg {
     background: transparent !important;
+}
+
+/* Responsive adjustments */
+@media (max-width: 768px) {
+    .container-fluid {
+        padding: 1rem;
+    }
 }

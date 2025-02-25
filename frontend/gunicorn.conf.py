@@ -17,13 +17,6 @@ keepalive = 5
 max_requests = 1000
 max_requests_jitter = 50
 
-# Worker Tuning
-worker_connections = 1000
-
-# WebSocket Configuration
-websocket_ping_interval = 25
-websocket_ping_timeout = 120
-
 # Process Naming
 proc_name = "sustainability_dashboard"
 
