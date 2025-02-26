@@ -34,6 +34,13 @@ def get_sustainability_metrics():
 
         metrics_data = response.json()
         logger.info(f"Successfully fetched {len(metrics_data)} metrics from API")
+
+        # Log a sample of the metrics data to verify format
+        if metrics_data and len(metrics_data) > 0:
+            logger.info(f"Sample metric data: {json.dumps(metrics_data[0], indent=2)}")
+            logger.info(f"Metrics categories: {set(m['category'] for m in metrics_data)}")
+            logger.info(f"Metrics names: {set(m['name'] for m in metrics_data)}")
+
         return metrics_data
 
     except Exception as e:
@@ -116,6 +123,7 @@ def home():
 @app.route('/dashboard')
 def dashboard():
     """Dashboard page using data from FastAPI backend"""
+    logger.info("Dashboard page requested, fetching metrics...")
     metrics = get_sustainability_metrics()
     logger.info(f"Rendering dashboard with {len(metrics)} metrics")
     return render_template("dashboard.html", metrics=metrics)
@@ -123,14 +131,34 @@ def dashboard():
 @app.route('/api/metrics')
 def api_metrics():
     """API endpoint for metrics data"""
+    logger.info("API metrics endpoint called")
     metrics = get_sustainability_metrics()
+    logger.info(f"Returning {len(metrics)} metrics from API endpoint")
     return jsonify(metrics)
 
 @app.route('/debug')
 def debug_route():
-    """Debug route to check registered routes"""
+    """Debug route to check registered routes and connections"""
+    logger.info("Debug route called")
     routes = [str(rule) for rule in app.url_map.iter_rules()]
-    return f"Registered routes: {routes}"
+
+    # Also check FastAPI connection
+    try:
+        logger.info(f"Testing connection to FastAPI backend: {BACKEND_URL}/health")
+        response = httpx.get(f"{BACKEND_URL}/health", timeout=5.0)
+        backend_status = response.json() if response.status_code == 200 else {"status": "error", "code": response.status_code}
+        logger.info(f"FastAPI backend health check: {backend_status}")
+    except Exception as e:
+        logger.error(f"Failed to connect to FastAPI backend: {str(e)}")
+        backend_status = {"status": "error", "message": str(e)}
+
+    debug_info = {
+        "routes": routes,
+        "backend_url": BACKEND_URL,
+        "backend_status": backend_status
+    }
+
+    return jsonify(debug_info)
 
 if __name__ == "__main__":
     # Log registered routes for debugging

@@ -134,12 +134,12 @@
     <script>
         // Parse metrics data from Flask
         const metricsData = {{ metrics|tojson }};
-        
+
         // Process metrics for visualization
         const processMetricsData = (metrics) => {
             const data = [];
             const categories = {};
-            
+
             // Group metrics by name for time series chart
             metrics.forEach(metric => {
                 if (!categories[metric.name]) {
@@ -151,19 +151,19 @@
                         mode: 'lines+markers'
                     };
                 }
-                
+
                 categories[metric.name].x.push(metric.timestamp);
                 categories[metric.name].y.push(metric.value);
             });
-            
+
             // Convert to array for Plotly
             for (const name in categories) {
                 data.push(categories[name]);
             }
-            
+
             return data;
         };
-        
+
         // Filter metrics by category
         const filterMetricsByCategory = (metrics, category) => {
             if (category === 'all') {
@@ -171,11 +171,11 @@
             }
             return metrics.filter(metric => metric.category === category);
         };
-        
+
         // Initial plot
         const plotMetrics = (metrics) => {
             const data = processMetricsData(metrics);
-            
+
             const layout = {
                 title: 'Sustainability Metrics Over Time',
                 xaxis: {
@@ -195,16 +195,16 @@
                     y: 1.1
                 }
             };
-            
+
             Plotly.newPlot('metrics-time-series', data, layout);
         };
-        
+
         // Update metric cards
         const updateMetricCards = (metrics) => {
             // Find the latest metrics by name
             const latestMetrics = {};
             const previousMetrics = {};
-            
+
             // Group metrics by name and find the latest two for each
             metrics.forEach(metric => {
                 if (!latestMetrics[metric.name] || new Date(metric.timestamp) > new Date(latestMetrics[metric.name].timestamp)) {
@@ -214,49 +214,49 @@
                     previousMetrics[metric.name] = metric;
                 }
             });
-            
+
             // Update Carbon Emissions card
             if (latestMetrics['Carbon Emissions']) {
                 const emissionsValue = latestMetrics['Carbon Emissions'].value;
                 const previousValue = previousMetrics['Carbon Emissions'] ? previousMetrics['Carbon Emissions'].value : emissionsValue;
                 const percentChange = ((emissionsValue - previousValue) / previousValue) * 100;
-                
+
                 document.getElementById('emissions-value').textContent = emissionsValue.toFixed(1);
                 document.getElementById('emissions-trend').textContent = `${Math.abs(percentChange).toFixed(1)}% ${percentChange > 0 ? 'increase' : 'decrease'} from previous period`;
                 document.getElementById('emissions-trend').className = percentChange > 0 ? 'text-center text-danger' : 'text-center text-success';
             }
-            
+
             // Update Water Usage card
             if (latestMetrics['Water Usage']) {
                 const waterValue = latestMetrics['Water Usage'].value;
                 const previousValue = previousMetrics['Water Usage'] ? previousMetrics['Water Usage'].value : waterValue;
                 const percentChange = ((waterValue - previousValue) / previousValue) * 100;
-                
+
                 document.getElementById('water-value').textContent = waterValue.toFixed(1);
                 document.getElementById('water-trend').textContent = `${Math.abs(percentChange).toFixed(1)}% ${percentChange > 0 ? 'increase' : 'decrease'} from previous period`;
                 document.getElementById('water-trend').className = percentChange > 0 ? 'text-center text-danger' : 'text-center text-success';
             }
-            
+
             // Update Waste Recycled card
             if (latestMetrics['Waste Recycled']) {
                 const wasteValue = latestMetrics['Waste Recycled'].value;
                 const previousValue = previousMetrics['Waste Recycled'] ? previousMetrics['Waste Recycled'].value : wasteValue;
                 const percentChange = ((wasteValue - previousValue) / previousValue) * 100;
-                
+
                 document.getElementById('waste-value').textContent = wasteValue.toFixed(1) + '%';
                 document.getElementById('waste-trend').textContent = `${Math.abs(percentChange).toFixed(1)}% ${percentChange > 0 ? 'increase' : 'decrease'} from previous period`;
                 document.getElementById('waste-trend').className = percentChange > 0 ? 'text-center text-success' : 'text-center text-danger';
             }
         };
-        
+
         // Initialize dashboard
         document.addEventListener('DOMContentLoaded', function() {
             // Plot initial metrics
             plotMetrics(metricsData);
-            
+
             // Update metric cards
             updateMetricCards(metricsData);
-            
+
             // Add event listener for category filter
             document.getElementById('category-filter').addEventListener('change', function() {
                 const category = this.value;

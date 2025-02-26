@@ -1,0 +1,91 @@
+run = "./start-all.sh"
+entrypoint = "frontend/app.py"
+onBoot = "chmod +x start-all.sh"
+modules = ["python-3.11"]
+
+[nix]
+channel = "stable-22_11"
+
+[deployment]
+deploymentTarget = "cloudrun"
+run = ["sh", "-c", "./start-all.sh"]
+
+[[ports]]
+localPort = 5000
+externalPort = 5000
+
+[[ports]]
+localPort = 8000
+externalPort = 8000
+
+[[ports]]
+localPort = 6379
+externalPort = 80
+
+[workflows]
+runButton = "Sustainability Platform"
+
+[[workflows.workflow]]
+name = "Sustainability Platform"
+mode = "parallel"
+author = "agent"
+
+[[workflows.workflow.tasks]]
+task = "workflow.run"
+args = "FastAPI Backend"
+
+[[workflows.workflow.tasks]]
+task = "workflow.run"
+args = "Flask Frontend"
+
+[[workflows.workflow]]
+name = "FastAPI Backend"
+author = "agent"
+
+[workflows.workflow.metadata]
+waitForPort = "8000"
+agentRequireRestartOnSave = false
+
+[[workflows.workflow.tasks]]
+task = "packager.installForAll"
+
+[[workflows.workflow.tasks]]
+task = "shell.exec"
+args = "cd backend && python -m uvicorn main:app --host 0.0.0.0 --port 8000 --reload"
+
+[[workflows.workflow]]
+name = "Flask Frontend"
+author = "agent"
+
+[workflows.workflow.metadata]
+waitForPort = "5000"
+agentRequireRestartOnSave = false
+
+[[workflows.workflow.tasks]]
+task = "packager.installForAll"
+
+[[workflows.workflow.tasks]]
+task = "shell.exec"
+args = "cd frontend && python app.py"
+
+[[workflows.workflow]]
+name = "Database Seed"
+author = "agent"
+
+[[workflows.workflow.tasks]]
+task = "packager.installForAll"
+
+[[workflows.workflow.tasks]]
+task = "shell.exec"
+args = "cd backend && python seed_database.py"
+
+[[workflows.workflow]]
+name = "Integration Test"
+author = "agent"
+
+[[workflows.workflow.tasks]]
+task = "packager.installForAll"
+
+[[workflows.workflow.tasks]]
+task = "shell.exec"
+args = "chmod +x test-integration.sh && ./test-integration.sh"
