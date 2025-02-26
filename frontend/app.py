@@ -277,10 +277,24 @@ def update_waste_card(category):
 
     return f"{latest_value}%", trend_text, trend_class
 
+# Add a debug route to confirm dashboard is working
+@app.route('/debug')
+def debug_route():
+    # List all registered routes
+    routes = [str(rule) for rule in app.url_map.iter_rules()]
+    return f"Registered routes: {routes}"
+
 @app.route("/")
 def home():
     return render_template("index.html")
 
+# Ensure dash_app is properly registered with Flask app
+logger.info(f"Dash app registered at: {dash_app.config.requests_pathname_prefix}")
+
 if __name__ == "__main__":
     # ALWAYS serve the app on port 5000
+    logger.info("Starting Flask server on port 5000")
+    # Print URL map to debug routes
+    routes = [str(rule) for rule in app.url_map.iter_rules()]
+    logger.info(f"Registered routes: {routes}")
     app.run(host="0.0.0.0", port=5000, debug=True)

@@ -16,6 +16,6 @@ mkdir -p logs
 # Make the frontend start script executable
 chmod +x frontend/start.sh
 
-# Start Flask dashboard with Gunicorn
-echo "Starting Flask dashboard on port 5000 with Gunicorn..."
+# Start Flask dashboard
+echo "Starting Flask dashboard on port 5000..."
 cd frontend && ./start.sh

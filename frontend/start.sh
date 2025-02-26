@@ -11,9 +11,10 @@ pkill -f "port 5000" || true
 pkill -f "flask" || true
 pkill -f "redis-server" || true
 pkill -f "gunicorn" || true
+pkill -f "python app.py" || true
 
 # Install Python dependencies
-python -m pip install flask==2.3.3 dash==2.9.3 pandas redis flask-caching plotly dash-bootstrap-components gunicorn
+python -m pip install flask==2.3.3 dash==2.9.3 pandas redis flask-caching plotly dash-bootstrap-components
 
 # Set environment variables
 export FLASK_APP=app.py
@@ -30,12 +31,6 @@ redis-server --daemonize yes --logfile logs/redis.log \
 mkdir -p static
 mkdir -p templates
 
-echo "Starting Sustainability Dashboard on port 5000 with Gunicorn..."
-# Use Gunicorn to run the Flask application with a simpler configuration
-# The 'app:app' refers to the Flask app object in app.py
-exec gunicorn "app:app" \
-    --workers 2 \
-    --bind 0.0.0.0:5000 \
-    --access-logfile logs/access.log \
-    --error-logfile logs/error.log \
-    --timeout 120
+echo "Starting Sustainability Dashboard on port 5000..."
+# Using direct Flask run as it's more reliable for the demo
+python app.py

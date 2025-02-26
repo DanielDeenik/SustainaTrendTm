@@ -1,0 +1,8 @@
+{
+  "name": "Start Dashboard",
+  "entrypoint": "./start.sh",
+  "run_command": "./start.sh",
+  "onStart": "chmod +x ./start.sh ./frontend/start.sh",
+  "restartable": true,
+  "language": "python"
+}
