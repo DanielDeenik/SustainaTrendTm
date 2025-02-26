@@ -8,7 +8,6 @@ import logging
 import psycopg2
 from datetime import datetime, timedelta
 import random
-import time
 
 # Configure logging
 logging.basicConfig(level=logging.INFO)
@@ -38,21 +37,19 @@ def seed_metrics():
     """Seed the database with sample sustainability metrics"""
     conn = None
     try:
-        # Print environment variables for debugging (without showing sensitive values)
-        logger.info(f"DATABASE_URL exists: {bool(os.getenv('DATABASE_URL'))}")
-        logger.info(f"PGDATABASE exists: {bool(os.getenv('PGDATABASE'))}")
-        logger.info(f"PGUSER exists: {bool(os.getenv('PGUSER'))}")
-        logger.info(f"PGHOST exists: {bool(os.getenv('PGHOST'))}")
-        logger.info(f"PGPORT exists: {bool(os.getenv('PGPORT'))}")
-
-        # Wait a moment to ensure database is ready
-        time.sleep(2)
-
-        # Connect to database
-        db_config = get_db_config()
-        logger.info("Attempting database connection...")
-        conn = psycopg2.connect(**db_config)
-        logger.info("Database connection established")
+        # Connect to database using direct connection parameters
+        if os.getenv('DATABASE_URL'):
+            conn = psycopg2.connect(os.getenv('DATABASE_URL'))
+            logger.info("Connected to database using DATABASE_URL")
+        else:
+            conn = psycopg2.connect(
+                dbname=os.getenv('PGDATABASE'),
+                user=os.getenv('PGUSER'),
+                password=os.getenv('PGPASSWORD'),
+                host=os.getenv('PGHOST'),
+                port=os.getenv('PGPORT', '5432')
+            )
+            logger.info("Connected to database using individual parameters")
 
         # Create metrics table if it doesn't exist
         with conn.cursor() as cur:
@@ -60,8 +57,8 @@ def seed_metrics():
                 CREATE TABLE IF NOT EXISTS metrics (
                     id SERIAL PRIMARY KEY,
                     name TEXT NOT NULL,
-                    category TEXT NOT NULL CHECK (category IN ('emissions', 'water', 'energy', 'waste', 'social', 'governance')),
-                    value NUMERIC NOT NULL CHECK (value >= 0),
+                    category TEXT NOT NULL,
+                    value NUMERIC NOT NULL,
                     unit TEXT NOT NULL,
                     timestamp TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
                     metric_metadata JSONB DEFAULT '{}'::jsonb
@@ -125,7 +122,6 @@ def seed_metrics():
         logger.error(f"Error seeding database: {str(e)}")
         if conn:
             conn.rollback()
-        # Return False instead of exiting to allow script to continue
         return False
     finally:
         if conn:
@@ -136,11 +132,14 @@ def seed_metrics():
 
 if __name__ == "__main__":
     logger.info("Starting database seeding...")
-    success = seed_metrics()
-    if success:
-        logger.info("Database seeding completed successfully")
-        sys.exit(0)
-    else:
-        logger.error("Database seeding failed")
-        # Use a non-zero exit code but don't raise an exception
+    try:
+        success = seed_metrics()
+        if success:
+            logger.info("Database seeding completed successfully")
+            sys.exit(0)
+        else:
+            logger.error("Database seeding failed")
+            sys.exit(1)
+    except Exception as e:
+        logger.error(f"Unexpected error in seeding: {str(e)}")
         sys.exit(1)

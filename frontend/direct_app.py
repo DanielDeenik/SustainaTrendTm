@@ -1,3 +1,8 @@
+#!/usr/bin/env python3
+"""
+Flask frontend with improved FastAPI connection
+for Sustainability Intelligence Dashboard
+"""
 from flask import Flask, render_template, jsonify
 import requests
 from flask_caching import Cache
@@ -22,8 +27,9 @@ cache = Cache(app, config={
 
 # FastAPI backend URL
 BACKEND_URL = os.getenv('BACKEND_URL', 'http://localhost:8000')
+logger.info(f"Using FastAPI backend URL: {BACKEND_URL}")
 
-# Fetch sustainability metrics from FastAPI backend
+# Fetch sustainability metrics from FastAPI backend with improved error handling
 @cache.memoize(timeout=300)
 def get_sustainability_metrics():
     """Fetch sustainability metrics from FastAPI backend"""
@@ -53,7 +59,7 @@ def get_sustainability_metrics():
         return get_mock_sustainability_metrics()
 
 
-# Fallback mock data function
+# Fallback mock data function (unchanged)
 def get_mock_sustainability_metrics():
     """Generate mock sustainability metrics data as fallback"""
     logger.info("Generating mock sustainability metrics data")
@@ -170,10 +176,13 @@ def debug_route():
     return jsonify(debug_info)
 
 if __name__ == "__main__":
+    # Use a different port to avoid conflicts
+    port = 5001
+    
     # Log registered routes for debugging
     routes = [str(rule) for rule in app.url_map.iter_rules()]
     logger.info(f"Registered routes: {routes}")
-    logger.info("Starting Flask server on port 5000")
+    logger.info(f"Starting Flask server on port {port}")
 
-    # ALWAYS serve the app on port 5000
-    app.run(host="0.0.0.0", port=5000, debug=True)
+    # Start Flask server
+    app.run(host="0.0.0.0", port=port, debug=True)

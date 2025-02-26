@@ -6,22 +6,22 @@ echo "Starting Sustainability Intelligence Platform..."
 # Create logs directory if it doesn't exist
 mkdir -p logs
 
-# Kill any existing processes in a Replit-friendly way
+# Kill any existing processes
+echo "Stopping any existing services..."
 pkill -f "python" || true
 pkill -f "flask" || true
+pkill -f "uvicorn" || true
+pkill -f "redis-server" || true
 pkill -f "port 5000" || true
 pkill -f "port 8000" || true
-pkill -f "redis-server" || true
-pkill -f "gunicorn" || true
-pkill -f "uvicorn" || true
+
+# Short pause to ensure all processes are terminated
+sleep 2
 
 # Make scripts executable
 chmod +x frontend/start.sh
 chmod +x backend/start.sh
 chmod +x backend/seed_database.py
-
-# Set environment variable for FastAPI backend URL
-export BACKEND_URL="http://localhost:8000"
 
 # Display database connection info (without sensitive values)
 echo "Database configuration:"
@@ -31,84 +31,62 @@ echo "- PGUSER exists: $(if [ -n "$PGUSER" ]; then echo "yes"; else echo "no"; f
 echo "- PGHOST exists: $(if [ -n "$PGHOST" ]; then echo "yes"; else echo "no"; fi)"
 echo "- PGPORT exists: $(if [ -n "$PGPORT" ]; then echo "yes"; else echo "no"; fi)"
 
-# Try to create the PostgreSQL database if it doesn't exist
-if [ -z "$DATABASE_URL" ] && [ -z "$PGDATABASE" ]; then
-    echo "No database configuration found. Attempting to create a PostgreSQL database..."
-    create_postgresql_database_tool
-fi
-
-# Seed the database with sample metrics but continue if it fails
+# Seed the database with sample metrics
 echo "Seeding database with sample metrics..."
 cd backend
-python seed_database.py || echo "Note: Database seeding encountered issues. Continuing with startup anyway..."
+python seed_database.py || echo "Warning: Database seeding failed, but continuing startup"
 cd ..
 
-# Start FastAPI backend in background
+# Start FastAPI backend directly (without background)
 echo "Starting FastAPI backend on port 8000..."
 cd backend
-./start.sh &
+
+# Start the FastAPI backend with a timeout
+timeout 10s python -c "
+import uvicorn
+uvicorn.run('main:app', host='0.0.0.0', port=8000, log_level='info')
+" &
 FASTAPI_PID=$!
-cd ..
 
 # Wait for FastAPI to be ready
 echo "Waiting for FastAPI backend to be ready..."
-MAX_RETRIES=10
-RETRY_COUNT=0
-until $(curl --output /dev/null --silent --head --fail http://localhost:8000/health); do
-    if ! ps -p $FASTAPI_PID > /dev/null; then
-        echo "Backend server failed to start. Check logs at logs/backend.log"
-        exit 1
-    fi
+sleep 5  # Give FastAPI time to start up
 
-    RETRY_COUNT=$((RETRY_COUNT+1))
-    if [ $RETRY_COUNT -ge $MAX_RETRIES ]; then
-        echo "Warning: Backend health check timed out, but continuing with frontend startup..."
-        break
-    fi
+# Check if FastAPI backend is running
+if ! ps -p $FASTAPI_PID > /dev/null; then
+    echo "FastAPI backend failed to start. Starting it again with better error visibility..."
+    # Start again with different approach
+    python main.py &
+    FASTAPI_PID=$!
+    sleep 5  # Give it time to start
+fi
 
-    echo "Waiting for FastAPI backend to be ready (attempt $RETRY_COUNT/$MAX_RETRIES)..."
-    sleep 2
-done
-
-echo "FastAPI backend is ready (or timeout occurred)!"
-
-# Test API access
-echo "Testing API access..."
-curl -s http://localhost:8000/api/metrics | head -20
+cd ..
 
 # Start Flask frontend
 echo "Starting Flask frontend on port 5000..."
 cd frontend
 
-# Added environment variable to specify backend URL
-BACKEND_URL="http://localhost:8000" ./start.sh &
+# Set the backend URL environment variable
+export BACKEND_URL="http://localhost:8000"
+
+# Start Flask directly with debugging info
+python app.py &
 FLASK_PID=$!
+
 cd ..
 
-# Wait for Flask to be ready
-echo "Waiting for Flask frontend to be ready..."
-MAX_RETRIES=10
-RETRY_COUNT=0
-until $(curl --output /dev/null --silent --head --fail http://localhost:5000); do
-    if ! ps -p $FLASK_PID > /dev/null; then
-        echo "Frontend server failed to start. Check logs."
-        exit 1
-    fi
+echo "Services started. Checking status..."
 
-    RETRY_COUNT=$((RETRY_COUNT+1))
-    if [ $RETRY_COUNT -ge $MAX_RETRIES ]; then
-        echo "Warning: Frontend health check timed out."
-        break
-    fi
+# Check service status
+echo "FastAPI PID: $FASTAPI_PID, Flask PID: $FLASK_PID"
 
-    echo "Waiting for Flask frontend to be ready (attempt $RETRY_COUNT/$MAX_RETRIES)..."
-    sleep 2
-done
-
-echo "Flask frontend is ready (or timeout occurred)!"
+# Keep script running and monitor processes
 echo "Services are running. Press Ctrl+C to stop."
+echo "Access the web interface at: http://localhost:5000"
+echo "Access the API at: http://localhost:8000/api/metrics"
 
-# Wait for both services to exit
-wait
+# Wait for both services
+wait $FASTAPI_PID $FLASK_PID
 
 echo "Sustainability Intelligence Platform startup completed."

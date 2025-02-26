@@ -1,3 +1,7 @@
+"""
+Simplified FastAPI backend with direct PostgreSQL connection
+for the Sustainability Intelligence Platform
+"""
 from fastapi import FastAPI, HTTPException, status
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse
@@ -110,7 +114,7 @@ if __name__ == "__main__":
     import uvicorn
     print("Starting FastAPI server...")
     uvicorn.run(
-        "main:app",
+        "direct_main:app",
         host="0.0.0.0",
         port=8000,
         reload=True,
