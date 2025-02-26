@@ -1,16 +1,10 @@
-from flask import Flask, render_template
-import dash
-from dash import dcc, html
-from dash.dependencies import Input, Output
-import dash_bootstrap_components as dbc
+from flask import Flask, render_template, jsonify
+import httpx
 from flask_caching import Cache
-import pandas as pd
-import redis
 import os
-import plotly.express as px
-import plotly.graph_objects as go
-from datetime import datetime, timedelta
 import logging
+from datetime import datetime, timedelta
+import json
 
 # Configure logging
 logging.basicConfig(level=logging.INFO)
@@ -26,275 +20,123 @@ cache = Cache(app, config={
     'CACHE_REDIS_URL': os.getenv('REDIS_URL', 'redis://localhost:6379/0')
 })
 
-# Initialize Dash with Bootstrap theme
-dash_app = dash.Dash(
-    __name__, 
-    server=app, 
-    routes_pathname_prefix='/dashboard/',
-    external_stylesheets=[dbc.themes.BOOTSTRAP],
-    title="Sustainability Intelligence Platform"
-)
+# FastAPI backend URL
+BACKEND_URL = os.getenv('BACKEND_URL', 'http://localhost:8000')
 
-# Create mock sustainability metrics data
+# Fetch sustainability metrics from FastAPI backend
 @cache.memoize(timeout=300)
 def get_sustainability_metrics():
-    """Generate mock sustainability metrics data"""
-    # Time periods
-    dates = pd.date_range(start='2024-01-01', end='2024-06-30', freq='M')
+    """Fetch sustainability metrics from FastAPI backend"""
+    try:
+        logger.info(f"Fetching metrics from FastAPI backend: {BACKEND_URL}/api/metrics")
+        response = httpx.get(f"{BACKEND_URL}/api/metrics", timeout=10.0)
+        response.raise_for_status()  # Raise exception for 4XX/5XX responses
+
+        metrics_data = response.json()
+        logger.info(f"Successfully fetched {len(metrics_data)} metrics from API")
+        return metrics_data
+
+    except Exception as e:
+        logger.error(f"Error fetching metrics from API: {str(e)}")
+        logger.info("Falling back to mock data")
+        # Fallback to mock data if API fails
+        return get_mock_sustainability_metrics()
+
+# Fallback mock data function
+def get_mock_sustainability_metrics():
+    """Generate mock sustainability metrics data as fallback"""
+    logger.info("Generating mock sustainability metrics data")
+    # Generate dates for the past 6 months
+    dates = []
+    for i in range(6):
+        dates.append((datetime.now() - timedelta(days=30 * (5 - i))).isoformat())
 
     # Carbon emissions data (decreasing trend - good)
-    emissions_data = pd.DataFrame({
-        "date": dates,
-        "metric": "Carbon Emissions",
-        "value": [45, 42, 38, 35, 32, 30],
-        "unit": "tons CO2e",
-        "category": "emissions"
-    })
+    emissions_data = [
+        {"id": 1, "name": "Carbon Emissions", "category": "emissions", "value": 45, "unit": "tons CO2e", "timestamp": dates[0]},
+        {"id": 2, "name": "Carbon Emissions", "category": "emissions", "value": 42, "unit": "tons CO2e", "timestamp": dates[1]},
+        {"id": 3, "name": "Carbon Emissions", "category": "emissions", "value": 38, "unit": "tons CO2e", "timestamp": dates[2]},
+        {"id": 4, "name": "Carbon Emissions", "category": "emissions", "value": 35, "unit": "tons CO2e", "timestamp": dates[3]},
+        {"id": 5, "name": "Carbon Emissions", "category": "emissions", "value": 32, "unit": "tons CO2e", "timestamp": dates[4]},
+        {"id": 6, "name": "Carbon Emissions", "category": "emissions", "value": 30, "unit": "tons CO2e", "timestamp": dates[5]}
+    ]
 
     # Energy consumption data (decreasing trend - good)
-    energy_data = pd.DataFrame({
-        "date": dates,
-        "metric": "Energy Consumption",
-        "value": [1250, 1200, 1150, 1100, 1075, 1050],
-        "unit": "MWh",
-        "category": "energy"
-    })
+    energy_data = [
+        {"id": 7, "name": "Energy Consumption", "category": "energy", "value": 1250, "unit": "MWh", "timestamp": dates[0]},
+        {"id": 8, "name": "Energy Consumption", "category": "energy", "value": 1200, "unit": "MWh", "timestamp": dates[1]},
+        {"id": 9, "name": "Energy Consumption", "category": "energy", "value": 1150, "unit": "MWh", "timestamp": dates[2]},
+        {"id": 10, "name": "Energy Consumption", "category": "energy", "value": 1100, "unit": "MWh", "timestamp": dates[3]},
+        {"id": 11, "name": "Energy Consumption", "category": "energy", "value": 1075, "unit": "MWh", "timestamp": dates[4]},
+        {"id": 12, "name": "Energy Consumption", "category": "energy", "value": 1050, "unit": "MWh", "timestamp": dates[5]}
+    ]
 
     # Water usage data (decreasing trend - good)
-    water_data = pd.DataFrame({
-        "date": dates,
-        "metric": "Water Usage",
-        "value": [350, 340, 330, 320, 310, 300],
-        "unit": "kiloliters",
-        "category": "water"
-    })
+    water_data = [
+        {"id": 13, "name": "Water Usage", "category": "water", "value": 350, "unit": "kiloliters", "timestamp": dates[0]},
+        {"id": 14, "name": "Water Usage", "category": "water", "value": 340, "unit": "kiloliters", "timestamp": dates[1]},
+        {"id": 15, "name": "Water Usage", "category": "water", "value": 330, "unit": "kiloliters", "timestamp": dates[2]},
+        {"id": 16, "name": "Water Usage", "category": "water", "value": 320, "unit": "kiloliters", "timestamp": dates[3]},
+        {"id": 17, "name": "Water Usage", "category": "water", "value": 310, "unit": "kiloliters", "timestamp": dates[4]},
+        {"id": 18, "name": "Water Usage", "category": "water", "value": 300, "unit": "kiloliters", "timestamp": dates[5]}
+    ]
 
     # Waste reduction data (increasing trend - good)
-    waste_data = pd.DataFrame({
-        "date": dates,
-        "metric": "Waste Recycled",
-        "value": [65, 68, 72, 76, 80, 82],
-        "unit": "percent",
-        "category": "waste"
-    })
+    waste_data = [
+        {"id": 19, "name": "Waste Recycled", "category": "waste", "value": 65, "unit": "percent", "timestamp": dates[0]},
+        {"id": 20, "name": "Waste Recycled", "category": "waste", "value": 68, "unit": "percent", "timestamp": dates[1]},
+        {"id": 21, "name": "Waste Recycled", "category": "waste", "value": 72, "unit": "percent", "timestamp": dates[2]},
+        {"id": 22, "name": "Waste Recycled", "category": "waste", "value": 76, "unit": "percent", "timestamp": dates[3]},
+        {"id": 23, "name": "Waste Recycled", "category": "waste", "value": 80, "unit": "percent", "timestamp": dates[4]},
+        {"id": 24, "name": "Waste Recycled", "category": "waste", "value": 82, "unit": "percent", "timestamp": dates[5]}
+    ]
 
     # ESG score data (increasing trend - good)
-    esg_data = pd.DataFrame({
-        "date": dates,
-        "metric": "ESG Score",
-        "value": [72, 74, 76, 78, 80, 82],
-        "unit": "score",
-        "category": "social"
-    })
+    esg_data = [
+        {"id": 25, "name": "ESG Score", "category": "social", "value": 72, "unit": "score", "timestamp": dates[0]},
+        {"id": 26, "name": "ESG Score", "category": "social", "value": 74, "unit": "score", "timestamp": dates[1]},
+        {"id": 27, "name": "ESG Score", "category": "social", "value": 76, "unit": "score", "timestamp": dates[2]},
+        {"id": 28, "name": "ESG Score", "category": "social", "value": 78, "unit": "score", "timestamp": dates[3]},
+        {"id": 29, "name": "ESG Score", "category": "social", "value": 80, "unit": "score", "timestamp": dates[4]},
+        {"id": 30, "name": "ESG Score", "category": "social", "value": 82, "unit": "score", "timestamp": dates[5]}
+    ]
 
-    # Combine all dataframes
-    all_data = pd.concat([emissions_data, energy_data, water_data, waste_data, esg_data])
+    # Combine all data
+    all_data = emissions_data + energy_data + water_data + waste_data + esg_data
 
-    logger.info(f"Generated sustainability metrics with {len(all_data)} records")
+    logger.info(f"Generated mock sustainability metrics with {len(all_data)} records")
     return all_data
 
-# Dashboard layout with Bootstrap components
-dash_app.layout = dbc.Container([
-    dbc.Row([
-        dbc.Col([
-            html.H1("Sustainability Intelligence Dashboard", className="text-center my-4"),
-            html.P("Real-time insights powered by advanced AI analytics", className="text-center mb-5"),
-        ], width=12)
-    ]),
+# Routes
+@app.route('/')
+def home():
+    """Home page"""
+    return render_template("index.html")
 
-    dbc.Row([
-        dbc.Col([
-            dbc.Card([
-                dbc.CardHeader("Filter Metrics"),
-                dbc.CardBody([
-                    html.P("Select Category:"),
-                    dcc.Dropdown(
-                        id="category-filter",
-                        options=[
-                            {'label': 'All Categories', 'value': 'all'},
-                            {'label': 'Emissions', 'value': 'emissions'},
-                            {'label': 'Energy', 'value': 'energy'},
-                            {'label': 'Water', 'value': 'water'},
-                            {'label': 'Waste', 'value': 'waste'},
-                            {'label': 'Social & Governance', 'value': 'social'}
-                        ],
-                        value='all',
-                        clearable=False
-                    )
-                ])
-            ]),
-        ], width=12, md=3),
+@app.route('/dashboard')
+def dashboard():
+    """Dashboard page using data from FastAPI backend"""
+    metrics = get_sustainability_metrics()
+    logger.info(f"Rendering dashboard with {len(metrics)} metrics")
+    return render_template("dashboard.html", metrics=metrics)
 
-        dbc.Col([
-            dbc.Card([
-                dbc.CardHeader("Sustainability Metrics Over Time"),
-                dbc.CardBody([
-                    dcc.Graph(id="metrics-time-series")
-                ])
-            ]),
-        ], width=12, md=9),
-    ], className="mb-4"),
+@app.route('/api/metrics')
+def api_metrics():
+    """API endpoint for metrics data"""
+    metrics = get_sustainability_metrics()
+    return jsonify(metrics)
 
-    dbc.Row([
-        dbc.Col([
-            dbc.Card([
-                dbc.CardHeader("Carbon Emissions"),
-                dbc.CardBody([
-                    html.H3(id="emissions-value", className="text-center"),
-                    html.P("tons CO2e", className="text-center text-muted"),
-                    html.P(id="emissions-trend", className="text-center")
-                ])
-            ]),
-        ], width=12, md=4),
-
-        dbc.Col([
-            dbc.Card([
-                dbc.CardHeader("Water Usage"),
-                dbc.CardBody([
-                    html.H3(id="water-value", className="text-center"),
-                    html.P("kiloliters", className="text-center text-muted"),
-                    html.P(id="water-trend", className="text-center")
-                ])
-            ]),
-        ], width=12, md=4),
-
-        dbc.Col([
-            dbc.Card([
-                dbc.CardHeader("Waste Recycled"),
-                dbc.CardBody([
-                    html.H3(id="waste-value", className="text-center"),
-                    html.P("percent", className="text-center text-muted"),
-                    html.P(id="waste-trend", className="text-center")
-                ])
-            ]),
-        ], width=12, md=4),
-    ], className="mb-4"),
-
-    dbc.Row([
-        dbc.Col([
-            dbc.Card([
-                dbc.CardHeader("AI-Powered Sustainability Insights"),
-                dbc.CardBody([
-                    html.P("Based on the current trends, your organization is showing positive progress in reducing its environmental footprint."),
-                    html.P("Key insights:"),
-                    html.Ul([
-                        html.Li("Carbon emissions have reduced by 33% over the past 6 months"),
-                        html.Li("Water consumption is down 14%, ahead of industry average"),
-                        html.Li("Waste recycling has improved to 82%, exceeding target goals"),
-                        html.Li("Energy efficiency measures have reduced consumption by 16%")
-                    ]),
-                    html.P("Recommended actions:"),
-                    html.Ul([
-                        html.Li("Continue investment in renewable energy sources"),
-                        html.Li("Implement additional water conservation measures"),
-                        html.Li("Expand your circular economy initiatives for further waste reduction")
-                    ])
-                ])
-            ]),
-        ], width=12),
-    ]),
-], fluid=True, className="p-4")
-
-# Callback to update time series chart
-@dash_app.callback(
-    Output("metrics-time-series", "figure"),
-    [Input("category-filter", "value")]
-)
-def update_time_series(category):
-    df = get_sustainability_metrics()
-
-    if category != 'all':
-        df = df[df['category'] == category]
-
-    fig = px.line(
-        df, 
-        x="date", 
-        y="value", 
-        color="metric",
-        title="Sustainability Metrics Over Time",
-        labels={"date": "Date", "value": "Value", "metric": "Metric"}
-    )
-
-    fig.update_layout(
-        legend=dict(orientation="h", yanchor="bottom", y=1.02, xanchor="right", x=1),
-        margin=dict(l=40, r=40, t=40, b=40)
-    )
-
-    return fig
-
-# Callbacks to update metric cards
-@dash_app.callback(
-    [Output("emissions-value", "children"),
-     Output("emissions-trend", "children"),
-     Output("emissions-trend", "className")],
-    [Input("category-filter", "value")]
-)
-def update_emissions_card(category):
-    df = get_sustainability_metrics()
-    emissions_df = df[df['metric'] == "Carbon Emissions"]
-    latest_value = emissions_df['value'].iloc[-1]
-    previous_value = emissions_df['value'].iloc[-2]
-    percent_change = ((latest_value - previous_value) / previous_value) * 100
-
-    trend_text = f"{abs(percent_change):.1f}% {'increase' if percent_change > 0 else 'decrease'} from previous month"
-    trend_class = "text-center text-danger" if percent_change > 0 else "text-center text-success"
-
-    return f"{latest_value}", trend_text, trend_class
-
-@dash_app.callback(
-    [Output("water-value", "children"),
-     Output("water-trend", "children"),
-     Output("water-trend", "className")],
-    [Input("category-filter", "value")]
-)
-def update_water_card(category):
-    df = get_sustainability_metrics()
-    water_df = df[df['metric'] == "Water Usage"]
-    latest_value = water_df['value'].iloc[-1]
-    previous_value = water_df['value'].iloc[-2]
-    percent_change = ((latest_value - previous_value) / previous_value) * 100
-
-    trend_text = f"{abs(percent_change):.1f}% {'increase' if percent_change > 0 else 'decrease'} from previous month"
-    trend_class = "text-center text-danger" if percent_change > 0 else "text-center text-success"
-
-    return f"{latest_value}", trend_text, trend_class
-
-@dash_app.callback(
-    [Output("waste-value", "children"),
-     Output("waste-trend", "children"),
-     Output("waste-trend", "className")],
-    [Input("category-filter", "value")]
-)
-def update_waste_card(category):
-    df = get_sustainability_metrics()
-    waste_df = df[df['metric'] == "Waste Recycled"]
-    latest_value = waste_df['value'].iloc[-1]
-    previous_value = waste_df['value'].iloc[-2]
-    percent_change = ((latest_value - previous_value) / previous_value) * 100
-
-    trend_text = f"{abs(percent_change):.1f}% {'increase' if percent_change > 0 else 'decrease'} from previous month"
-    trend_class = "text-center text-success" if percent_change > 0 else "text-center text-danger"
-
-    return f"{latest_value}%", trend_text, trend_class
-
-# Add a debug route to confirm dashboard is working
 @app.route('/debug')
 def debug_route():
-    # List all registered routes
+    """Debug route to check registered routes"""
     routes = [str(rule) for rule in app.url_map.iter_rules()]
     return f"Registered routes: {routes}"
 
-@app.route("/")
-def home():
-    return render_template("index.html")
-
-# Ensure dash_app is properly registered with Flask app
-logger.info(f"Dash app registered at: {dash_app.config.requests_pathname_prefix}")
-
 if __name__ == "__main__":
-    # ALWAYS serve the app on port 5000
-    logger.info("Starting Flask server on port 5000")
-    # Print URL map to debug routes
+    # Log registered routes for debugging
     routes = [str(rule) for rule in app.url_map.iter_rules()]
     logger.info(f"Registered routes: {routes}")
+    logger.info("Starting Flask server on port 5000")
+
+    # ALWAYS serve the app on port 5000
     app.run(host="0.0.0.0", port=5000, debug=True)
