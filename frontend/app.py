@@ -1,15 +1,28 @@
 from flask import Flask, render_template
 import dash
 from dash import dcc, html
+from dash.dependencies import Input, Output
 import dash_bootstrap_components as dbc
 from flask_caching import Cache
 import pandas as pd
 import redis
+import os
+import logging
+import plotly.express as px
+from datetime import datetime, timedelta
 
+# Configure logging
+logging.basicConfig(level=logging.INFO)
+logger = logging.getLogger(__name__)
+
+# Initialize Flask
 app = Flask(__name__)
 
 # Setup Redis Cache
-cache = Cache(app, config={'CACHE_TYPE': 'RedisCache', 'CACHE_REDIS_URL': 'redis://localhost:6379/0'})
+cache = Cache(app, config={
+    'CACHE_TYPE': 'RedisCache', 
+    'CACHE_REDIS_URL': os.getenv('REDIS_URL', 'redis://localhost:6379/0')
+})
 
 # Initialize Dash
 dash_app = dash.Dash(__name__, server=app, routes_pathname_prefix='/dashboard/')
