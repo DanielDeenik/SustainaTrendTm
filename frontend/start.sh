@@ -1,17 +1,18 @@
 #!/bin/bash
 set -e
 
+echo "Preparing Sustainability Dashboard..."
+
 # Create logs directory if it doesn't exist
 mkdir -p logs
 
-# Kill any existing processes using port 5001
-fuser -k 5001/tcp || true
-pkill -f "port 5001" || true
+# Kill any existing processes using port 5000 (in a Replit-friendly way)
+pkill -f "port 5000" || true
 pkill -f "flask" || true
 pkill -f "redis-server" || true
 
 # Install Python dependencies
-pip install flask dash pandas gunicorn redis flask-caching plotly dash-bootstrap-components
+python -m pip install flask==2.3.3 dash==2.9.3 pandas redis flask-caching plotly dash-bootstrap-components gunicorn
 
 # Set environment variables
 export FLASK_APP=app.py
@@ -24,36 +25,9 @@ redis-server --daemonize yes --logfile logs/redis.log \
     --maxmemory 256mb \
     --maxmemory-policy allkeys-lru
 
-# Create styles.css if it doesn't exist
+# Create directories if they don't exist
 mkdir -p static
-cat > static/styles.css <<EOF
-body {
-    font-family: Arial, sans-serif;
-    margin: 0;
-    padding: 0;
-}
-nav {
-    background-color: #333;
-    color: white;
-    padding: 1rem;
-}
-nav ul {
-    list-style-type: none;
-    margin: 0;
-    padding: 0;
-    display: flex;
-}
-nav li {
-    margin-right: 1rem;
-}
-nav a {
-    color: white;
-    text-decoration: none;
-}
-#content {
-    padding: 1rem;
-}
-EOF
+mkdir -p templates
 
-echo "Starting Flask application on port 5001..."
-python app.py
+echo "Starting Sustainability Dashboard on port 5000..."
+exec python app.py

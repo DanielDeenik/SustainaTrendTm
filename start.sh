@@ -1,15 +1,20 @@
 #!/bin/bash
 set -e
 
-# Kill any existing processes
-pkill -f "node" || true
-pkill -f "uvicorn" || true
+echo "Starting Sustainability Intelligence Platform..."
+
+# Kill any existing processes in a Replit-friendly way
+pkill -f "python" || true
 pkill -f "flask" || true
-pkill -f "port 5001" || true
+pkill -f "port 5000" || true
+pkill -f "redis-server" || true
 
 # Create logs directory
 mkdir -p logs
 
+# Make the frontend start script executable
+chmod +x frontend/start.sh
+
 # Start Flask dashboard
-echo "Starting Flask dashboard..."
+echo "Starting Flask dashboard on port 5000..."
 cd frontend && ./start.sh

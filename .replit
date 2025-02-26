@@ -1,9 +1,18 @@
 run = "cd frontend && ./start.sh"
 entrypoint = "frontend/app.py"
 onBoot = "cd frontend && chmod +x start.sh"
+modules = ["python-3.11"]
 
 [nix]
 channel = "stable-22_11"
 
 [deployment]
 deploymentTarget = "cloudrun"
+
+[[ports]]
+localPort = 5000
+externalPort = 5000
+
+[[ports]]
+localPort = 6379
+externalPort = 80
