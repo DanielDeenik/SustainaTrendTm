@@ -6,7 +6,7 @@ using AI-powered storytelling with McKinsey frameworks
 from fastapi import FastAPI, Depends, HTTPException, status
 from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel
-from typing import List, Optional
+from typing import List, Optional, Dict, Any, Union
 from datetime import datetime
 import os
 import json
@@ -40,10 +40,23 @@ class StoryMetrics(BaseModel):
     shares: int = 0
     impact_score: Optional[float] = None
 
+# Define Enhanced Sustainability Story Model
+class EnhancedSustainabilityStory(BaseModel):
+    Company: str
+    Industry: str
+    Industry_Context: Optional[str] = None
+    Sustainability_Strategy: str
+    Competitor_Benchmarking: Union[List[str], str]
+    Monetization_Model: str
+    Investment_Pathway: str
+    Actionable_Recommendations: List[str]
+    Performance_Metrics: Optional[List[str]] = None
+    Estimated_Financial_Impact: Optional[Dict[str, Any]] = None
+
 # Define Story Models
 class StoryBase(BaseModel):
     title: str
-    content: Optional[str] = None
+    content: Optional[Union[EnhancedSustainabilityStory, Dict[str, Any], str]] = None
     company_name: str
     industry: str
     metrics: Optional[StoryMetrics] = None
@@ -84,7 +97,9 @@ async def health_check():
     """Health check endpoint"""
     return {
         "status": "healthy",
-        "timestamp": datetime.now().isoformat()
+        "timestamp": datetime.now().isoformat(),
+        "api": "Sustainability Storytelling API",
+        "version": "2.0"
     }
 
 # Endpoint: Retrieve Stories
@@ -109,31 +124,33 @@ async def get_story(story_id: int):
 async def create_story(story: StoryCreate):
     """Create a new sustainability story using AI-powered storytelling"""
     logger.info(f"Creating new story for company: {story.company_name}, industry: {story.industry}")
-    
+
     try:
         # Generate sustainability story using AI
+        logger.info("Starting chain-of-thought sustainability story generation...")
         sustainability_story = generate_sustainability_story(story.company_name, story.industry)
-        
+        logger.info("Sustainability story generation completed successfully")
+
         # Create story object
         story_data = story.dict()
         if not story.content:  # If content not provided, use AI-generated content
             story_data["content"] = sustainability_story
-        
+
         # Add timestamps
         now = datetime.now()
         story_data["created_at"] = now
         story_data["updated_at"] = now
-        
+
         # Add metrics if not provided
         if not story_data.get("metrics"):
             story_data["metrics"] = StoryMetrics().dict()
-        
+
         # Save to our in-memory DB
         saved_story = add_story(story_data)
-        
+
         logger.info(f"Successfully created story with ID: {saved_story['id']}")
         return saved_story
-    
+
     except Exception as e:
         logger.error(f"Error creating sustainability story: {str(e)}")
         raise HTTPException(
@@ -146,10 +163,17 @@ async def create_story(story: StoryCreate):
 async def get_sustainability_story(company_name: str, industry: str):
     """Generate an AI-powered sustainability story based on company name and industry"""
     logger.info(f"Generating sustainability story for company: {company_name}, industry: {industry}")
-    
+
     try:
+        logger.info("Starting AI-powered sustainability story generation with McKinsey frameworks")
+        logger.info("Running chain-of-thought analysis for industry context and strategic insights")
+
         story = generate_sustainability_story(company_name, industry)
-        return json.loads(story) if isinstance(story, str) else story
+        logger.info("Sustainability story successfully generated")
+
+        # Ensure proper JSON formatting
+        return story if isinstance(story, dict) else json.loads(story) if isinstance(story, str) else {}
+
     except Exception as e:
         logger.error(f"Error generating sustainability story: {str(e)}")
         raise HTTPException(
