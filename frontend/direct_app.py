@@ -128,23 +128,36 @@ def get_mock_sustainability_metrics():
 @app.route('/')
 def home():
     """Home page"""
-    return render_template("index.html")
+    try:
+        logger.info("Home page requested")
+        return render_template("index.html")
+    except Exception as e:
+        logger.error(f"Error in home route: {str(e)}")
+        return f"Error loading home page: {str(e)}", 500
 
 @app.route('/dashboard')
 def dashboard():
     """Dashboard page using data from FastAPI backend"""
-    logger.info("Dashboard page requested, fetching metrics...")
-    metrics = get_sustainability_metrics()
-    logger.info(f"Rendering dashboard with {len(metrics)} metrics")
-    return render_template("dashboard.html", metrics=metrics)
+    try:
+        logger.info("Dashboard page requested, fetching metrics...")
+        metrics = get_sustainability_metrics()
+        logger.info(f"Rendering dashboard with {len(metrics)} metrics")
+        return render_template("dashboard.html", metrics=metrics)
+    except Exception as e:
+        logger.error(f"Error in dashboard route: {str(e)}")
+        return f"Error loading dashboard: {str(e)}", 500
 
 @app.route('/api/metrics')
 def api_metrics():
     """API endpoint for metrics data"""
-    logger.info("API metrics endpoint called")
-    metrics = get_sustainability_metrics()
-    logger.info(f"Returning {len(metrics)} metrics from API endpoint")
-    return jsonify(metrics)
+    try:
+        logger.info("API metrics endpoint called")
+        metrics = get_sustainability_metrics()
+        logger.info(f"Returning {len(metrics)} metrics from API endpoint")
+        return jsonify(metrics)
+    except Exception as e:
+        logger.error(f"Error in API metrics endpoint: {str(e)}")
+        return jsonify({"error": str(e)}), 500
 
 # AI Search functionality
 def perform_ai_search(query, model="rag"):
@@ -274,18 +287,22 @@ def perform_ai_search(query, model="rag"):
 @app.route('/search')
 def search():
     """AI-powered search interface"""
-    query = request.args.get('query', '')
-    model = request.args.get('model', 'rag')  # Default to RAG model
+    try:
+        query = request.args.get('query', '')
+        model = request.args.get('model', 'rag')  # Default to RAG model
 
-    logger.info(f"Search requested with query: '{query}', model: {model}")
+        logger.info(f"Search requested with query: '{query}', model: {model}")
 
-    results = []
-    if query:
-        # Perform AI search with the query
-        results = perform_ai_search(query, model)
-        logger.info(f"Search returned {len(results)} results for query: '{query}'")
+        results = []
+        if query:
+            # Perform AI search with the query
+            results = perform_ai_search(query, model)
+            logger.info(f"Search returned {len(results)} results for query: '{query}'")
 
-    return render_template("search.html", query=query, model=model, results=results)
+        return render_template("search.html", query=query, model=model, results=results)
+    except Exception as e:
+        logger.error(f"Error in search route: {str(e)}")
+        return f"Error in search: {str(e)}", 500
 
 # Trend analysis functionality
 def get_sustainability_trends(category=None):
@@ -465,15 +482,15 @@ def get_sustainability_trends(category=None):
 @app.route('/trend-analysis')
 def trend_analysis():
     """Sustainability trend analysis page"""
-    logger.info("Trend analysis page requested")
-
-    # Get category and sort filters from request args
-    category = request.args.get('category', 'all')
-    sort = request.args.get('sort', 'virality')
-
-    logger.info(f"Trend analysis request with category={category}, sort={sort}")
-
     try:
+        logger.info("Trend analysis page requested")
+
+        # Get category and sort filters from request args
+        category = request.args.get('category', 'all')
+        sort = request.args.get('sort', 'virality')
+
+        logger.info(f"Trend analysis request with category={category}, sort={sort}")
+
         # Get trend analysis data
         trends, trend_chart_data = get_sustainability_trends(category)
 
@@ -506,54 +523,61 @@ def trend_analysis():
     except Exception as e:
         logger.error(f"Error in trend analysis: {str(e)}")
         # Return a simple response for debugging
-        return f"Error in trend analysis: {str(e)}"
+        return f"Error in trend analysis: {str(e)}", 500
 
 @app.route('/api/trends')
 def api_trends():
     """API endpoint for sustainability trend data"""
-    logger.info("API trends endpoint called")
+    try:
+        logger.info("API trends endpoint called")
 
-    # Get category filter from request args if provided
-    category = request.args.get('category')
+        # Get category filter from request args if provided
+        category = request.args.get('category')
 
-    # Get trend analysis data
-    trends, _ = get_sustainability_trends(category)
+        # Get trend analysis data
+        trends, _ = get_sustainability_trends(category)
 
-    logger.info(f"Returning {len(trends)} trends from API endpoint")
-    return jsonify(trends)
+        logger.info(f"Returning {len(trends)} trends from API endpoint")
+        return jsonify(trends)
+    except Exception as e:
+        logger.error(f"Error in API trends endpoint: {str(e)}")
+        return jsonify({"error": str(e)}), 500
 
 @app.route('/debug')
 def debug_route():
     """Debug route to check registered routes and connections"""
-    logger.info("Debug route called")
-    routes = [str(rule) for rule in app.url_map.iter_rules()]
-
-    # Also check FastAPI connection
     try:
-        logger.info(f"Testing connection to FastAPI backend: {BACKEND_URL}/health")
-        response = requests.get(f"{BACKEND_URL}/health", timeout=5.0)
-        response.raise_for_status()
-        backend_status = response.json()
-        logger.info(f"FastAPI backend health check: {backend_status}")
-    except requests.exceptions.RequestException as e:
-        logger.error(f"Failed to connect to FastAPI backend: {str(e)}")
-        backend_status = {"status": "error", "message": str(e)}
+        logger.info("Debug route called")
+        routes = [str(rule) for rule in app.url_map.iter_rules()]
+
+        # Also check FastAPI connection
+        try:
+            logger.info(f"Testing connection to FastAPI backend: {BACKEND_URL}/health")
+            response = requests.get(f"{BACKEND_URL}/health", timeout=5.0)
+            response.raise_for_status()
+            backend_status = response.json()
+            logger.info(f"FastAPI backend health check: {backend_status}")
+        except requests.exceptions.RequestException as e:
+            logger.error(f"Failed to connect to FastAPI backend: {str(e)}")
+            backend_status = {"status": "error", "message": str(e)}
+        except Exception as e:
+            logger.error(f"Unexpected error during backend health check: {str(e)}")
+            backend_status = {"status": "error", "message": str(e)}
+
+        debug_info = {
+            "routes": routes,
+            "backend_url": BACKEND_URL,
+            "backend_status": backend_status
+        }
+
+        return jsonify(debug_info)
     except Exception as e:
-        logger.error(f"Unexpected error during backend health check: {str(e)}")
-        backend_status = {"status": "error", "message": str(e)}
-
-
-    debug_info = {
-        "routes": routes,
-        "backend_url": BACKEND_URL,
-        "backend_status": backend_status
-    }
-
-    return jsonify(debug_info)
+        logger.error(f"Error in debug route: {str(e)}")
+        return jsonify({"error": str(e)}), 500
 
 if __name__ == "__main__":
-    # Use a different port to avoid conflicts
-    port = 5001
+    # Use port 5000 to match Replit's expected configuration
+    port = 5000
 
     # Log registered routes for debugging
     routes = [str(rule) for rule in app.url_map.iter_rules()]
