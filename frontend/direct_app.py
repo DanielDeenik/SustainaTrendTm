@@ -3,13 +3,14 @@
 Flask frontend with improved FastAPI connection
 for Sustainability Intelligence Dashboard
 """
-from flask import Flask, render_template, jsonify
+from flask import Flask, render_template, jsonify, request
 import requests
 from flask_caching import Cache
 import os
 import logging
 from datetime import datetime, timedelta
 import json
+import random  # For generating mock AI search and trend data
 
 # Configure logging
 logging.basicConfig(level=logging.INFO)
@@ -19,10 +20,9 @@ logger.info("Starting Sustainability Intelligence Dashboard")
 # Initialize Flask
 app = Flask(__name__)
 
-# Setup Redis Cache
+# Setup Simple Cache instead of Redis to avoid connection errors
 cache = Cache(app, config={
-    'CACHE_TYPE': 'RedisCache', 
-    'CACHE_REDIS_URL': os.getenv('REDIS_URL', 'redis://localhost:6379/0')
+    'CACHE_TYPE': 'SimpleCache'
 })
 
 # FastAPI backend URL
@@ -146,6 +146,351 @@ def api_metrics():
     logger.info(f"Returning {len(metrics)} metrics from API endpoint")
     return jsonify(metrics)
 
+# AI Search functionality
+def perform_ai_search(query, model="rag"):
+    """
+    Perform AI-powered search on sustainability data
+    Using simulated results for now, would connect to OpenAI or other AI service in production
+    """
+    logger.info(f"Performing AI search for query: '{query}' using model: {model}")
+
+    # In a real implementation, this would call an AI service
+    # For now, generate simulated results with chain-of-thought reasoning
+
+    # Step 1: Generate mock search results based on query keywords
+    keywords = query.lower().split()
+
+    # Step 2: Mock categories that might match the search
+    categories = []
+    if any(k in keywords for k in ["carbon", "emission", "emissions", "co2", "greenhouse", "ghg"]):
+        categories.append("emissions")
+    if any(k in keywords for k in ["energy", "electricity", "power", "consumption", "renewable"]):
+        categories.append("energy")
+    if any(k in keywords for k in ["water", "hydro", "resource", "usage", "consumption"]):
+        categories.append("water")
+    if any(k in keywords for k in ["waste", "recycle", "recycling", "circular", "reuse"]):
+        categories.append("waste")
+    if any(k in keywords for k in ["social", "esg", "governance", "ethical", "responsibility"]):
+        categories.append("social")
+
+    # If no specific categories match, include all
+    if not categories:
+        categories = ["emissions", "energy", "water", "waste", "social"]
+
+    # Step 3: Generate mock search results
+    results = []
+    result_count = min(5, 1 + len(categories))  # Generate between 1-5 results
+
+    titles = {
+        "emissions": [
+            "Carbon Emissions Reduction Strategies",
+            "Scope 3 Emissions Analysis Report",
+            "GHG Protocol Implementation Guide",
+            "Carbon Neutrality Framework",
+            "Emissions Trading and Offset Mechanisms"
+        ],
+        "energy": [
+            "Renewable Energy Transition Plan",
+            "Energy Efficiency Best Practices",
+            "Green Energy Procurement Strategy",
+            "Energy Consumption Optimization Guide",
+            "Sustainable Power Generation Analysis"
+        ],
+        "water": [
+            "Water Conservation Implementation Guide",
+            "Water Footprint Reduction Strategies",
+            "Sustainable Water Management Framework",
+            "Water Resource Optimization Toolkit",
+            "Watershed Protection and Management Plan"
+        ],
+        "waste": [
+            "Zero Waste Management Strategy",
+            "Circular Economy Implementation Guide",
+            "Waste Reduction and Recycling Program",
+            "Materials Recovery and Reuse Framework",
+            "Sustainable Packaging Initiatives"
+        ],
+        "social": [
+            "ESG Reporting Standards Guide",
+            "Corporate Social Responsibility Framework",
+            "Stakeholder Engagement Best Practices",
+            "Diversity, Equity, and Inclusion Metrics",
+            "Sustainable Supply Chain Management"
+        ]
+    }
+
+    for i in range(result_count):
+        category = random.choice(categories)
+        title = random.choice(titles[category])
+
+        # Generate a snippet with highlighted search terms
+        snippet_template = "This comprehensive guide provides {keyword1} strategies for {keyword2} within your organization's sustainability program. Key areas include {keyword3} and implementation of {keyword4} with focus on {keyword5}."
+        keyword_options = {
+            "emissions": ["emissions reduction", "carbon offsetting", "GHG inventory", "climate action", "science-based targets"],
+            "energy": ["renewable energy", "energy efficiency", "clean power", "sustainable energy", "carbon-free energy"],
+            "water": ["water conservation", "water footprint", "resource optimization", "water quality", "efficiency measures"],
+            "waste": ["waste reduction", "circular economy", "recycling programs", "material recovery", "zero waste"],
+            "social": ["ESG metrics", "social impact", "governance standards", "ethical practices", "stakeholder engagement"]
+        }
+
+        keywords = keyword_options[category]
+        snippet = snippet_template.format(
+            keyword1=random.choice(keywords),
+            keyword2=random.choice(keywords),
+            keyword3=random.choice(keywords),
+            keyword4=random.choice(keywords),
+            keyword5=random.choice(keywords)
+        )
+
+        # Apply different confidence levels based on match quality
+        if any(k in query.lower() for k in keyword_options[category]):
+            confidence = random.randint(80, 98)
+            confidence_level = "high"
+        else:
+            confidence = random.randint(50, 79)
+            confidence_level = "medium"
+
+        # Generate a recent date
+        date = (datetime.now() - timedelta(days=random.randint(1, 365))).strftime("%Y-%m-%d")
+
+        results.append({
+            "title": title,
+            "snippet": snippet,
+            "category": category,
+            "date": date,
+            "confidence": confidence,
+            "confidence_level": confidence_level
+        })
+
+    # Sort by confidence (highest first)
+    results.sort(key=lambda x: x["confidence"], reverse=True)
+
+    return results
+
+@app.route('/search')
+def search():
+    """AI-powered search interface"""
+    query = request.args.get('query', '')
+    model = request.args.get('model', 'rag')  # Default to RAG model
+
+    results = []
+    if query:
+        # Perform AI search with the query
+        results = perform_ai_search(query, model)
+        logger.info(f"Search returned {len(results)} results for query: '{query}'")
+
+    return render_template("search.html", query=query, model=model, results=results)
+
+# Trend analysis functionality
+def get_sustainability_trends(category=None):
+    """
+    Fetches and processes sustainability trends data using chain-of-thought reasoning.
+
+    This function simulates the AI-powered trend analysis. In production, this would
+    connect to an AI service like OpenAI's GPT model to perform real trend analysis.
+    """
+    logger.info(f"Generating sustainability trends data for category: {category}")
+
+    # Step 1: Generate base trend data
+    all_trends = []
+
+    # Current date for our simulated data
+    current_date = datetime.now()
+
+    # Carbon emissions trends
+    emissions_trends = [
+        {
+            "trend_id": 1,
+            "category": "emissions",
+            "name": "Carbon Emissions",
+            "current_value": 30.0,
+            "trend_direction": "decreasing",
+            "virality_score": 78.5,
+            "keywords": "carbon neutral, emissions reduction, climate impact",
+            "trend_duration": "long-term",
+            "timestamp": current_date.isoformat()
+        },
+        {
+            "trend_id": 2,
+            "category": "emissions",
+            "name": "Science-Based Targets",
+            "current_value": 45.0,
+            "trend_direction": "increasing",
+            "virality_score": 92.3,
+            "keywords": "SBTi, net-zero, climate goals, Paris Agreement",
+            "trend_duration": "long-term",
+            "timestamp": current_date.isoformat()
+        }
+    ]
+
+    # Energy consumption trends
+    energy_trends = [
+        {
+            "trend_id": 3,
+            "category": "energy",
+            "name": "Renewable Energy",
+            "current_value": 1050.0,
+            "trend_direction": "increasing",
+            "virality_score": 85.7,
+            "keywords": "renewable energy, solar, wind, clean power",
+            "trend_duration": "medium-term",
+            "timestamp": current_date.isoformat()
+        },
+        {
+            "trend_id": 4,
+            "category": "energy",
+            "name": "Energy Efficiency",
+            "current_value": 880.0,
+            "trend_direction": "decreasing",
+            "virality_score": 65.2,
+            "keywords": "efficiency, consumption reduction, power management",
+            "trend_duration": "medium-term",
+            "timestamp": current_date.isoformat()
+        }
+    ]
+
+    # Water usage trends
+    water_trends = [
+        {
+            "trend_id": 5,
+            "category": "water",
+            "name": "Water Conservation",
+            "current_value": 320.0,
+            "trend_direction": "decreasing",
+            "virality_score": 45.8,
+            "keywords": "water stewardship, conservation, usage reduction",
+            "trend_duration": "medium-term",
+            "timestamp": current_date.isoformat()
+        }
+    ]
+
+    # Waste management trends
+    waste_trends = [
+        {
+            "trend_id": 6,
+            "category": "waste",
+            "name": "Zero Waste Initiatives",
+            "current_value": 78.0,
+            "trend_direction": "increasing",
+            "virality_score": 72.4,
+            "keywords": "zero waste, circular economy, waste reduction",
+            "trend_duration": "short-term",
+            "timestamp": current_date.isoformat()
+        },
+        {
+            "trend_id": 7,
+            "category": "waste",
+            "name": "Plastic Reduction",
+            "current_value": 65.0,
+            "trend_direction": "increasing",
+            "virality_score": 94.5,
+            "keywords": "plastic-free, reduction, single-use plastic",
+            "trend_duration": "long-term",
+            "timestamp": current_date.isoformat()
+        }
+    ]
+
+    # ESG and social trends
+    social_trends = [
+        {
+            "trend_id": 8,
+            "category": "social",
+            "name": "ESG Reporting Standards",
+            "current_value": 82.0,
+            "trend_direction": "increasing",
+            "virality_score": 89.7,
+            "keywords": "ESG reporting, sustainability metrics, corporate responsibility",
+            "trend_duration": "long-term",
+            "timestamp": current_date.isoformat()
+        },
+        {
+            "trend_id": 9,
+            "category": "social",
+            "name": "Supply Chain Transparency",
+            "current_value": 56.0,
+            "trend_direction": "increasing",
+            "virality_score": 76.3,
+            "keywords": "supply chain, transparency, ethical sourcing",
+            "trend_duration": "medium-term",
+            "timestamp": current_date.isoformat()
+        }
+    ]
+
+    # Combine all trends
+    all_trends = emissions_trends + energy_trends + water_trends + waste_trends + social_trends
+
+    # Step 2: Apply category filter if provided
+    if category and category != 'all':
+        filtered_trends = [trend for trend in all_trends if trend["category"] == category]
+    else:
+        filtered_trends = all_trends
+
+    # Step 3: Generate chart data for trends over time (simulated)
+    trend_chart_data = []
+    for trend in filtered_trends:
+        # Generate 6 data points over the past 6 months for each trend
+        for i in range(6):
+            timestamp = (current_date - timedelta(days=30 * (5 - i))).isoformat()
+
+            # Simulate virality scores that evolve over time
+            base_virality = trend["virality_score"] * 0.7  # Start lower
+            growth_factor = 1 + (i * 0.1)  # Gradually increase
+
+            # Add some randomness
+            random_factor = random.uniform(0.9, 1.1)
+
+            virality = min(base_virality * growth_factor * random_factor, 100)
+
+            trend_chart_data.append({
+                "category": trend["category"],
+                "name": trend["name"],
+                "virality_score": virality,
+                "timestamp": timestamp
+            })
+
+    return filtered_trends, trend_chart_data
+
+@app.route('/trend-analysis')
+def trend_analysis():
+    """Sustainability trend analysis page"""
+    logger.info("Trend analysis page requested")
+
+    # Get category and sort filters from request args
+    category = request.args.get('category', 'all')
+    sort = request.args.get('sort', 'virality')
+
+    # Get trend analysis data
+    trends, trend_chart_data = get_sustainability_trends(category)
+
+    # Sort the trends based on user preference
+    if sort == 'virality':
+        trends.sort(key=lambda x: x['virality_score'], reverse=True)
+    elif sort == 'date':
+        trends.sort(key=lambda x: x['timestamp'], reverse=True)
+    elif sort == 'name':
+        trends.sort(key=lambda x: x['name'])
+
+    logger.info(f"Rendering trend analysis with {len(trends)} trends")
+    return render_template("trend_analysis.html", 
+                          trends=trends, 
+                          trend_chart_data=trend_chart_data,
+                          category=category,
+                          sort=sort)
+
+@app.route('/api/trends')
+def api_trends():
+    """API endpoint for sustainability trend data"""
+    logger.info("API trends endpoint called")
+
+    # Get category filter from request args if provided
+    category = request.args.get('category')
+
+    # Get trend analysis data
+    trends, _ = get_sustainability_trends(category)
+
+    logger.info(f"Returning {len(trends)} trends from API endpoint")
+    return jsonify(trends)
+
 @app.route('/debug')
 def debug_route():
     """Debug route to check registered routes and connections"""
@@ -178,7 +523,7 @@ def debug_route():
 if __name__ == "__main__":
     # Use a different port to avoid conflicts
     port = 5001
-    
+
     # Log registered routes for debugging
     routes = [str(rule) for rule in app.url_map.iter_rules()]
     logger.info(f"Registered routes: {routes}")
