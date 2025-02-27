@@ -1225,7 +1225,216 @@ def generate_mock_summary(query, results):
 # Add these new routes to proxy to the sustainability API endpoints
 # Insert after the last defined API route, before if __name__ == "__main__"
 
-# New routes for Sustainability API integration
+# New API endpoints for AI-powered analytics
+@app.route("/api/predictive-analytics", methods=["POST"])
+def api_predictive_analytics():
+    """API endpoint to proxy predictive analytics requests to the backend"""
+    try:
+        logger.info("Predictive analytics API endpoint called")
+        data = request.json
+
+        if not data:
+            logger.warning("Empty request body in predictive analytics endpoint")
+            return jsonify({"error": "Request body is required"}), 400
+
+        # Extract parameters
+        company_name = data.get('company_name')
+        industry = data.get('industry')
+        forecast_periods = data.get('forecast_periods', 3)
+        metrics = data.get('metrics', [])
+
+        if not company_name or not industry:
+            logger.warning("Missing required fields in predictive analytics request")
+            return jsonify({"error": "Company name and industry are required"}), 400
+
+        logger.info(f"Generating predictive analytics for {company_name} in {industry} industry with {forecast_periods} forecast periods")
+
+        # Forward the request to the FastAPI backend
+        try:
+            response = requests.post(
+                f"{BACKEND_URL}/api/predictive-analytics",
+                params={
+                    "company_name": company_name,
+                    "industry": industry,
+                    "forecast_periods": forecast_periods
+                },
+                json=metrics,
+                timeout=30.0  # Longer timeout for AI processing
+            )
+            response.raise_for_status()
+            result = response.json()
+
+            logger.info(f"Successfully generated predictive analytics for {company_name}")
+            return jsonify(result)
+
+        except requests.exceptions.RequestException as e:
+            logger.error(f"Error calling predictive analytics API: {str(e)}")
+            # Generate mock data as fallback
+            current_date = datetime.now().isoformat()
+            mock_data = {
+                "forecast_date": current_date,
+                "company": company_name,
+                "industry": industry,
+                "forecast_periods": forecast_periods,
+                "predictions": [
+                    {
+                        "name": "Carbon Emissions",
+                        "category": "emissions",
+                        "current_value": 78.5,
+                        "unit": "tCO2e",
+                        "predicted_values": [75.2, 72.1, 69.3],
+                        "confidence_intervals": [[73.1, 77.3], [69.5, 74.8], [65.2, 73.4]],
+                        "trend_direction": "decreasing",
+                        "trend_strength": "strong"
+                    },
+                    {
+                        "name": "Energy Consumption",
+                        "category": "energy",
+                        "current_value": 1240,
+                        "unit": "MWh",
+                        "predicted_values": [1180, 1120, 1075],
+                        "confidence_intervals": [[1150, 1210], [1080, 1160], [1020, 1130]],
+                        "trend_direction": "decreasing",
+                        "trend_strength": "moderate"
+                    },
+                    {
+                        "name": "Water Usage",
+                        "category": "water",
+                        "current_value": 430,
+                        "unit": "m³",
+                        "predicted_values": [410, 395, 385],
+                        "confidence_intervals": [[395, 425], [375, 415], [360, 410]],
+                        "trend_direction": "decreasing",
+                        "trend_strength": "moderate"
+                    }
+                ],
+                "ai_insights": [
+                    "Based on current trajectory, carbon emissions are expected to decrease by 11.7% over the forecast period",
+                    "Energy efficiency improvements show diminishing returns after period 2",
+                    "Water conservation efforts are showing steady improvement but at a slower rate than emissions reduction"
+                ]
+            }
+            return jsonify(mock_data)
+
+    except Exception as e:
+        logger.error(f"Unexpected error in predictive analytics endpoint: {str(e)}")
+        return jsonify({"error": str(e)}), 500
+
+@app.route("/api/materiality-assessment", methods=["POST"])
+def api_materiality_assessment():
+    """API endpoint to proxy materiality assessment requests to the backend"""
+    try:
+        logger.info("Materiality assessment API endpoint called")
+        data = request.json
+
+        if not data:
+            logger.warning("Empty request body in materiality assessment endpoint")
+            return jsonify({"error": "Request body is required"}), 400
+
+        # Extract parameters
+        company_name = data.get('company_name')
+        industry = data.get('industry')
+        metrics = data.get('metrics', [])
+
+        if not company_name or not industry:
+            logger.warning("Missing required fields in materiality assessment request")
+            return jsonify({"error": "Company name and industry are required"}), 400
+
+        logger.info(f"Performing materiality assessment for {company_name} in {industry} industry")
+
+        # Forward the request to the FastAPI backend
+        try:
+            response = requests.post(
+                f"{BACKEND_URL}/api/materiality-assessment",
+                params={
+                    "company_name": company_name,
+                    "industry": industry
+                },
+                json=metrics,
+                timeout=30.0  # Longer timeout for AI processing
+            )
+            response.raise_for_status()
+            result = response.json()
+
+            logger.info(f"Successfully performed materiality assessment for {company_name}")
+            return jsonify(result)
+
+        except requests.exceptions.RequestException as e:
+            logger.error(f"Error calling materiality assessment API: {str(e)}")
+            # Generate mock data as fallback
+            mock_data = {
+                "company": company_name,
+                "industry": industry,
+                "assessment_date": datetime.now().isoformat(),
+                "material_topics": [
+                    {
+                        "topic": "Carbon Emissions",
+                        "business_impact_score": 4.7,
+                        "stakeholder_concern_score": 4.5,
+                        "materiality_score": 4.6,
+                        "financial_impact": "High potential regulatory costs and market access limitations",
+                        "recommended_metrics": ["Scope 1-3 emissions (tCO2e)", "Carbon intensity (tCO2e/revenue)"]
+                    },
+                    {
+                        "topic": "Energy Management",
+                        "business_impact_score": 4.2,
+                        "stakeholder_concern_score": 3.8,
+                        "materiality_score": 4.0,
+                        "financial_impact": "Operational cost savings and enhanced resilience",
+                        "recommended_metrics": ["Energy intensity (MWh/revenue)", "Renewable energy (%)"]
+                    },
+                    {
+                        "topic": "Water Management",
+                        "business_impact_score": 3.8,
+                        "stakeholder_concern_score": 3.5,
+                        "materiality_score": 3.65,
+                        "financial_impact": "Operational continuity and regulatory compliance costs",
+                        "recommended_metrics": ["Water withdrawal (m³)", "Water recycling rate (%)"]
+                    },
+                    {
+                        "topic": "Waste Management",
+                        "business_impact_score": 3.2,
+                        "stakeholder_concern_score": 3.7,
+                        "materiality_score": 3.45,
+                        "financial_impact": "Disposal costs and circular economy opportunities",
+                        "recommended_metrics": ["Waste diverted from landfill (%)", "Hazardous waste (tonnes)"]
+                    },
+                    {
+                        "topic": "Supply Chain Sustainability",
+                        "business_impact_score": 4.0,
+                        "stakeholder_concern_score": 3.9,
+                        "materiality_score": 3.95,
+                        "financial_impact": "Reputational risk and potential supply disruptions",
+                        "recommended_metrics": ["Supplier ESG assessment coverage (%)", "Critical suppliers with science-based targets (%)"]
+                    }
+                ],
+                "materiality_matrix": {
+                    "x_axis": "Business Impact",
+                    "y_axis": "Stakeholder Concern",
+                    "quadrants": [
+                        {"name": "Focus", "topics": ["Carbon Emissions", "Energy Management", "Supply Chain Sustainability"]},
+                        {"name": "Monitor", "topics": ["Water Management", "Waste Management"]},
+                        {"name": "Low Priority", "topics": ["Community Relations", "Biodiversity"]}
+                    ]
+                }
+            }
+            return jsonify(mock_data)
+
+    except Exception as e:
+        logger.error(f"Unexpected error in materiality assessment endpoint: {str(e)}")
+        return jsonify({"error": str(e)}), 500
+
+# Add a new route for the analytics dashboard
+@app.route('/analytics-dashboard')
+def analytics_dashboard():
+    """AI-powered sustainability analytics dashboard"""
+    try:
+        logger.info("Analytics dashboard page requested")
+        return render_template("analytics_dashboard.html")
+    except Exception as e:
+        logger.error(f"Error in analytics dashboard route: {str(e)}")
+        return f"Error loading analytics dashboard: {str(e)}", 500
+
 @app.route("/api/sustainability-analysis", methods=["POST"])
 def api_sustainability_analysis():
     """API endpoint to proxy sustainability analysis requests to the backend"""
@@ -1326,7 +1535,7 @@ def api_monetization_strategy():
             "Market Analysis": {
                 "Total Addressable Market": "$4.5B globally for sustainability data services",
                 "Competitive Landscape": "Emerging market with mix of startups and established sustainability consultancies",
-                "Growth Trends": "25-30% annual growth expected in sustainability data services market"
+                "Growth Trends": "25-30% annual growth expected in sustainability data servicesmarket"
             }
         }
         return jsonify(mock_data)

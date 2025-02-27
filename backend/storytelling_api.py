@@ -12,6 +12,10 @@ import os
 import json
 import logging
 from services.storytelling_ai import generate_sustainability_story
+from services.predictive_analytics import (
+    predict_sustainability_trends, 
+    perform_materiality_assessment
+)
 
 # Configure logging
 logging.basicConfig(level=logging.INFO)
@@ -179,6 +183,89 @@ async def get_sustainability_story(company_name: str, industry: str):
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
             detail=f"Failed to generate sustainability story: {str(e)}"
+        )
+
+# New endpoint: AI-Powered Predictive Analytics
+@app.post("/api/predictive-analytics")
+async def get_predictive_analytics(
+    company_name: str, 
+    industry: str, 
+    forecast_periods: int = 3,
+    metrics: Optional[List[Dict[str, Any]]] = None
+):
+    """
+    Generate AI-powered predictive analytics for sustainability metrics
+
+    Args:
+        company_name: Company name for context
+        industry: Industry for context
+        forecast_periods: Number of periods to forecast
+        metrics: Optional historical metrics data
+
+    Returns:
+        Predicted sustainability metrics with confidence intervals
+    """
+    logger.info(f"Generating predictive analytics for {company_name} in {industry} industry")
+
+    try:
+        logger.info(f"Running chain-of-thought analysis for sustainability trends prediction")
+
+        # If no metrics provided, we'll use mock data in the predictive analytics service
+        predictions = predict_sustainability_trends(
+            metrics=metrics or [], 
+            forecast_periods=forecast_periods
+        )
+
+        logger.info(f"Successfully generated predictive analytics with {len(predictions.get('predictions', []))} predictions")
+
+        return predictions
+
+    except Exception as e:
+        logger.error(f"Error generating predictive analytics: {str(e)}")
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail=f"Failed to generate predictive analytics: {str(e)}"
+        )
+
+# New endpoint: AI-Powered Materiality Assessment
+@app.post("/api/materiality-assessment")
+async def get_materiality_assessment(
+    company_name: str,
+    industry: str,
+    metrics: Optional[List[Dict[str, Any]]] = None
+):
+    """
+    Perform an automated materiality assessment to determine which sustainability
+    issues are most material to a company's financial performance and stakeholders
+
+    Args:
+        company_name: Name of the company
+        industry: Industry the company operates in
+        metrics: Optional metrics data
+
+    Returns:
+        Materiality assessment with financial impact scores
+    """
+    logger.info(f"Performing materiality assessment for {company_name} in {industry} industry")
+
+    try:
+        logger.info("Running chain-of-thought analysis for materiality assessment")
+
+        assessment = perform_materiality_assessment(
+            company_name=company_name,
+            industry=industry,
+            metrics=metrics
+        )
+
+        logger.info(f"Successfully generated materiality assessment with {len(assessment.get('material_topics', []))} material topics")
+
+        return assessment
+
+    except Exception as e:
+        logger.error(f"Error performing materiality assessment: {str(e)}")
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail=f"Failed to perform materiality assessment: {str(e)}"
         )
 
 # Run the API with uvicorn when the script is executed directly
