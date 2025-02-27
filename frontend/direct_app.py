@@ -1222,6 +1222,181 @@ def generate_mock_summary(query, results):
 
     return summary
 
+# Add these new routes to proxy to the sustainability API endpoints
+# Insert after the last defined API route, before if __name__ == "__main__"
+
+# New routes for Sustainability API integration
+@app.route("/api/sustainability-analysis", methods=["POST"])
+def api_sustainability_analysis():
+    """API endpoint to proxy sustainability analysis requests to the backend"""
+    try:
+        logger.info("Sustainability analysis API endpoint called")
+        data = request.json
+
+        if not data:
+            logger.warning("Empty request body in sustainability analysis endpoint")
+            return jsonify({"error": "Request body is required"}), 400
+
+        logger.info(f"Forwarding sustainability analysis request: {data}")
+
+        # Forward the request to the backend
+        response = requests.post(
+            f"{BACKEND_URL}/api/sustainability-analysis",
+            json=data,
+            timeout=30.0  # Longer timeout for AI processing
+        )
+
+        response.raise_for_status()
+        result = response.json()
+
+        logger.info(f"Successfully received sustainability analysis from backend")
+        return jsonify(result)
+    except requests.exceptions.RequestException as e:
+        logger.error(f"Error forwarding sustainability analysis request: {str(e)}")
+        # Generate mock data if backend is unavailable
+        company_name = data.get('company_name', 'Company')
+        industry = data.get('industry', 'General')
+        mock_data = {
+            'Company': company_name,
+            'Industry': industry,
+            'Sustainability Score': 72,
+            'Benchmarking Insights': [
+                f"{company_name} is performing above industry average in renewable energy adoption",
+                f"Water conservation metrics are 15% better than {industry} peers",
+                "Supply chain sustainability needs improvement compared to industry leaders"
+            ],
+            'Recommended Sustainability Initiatives': [
+                "Implement science-based emissions reduction targets",
+                "Develop a circular economy program for waste reduction",
+                "Enhance ESG reporting with quantifiable metrics",
+                "Invest in renewable energy infrastructure"
+            ],
+            'Strategic Fit Score': 68
+        }
+        return jsonify(mock_data)
+    except Exception as e:
+        logger.error(f"Unexpected error in sustainability analysis endpoint: {str(e)}")
+        return jsonify({"error": str(e)}), 500
+
+@app.route("/api/monetization-strategy", methods=["POST"])
+def api_monetization_strategy():
+    """API endpoint to proxy monetization strategy requests to the backend"""
+    try:
+        logger.info("Monetization strategy API endpoint called")
+        data = request.json
+
+        if not data:
+            logger.warning("Empty request body in monetization strategy endpoint")
+            return jsonify({"error": "Request body is required"}), 400
+
+        logger.info(f"Forwarding monetization strategy request: {data}")
+
+        # Forward the request to the backend
+        response = requests.post(
+            f"{BACKEND_URL}/api/monetization-strategy",
+            json=data,
+            timeout=30.0  # Longer timeout for AI processing
+        )
+
+        response.raise_for_status()
+        result = response.json()
+
+        logger.info(f"Successfully received monetization strategy from backend")
+        return jsonify(result)
+    except requests.exceptions.RequestException as e:
+        logger.error(f"Error forwarding monetization strategy request: {str(e)}")
+        # Return a simplified mock response if the backend is unavailable
+        company_name = data.get('company_name', 'Company')
+        mock_data = {
+            "Data Assets": [
+                {
+                    "Asset": "Carbon Emissions Data",
+                    "Value Proposition": "Granular, verified emissions data across operations and supply chain",
+                    "Potential Customers": ["ESG Rating Agencies", "Sustainability Consultants", "Carbon Offset Developers"]
+                }
+            ],
+            "Monetization Models": [
+                {
+                    "Model": "Sustainability Analytics-as-a-Service",
+                    "Description": "Subscription service providing insights and benchmarking from sustainability data",
+                    "Revenue Potential": "$3-7M annually",
+                    "Implementation Complexity": "Medium"
+                }
+            ],
+            "Market Analysis": {
+                "Total Addressable Market": "$4.5B globally for sustainability data services",
+                "Competitive Landscape": "Emerging market with mix of startups and established sustainability consultancies",
+                "Growth Trends": "25-30% annual growth expected in sustainability data services market"
+            }
+        }
+        return jsonify(mock_data)
+    except Exception as e:
+        logger.error(f"Unexpected error in monetization strategy endpoint: {str(e)}")
+        return jsonify({"error": str(e)}), 500
+
+@app.route("/api/apa-strategy", methods=["POST"])
+def api_apa_strategy():
+    """API endpoint to proxy APA strategy requests to the backend"""
+    try:
+        logger.info("APA strategy API endpoint called")
+        data = request.json
+
+        if not data:
+            logger.warning("Empty request body in APA strategy endpoint")
+            return jsonify({"error": "Request body is required"}), 400
+
+        logger.info(f"Forwarding APA strategy request: {data}")
+
+        # Forward the request to the backend
+        response = requests.post(
+            f"{BACKEND_URL}/api/apa-strategy",
+            json=data,
+            timeout=30.0  # Longer timeout for AI processing
+        )
+
+        response.raise_for_status()
+        result = response.json()
+
+        logger.info(f"Successfully received APA strategy from backend")
+        return jsonify(result)
+    except requests.exceptions.RequestException as e:
+        logger.error(f"Error forwarding APA strategy request: {str(e)}")
+        # Return a simplified mock response if the backend is unavailable
+        company_name = data.get('company_name', 'Company')
+        mock_data = {
+            "Executive Summary": f"{company_name} has significant opportunities to leverage sustainability as a competitive advantage and drive new revenue streams through ESG-focused initiatives.",
+            "Strategic Assessment": {
+                "Market Alignment": "Strong alignment with emerging sustainability trends in the industry.",
+                "Competitive Position": "Currently middle-tier among sustainability leaders, with opportunity to advance.",
+                "Growth Opportunities": [
+                    "Expansion into sustainable product lines",
+                    "Development of carbon offset marketplace",
+                    "Sustainability consulting services for supply chain partners"
+                ]
+            },
+            "Recommended Actions": [
+                "Develop an integrated sustainability strategy aligned with business goals",
+                "Invest in ESG data collection and analytics infrastructure",
+                "Launch pilot monetization program in highest-potential area"
+            ]
+        }
+        return jsonify(mock_data)
+    except Exception as e:
+        logger.error(f"Unexpected error in APA strategy endpoint: {str(e)}")
+        return jsonify({"error": str(e)}), 500
+
+# Add this route to render the sustainability.html template
+# Add after the other page routes (like /, /dashboard, /search, /trend-analysis)
+@app.route('/sustainability')
+def sustainability():
+    """Sustainability analysis page using McKinsey frameworks"""
+    try:
+        logger.info("Sustainability analysis page requested")
+        return render_template("sustainability.html")
+    except Exception as e:
+        logger.error(f"Error in sustainability route: {str(e)}")
+        return f"Error loading sustainability page: {str(e)}", 500
+
 if __name__ == "__main__":
     # Use port 5000 to match Replit's expected configuration
     port = 5000
