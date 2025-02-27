@@ -130,6 +130,82 @@
         color: #6c757d;
         margin-bottom: 15px;
     }
+    /* New filter panel styles */
+    .filter-panel {
+        background-color: #f8f9fa;
+        border-radius: 8px;
+        padding: 15px;
+        margin-bottom: 20px;
+        box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+    }
+    .filter-panel .form-label {
+        font-weight: 600;
+        font-size: 0.9rem;
+        color: #495057;
+    }
+    .filter-panel .form-select, 
+    .filter-panel .form-check {
+        margin-bottom: 0.5rem;
+    }
+    .filter-badge {
+        display: inline-block;
+        background-color: #e9ecef;
+        color: #495057;
+        border-radius: 20px;
+        padding: 5px 12px;
+        margin-right: 8px;
+        margin-bottom: 8px;
+        font-size: 0.85rem;
+    }
+    .filter-badge .badge-remove {
+        cursor: pointer;
+        margin-left: 5px;
+        font-weight: bold;
+    }
+    .filter-toggle {
+        cursor: pointer;
+        user-select: none;
+    }
+    .active-filters {
+        margin-bottom: 15px;
+    }
+    .result-controls {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 15px;
+    }
+    .source-icon {
+        margin-right: 5px;
+        font-size: 0.9rem;
+    }
+    .category-badge {
+        display: inline-block;
+        padding: 2px 8px;
+        border-radius: 12px;
+        font-size: 0.75rem;
+        margin-right: 5px;
+    }
+    .category-emissions {
+        background-color: #198754;
+        color: white;
+    }
+    .category-energy {
+        background-color: #0d6efd;
+        color: white;
+    }
+    .category-water {
+        background-color: #0dcaf0;
+        color: white;
+    }
+    .category-waste {
+        background-color: #6c757d;
+        color: white;
+    }
+    .category-social {
+        background-color: #6f42c1;
+        color: white;
+    }
 </style>
 {% endblock %}
 
@@ -145,7 +221,7 @@
     <div class="row">
         <div class="col-12">
             <div class="search-container">
-                <div class="search-form-container mb-5">
+                <div class="search-form-container mb-4">
                     <form action="/search" method="get" id="search-form">
                         <div class="input-group input-group-lg">
                             <input type="text" 
@@ -187,6 +263,109 @@
                     <i class="bi bi-info-circle"></i> Showing results for: <strong id="current-query">{{ query }}</strong> using <strong>{{ model|upper }}</strong> model
                 </div>
 
+                <!-- Filter Panel (new) -->
+                <div class="filter-panel">
+                    <div class="d-flex justify-content-between align-items-center mb-3">
+                        <h5 class="mb-0"><i class="bi bi-funnel"></i> Filter Results</h5>
+                        <span class="filter-toggle" id="toggle-filters"><i class="bi bi-chevron-down"></i></span>
+                    </div>
+                    <div id="filter-options">
+                        <div class="row">
+                            <div class="col-md-4">
+                                <label class="form-label">Category</label>
+                                <div class="d-flex flex-column">
+                                    <div class="form-check">
+                                        <input class="form-check-input category-filter" type="checkbox" value="emissions" id="filter-emissions">
+                                        <label class="form-check-label" for="filter-emissions">
+                                            Climate & Emissions
+                                        </label>
+                                    </div>
+                                    <div class="form-check">
+                                        <input class="form-check-input category-filter" type="checkbox" value="energy" id="filter-energy">
+                                        <label class="form-check-label" for="filter-energy">
+                                            Energy
+                                        </label>
+                                    </div>
+                                    <div class="form-check">
+                                        <input class="form-check-input category-filter" type="checkbox" value="water" id="filter-water">
+                                        <label class="form-check-label" for="filter-water">
+                                            Water
+                                        </label>
+                                    </div>
+                                    <div class="form-check">
+                                        <input class="form-check-input category-filter" type="checkbox" value="waste" id="filter-waste">
+                                        <label class="form-check-label" for="filter-waste">
+                                            Waste
+                                        </label>
+                                    </div>
+                                    <div class="form-check">
+                                        <input class="form-check-input category-filter" type="checkbox" value="social" id="filter-social">
+                                        <label class="form-check-label" for="filter-social">
+                                            Social Impact
+                                        </label>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col-md-4">
+                                <label class="form-label">Time Period</label>
+                                <select class="form-select" id="date-filter">
+                                    <option value="all" selected>All Time</option>
+                                    <option value="week">Last Week</option>
+                                    <option value="month">Last Month</option>
+                                    <option value="year">Last Year</option>
+                                </select>
+                                <label class="form-label mt-3">Sort By</label>
+                                <select class="form-select" id="sort-filter">
+                                    <option value="relevance" selected>Relevance</option>
+                                    <option value="date-new">Date (Newest First)</option>
+                                    <option value="date-old">Date (Oldest First)</option>
+                                </select>
+                            </div>
+                            <div class="col-md-4">
+                                <label class="form-label">Source</label>
+                                <div class="form-check">
+                                    <input class="form-check-input source-filter" type="checkbox" value="DuckDuckGo" id="filter-duckduckgo" checked>
+                                    <label class="form-check-label" for="filter-duckduckgo">
+                                        <i class="bi bi-globe source-icon"></i> DuckDuckGo
+                                    </label>
+                                </div>
+                                <div class="form-check">
+                                    <input class="form-check-input source-filter" type="checkbox" value="Sustainability AI" id="filter-ai" checked>
+                                    <label class="form-check-label" for="filter-ai">
+                                        <i class="bi bi-cpu source-icon"></i> Sustainability AI
+                                    </label>
+                                </div>
+                                <label class="form-label mt-3">Confidence Level</label>
+                                <div class="form-check">
+                                    <input class="form-check-input confidence-filter" type="checkbox" value="high" id="filter-high" checked>
+                                    <label class="form-check-label" for="filter-high">
+                                        High
+                                    </label>
+                                </div>
+                                <div class="form-check">
+                                    <input class="form-check-input confidence-filter" type="checkbox" value="medium" id="filter-medium" checked>
+                                    <label class="form-check-label" for="filter-medium">
+                                        Medium
+                                    </label>
+                                </div>
+                                <div class="form-check">
+                                    <input class="form-check-input confidence-filter" type="checkbox" value="low" id="filter-low" checked>
+                                    <label class="form-check-label" for="filter-low">
+                                        Low
+                                    </label>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="mt-3">
+                            <button id="apply-filters" class="btn btn-sm btn-primary">Apply Filters</button>
+                            <button id="reset-filters" class="btn btn-sm btn-outline-secondary ms-2">Reset</button>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Active filters display -->
+                <div id="active-filters" class="active-filters"></div>
+
                 <!-- Search error container -->
                 <div id="search-error" class="search-error">
                     <i class="bi bi-exclamation-triangle"></i> <span id="error-message">Error fetching search results.</span>
@@ -201,12 +380,28 @@
                 <!-- Search stats -->
                 <div id="search-stats" class="search-stats"></div>
 
+                <!-- Result controls -->
+                <div class="result-controls">
+                    <div class="result-count">
+                        <span id="filtered-count"></span>
+                    </div>
+                    <div class="result-actions">
+                        <button id="summarize-results" class="btn btn-sm btn-outline-primary" title="Generate AI summary of search results">
+                            <i class="bi bi-file-earmark-text"></i> Summarize Results
+                        </button>
+                    </div>
+                </div>
+
                 <!-- Search results container -->
                 <div id="search-results-container">
                     {% if results %}
                         <h2>Search Results</h2>
                         {% for result in results %}
-                        <div class="search-result">
+                        <div class="search-result" 
+                             data-category="{{ result.category }}" 
+                             data-confidence="{{ result.confidence_level }}"
+                             data-date="{{ result.date }}"
+                             data-source="{{ result.source|default('Sustainability AI') }}">
                             <h4>{{ result.title }}</h4>
                             {% if result.url %}
                             <a href="{{ result.url }}" class="search-result-url" target="_blank">{{ result.url }}</a>
@@ -217,7 +412,11 @@
                                 <span class="me-3"><i class="bi bi-calendar"></i> {{ result.date }}</span>
                                 {% endif %}
                                 {% if result.category %}
-                                <span class="me-3"><i class="bi bi-tag"></i> {{ result.category }}</span>
+                                <span class="me-3">
+                                    <span class="category-badge category-{{ result.category }}">
+                                        {{ result.category }}
+                                    </span>
+                                </span>
                                 {% endif %}
                                 <span class="search-confidence confidence-{{ result.confidence_level }}">
                                     {{ result.confidence }}% match
@@ -235,6 +434,24 @@
                             <i class="bi bi-exclamation-triangle"></i> No results found for your query. Try different keywords or a broader search.
                         </div>
                     {% endif %}
+                </div>
+
+                <!-- Summary container -->
+                <div id="summary-container" class="mt-4" style="display: none;">
+                    <div class="card">
+                        <div class="card-header bg-primary text-white">
+                            <h5 class="mb-0"><i class="bi bi-file-earmark-text"></i> AI-Generated Summary</h5>
+                        </div>
+                        <div class="card-body">
+                            <div id="summary-content"></div>
+                            <div id="summary-loading" class="text-center py-3" style="display: none;">
+                                <div class="spinner-border text-primary" role="status">
+                                    <span class="visually-hidden">Loading summary...</span>
+                                </div>
+                                <p class="mt-2">Generating summary...</p>
+                            </div>
+                        </div>
+                    </div>
                 </div>
                 {% endif %}
             </div>
@@ -261,9 +478,509 @@
         const currentQueryDisplay = document.getElementById('current-query');
         const liveSearchToggle = document.getElementById('live-search-toggle');
 
+        // Filter-related elements
+        const toggleFiltersBtn = document.getElementById('toggle-filters');
+        const filterOptions = document.getElementById('filter-options');
+        const applyFiltersBtn = document.getElementById('apply-filters');
+        const resetFiltersBtn = document.getElementById('reset-filters');
+        const activeFiltersContainer = document.getElementById('active-filters');
+        const filteredCountDisplay = document.getElementById('filtered-count');
+        const categoryFilters = document.querySelectorAll('.category-filter');
+        const sourceFilters = document.querySelectorAll('.source-filter');
+        const confidenceFilters = document.querySelectorAll('.confidence-filter');
+        const dateFilter = document.getElementById('date-filter');
+        const sortFilter = document.getElementById('sort-filter');
+        const summarizeBtn = document.getElementById('summarize-results');
+        const summaryContainer = document.getElementById('summary-container');
+        const summaryContent = document.getElementById('summary-content');
+        const summaryLoading = document.getElementById('summary-loading');
+
         let debounceTimer;
         let lastQuery = '';
         let isSearching = false;
+        let currentFilters = {
+            categories: [],
+            dateRange: 'all',
+            sources: ['DuckDuckGo', 'Sustainability AI'],
+            confidenceLevels: ['high', 'medium', 'low'],
+            sortBy: 'relevance'
+        };
+        let allResults = []; // Store all results for filtering
+
+        // Toggle filter panel
+        if (toggleFiltersBtn && filterOptions) {
+            toggleFiltersBtn.addEventListener('click', function() {
+                const isVisible = filterOptions.style.display !== 'none';
+                filterOptions.style.display = isVisible ? 'none' : 'block';
+                toggleFiltersBtn.innerHTML = isVisible ? 
+                    '<i class="bi bi-chevron-down"></i>' : 
+                    '<i class="bi bi-chevron-up"></i>';
+            });
+        }
+
+        // Apply filters
+        if (applyFiltersBtn) {
+            applyFiltersBtn.addEventListener('click', function() {
+                // Get selected categories
+                currentFilters.categories = [];
+                categoryFilters.forEach(filter => {
+                    if (filter.checked) {
+                        currentFilters.categories.push(filter.value);
+                    }
+                });
+
+                // Get selected sources
+                currentFilters.sources = [];
+                sourceFilters.forEach(filter => {
+                    if (filter.checked) {
+                        currentFilters.sources.push(filter.value);
+                    }
+                });
+
+                // Get selected confidence levels
+                currentFilters.confidenceLevels = [];
+                confidenceFilters.forEach(filter => {
+                    if (filter.checked) {
+                        currentFilters.confidenceLevels.push(filter.value);
+                    }
+                });
+
+                // Get date range and sort order
+                currentFilters.dateRange = dateFilter.value;
+                currentFilters.sortBy = sortFilter.value;
+
+                // Apply filters
+                filterResults();
+                updateActiveFilters();
+            });
+        }
+
+        // Reset filters
+        if (resetFiltersBtn) {
+            resetFiltersBtn.addEventListener('click', function() {
+                // Reset checkboxes and selects
+                categoryFilters.forEach(filter => filter.checked = false);
+                sourceFilters.forEach(filter => filter.checked = true);
+                confidenceFilters.forEach(filter => filter.checked = true);
+                dateFilter.value = 'all';
+                sortFilter.value = 'relevance';
+
+                // Reset filter state
+                currentFilters = {
+                    categories: [],
+                    dateRange: 'all',
+                    sources: ['DuckDuckGo', 'Sustainability AI'],
+                    confidenceLevels: ['high', 'medium', 'low'],
+                    sortBy: 'relevance'
+                };
+
+                // Apply filters
+                filterResults();
+                updateActiveFilters();
+            });
+        }
+
+        // Display active filters
+        function updateActiveFilters() {
+            if (!activeFiltersContainer) return;
+
+            let filterHTML = '';
+
+            // Add category filters
+            if (currentFilters.categories.length > 0) {
+                filterHTML += '<span class="filter-badge">Categories: ';
+                filterHTML += currentFilters.categories.join(', ');
+                filterHTML += '<span class="badge-remove" data-filter="categories">×</span></span>';
+            }
+
+            // Add source filters
+            if (currentFilters.sources.length < 2 && currentFilters.sources.length > 0) {
+                filterHTML += '<span class="filter-badge">Source: ';
+                filterHTML += currentFilters.sources.join(', ');
+                filterHTML += '<span class="badge-remove" data-filter="sources">×</span></span>';
+            }
+
+            // Add date range filter
+            if (currentFilters.dateRange !== 'all') {
+                const dateLabels = {
+                    'week': 'Last Week',
+                    'month': 'Last Month',
+                    'year': 'Last Year'
+                };
+                filterHTML += `<span class="filter-badge">Time: ${dateLabels[currentFilters.dateRange]}<span class="badge-remove" data-filter="dateRange">×</span></span>`;
+            }
+
+            // Add sort filter
+            const sortLabels = {
+                'relevance': 'Relevance',
+                'date-new': 'Newest First',
+                'date-old': 'Oldest First'
+            };
+            if (currentFilters.sortBy !== 'relevance') {
+                filterHTML += `<span class="filter-badge">Sort: ${sortLabels[currentFilters.sortBy]}<span class="badge-remove" data-filter="sortBy">×</span></span>`;
+            }
+
+            activeFiltersContainer.innerHTML = filterHTML;
+
+            // Add event listeners to remove badges
+            document.querySelectorAll('.badge-remove').forEach(badge => {
+                badge.addEventListener('click', function() {
+                    const filterType = this.dataset.filter;
+
+                    if (filterType === 'categories') {
+                        currentFilters.categories = [];
+                        categoryFilters.forEach(filter => filter.checked = false);
+                    } else if (filterType === 'sources') {
+                        currentFilters.sources = ['DuckDuckGo', 'Sustainability AI'];
+                        sourceFilters.forEach(filter => filter.checked = true);
+                    } else if (filterType === 'dateRange') {
+                        currentFilters.dateRange = 'all';
+                        dateFilter.value = 'all';
+                    } else if (filterType === 'sortBy') {
+                        currentFilters.sortBy = 'relevance';
+                        sortFilter.value = 'relevance';
+                    }
+
+                    filterResults();
+                    updateActiveFilters();
+                });
+            });
+        }
+
+        // Filter and sort results
+        function filterResults() {
+            if (!resultsContainer) return;
+
+            // Get all result elements
+            const resultElements = document.querySelectorAll('.search-result');
+            let visibleCount = 0;
+
+            // If we have stored allResults, filter them and rebuild DOM
+            if (allResults.length > 0) {
+                // Clear current results
+                resultsContainer.innerHTML = '<h2>Search Results</h2>';
+
+                // Filter and sort results
+                let filteredResults = allResults.filter(result => {
+                    // Category filter
+                    if (currentFilters.categories.length > 0 && 
+                        !currentFilters.categories.includes(result.category)) {
+                        return false;
+                    }
+
+                    // Source filter
+                    const resultSource = result.source || 'Sustainability AI';
+                    if (!currentFilters.sources.includes(resultSource)) {
+                        return false;
+                    }
+
+                    // Confidence level filter
+                    if (!currentFilters.confidenceLevels.includes(result.confidence_level)) {
+                        return false;
+                    }
+
+                    // Date filter
+                    if (currentFilters.dateRange !== 'all' && result.date) {
+                        const resultDate = new Date(result.date);
+                        const now = new Date();
+                        let cutoffDate;
+
+                        if (currentFilters.dateRange === 'week') {
+                            cutoffDate = new Date(now.setDate(now.getDate() - 7));
+                        } else if (currentFilters.dateRange === 'month') {
+                            cutoffDate = new Date(now.setMonth(now.getMonth() - 1));
+                        } else if (currentFilters.dateRange === 'year') {
+                            cutoffDate = new Date(now.setFullYear(now.getFullYear() - 1));
+                        }
+
+                        if (resultDate < cutoffDate) {
+                            return false;
+                        }
+                    }
+
+                    return true;
+                });
+
+                // Sort results
+                if (currentFilters.sortBy === 'date-new') {
+                    filteredResults.sort((a, b) => {
+                        if (!a.date) return 1;
+                        if (!b.date) return -1;
+                        return new Date(b.date) - new Date(a.date);
+                    });
+                } else if (currentFilters.sortBy === 'date-old') {
+                    filteredResults.sort((a, b) => {
+                        if (!a.date) return 1;
+                        if (!b.date) return -1;
+                        return new Date(a.date) - new Date(b.date);
+                    });
+                } else {
+                    // Default: sort by relevance (confidence)
+                    filteredResults.sort((a, b) => b.confidence - a.confidence);
+                }
+
+                // Add filtered results to DOM
+                filteredResults.forEach(result => {
+                    const resultElement = document.createElement('div');
+                    resultElement.className = 'search-result';
+                    resultElement.dataset.category = result.category || '';
+                    resultElement.dataset.confidence = result.confidence_level || '';
+                    resultElement.dataset.date = result.date || '';
+                    resultElement.dataset.source = result.source || 'Sustainability AI';
+
+                    let resultHTML = `<h4>${result.title}</h4>`;
+
+                    if (result.url) {
+                        resultHTML += `<a href="${result.url}" class="search-result-url" target="_blank">${result.url}</a>`;
+                    }
+
+                    resultHTML += `<p>${result.snippet}</p>`;
+                    resultHTML += `<div class="search-metadata">`;
+
+                    if (result.date) {
+                        resultHTML += `<span class="me-3"><i class="bi bi-calendar"></i> ${result.date}</span>`;
+                    }
+
+                    if (result.category) {
+                        resultHTML += `<span class="me-3">
+                            <span class="category-badge category-${result.category}">
+                                ${result.category}
+                            </span>
+                        </span>`;
+                    }
+
+                    resultHTML += `<span class="search-confidence confidence-${result.confidence_level}">
+                        ${result.confidence}% match
+                    </span>`;
+
+                    if (result.source) {
+                        resultHTML += `<span class="search-result-source">
+                            ${result.source}
+                        </span>`;
+                    }
+
+                    resultHTML += `</div>`;
+
+                    resultElement.innerHTML = resultHTML;
+                    resultsContainer.appendChild(resultElement);
+                    visibleCount++;
+                });
+
+                // Show message if no results match filters
+                if (visibleCount === 0) {
+                    resultsContainer.innerHTML += `
+                        <div class="alert alert-warning">
+                            <i class="bi bi-exclamation-triangle"></i> No results match your filter criteria. Try broadening your filters.
+                        </div>
+                    `;
+                }
+            } else {
+                // Filter existing DOM elements
+                resultElements.forEach(el => {
+                    const category = el.dataset.category;
+                    const source = el.dataset.source;
+                    const confidence = el.dataset.confidence;
+                    const date = el.dataset.date;
+                    let isVisible = true;
+
+                    // Apply category filter
+                    if (currentFilters.categories.length > 0 && !currentFilters.categories.includes(category)) {
+                        isVisible = false;
+                    }
+
+                    // Apply source filter
+                    if (!currentFilters.sources.includes(source)) {
+                        isVisible = false;
+                    }
+
+                    // Apply confidence filter
+                    if (!currentFilters.confidenceLevels.includes(confidence)) {
+                        isVisible = false;
+                    }
+
+                    // Apply date filter
+                    if (currentFilters.dateRange !== 'all' && date) {
+                        const resultDate = new Date(date);
+                        const now = new Date();
+                        let cutoffDate;
+
+                        if (currentFilters.dateRange === 'week') {
+                            cutoffDate = new Date(now.setDate(now.getDate() - 7));
+                        } else if (currentFilters.dateRange === 'month') {
+                            cutoffDate = new Date(now.setMonth(now.getMonth() - 1));
+                        } else if (currentFilters.dateRange === 'year') {
+                            cutoffDate = new Date(now.setFullYear(now.getFullYear() - 1));
+                        }
+
+                        if (resultDate < cutoffDate) {
+                            isVisible = false;
+                        }
+                    }
+
+                    // Apply visibility
+                    el.style.display = isVisible ? 'block' : 'none';
+                    if (isVisible) visibleCount++;
+                });
+            }
+
+            // Update filtered count
+            if (filteredCountDisplay) {
+                filteredCountDisplay.textContent = `Showing ${visibleCount} result${visibleCount !== 1 ? 's' : ''}`;
+            }
+
+            // Highlight search terms again after filtering
+            highlightSearchTerms(lastQuery);
+        }
+
+        // AI Summary generation
+        if (summarizeBtn) {
+            summarizeBtn.addEventListener('click', function() {
+                const visibleResults = Array.from(document.querySelectorAll('.search-result'))
+                    .filter(el => el.style.display !=='none');
+
+                if (visibleResults.length === 0) {
+                    alert('No visible results to summarize. Please adjust your filters.');
+                    return;
+                }
+
+                // Show summary container and loading state
+                summaryContainer.style.display = 'block';
+                summaryContent.style.display = 'none';
+                summaryLoading.style.display = 'block';
+
+                // Extract data from visible results
+                const resultsData = visibleResults.map(el => {
+                    const title = el.querySelector('h4').textContent;
+                    const snippet = el.querySelector('p').textContent;
+                    const category = el.dataset.category;
+                    const confidence = el.dataset.confidence;
+                    const source = el.dataset.source;
+
+                    return {
+                        title,
+                        snippet,
+                        category,
+                        confidence_level: confidence,
+                        source
+                    };
+                });
+
+                // Call the summarize API
+                fetch('/api/summarize', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({
+                        query: searchInput.value,
+                        results: resultsData
+                    })
+                })
+                .then(response => {
+                    if (!response.ok) {
+                        throw new Error('Failed to generate summary');
+                    }
+                    return response.json();
+                })
+                .then(data => {
+                    // Display the summary
+                    summaryContent.innerHTML = data.summary;
+                    summaryContent.style.display = 'block';
+                    summaryLoading.style.display = 'none';
+
+                    // Scroll to summary
+                    summaryContainer.scrollIntoView({ behavior: 'smooth' });
+                })
+                .catch(error => {
+                    console.error('Error generating summary:', error);
+
+                    // Fall back to mock summary if API fails
+                    const mockSummary = generateMockSummary(searchInput.value, resultsData, visibleResults.length);
+                    summaryContent.innerHTML = mockSummary;
+                    summaryContent.style.display = 'block';
+                    summaryLoading.style.display = 'none';
+
+                    // Show error as a small note
+                    summaryContent.innerHTML += `
+                        <div class="alert alert-warning mt-3 small">
+                            <i class="bi bi-exclamation-triangle"></i> 
+                            Note: Used offline summary generation due to API error.
+                        </div>
+                    `;
+                });
+            });
+        }
+
+        // Generate a mock summary based on search results
+        function generateMockSummary(query, resultsText, resultCount) {
+            // This would be replaced with an actual AI call in production
+            const keywords = query.toLowerCase().split(' ');
+            let summaryHTML = `<h4 class="mb-3">Key Insights on "${query}"</h4>`;
+
+            // Common sustainability themes based on query
+            let themes = [];
+            if (keywords.some(k => ['carbon', 'emission', 'climate'].includes(k))) {
+                themes.push('emissions reduction strategies');
+                themes.push('carbon neutrality goals');
+            }
+            if (keywords.some(k => ['energy', 'renewable', 'solar', 'wind'].includes(k))) {
+                themes.push('renewable energy adoption');
+                themes.push('energy efficiency measures');
+            }
+            if (keywords.some(k => ['water', 'resource'].includes(k))) {
+                themes.push('water conservation methods');
+                themes.push('sustainable water management');
+            }
+            if (keywords.some(k => ['waste', 'recycle', 'circular'].includes(k))) {
+                themes.push('waste reduction initiatives');
+                themes.push('circular economy principles');
+            }
+            if (keywords.some(k => ['social', 'governance', 'esg'].includes(k))) {
+                themes.push('ESG reporting frameworks');
+                themes.push('social impact measurement');
+            }
+
+            // If no specific themes match, use general sustainability themes
+            if (themes.length === 0) {
+                themes = [
+                    'sustainability frameworks',
+                    'environmental impact assessment',
+                    'corporate sustainability strategies',
+                    'stakeholder engagement',
+                    'sustainability reporting'
+                ];
+            }
+
+            // Select random themes based on result count
+            const themeCount = Math.min(3, themes.length);
+            const selectedThemes = [];
+            for (let i = 0; i < themeCount; i++) {
+                const randomIndex = Math.floor(Math.random() * themes.length);
+                selectedThemes.push(themes[randomIndex]);
+                themes.splice(randomIndex, 1);
+            }
+
+            // Generate summary paragraphs
+            summaryHTML += `<p>Based on an analysis of ${resultCount} sources related to "${query}", the following key themes emerged:</p>`;
+            summaryHTML += '<ul class="mb-4">';
+            selectedThemes.forEach(theme => {
+                summaryHTML += `<li><strong>${theme.charAt(0).toUpperCase() + theme.slice(1)}</strong>: Multiple sources emphasize the importance of ${theme} in addressing sustainability challenges.</li>`;
+            });
+            summaryHTML += '</ul>';
+
+            // Add a conclusion paragraph
+            summaryHTML += `<p>In conclusion, the search results on "${query}" highlight the interconnected nature of sustainability challenges and solutions. Organizations should focus on integrated approaches that address multiple dimensions of sustainability simultaneously.</p>`;
+
+            // Add recommendations section
+            summaryHTML += '<div class="mt-4 mb-2"><h5>Recommended Actions</h5>';
+            summaryHTML += '<ul>';
+            summaryHTML += '<li>Establish clear metrics and targets for measuring progress</li>';
+            summaryHTML += '<li>Engage stakeholders in sustainability initiatives</li>';
+            summaryHTML += '<li>Integrate sustainability into core business strategies</li>';
+            summaryHTML += '</ul></div>';
+
+            return summaryHTML;
+        }
 
         // Debounce function to prevent too many API calls
         function debounce(callback, delay = 300) {
@@ -391,6 +1108,9 @@
                 .then(data => {
                     console.log("Search response:", data); // Debug log
 
+                    // Store all results for filtering
+                    allResults = data.results;
+
                     // Calculate search time
                     const searchTime = ((performance.now() - startTime) / 1000).toFixed(2);
 
@@ -401,6 +1121,10 @@
 
                     // Display results
                     displaySearchResults(data.results);
+
+                    // Apply filters after new results are loaded
+                    filterResults();
+                    updateActiveFilters();
                 })
                 .catch(error => {
                     console.error('Error performing search:', error);
@@ -455,6 +1179,10 @@
                 // Create result element
                 const resultElement = document.createElement('div');
                 resultElement.className = 'search-result new-result';
+                resultElement.dataset.category = result.category || '';
+                resultElement.dataset.confidence = result.confidence_level || '';
+                resultElement.dataset.date = result.date || '';
+                resultElement.dataset.source = result.source || 'Sustainability AI';
 
                 // Calculate staggered delay for smoother animation
                 resultElement.style.animationDelay = `${index * 0.1}s`;
@@ -480,7 +1208,11 @@
                 }
 
                 if (result.category) {
-                    resultHTML += `<span class="me-3"><i class="bi bi-tag"></i> ${result.category}</span>`;
+                    resultHTML += `<span class="me-3">
+                        <span class="category-badge category-${result.category}">
+                            ${result.category}
+                        </span>
+                    </span>`;
                 }
 
                 resultHTML += `
@@ -588,6 +1320,15 @@
             setTimeout(() => {
                 performRealTimeSearch('{{ query }}');
             }, 500);
+        }
+
+        // Initialize filter and active filter display
+        if (applyFiltersBtn) {
+            // Initially hide filter options for cleaner UI
+            filterOptions.style.display = 'none';
+
+            // Initialize empty active filters
+            updateActiveFilters();
         }
     });
 </script>

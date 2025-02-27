@@ -265,12 +265,13 @@ def search_duckduckgo(query, max_results=10):
         return []
 
 # Enhanced search function that combines AI-powered query expansion with real-time online search
-def perform_enhanced_search(query, model="rag", max_results=10):
+def perform_enhanced_search(query, model="rag", max_results=15):
     """
     Enhanced search functionality that combines:
     1. AI-powered query expansion
     2. Real-time online search results
     3. Mock sustainability data (as fallback)
+    4. Advanced relevance ranking algorithm
     """
     try:
         start_time = time.time()
@@ -285,32 +286,8 @@ def perform_enhanced_search(query, model="rag", max_results=10):
         # Step 3: Get local mock results as a fallback or supplement
         mock_results = perform_ai_search(query, model)
 
-        # Step 4: Combine and rank results
-        # If online search was successful, prioritize those results but keep some mock results
-        if online_results:
-            # Use 70% online results and 30% mock results for a diverse result set
-            online_count = min(int(max_results * 0.7), len(online_results))
-            mock_count = min(max_results - online_count, len(mock_results))
-
-            combined_results = online_results[:online_count]
-
-            # Add mock results, avoiding duplicates by title
-            online_titles = {r["title"].lower() for r in combined_results}
-            for result in mock_results:
-                if len(combined_results) >= max_results:
-                    break
-                if result["title"].lower() not in online_titles:
-                    # Mark the result as coming from our internal AI
-                    result["source"] = "Sustainability AI"
-                    combined_results.append(result)
-        else:
-            # If online search failed, use all mock results
-            combined_results = mock_results[:max_results]
-            for result in combined_results:
-                result["source"] = "Sustainability AI"
-
-        # Sort by confidence (highest first)
-        combined_results.sort(key=lambda x: x["confidence"], reverse=True)
+        # Step 4: Combine and rank results using our advanced ranking algorithm
+        combined_results = rank_and_combine_results(query, online_results, mock_results, max_results)
 
         # Log performance metrics
         search_time = time.time() - start_time
@@ -321,6 +298,186 @@ def perform_enhanced_search(query, model="rag", max_results=10):
         logger.error(f"Error in enhanced search: {str(e)}")
         # Fallback to mock results if enhanced search fails
         return perform_ai_search(query, model)
+
+# New function for advanced result ranking and combination
+def rank_and_combine_results(query, online_results, mock_results, max_results=15):
+    """
+    Combine online and mock results with advanced ranking considering:
+    1. Query relevance (keyword matching)
+    2. Source credibility
+    3. Recency
+    4. Content diversity (across sustainability categories)
+    """
+    logger.info(f"Ranking and combining {len(online_results)} online results and {len(mock_results)} mock results")
+
+    # Extract query keywords for relevance scoring
+    keywords = [kw.lower() for kw in query.split() if len(kw) > 2]
+
+    # Combine all results first
+    all_results = []
+
+    # Process online results
+    for result in online_results:
+        # Make sure the result has all required fields
+        if 'confidence' not in result:
+            result['confidence'] = 80
+        if 'confidence_level' not in result:
+            confidence = result.get('confidence', 80)
+            if confidence >= 85:
+                result['confidence_level'] = 'high'
+            elif confidence >= 70:
+                result['confidence_level'] = 'medium'
+            else:
+                result['confidence_level'] = 'low'
+
+        # Add to combined results
+        all_results.append(result)
+
+    # Process mock results to avoid duplicates and add diversity
+    online_titles = {r['title'].lower() for r in all_results}
+    for result in mock_results:
+        if result['title'].lower() not in online_titles:
+            # Mark the result as coming from our internal AI
+            result['source'] = 'Sustainability AI'
+            all_results.append(result)
+
+    # Apply advanced ranking algorithm
+    for result in all_results:
+        # Base score starts with confidence
+        base_score = result.get('confidence', 80)
+
+        # 1. Keyword relevance boost (up to +15 points)
+        relevance_boost = calculate_keyword_relevance(result, keywords)
+
+        # 2. Source credibility boost (up to +10 points)
+        source_boost = 10 if result.get('source') == 'DuckDuckGo' else 5
+
+        # 3. Recency boost (up to +10 points)
+        recency_boost = calculate_recency_boost(result)
+
+        # 4. Category diversity boost (5 points for underrepresented categories)
+        category_boost = 5 if is_underrepresented_category(result, all_results) else 0
+
+        # Calculate final ranking score
+        result['ranking_score'] = base_score + relevance_boost + source_boost + recency_boost + category_boost
+
+        logger.debug(f"Result '{result['title']}' - Base: {base_score}, Relevance: {relevance_boost}, "
+                     f"Source: {source_boost}, Recency: {recency_boost}, Category: {category_boost}, "
+                     f"Final: {result['ranking_score']}")
+
+    # Sort by ranking score (highest first)
+    all_results.sort(key=lambda x: x.get('ranking_score', 0), reverse=True)
+
+    # Ensure result diversity by including top results from each category
+    final_results = ensure_category_diversity(all_results, max_results)
+
+    return final_results
+
+# Helper function to calculate keyword relevance
+def calculate_keyword_relevance(result, keywords):
+    """Calculate relevance boost based on keyword matches in title and snippet"""
+    if not keywords:
+        return 0
+
+    boost = 0
+    title = result.get('title', '').lower()
+    snippet = result.get('snippet', '').lower()
+
+    # Check title for keywords (higher weight)
+    for keyword in keywords:
+        if keyword in title:
+            boost += 5  # Higher boost for title matches
+
+    # Check snippet for keywords
+    for keyword in keywords:
+        if keyword in snippet:
+            boost += 2  # Lower boost for snippet matches
+
+    # Cap the boost at 15 points
+    return min(15, boost)
+
+# Helper function to calculate recency boost
+def calculate_recency_boost(result):
+    """Calculate recency boost based on result date"""
+    if not result.get('date'):
+        return 0
+
+    try:
+        result_date = datetime.fromisoformat(result['date'].replace('Z', '+00:00'))
+        now = datetime.now()
+        days_old = (now - result_date).days
+
+        if days_old < 7:  # Last week
+            return 10
+        elif days_old < 30:  # Last month
+            return 7
+        elif days_old < 90:  # Last quarter
+            return 5
+        elif days_old < 365:  # Last year
+            return 3
+        else:
+            return 0
+    except (ValueError, TypeError):
+        return 0
+
+# Helper function to identify underrepresented categories
+def is_underrepresented_category(result, all_results):
+    """Check if result's category is underrepresented in all_results"""
+    category = result.get('category')
+    if not category:
+        return False
+
+    # Count occurrences of each category
+    category_counts = {}
+    for r in all_results:
+        cat = r.get('category')
+        if cat:
+            category_counts[cat] = category_counts.get(cat, 0) + 1
+
+    # Calculate average category count
+    avg_count = sum(category_counts.values()) / max(1, len(category_counts))
+
+    # If this category appears less than average, consider it underrepresented
+    return category_counts.get(category, 0) < avg_count
+
+# Helper function to ensure category diversity
+def ensure_category_diversity(results, max_results):
+    """Ensure diversity by including top results from each category"""
+    if len(results) <= max_results:
+        return results
+
+    # Group results by category
+    category_results = {}
+    for result in results:
+        category = result.get('category', 'uncategorized')
+        if category not in category_results:
+            category_results[category] = []
+        category_results[category].append(result)
+
+    # Determine how many results to take from each category
+    categories = list(category_results.keys())
+    results_per_category = max(1, max_results // len(categories))
+
+    # Take top N results from each category
+    diverse_results = []
+    for category in categories:
+        diverse_results.extend(category_results[category][:results_per_category])
+
+    # If we need more results to reach max_results, take them from the overall ranking
+    remaining_slots = max_results - len(diverse_results)
+    if remaining_slots > 0:
+        # Create a set of already included results
+        included_results = {r['title'] for r in diverse_results}
+        # Add more results that aren't already included
+        for result in results:
+            if result['title'] not in included_results and remaining_slots > 0:
+                diverse_results.append(result)
+                remaining_slots -= 1
+
+    # Final sort by ranking score
+    diverse_results.sort(key=lambda x: x.get('ranking_score', 0), reverse=True)
+
+    return diverse_results[:max_results]
 
 
 # Fetch sustainability metrics from FastAPI backend with improved error handling
@@ -898,6 +1055,172 @@ def debug_route():
     except Exception as e:
         logger.error(f"Error in debug route: {str(e)}")
         return jsonify({"error": str(e)}), 500
+
+# New API endpoint for AI-powered summarization
+@app.route("/api/summarize", methods=["POST"])
+def api_summarize_results():
+    """API endpoint for AI-powered summarization of search results"""
+    try:
+        data = request.get_json()
+        if not data or 'results' not in data or not data['results']:
+            logger.warning("Summarize API called with no results")
+            return jsonify({"error": "No results provided for summarization"}), 400
+
+        query = data.get('query', '')
+        results = data['results']
+        logger.info(f"Summarize API called for query: '{query}' with {len(results)} results")
+
+        # Extract content from results
+        content = ""
+        for result in results:
+            content += f"Title: {result['title']}\n"
+            content += f"Content: {result['snippet']}\n"
+            if 'category' in result:
+                content += f"Category: {result['category']}\n"
+            content += "\n"
+
+        # Generate summary using OpenAI API if available, otherwise use a mock summary
+        openai_api_key = os.getenv('OPENAI_API_KEY')
+        if openai_api_key:
+            try:
+                summary = generate_ai_summary(query, content, openai_api_key)
+                logger.info(f"Generated AI summary for query: '{query}'")
+            except Exception as e:
+                logger.error(f"Error generating AI summary: {str(e)}")
+                summary = generate_mock_summary(query, results)
+        else:
+            logger.warning("No OpenAI API key available, using mock summary")
+            summary = generate_mock_summary(query, results)
+
+        return jsonify({
+            "query": query,
+            "summary": summary,
+            "timestamp": datetime.now().isoformat()
+        })
+    except Exception as e:
+        logger.error(f"Error in summarize API: {str(e)}")
+        return jsonify({"error": str(e)}), 500
+
+# Function to generate an AI-powered summary using OpenAI
+def generate_ai_summary(query, content, api_key):
+    """Generate a summary of search results using OpenAI API"""
+    try:
+        response = requests.post(
+            "https://api.openai.com/v1/chat/completions",
+            headers={
+                "Authorization": f"Bearer {api_key}",
+                "Content-Type": "application/json"
+            },
+            json={
+                "model": "gpt-3.5-turbo",
+                "messages": [
+                    {
+                        "role": "system", 
+                        "content": """You are a sustainability expert. Create a concise, insightful summary 
+                        of the search results provided. Focus on key sustainability themes, important trends, 
+                        and actionable insights. Format your response with HTML tags for better readability:
+                        - Use <h4> for section headings
+                        - Use <p> for paragraphs
+                        - Use <ul> and <li> for lists
+                        - Use <strong> for emphasis
+                        Include sections for: Key Themes, Important Findings, and Recommended Actions.
+                        """
+                    },
+                    {
+                        "role": "user", 
+                        "content": f"Query: {query}\n\nSearch Results:\n{content}\n\nPlease provide a summary focusing on sustainability aspects."
+                    }
+                ],
+                "max_tokens": 500,
+                "temperature": 0.5
+            },
+            timeout=15.0
+        )
+
+        if response.status_code == 200:
+            result = response.json()
+            summary = result["choices"][0]["message"]["content"].strip()
+            return summary
+        else:
+            logger.error(f"OpenAI API error: {response.status_code} - {response.text}")
+            return generate_mock_summary(query, content)
+    except Exception as e:
+        logger.error(f"Error in AI summary generation: {str(e)}")
+        return generate_mock_summary(query, content)
+
+# Function to generate a mock summary when OpenAI is not available
+def generate_mock_summary(query, results):
+    """Generate a mock summary based on the query and results"""
+    # Extract query keywords
+    keywords = query.lower().split()
+
+    # Determine the main sustainability themes based on keywords
+    themes = []
+    if any(k in keywords for k in ["carbon", "emission", "climate", "ghg", "greenhouse"]):
+        themes.append("emissions reduction")
+        themes.append("climate action")
+    if any(k in keywords for k in ["energy", "renewable", "solar", "wind", "power"]):
+        themes.append("renewable energy")
+        themes.append("energy efficiency")
+    if any(k in keywords for k in ["water", "resource", "conservation"]):
+        themes.append("water conservation")
+        themes.append("resource management")
+    if any(k in keywords for k in ["waste", "recycle", "circular", "plastic"]):
+        themes.append("waste reduction")
+        themes.append("circular economy")
+    if any(k in keywords for k in ["social", "governance", "esg", "ethical", "diversity"]):
+        themes.append("social responsibility")
+        themes.append("ESG performance")
+
+    # Use general sustainability themes if no specific ones are identified
+    if not themes:
+        themes = [
+            "sustainability practices",
+            "environmental impact",
+            "corporate sustainability",
+            "sustainable development",
+            "sustainability reporting"
+        ]
+
+    # Randomly select themes to highlight
+    selected_themes = random.sample(themes, min(3, len(themes)))
+
+    # Generate a formatted summary with HTML tags
+    summary = f"""
+    <h4>Key Themes: {query.title()}</h4>
+    <p>Based on the analysis of multiple sustainability sources, the following key themes emerged:</p>
+    <ul>
+        <li><strong>{selected_themes[0].title()}</strong>: Multiple sources emphasize the importance of {selected_themes[0]} in addressing sustainability challenges.</li>
+    """
+
+    # Add more theme items if available
+    if len(selected_themes) > 1:
+        summary += f"<li><strong>{selected_themes[1].title()}</strong>: Organizations are increasingly focusing on {selected_themes[1]} as a critical component of their sustainability strategies.</li>\n"
+    if len(selected_themes) > 2:
+        summary += f"<li><strong>{selected_themes[2].title()}</strong>: There is growing evidence for the business value of implementing {selected_themes[2]} initiatives.</li>\n"
+
+    summary += """
+    </ul>
+
+    <h4>Important Findings</h4>
+    <p>The search results highlight several important sustainability trends:</p>
+    <ul>
+        <li>Organizations are increasingly adopting science-based targets for measuring and reducing environmental impacts</li>
+        <li>Stakeholder engagement is becoming a crucial aspect of successful sustainability programs</li>
+        <li>There is a growing focus on data-driven approaches to sustainability management</li>
+    </ul>
+
+    <h4>Recommended Actions</h4>
+    <p>Based on the search results, the following actions are recommended:</p>
+    <ul>
+        <li>Establish clear metrics and targets for measuring sustainability progress</li>
+        <li>Integrate sustainability considerations into core business strategies</li>
+        <li>Engage with stakeholders to understand their priorities and concerns</li>
+        <li>Stay informed about emerging sustainability trends and best practices</li>
+    </ul>
+    """
+
+    return summary
 
 if __name__ == "__main__":
     # Use port 5000 to match Replit's expected configuration
