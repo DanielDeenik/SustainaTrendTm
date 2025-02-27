@@ -1,0 +1,486 @@
+{% extends "base.html" %}
+
+{% block title %}Sustainability Storytelling | Sustainability Intelligence Platform{% endblock %}
+
+{% block extra_css %}
+<style>
+    .stories-container {
+        max-width: 1200px;
+        margin: 0 auto;
+        padding: 20px;
+    }
+    .story-card {
+        background-color: #fff;
+        border-radius: 8px;
+        box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        margin-bottom: 20px;
+        overflow: hidden;
+        transition: transform 0.3s ease;
+    }
+    .story-card:hover {
+        transform: translateY(-5px);
+    }
+    .story-header {
+        padding: 20px;
+        background: linear-gradient(135deg, #1e5631, #2e7d32);
+        color: white;
+    }
+    .story-title {
+        margin: 0;
+        font-size: 1.5rem;
+        font-weight: 600;
+    }
+    .story-meta {
+        display: flex;
+        justify-content: space-between;
+        font-size: 0.9rem;
+        margin-top: 8px;
+    }
+    .story-body {
+        padding: 20px;
+    }
+    .story-metrics {
+        display: flex;
+        margin-top: 15px;
+        border-top: 1px solid #eee;
+        padding-top: 15px;
+    }
+    .metric {
+        display: flex;
+        align-items: center;
+        margin-right: 20px;
+        color: #555;
+    }
+    .metric i {
+        margin-right: 5px;
+    }
+    .story-tags {
+        display: flex;
+        flex-wrap: wrap;
+        margin-top: 15px;
+    }
+    .tag {
+        background-color: #e9f5ea;
+        color: #2e7d32;
+        border-radius: 20px;
+        padding: 5px 12px;
+        margin-right: 8px;
+        margin-bottom: 8px;
+        font-size: 0.85rem;
+    }
+    .story-actions {
+        display: flex;
+        justify-content: space-between;
+        margin-top: 20px;
+    }
+    .story-form {
+        background-color: #fff;
+        border-radius: 8px;
+        box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+        padding: 25px;
+        margin-bottom: 30px;
+    }
+    .form-title {
+        margin-top: 0;
+        margin-bottom: 20px;
+        color: #2e7d32;
+        font-weight: 600;
+    }
+    #story-loading {
+        display: none;
+        text-align: center;
+        padding: 20px;
+    }
+    .section-title {
+        position: relative;
+        padding-bottom: 10px;
+        margin-bottom: 20px;
+        font-weight: 600;
+        color: #2e7d32;
+    }
+    .section-title::after {
+        content: '';
+        position: absolute;
+        bottom: 0;
+        left: 0;
+        width: 50px;
+        height: 3px;
+        background-color: #2e7d32;
+    }
+    .recommendation-list {
+        list-style-type: none;
+        padding: 0;
+    }
+    .recommendation-list li {
+        padding: 10px 0;
+        border-bottom: 1px solid #f0f0f0;
+    }
+    .recommendation-list li:last-child {
+        border-bottom: none;
+    }
+    .recommendation-list li:before {
+        content: '✓';
+        color: #2e7d32;
+        margin-right: 10px;
+    }
+    .story-detail {
+        padding: 30px;
+        margin-top: 20px;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="container stories-container">
+    <div class="row mb-4">
+        <div class="col-12">
+            <h1 class="mb-4">Sustainability Storytelling</h1>
+            <p class="lead">Generate AI-powered sustainability transformation stories using McKinsey frameworks to create strategic narratives, business flywheels, and monetization pathways.</p>
+        </div>
+    </div>
+
+    <!-- Story Generation Form -->
+    <div class="row mb-5">
+        <div class="col-12">
+            <div class="story-form">
+                <h3 class="form-title">Generate a Sustainability Story</h3>
+                <form id="story-form">
+                    <div class="mb-3">
+                        <label for="company-name" class="form-label">Company Name</label>
+                        <input type="text" class="form-control" id="company-name" name="company_name" placeholder="Enter company name" required>
+                    </div>
+                    <div class="mb-3">
+                        <label for="industry" class="form-label">Industry</label>
+                        <select class="form-select" id="industry" name="industry" required>
+                            <option value="" selected disabled>Select an industry</option>
+                            <option value="technology">Technology</option>
+                            <option value="manufacturing">Manufacturing</option>
+                            <option value="retail">Retail</option>
+                            <option value="energy">Energy</option>
+                            <option value="healthcare">Healthcare</option>
+                            <option value="finance">Finance</option>
+                            <option value="transportation">Transportation</option>
+                            <option value="agriculture">Agriculture</option>
+                            <option value="construction">Construction</option>
+                            <option value="other">Other</option>
+                        </select>
+                    </div>
+                    <button type="submit" class="btn btn-primary">Generate Story</button>
+                </form>
+                <div id="story-loading" class="mt-4">
+                    <div class="spinner-border text-primary" role="status">
+                        <span class="visually-hidden">Generating story...</span>
+                    </div>
+                    <p class="mt-2">Generating your sustainability story with AI...</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Story Detail View (hidden initially) -->
+    <div id="story-detail" class="row mb-5" style="display: none;">
+        <div class="col-12">
+            <div class="card story-detail">
+                <div class="card-header bg-success text-white">
+                    <h2 id="detail-title" class="card-title mb-0"></h2>
+                    <div class="d-flex justify-content-between align-items-center mt-2">
+                        <span id="detail-company-industry"></span>
+                        <span id="detail-date" class="text-white-50"></span>
+                    </div>
+                </div>
+                <div class="card-body">
+                    <div class="row">
+                        <div class="col-md-8">
+                            <h4 class="section-title">Sustainability Strategy</h4>
+                            <p id="detail-strategy"></p>
+                            
+                            <h4 class="section-title mt-4">Monetization Model</h4>
+                            <p id="detail-monetization"></p>
+                            
+                            <h4 class="section-title mt-4">Investment Pathway</h4>
+                            <p id="detail-investment"></p>
+                        </div>
+                        <div class="col-md-4">
+                            <div class="card">
+                                <div class="card-header bg-light">
+                                    <h5 class="mb-0">Actionable Recommendations</h5>
+                                </div>
+                                <div class="card-body">
+                                    <ul id="detail-recommendations" class="recommendation-list">
+                                    </ul>
+                                </div>
+                            </div>
+                            
+                            <div class="card mt-4">
+                                <div class="card-header bg-light">
+                                    <h5 class="mb-0">Story Engagement</h5>
+                                </div>
+                                <div class="card-body">
+                                    <div class="d-flex justify-content-between">
+                                        <div class="metric">
+                                            <i class="bi bi-eye"></i> <span id="detail-views">0</span> Views
+                                        </div>
+                                        <div class="metric">
+                                            <i class="bi bi-hand-thumbs-up"></i> <span id="detail-likes">0</span> Likes
+                                        </div>
+                                        <div class="metric">
+                                            <i class="bi bi-share"></i> <span id="detail-shares">0</span> Shares
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="mt-4 text-end">
+                        <button id="btn-like" class="btn btn-outline-success btn-sm">
+                            <i class="bi bi-hand-thumbs-up"></i> Like
+                        </button>
+                        <button id="btn-share" class="btn btn-outline-primary btn-sm ms-2">
+                            <i class="bi bi-share"></i> Share
+                        </button>
+                        <button id="btn-download" class="btn btn-outline-secondary btn-sm ms-2">
+                            <i class="bi bi-download"></i> Download PDF
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Stories List (will be populated with JavaScript) -->
+    <div class="row">
+        <div class="col-12">
+            <h3 class="mb-4">Recent Stories</h3>
+            <div id="stories-container">
+                <div class="text-center py-5">
+                    <p class="text-muted">No stories available yet. Generate your first sustainability story!</p>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const storyForm = document.getElementById('story-form');
+    const storyLoading = document.getElementById('story-loading');
+    const storyDetail = document.getElementById('story-detail');
+    const storiesContainer = document.getElementById('stories-container');
+    
+    // Story detail elements
+    const detailTitle = document.getElementById('detail-title');
+    const detailCompanyIndustry = document.getElementById('detail-company-industry');
+    const detailDate = document.getElementById('detail-date');
+    const detailStrategy = document.getElementById('detail-strategy');
+    const detailMonetization = document.getElementById('detail-monetization');
+    const detailInvestment = document.getElementById('detail-investment');
+    const detailRecommendations = document.getElementById('detail-recommendations');
+    const detailViews = document.getElementById('detail-views');
+    const detailLikes = document.getElementById('detail-likes');
+    const detailShares = document.getElementById('detail-shares');
+    
+    // Action buttons
+    const btnLike = document.getElementById('btn-like');
+    const btnShare = document.getElementById('btn-share');
+    const btnDownload = document.getElementById('btn-download');
+    
+    // Load existing stories
+    fetchStories();
+    
+    // Handle story form submission
+    storyForm.addEventListener('submit', function(e) {
+        e.preventDefault();
+        
+        const companyName = document.getElementById('company-name').value;
+        const industry = document.getElementById('industry').value;
+        
+        if (!companyName || !industry) {
+            alert('Please enter both company name and industry');
+            return;
+        }
+        
+        // Show loading indicator
+        storyLoading.style.display = 'block';
+        
+        // Call API to generate story
+        generateStory(companyName, industry);
+    });
+    
+    // Generate a sustainability story
+    function generateStory(companyName, industry) {
+        fetch('/api/storytelling', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({
+                company_name: companyName,
+                industry: industry
+            })
+        })
+        .then(response => {
+            if (!response.ok) {
+                throw new Error('Failed to generate story');
+            }
+            return response.json();
+        })
+        .then(data => {
+            // Hide loading indicator
+            storyLoading.style.display = 'none';
+            
+            // Display the generated story
+            displayStoryDetail(data);
+            
+            // Refresh stories list
+            fetchStories();
+        })
+        .catch(error => {
+            console.error('Error generating story:', error);
+            storyLoading.style.display = 'none';
+            alert('Failed to generate story. Please try again.');
+        });
+    }
+    
+    // Fetch existing stories
+    function fetchStories() {
+        // This would call the API in a real implementation
+        // For now, we'll use mock data
+        const mockStories = [
+            {
+                id: 1,
+                title: 'Sustainable Transformation Strategy',
+                company_name: 'EcoTech Solutions',
+                industry: 'Technology',
+                created_at: '2025-02-15T14:30:00',
+                metrics: {
+                    views: 156,
+                    likes: 42,
+                    shares: 18
+                }
+            },
+            {
+                id: 2,
+                title: 'Green Manufacturing Roadmap',
+                company_name: 'IndustryCraft',
+                industry: 'Manufacturing',
+                created_at: '2025-02-10T09:15:00',
+                metrics: {
+                    views: 89,
+                    likes: 23,
+                    shares: 7
+                }
+            }
+        ];
+        
+        displayStoriesList(mockStories);
+    }
+    
+    // Display story detail
+    function displayStoryDetail(story) {
+        detailTitle.textContent = `Sustainability Strategy for ${story.Company}`;
+        detailCompanyIndustry.textContent = `${story.Company} | ${story.Industry}`;
+        detailDate.textContent = new Date().toLocaleDateString();
+        detailStrategy.textContent = story['Sustainability Strategy'];
+        detailMonetization.textContent = story['Monetization Model'];
+        detailInvestment.textContent = story['Investment Pathway'];
+        
+        // Clear and populate recommendations
+        detailRecommendations.innerHTML = '';
+        story['Actionable Recommendations'].forEach(recommendation => {
+            const li = document.createElement('li');
+            li.textContent = recommendation;
+            detailRecommendations.appendChild(li);
+        });
+        
+        // Set initial metrics
+        detailViews.textContent = '1';
+        detailLikes.textContent = '0';
+        detailShares.textContent = '0';
+        
+        // Show the detail view
+        storyDetail.style.display = 'block';
+        
+        // Scroll to the detail view
+        storyDetail.scrollIntoView({ behavior: 'smooth' });
+    }
+    
+    // Display stories list
+    function displayStoriesList(stories) {
+        if (!stories || stories.length === 0) {
+            storiesContainer.innerHTML = `
+                <div class="text-center py-5">
+                    <p class="text-muted">No stories available yet. Generate your first sustainability story!</p>
+                </div>
+            `;
+            return;
+        }
+        
+        let html = '';
+        stories.forEach(story => {
+            html += `
+                <div class="story-card">
+                    <div class="story-header">
+                        <h3 class="story-title">${story.title}</h3>
+                        <div class="story-meta">
+                            <span>${story.company_name} | ${story.industry}</span>
+                            <span>${formatDate(story.created_at)}</span>
+                        </div>
+                    </div>
+                    <div class="story-body">
+                        <p>Sustainability transformation strategy for ${story.company_name} in the ${story.industry} sector...</p>
+                        <div class="story-metrics">
+                            <div class="metric">
+                                <i class="bi bi-eye"></i> ${story.metrics.views}
+                            </div>
+                            <div class="metric">
+                                <i class="bi bi-hand-thumbs-up"></i> ${story.metrics.likes}
+                            </div>
+                            <div class="metric">
+                                <i class="bi bi-share"></i> ${story.metrics.shares}
+                            </div>
+                        </div>
+                        <div class="story-actions mt-3">
+                            <button class="btn btn-primary btn-sm" onclick="viewStory(${story.id})">View Details</button>
+                        </div>
+                    </div>
+                </div>
+            `;
+        });
+        
+        storiesContainer.innerHTML = html;
+    }
+    
+    // Format date
+    function formatDate(dateString) {
+        const date = new Date(dateString);
+        return date.toLocaleDateString();
+    }
+    
+    // Add event listeners for action buttons
+    btnLike.addEventListener('click', function() {
+        const currentLikes = parseInt(detailLikes.textContent);
+        detailLikes.textContent = currentLikes + 1;
+        btnLike.disabled = true;
+        btnLike.innerHTML = '<i class="bi bi-hand-thumbs-up-fill"></i> Liked';
+    });
+    
+    btnShare.addEventListener('click', function() {
+        const currentShares = parseInt(detailShares.textContent);
+        detailShares.textContent = currentShares + 1;
+        alert('Story sharing would be implemented in a production environment.');
+    });
+    
+    btnDownload.addEventListener('click', function() {
+        alert('PDF download would be implemented in a production environment.');
+    });
+    
+    // Global function to view a story (needs to be global for onclick)
+    window.viewStory = function(storyId) {
+        alert(`In a production environment, this would load story #${storyId}`);
+    };
+});
+</script>
+{% endblock %}

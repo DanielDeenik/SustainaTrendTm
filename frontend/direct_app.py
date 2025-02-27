@@ -1397,6 +1397,84 @@ def sustainability():
         logger.error(f"Error in sustainability route: {str(e)}")
         return f"Error loading sustainability page: {str(e)}", 500
 
+# Add this route to render the sustainability_stories.html template
+@app.route('/sustainability-stories')
+def sustainability_stories():
+    """Sustainability storytelling page using McKinsey frameworks"""
+    try:
+        logger.info("Sustainability storytelling page requested")
+        return render_template("sustainability_stories.html")
+    except Exception as e:
+        logger.error(f"Error in sustainability storytelling route: {str(e)}")
+        return f"Error loading sustainability storytelling page: {str(e)}", 500
+
+# Add this API endpoint to proxy to our FastAPI storytelling backend
+@app.route("/api/storytelling", methods=["POST"])
+def api_storytelling():
+    """API endpoint to proxy storytelling requests to the FastAPI backend"""
+    try:
+        logger.info("Storytelling API endpoint called")
+        data = request.json
+
+        if not data:
+            logger.warning("Empty request body in storytelling endpoint")
+            return jsonify({"error": "Request body is required"}), 400
+
+        company_name = data.get('company_name')
+        industry = data.get('industry')
+
+        if not company_name or not industry:
+            logger.warning("Missing required fields in storytelling request")
+            return jsonify({"error": "Company name and industry are required"}), 400
+
+        logger.info(f"Generating sustainability story for {company_name} in {industry} industry")
+
+        # Forward the request to the FastAPI backend
+        # The URL would be adjusted based on your deployment
+        storytelling_api_url = os.getenv('STORYTELLING_API_URL', 'http://localhost:8080')
+
+        try:
+            response = requests.post(
+                f"{storytelling_api_url}/api/sustainability-story",
+                params={"company_name": company_name, "industry": industry},
+                timeout=30.0  # Longer timeout for AI processing
+            )
+            response.raise_for_status()
+            result = response.json()
+
+            logger.info(f"Successfully generated sustainability story for {company_name}")
+            return jsonify(result)
+
+        except requests.exceptions.RequestException as e:
+            logger.error(f"Error calling storytelling API: {str(e)}")
+            # If the API call fails, use our local storytelling AI as fallback
+
+            # Import the storytelling AI function (assuming it's available)
+            try:
+                from services.storytelling_ai import generate_sustainability_story
+                story = generate_sustainability_story(company_name, industry)
+                return jsonify(story)
+            except ImportError:
+                logger.error("Could not import storytelling_ai module")
+                # Generate a very simple mock story as a last resort
+                mock_story = {
+                    "Company": company_name,
+                    "Industry": industry,
+                    "Sustainability Strategy": f"A sustainable transformation strategy for {company_name} focusing on emission reductions, resource efficiency, and stakeholder engagement.",
+                    "Monetization Model": f"Sustainability data analytics platform enabling {company_name} to monetize insights and benchmarking.",
+                    "Investment Pathway": "Green bonds and sustainability-linked loans to finance initiatives with favorable terms.",
+                    "Actionable Recommendations": [
+                        "Implement science-based targets for emissions reduction",
+                        "Develop comprehensive ESG data management system",
+                        "Invest in renewable energy infrastructure"
+                    ]
+                }
+                return jsonify(mock_story)
+
+    except Exception as e:
+        logger.error(f"Unexpected error in storytelling endpoint: {str(e)}")
+        return jsonify({"error": str(e)}), 500
+
 if __name__ == "__main__":
     # Use port 5000 to match Replit's expected configuration
     port = 5000
