@@ -1,0 +1,232 @@
+{% extends "base.html" %}
+
+{% block title %}Sustainability Trend Analysis{% endblock %}
+
+{% block extra_css %}
+<style>
+    .trend-card {
+        border-radius: 8px;
+        overflow: hidden;
+        transition: transform 0.3s;
+        margin-bottom: 20px;
+    }
+    .trend-card:hover {
+        transform: translateY(-5px);
+    }
+    .trend-header {
+        padding: 15px;
+        color: white;
+        font-weight: bold;
+    }
+    .trend-body {
+        padding: 20px;
+        background-color: white;
+    }
+    .trend-emissions {
+        background-color: #198754;
+    }
+    .trend-energy {
+        background-color: #0d6efd;
+    }
+    .trend-water {
+        background-color: #0dcaf0;
+    }
+    .trend-waste {
+        background-color: #6c757d;
+    }
+    .trend-social {
+        background-color: #6f42c1;
+    }
+    .virality-score {
+        width: 80px;
+        height: 80px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        border-radius: 50%;
+        font-size: 1.5rem;
+        font-weight: bold;
+        color: white;
+        margin: 0 auto 15px;
+    }
+    .virality-high {
+        background-color: #dc3545;
+    }
+    .virality-medium {
+        background-color: #fd7e14;
+    }
+    .virality-low {
+        background-color: #198754;
+    }
+    .keyword-chip {
+        display: inline-block;
+        padding: 5px 10px;
+        background-color: #f8f9fa;
+        border-radius: 20px;
+        margin: 0 5px 5px 0;
+        font-size: 0.8rem;
+    }
+    .trend-chart {
+        height: 350px;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="container py-5">
+    <div class="row mb-4">
+        <div class="col-12">
+            <h1 class="text-center">Sustainability Trend Analysis</h1>
+            <p class="text-center text-muted">AI-driven insights into emerging sustainability trends</p>
+        </div>
+    </div>
+
+    <!-- Filter Controls -->
+    <div class="row mb-4">
+        <div class="col-md-8 offset-md-2">
+            <div class="card">
+                <div class="card-body">
+                    <form method="get" action="/trend-analysis" class="row g-3">
+                        <div class="col-md-4">
+                            <label for="category" class="form-label">Category</label>
+                            <select name="category" id="category" class="form-select">
+                                <option value="all" {% if not category or category == 'all' %}selected{% endif %}>All Categories</option>
+                                <option value="emissions" {% if category == 'emissions' %}selected{% endif %}>Emissions</option>
+                                <option value="energy" {% if category == 'energy' %}selected{% endif %}>Energy</option>
+                                <option value="water" {% if category == 'water' %}selected{% endif %}>Water</option>
+                                <option value="waste" {% if category == 'waste' %}selected{% endif %}>Waste</option>
+                                <option value="social" {% if category == 'social' %}selected{% endif %}>Social</option>
+                            </select>
+                        </div>
+                        <div class="col-md-4">
+                            <label for="sort" class="form-label">Sort By</label>
+                            <select name="sort" id="sort" class="form-select">
+                                <option value="virality" {% if sort == 'virality' %}selected{% endif %}>Virality Score</option>
+                                <option value="date" {% if sort == 'date' %}selected{% endif %}>Date</option>
+                                <option value="name" {% if sort == 'name' %}selected{% endif %}>Name</option>
+                            </select>
+                        </div>
+                        <div class="col-md-4 d-flex align-items-end">
+                            <button type="submit" class="btn btn-primary w-100">Apply Filters</button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Trend Overview Chart -->
+    <div class="row mb-5">
+        <div class="col-12">
+            <div class="card">
+                <div class="card-header">
+                    <h5>Sustainability Trends Overview</h5>
+                </div>
+                <div class="card-body">
+                    <div id="trend-chart" class="trend-chart"></div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Trend Analysis Cards -->
+    <div class="row">
+        {% if trends %}
+            {% for trend in trends %}
+            <div class="col-md-4">
+                <div class="trend-card shadow">
+                    <div class="trend-header trend-{{ trend.category }}">
+                        {{ trend.name }}
+                    </div>
+                    <div class="trend-body">
+                        <div class="virality-score virality-{% if trend.virality_score > 80 %}high{% elif trend.virality_score > 50 %}medium{% else %}low{% endif %}">
+                            {{ trend.virality_score|round|int }}
+                        </div>
+                        
+                        <h5 class="text-center mb-3">Virality Score</h5>
+                        
+                        <div class="mb-3">
+                            <strong>Trend Direction:</strong>
+                            <span class="{% if trend.trend_direction == 'increasing' %}text-success{% else %}text-danger{% endif %}">
+                                {{ trend.trend_direction|capitalize }}
+                            </span>
+                        </div>
+                        
+                        <div class="mb-3">
+                            <strong>Duration:</strong> {{ trend.trend_duration|capitalize }}
+                        </div>
+                        
+                        <div>
+                            <strong>Keywords:</strong>
+                            <div class="mt-2">
+                                {% for keyword in trend.keywords.split(',') %}
+                                <span class="keyword-chip">{{ keyword.strip() }}</span>
+                                {% endfor %}
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            {% endfor %}
+        {% else %}
+            <div class="col-12">
+                <div class="alert alert-info text-center">
+                    No trend data available for the selected filters.
+                </div>
+            </div>
+        {% endif %}
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script src="https://cdn.plot.ly/plotly-latest.min.js"></script>
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // Sample data for the trend chart (will be replaced by actual data)
+    const trendData = {{ trend_chart_data|tojson|safe if trend_chart_data else '[]' }};
+    
+    if (trendData.length > 0) {
+        const traces = [];
+        const categories = [...new Set(trendData.map(item => item.category))];
+        
+        categories.forEach(category => {
+            const filteredData = trendData.filter(item => item.category === category);
+            traces.push({
+                x: filteredData.map(item => item.timestamp),
+                y: filteredData.map(item => item.virality_score),
+                mode: 'lines+markers',
+                name: category.charAt(0).toUpperCase() + category.slice(1),
+                line: {
+                    width: 3
+                }
+            });
+        });
+        
+        const layout = {
+            showlegend: true,
+            legend: {
+                orientation: 'h',
+                y: -0.2
+            },
+            margin: {
+                l: 50,
+                r: 20,
+                t: 20,
+                b: 50
+            },
+            xaxis: {
+                title: 'Date'
+            },
+            yaxis: {
+                title: 'Virality Score'
+            }
+        };
+        
+        Plotly.newPlot('trend-chart', traces, layout, {responsive: true});
+    } else {
+        document.getElementById('trend-chart').innerHTML = '<div class="alert alert-info">No trend data available for charting</div>';
+    }
+});
+</script>
+{% endblock %}

@@ -1,0 +1,137 @@
+{% extends "base.html" %}
+
+{% block title %}AI Search - Sustainability Intelligence Platform{% endblock %}
+
+{% block extra_css %}
+<style>
+    .search-container {
+        max-width: 800px;
+        margin: 0 auto;
+    }
+    .search-result {
+        margin-bottom: 20px;
+        padding: 15px;
+        border-radius: 5px;
+        background-color: #f8f9fa;
+        border-left: 4px solid #198754;
+    }
+    .search-highlight {
+        background-color: rgba(25, 135, 84, 0.1);
+        padding: 0 3px;
+        border-radius: 3px;
+    }
+    .search-metadata {
+        font-size: 0.85rem;
+        color: #6c757d;
+        margin-top: 8px;
+    }
+    .search-confidence {
+        display: inline-block;
+        padding: 2px 8px;
+        border-radius: 12px;
+        font-size: 0.75rem;
+        font-weight: bold;
+        color: white;
+    }
+    .confidence-high {
+        background-color: #198754;
+    }
+    .confidence-medium {
+        background-color: #ffc107;
+        color: #212529;
+    }
+    .confidence-low {
+        background-color: #dc3545;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="container py-5">
+    <div class="row mb-4">
+        <div class="col-12">
+            <h1 class="text-center">AI-Powered Sustainability Search</h1>
+            <p class="text-center text-muted">Leverage advanced NLP models to discover insights across your sustainability data</p>
+        </div>
+    </div>
+
+    <div class="row">
+        <div class="col-12">
+            <div class="search-container">
+                <form action="/search" method="get" class="mb-5">
+                    <div class="input-group input-group-lg">
+                        <input type="text" class="form-control" name="query" placeholder="Search for sustainability insights..." value="{{ query }}" required>
+                        <button class="btn btn-primary" type="submit">
+                            <i class="bi bi-search"></i> Search
+                        </button>
+                    </div>
+                    <div class="mt-2">
+                        <div class="form-check form-check-inline">
+                            <input class="form-check-input" type="radio" name="model" id="model-rag" value="rag" {% if model == 'rag' %}checked{% endif %}>
+                            <label class="form-check-label" for="model-rag">RAG</label>
+                        </div>
+                        <div class="form-check form-check-inline">
+                            <input class="form-check-input" type="radio" name="model" id="model-splade" value="splade" {% if model == 'splade' %}checked{% endif %}>
+                            <label class="form-check-label" for="model-splade">SPLADE</label>
+                        </div>
+                        <div class="form-check form-check-inline">
+                            <input class="form-check-input" type="radio" name="model" id="model-gnn" value="gnn" {% if model == 'gnn' %}checked{% endif %}>
+                            <label class="form-check-label" for="model-gnn">Graph Neural Network</label>
+                        </div>
+                    </div>
+                </form>
+
+                {% if query %}
+                <div class="alert alert-info">
+                    <i class="bi bi-info-circle"></i> Showing results for: <strong>{{ query }}</strong> using <strong>{{ model|upper }}</strong> model
+                </div>
+
+                {% if results %}
+                    <h2>Search Results</h2>
+                    {% for result in results %}
+                    <div class="search-result">
+                        <h4>{{ result.title }}</h4>
+                        <p>{{ result.snippet|safe }}</p>
+                        <div class="search-metadata">
+                            <span class="me-3"><i class="bi bi-calendar"></i> {{ result.date }}</span>
+                            <span class="me-3"><i class="bi bi-tag"></i> {{ result.category }}</span>
+                            <span class="search-confidence confidence-{{ result.confidence_level }}">
+                                {{ result.confidence }}% match
+                            </span>
+                        </div>
+                    </div>
+                    {% endfor %}
+                {% else %}
+                    <div class="alert alert-warning">
+                        <i class="bi bi-exclamation-triangle"></i> No results found for your query. Try different keywords or a broader search.
+                    </div>
+                {% endif %}
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+    // Initialize any JavaScript required for the search page
+    document.addEventListener('DOMContentLoaded', function() {
+        // Highlight search terms in results (simple implementation)
+        if ('{{ query }}') {
+            const query = '{{ query }}'.toLowerCase();
+            const terms = query.split(' ').filter(term => term.length > 2);
+            
+            document.querySelectorAll('.search-result p').forEach(el => {
+                terms.forEach(term => {
+                    const regex = new RegExp('(' + term + ')', 'gi');
+                    el.innerHTML = el.innerHTML.replace(
+                        regex, 
+                        '<span class="search-highlight">$1</span>'
+                    );
+                });
+            });
+        }
+    });
+</script>
+{% endblock %}

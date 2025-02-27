@@ -128,6 +128,135 @@ body {
     color: #dc3545 !important;
 }
 
+/* Search page styling */
+.search-container {
+    max-width: 800px;
+    margin: 0 auto;
+}
+
+.search-result {
+    margin-bottom: 20px;
+    padding: 15px;
+    border-radius: 5px;
+    background-color: #f8f9fa;
+    border-left: 4px solid #198754;
+}
+
+.search-highlight {
+    background-color: rgba(25, 135, 84, 0.1);
+    padding: 0 3px;
+    border-radius: 3px;
+}
+
+.search-metadata {
+    font-size: 0.85rem;
+    color: #6c757d;
+    margin-top: 8px;
+}
+
+.search-confidence {
+    display: inline-block;
+    padding: 2px 8px;
+    border-radius: 12px;
+    font-size: 0.75rem;
+    font-weight: bold;
+    color: white;
+}
+
+.confidence-high {
+    background-color: #198754;
+}
+
+.confidence-medium {
+    background-color: #ffc107;
+    color: #212529;
+}
+
+.confidence-low {
+    background-color: #dc3545;
+}
+
+/* Trend analysis styling */
+.trend-card {
+    border-radius: 8px;
+    overflow: hidden;
+    transition: transform 0.3s;
+    margin-bottom: 20px;
+}
+
+.trend-card:hover {
+    transform: translateY(-5px);
+}
+
+.trend-header {
+    padding: 15px;
+    color: white;
+    font-weight: bold;
+}
+
+.trend-body {
+    padding: 20px;
+    background-color: white;
+}
+
+.trend-emissions {
+    background-color: #198754;
+}
+
+.trend-energy {
+    background-color: #0d6efd;
+}
+
+.trend-water {
+    background-color: #0dcaf0;
+}
+
+.trend-waste {
+    background-color: #6c757d;
+}
+
+.trend-social {
+    background-color: #6f42c1;
+}
+
+.virality-score {
+    width: 80px;
+    height: 80px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 50%;
+    font-size: 1.5rem;
+    font-weight: bold;
+    color: white;
+    margin: 0 auto 15px;
+}
+
+.virality-high {
+    background-color: #dc3545;
+}
+
+.virality-medium {
+    background-color: #fd7e14;
+}
+
+.virality-low {
+    background-color: #198754;
+}
+
+.keyword-chip {
+    display: inline-block;
+    padding: 5px 10px;
+    background-color: #f8f9fa;
+    border-radius: 20px;
+    margin: 0 5px 5px 0;
+    font-size: 0.8rem;
+}
+
+.trend-chart {
+    height: 350px;
+}
+
 /* Responsive adjustments */
 @media (max-width: 768px) {
     .hero h1 {
