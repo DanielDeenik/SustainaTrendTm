@@ -43,6 +43,28 @@
     .confidence-low {
         background-color: #dc3545;
     }
+    .suggestions-container {
+        position: absolute;
+        width: 100%;
+        background-color: #fff;
+        border: 1px solid #ced4da;
+        border-radius: 0 0 5px 5px;
+        box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+        z-index: 1000;
+        max-height: 250px;
+        overflow-y: auto;
+        display: none;
+    }
+    .suggestion-item {
+        padding: 8px 15px;
+        cursor: pointer;
+    }
+    .suggestion-item:hover {
+        background-color: #f8f9fa;
+    }
+    .search-form-container {
+        position: relative;
+    }
 </style>
 {% endblock %}
 
@@ -58,28 +80,38 @@
     <div class="row">
         <div class="col-12">
             <div class="search-container">
-                <form action="/search" method="get" class="mb-5">
-                    <div class="input-group input-group-lg">
-                        <input type="text" class="form-control" name="query" placeholder="Search for sustainability insights..." value="{{ query }}" required>
-                        <button class="btn btn-primary" type="submit">
-                            <i class="bi bi-search"></i> Search
-                        </button>
-                    </div>
-                    <div class="mt-2">
-                        <div class="form-check form-check-inline">
-                            <input class="form-check-input" type="radio" name="model" id="model-rag" value="rag" {% if model == 'rag' %}checked{% endif %}>
-                            <label class="form-check-label" for="model-rag">RAG</label>
+                <div class="search-form-container mb-5">
+                    <form action="/search" method="get" id="search-form">
+                        <div class="input-group input-group-lg">
+                            <input type="text" 
+                                   class="form-control" 
+                                   name="query" 
+                                   id="search-query"
+                                   placeholder="Search for sustainability insights..." 
+                                   value="{{ query }}" 
+                                   autocomplete="off"
+                                   required>
+                            <button class="btn btn-primary" type="submit">
+                                <i class="bi bi-search"></i> Search
+                            </button>
                         </div>
-                        <div class="form-check form-check-inline">
-                            <input class="form-check-input" type="radio" name="model" id="model-splade" value="splade" {% if model == 'splade' %}checked{% endif %}>
-                            <label class="form-check-label" for="model-splade">SPLADE</label>
+                        <div id="search-suggestions" class="suggestions-container"></div>
+                        <div class="mt-2">
+                            <div class="form-check form-check-inline">
+                                <input class="form-check-input" type="radio" name="model" id="model-rag" value="rag" {% if model == 'rag' %}checked{% endif %}>
+                                <label class="form-check-label" for="model-rag">RAG</label>
+                            </div>
+                            <div class="form-check form-check-inline">
+                                <input class="form-check-input" type="radio" name="model" id="model-splade" value="splade" {% if model == 'splade' %}checked{% endif %}>
+                                <label class="form-check-label" for="model-splade">SPLADE</label>
+                            </div>
+                            <div class="form-check form-check-inline">
+                                <input class="form-check-input" type="radio" name="model" id="model-gnn" value="gnn" {% if model == 'gnn' %}checked{% endif %}>
+                                <label class="form-check-label" for="model-gnn">Graph Neural Network</label>
+                            </div>
                         </div>
-                        <div class="form-check form-check-inline">
-                            <input class="form-check-input" type="radio" name="model" id="model-gnn" value="gnn" {% if model == 'gnn' %}checked{% endif %}>
-                            <label class="form-check-label" for="model-gnn">Graph Neural Network</label>
-                        </div>
-                    </div>
-                </form>
+                    </form>
+                </div>
 
                 {% if query %}
                 <div class="alert alert-info">
@@ -117,11 +149,93 @@
 <script>
     // Initialize any JavaScript required for the search page
     document.addEventListener('DOMContentLoaded', function() {
+        // Setup for dynamic search suggestions
+        const searchInput = document.getElementById('search-query');
+        const suggestionsContainer = document.getElementById('search-suggestions');
+        let debounceTimer;
+
+        // Debounce function to prevent too many API calls
+        function debounce(callback, delay = 300) {
+            clearTimeout(debounceTimer);
+            debounceTimer = setTimeout(callback, delay);
+        }
+
+        // Fetch suggestions from OmniParser API
+        function fetchSuggestions(query) {
+            if (!query || query.length < 2) {
+                suggestionsContainer.style.display = 'none';
+                return;
+            }
+
+            fetch(`/api/omniparser/suggestions?query=${encodeURIComponent(query)}`)
+                .then(response => {
+                    if (!response.ok) {
+                        throw new Error('Network response was not ok');
+                    }
+                    return response.json();
+                })
+                .then(data => {
+                    if (data.suggestions && data.suggestions.length > 0) {
+                        displaySuggestions(data.suggestions);
+                    } else {
+                        suggestionsContainer.style.display = 'none';
+                    }
+                })
+                .catch(error => {
+                    console.error('Error fetching suggestions:', error);
+                    suggestionsContainer.style.display = 'none';
+                });
+        }
+
+        // Display suggestions in dropdown
+        function displaySuggestions(suggestions) {
+            suggestionsContainer.innerHTML = '';
+
+            suggestions.forEach(suggestion => {
+                const item = document.createElement('div');
+                item.className = 'suggestion-item';
+                item.textContent = suggestion;
+
+                item.addEventListener('click', () => {
+                    searchInput.value = suggestion;
+                    suggestionsContainer.style.display = 'none';
+                    document.getElementById('search-form').submit();
+                });
+
+                suggestionsContainer.appendChild(item);
+            });
+
+            suggestionsContainer.style.display = 'block';
+        }
+
+        // Handle input changes for suggestions
+        if (searchInput) {
+            searchInput.addEventListener('input', function() {
+                const query = this.value.trim();
+                debounce(() => fetchSuggestions(query));
+            });
+
+            // Close suggestions when clicking outside
+            document.addEventListener('click', function(event) {
+                if (!searchInput.contains(event.target) && !suggestionsContainer.contains(event.target)) {
+                    suggestionsContainer.style.display = 'none';
+                }
+            });
+
+            // Show suggestions when input is focused (if there's text)
+            searchInput.addEventListener('focus', function() {
+                const query = this.value.trim();
+                if (query.length >= 2) {
+                    fetchSuggestions(query);
+                }
+            });
+        }
+
         // Highlight search terms in results (simple implementation)
         if ('{{ query }}') {
             const query = '{{ query }}'.toLowerCase();
             const terms = query.split(' ').filter(term => term.length > 2);
-            
+
             document.querySelectorAll('.search-result p').forEach(el => {
                 terms.forEach(term => {
                     const regex = new RegExp('(' + term + ')', 'gi');

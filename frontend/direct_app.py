@@ -29,6 +29,46 @@ cache = Cache(app, config={
 BACKEND_URL = os.getenv('BACKEND_URL', 'http://localhost:8000')
 logger.info(f"Using FastAPI backend URL: {BACKEND_URL}")
 
+# OmniParser API endpoint
+OMNIPARSER_API = "https://api.omniparser.com/parse"
+
+# Utility function to call OmniParser dynamically
+def get_ui_suggestions(query: str):
+    """Get dynamic UI suggestions from OmniParser API"""
+    try:
+        logger.info(f"Calling OmniParser API for query: '{query}'")
+        response = requests.get(f"{OMNIPARSER_API}?query={query}", timeout=5.0)
+        response.raise_for_status()
+        suggestions = response.json().get("suggestions", [])
+        logger.info(f"Received {len(suggestions)} suggestions from OmniParser")
+        return suggestions
+    except requests.exceptions.RequestException as e:
+        logger.error(f"OmniParser API failed: {str(e)}")
+        return {"error": f"OmniParser API failed: {str(e)}"}
+
+# Flask Endpoint: Dynamic Search Suggestions
+@app.route("/api/omniparser/suggestions", methods=["GET"])
+def omniparser_suggestions_flask():
+    """API endpoint for dynamic search suggestions"""
+    try:
+        query = request.args.get("query", "")
+        logger.info(f"Search suggestions requested with query: '{query}'")
+
+        if not query:
+            logger.warning("Search suggestions requested with empty query")
+            return jsonify({"error": "Query parameter is required"}), 400
+
+        suggestions = get_ui_suggestions(query)
+        if isinstance(suggestions, dict) and "error" in suggestions:
+            logger.error(f"Error getting suggestions: {suggestions['error']}")
+            return jsonify({"error": suggestions["error"]}), 500
+
+        logger.info(f"Returning {len(suggestions)} suggestions for query: '{query}'")
+        return jsonify({"suggestions": suggestions})
+    except Exception as e:
+        logger.error(f"Error in suggestions endpoint: {str(e)}")
+        return jsonify({"error": str(e)}), 500
+
 # Fetch sustainability metrics from FastAPI backend with improved error handling
 @cache.memoize(timeout=300)
 def get_sustainability_metrics():
@@ -160,7 +200,7 @@ def api_metrics():
         return jsonify({"error": str(e)}), 500
 
 # AI Search functionality
-def perform_ai_search(query, model="rag"):
+def perform_ai_search(query: str, model="rag"):
     """
     Perform AI-powered search on sustainability data
     Using simulated results for now, would connect to OpenAI or other AI service in production

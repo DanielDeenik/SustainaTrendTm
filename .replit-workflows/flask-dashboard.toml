@@ -1,5 +1,6 @@
-run = "bash ./start.sh"
+run = "bash ./frontend/start.sh"
 language = "python"
-entrypoint = "start.sh"
+entrypoint = "frontend/start.sh"
 hidden = false
 persistent = true
+wait_for_port = 5000
