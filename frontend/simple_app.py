@@ -1,4 +1,4 @@
-from flask import Flask, render_template, jsonify
+from flask import Flask, render_template, jsonify, request
 import requests
 import os
 import logging
@@ -28,7 +28,7 @@ def get_sustainability_metrics():
         # Log a sample metric for verification
         if metrics_data and len(metrics_data) > 0:
             logger.info(f"Sample metric: {json.dumps(metrics_data[0], indent=2)}")
-        
+
         return metrics_data
     except Exception as e:
         logger.error(f"Error fetching metrics from API: {str(e)}")
@@ -146,6 +146,52 @@ def debug_route():
     }
 
     return jsonify(debug_info)
+
+# Import trend analysis functionality
+def get_sustainability_trends(category=None):
+    """Fetches and processes sustainability trends data.  This is a placeholder; replace with actual data fetching logic."""
+    mock_trends = [
+        {"timestamp": "2024-01-01", "value": 10, "category": "emissions"},
+        {"timestamp": "2024-02-01", "value": 12, "category": "emissions"},
+        {"timestamp": "2024-03-01", "value": 8, "category": "emissions"},
+        {"timestamp": "2024-01-01", "value": 100, "category": "energy"},
+        {"timestamp": "2024-02-01", "value": 95, "category": "energy"},
+        {"timestamp": "2024-03-01", "value": 90, "category": "energy"},
+
+    ]
+    if category:
+        return [trend for trend in mock_trends if trend["category"] == category]
+    else:
+        return mock_trends
+
+
+@app.route('/trend-analysis')
+def trend_analysis():
+    """Sustainability trend analysis page"""
+    logger.info("Trend analysis page requested")
+
+    # Get category filter from request args if provided
+    category = request.args.get('category')
+
+    # Get trend analysis data
+    trends = get_sustainability_trends(category)
+
+    logger.info(f"Rendering trend analysis with {len(trends)} trends")
+    return render_template("trend_analysis.html", trends=trends)
+
+@app.route('/api/trends')
+def api_trends():
+    """API endpoint for sustainability trend data"""
+    logger.info("API trends endpoint called")
+
+    # Get category filter from request args if provided
+    category = request.args.get('category')
+
+    # Get trend analysis data
+    trends = get_sustainability_trends(category)
+
+    logger.info(f"Returning {len(trends)} trends from API endpoint")
+    return jsonify(trends)
 
 if __name__ == "__main__":
     # Use port 5001 to avoid conflicts
