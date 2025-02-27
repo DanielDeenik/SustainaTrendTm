@@ -1,0 +1,6 @@
+run = "cd frontend && python app.py"
+language = "python"
+entrypoint = "frontend/app.py"
+hidden = false
+persistent = true
+wait_for_port = 5000

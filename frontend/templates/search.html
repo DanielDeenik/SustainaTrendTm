@@ -247,6 +247,8 @@
 <script>
     // Initialize any JavaScript required for the search page
     document.addEventListener('DOMContentLoaded', function() {
+        console.log("Search page initialized"); // Debug log
+
         // Setup for dynamic search suggestions
         const searchInput = document.getElementById('search-query');
         const suggestionsContainer = document.getElementById('search-suggestions');
@@ -326,8 +328,15 @@
 
         // New function to perform real-time search
         function performRealTimeSearch(query) {
+            console.log("Performing real-time search for:", query); // Debug log
+
             // Don't search if query is empty or the same as last query
             if (!query.trim() || query === lastQuery || isSearching) {
+                console.log("Search skipped:", {
+                    emptyQuery: !query.trim(),
+                    sameAsLastQuery: query === lastQuery,
+                    isSearching: isSearching
+                });
                 return;
             }
 
@@ -347,6 +356,7 @@
             // Show loading spinner
             if (loadingContainer) {
                 loadingContainer.style.display = 'flex';
+                console.log("Loading spinner displayed");
             }
 
             // Hide error message if visible
@@ -367,15 +377,20 @@
             // Start search timer
             const startTime = performance.now();
 
-            // Fetch real-time search results
-            fetch(`/api/realtime-search?query=${encodeURIComponent(query)}&model=${selectedModel}`)
+            // Fetch real-time search results - add timestamp to prevent caching
+            console.log(`Sending request to: /api/realtime-search?query=${encodeURIComponent(query)}&model=${selectedModel}&t=${Date.now()}`);
+
+            fetch(`/api/realtime-search?query=${encodeURIComponent(query)}&model=${selectedModel}&t=${Date.now()}`)
                 .then(response => {
+                    console.log("Search response status:", response.status);
                     if (!response.ok) {
                         throw new Error(`Search failed: ${response.status} ${response.statusText}`);
                     }
                     return response.json();
                 })
                 .then(data => {
+                    console.log("Search response:", data); // Debug log
+
                     // Calculate search time
                     const searchTime = ((performance.now() - startTime) / 1000).toFixed(2);
 
@@ -394,12 +409,14 @@
                     if (errorContainer && errorMessage) {
                         errorMessage.textContent = error.message || 'Failed to fetch search results. Please try again.';
                         errorContainer.style.display = 'block';
+                        console.log("Error displayed:", error.message);
                     }
                 })
                 .finally(() => {
                     // Hide loading spinner
                     if (loadingContainer) {
                         loadingContainer.style.display = 'none';
+                        console.log("Loading spinner hidden");
                     }
                     isSearching = false;
                 });
@@ -407,13 +424,19 @@
 
         // Display search results with smooth animations
         function displaySearchResults(results) {
-            if (!resultsContainer) return;
+            console.log("Displaying search results:", results ? results.length : 0); // Debug log
+
+            if (!resultsContainer) {
+                console.error("Results container not found");
+                return;
+            }
 
             // Clear existing results
             resultsContainer.innerHTML = '';
 
             // If no results, show message
             if (!results || results.length === 0) {
+                console.log("No results to display");
                 resultsContainer.innerHTML = `
                     <div class="alert alert-warning">
                         <i class="bi bi-exclamation-triangle"></i> No results found for your query. Try different keywords or a broader search.
@@ -481,6 +504,8 @@
                 resultsContainer.appendChild(resultElement);
             });
 
+            console.log("Results displayed, now highlighting search terms");
+
             // Highlight search terms
             highlightSearchTerms(lastQuery);
         }
@@ -490,6 +515,7 @@
             if (!query) return;
 
             const terms = query.toLowerCase().split(' ').filter(term => term.length > 2);
+            console.log("Highlighting terms:", terms);
 
             document.querySelectorAll('.search-result p').forEach(el => {
                 terms.forEach(term => {
@@ -506,12 +532,14 @@
         if (searchInput) {
             searchInput.addEventListener('input', function() {
                 const query = this.value.trim();
+                console.log("Input changed:", query);
 
                 // Fetch suggestions
                 debounce(() => fetchSuggestions(query), 300);
 
                 // Perform live search if enabled and query is long enough
                 if (liveSearchToggle && liveSearchToggle.checked && query.length >= 3) {
+                    console.log("Debouncing live search for:", query);
                     debounce(() => performRealTimeSearch(query), 600);
                 }
             });
@@ -535,9 +563,11 @@
             if (searchForm) {
                 searchForm.addEventListener('submit', function(event) {
                     const query = searchInput.value.trim();
+                    console.log("Form submitted with query:", query);
 
                     // If live search is enabled and query is not empty, perform real-time search
                     if (liveSearchToggle && liveSearchToggle.checked && query) {
+                        console.log("Preventing form submission, using live search instead");
                         event.preventDefault();
                         performRealTimeSearch(query);
                     }
@@ -554,6 +584,7 @@
         // If there's a query and live search is enabled, perform real-time search on page load
         if ('{{ query }}' && liveSearchToggle && liveSearchToggle.checked) {
             // Slight delay to ensure DOM is fully loaded
+            console.log("Initial page load with query, scheduling real-time search");
             setTimeout(() => {
                 performRealTimeSearch('{{ query }}');
             }, 500);

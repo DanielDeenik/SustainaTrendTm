@@ -58,7 +58,7 @@ MEMORY_CACHE = {}
 def cache_result(expire=300):
     def decorator(f):
         @wraps(f)
-        async def decorated_function(*args, **kwargs):
+        def decorated_function(*args, **kwargs):
             # Create a cache key from function name and arguments
             cache_key = f"{f.__name__}:{str(args)}:{str(kwargs)}"
 
@@ -75,7 +75,7 @@ def cache_result(expire=300):
                     return result
 
             # Execute function if not in cache
-            result = await f(*args, **kwargs)
+            result = f(*args, **kwargs)
 
             # Store in cache
             try:
@@ -133,7 +133,7 @@ def omniparser_suggestions_flask():
         return jsonify({"error": str(e)}), 500
 
 # AI-powered query expansion using OpenAI
-async def expand_query_with_ai(query, context="sustainability"):
+def expand_query_with_ai(query, context="sustainability"):
     """
     Enhance the search query using OpenAI to make it more relevant to sustainability topics
     """
@@ -145,39 +145,40 @@ async def expand_query_with_ai(query, context="sustainability"):
             logger.warning("No OpenAI API key available, skipping query expansion")
             return query
 
-        async with httpx.AsyncClient(timeout=10.0) as client:
-            response = await client.post(
-                "https://api.openai.com/v1/chat/completions",
-                headers={
-                    "Authorization": f"Bearer {openai_api_key}",
-                    "Content-Type": "application/json"
-                },
-                json={
-                    "model": "gpt-3.5-turbo",
-                    "messages": [
-                        {"role": "system", "content": f"You are a sustainability expert. Expand and enhance this search query to find the most relevant sustainability information. Return ONLY the enhanced query, nothing else."},
-                        {"role": "user", "content": query}
-                    ],
-                    "max_tokens": 100,
-                    "temperature": 0.3
-                }
-            )
+        # In a synchronous context, use regular requests
+        response = requests.post(
+            "https://api.openai.com/v1/chat/completions",
+            headers={
+                "Authorization": f"Bearer {openai_api_key}",
+                "Content-Type": "application/json"
+            },
+            json={
+                "model": "gpt-3.5-turbo",
+                "messages": [
+                    {"role": "system", "content": f"You are a sustainability expert. Expand and enhance this search query to find the most relevant sustainability information. Return ONLY the enhanced query, nothing else."},
+                    {"role": "user", "content": query}
+                ],
+                "max_tokens": 100,
+                "temperature": 0.3
+            },
+            timeout=10.0
+        )
 
-            if response.status_code == 200:
-                result = response.json()
-                expanded_query = result["choices"][0]["message"]["content"].strip()
-                logger.info(f"AI expanded query: '{expanded_query}'")
-                return expanded_query
-            else:
-                logger.error(f"OpenAI API error: {response.status_code} - {response.text}")
-                return query
+        if response.status_code == 200:
+            result = response.json()
+            expanded_query = result["choices"][0]["message"]["content"].strip()
+            logger.info(f"AI expanded query: '{expanded_query}'")
+            return expanded_query
+        else:
+            logger.error(f"OpenAI API error: {response.status_code} - {response.text}")
+            return query
     except Exception as e:
         logger.error(f"Error in AI query expansion: {str(e)}")
         return query  # Return original query if expansion fails
 
 # Real-time online search using DuckDuckGo
 @cache_result(expire=1800)  # Cache for 30 minutes
-async def search_duckduckgo(query, max_results=10):
+def search_duckduckgo(query, max_results=10):
     """
     Perform a real-time online search using DuckDuckGo API
     """
@@ -190,81 +191,81 @@ async def search_duckduckgo(query, max_results=10):
 
         encoded_query = quote_plus(query)
 
-        async with httpx.AsyncClient(timeout=15.0) as client:
-            # DuckDuckGo doesn't have an official API, but we can use their instant answer API
-            response = await client.get(
-                f"https://api.duckduckgo.com/?q={encoded_query}&format=json&no_html=1&skip_disambig=1",
-                headers={"User-Agent": "SustainaTrend Search Agent/1.0"}
-            )
+        # Use synchronous requests instead of async
+        response = requests.get(
+            f"https://api.duckduckgo.com/?q={encoded_query}&format=json&no_html=1&skip_disambig=1",
+            headers={"User-Agent": "SustainaTrend Search Agent/1.0"},
+            timeout=15.0
+        )
 
-            if response.status_code != 200:
-                logger.error(f"DuckDuckGo API error: {response.status_code} - {response.text}")
-                return []
+        if response.status_code != 200:
+            logger.error(f"DuckDuckGo API error: {response.status_code} - {response.text}")
+            return []
 
-            data = response.json()
-            results = []
+        data = response.json()
+        results = []
 
-            # Extract Abstract (main result)
-            if data.get("Abstract"):
+        # Extract Abstract (main result)
+        if data.get("Abstract"):
+            results.append({
+                "title": data.get("Heading", "Main Result"),
+                "snippet": data.get("Abstract"),
+                "url": data.get("AbstractURL", ""),
+                "category": "main",
+                "date": "",  # DuckDuckGo doesn't provide dates
+                "confidence": 95,
+                "confidence_level": "high",
+                "source": "DuckDuckGo"
+            })
+
+        # Extract Related Topics
+        for topic in data.get("RelatedTopics", []):
+            if len(results) >= max_results:
+                break
+
+            if "Text" in topic and "FirstURL" in topic:
+                # Extract a title from the text (usually the first few words)
+                text = topic["Text"]
+                title_match = re.match(r'^(.{10,60}?)(?:\s-\s|\.\s)', text)
+                title = title_match.group(1) if title_match else text[:60] + "..."
+
                 results.append({
-                    "title": data.get("Heading", "Main Result"),
-                    "snippet": data.get("Abstract"),
-                    "url": data.get("AbstractURL", ""),
-                    "category": "main",
-                    "date": "",  # DuckDuckGo doesn't provide dates
-                    "confidence": 95,
-                    "confidence_level": "high",
+                    "title": title,
+                    "snippet": text,
+                    "url": topic.get("FirstURL", ""),
+                    "category": "related",
+                    "date": "",
+                    "confidence": 80,
+                    "confidence_level": "medium",
                     "source": "DuckDuckGo"
                 })
 
-            # Extract Related Topics
-            for topic in data.get("RelatedTopics", []):
+        # If we still need more results, add from the Infobox if available
+        if len(results) < max_results and data.get("Infobox") and data["Infobox"].get("content"):
+            for item in data["Infobox"]["content"]:
                 if len(results) >= max_results:
                     break
 
-                if "Text" in topic and "FirstURL" in topic:
-                    # Extract a title from the text (usually the first few words)
-                    text = topic["Text"]
-                    title_match = re.match(r'^(.{10,60}?)(?:\s-\s|\.\s)', text)
-                    title = title_match.group(1) if title_match else text[:60] + "..."
-
+                if "label" in item and "value" in item:
                     results.append({
-                        "title": title,
-                        "snippet": text,
-                        "url": topic.get("FirstURL", ""),
-                        "category": "related",
+                        "title": item["label"],
+                        "snippet": item["value"],
+                        "url": data.get("AbstractURL", ""),
+                        "category": "info",
                         "date": "",
-                        "confidence": 80,
+                        "confidence": 85,
                         "confidence_level": "medium",
                         "source": "DuckDuckGo"
                     })
 
-            # If we still need more results, add from the Infobox if available
-            if len(results) < max_results and data.get("Infobox") and data["Infobox"].get("content"):
-                for item in data["Infobox"]["content"]:
-                    if len(results) >= max_results:
-                        break
-
-                    if "label" in item and "value" in item:
-                        results.append({
-                            "title": item["label"],
-                            "snippet": item["value"],
-                            "url": data.get("AbstractURL", ""),
-                            "category": "info",
-                            "date": "",
-                            "confidence": 85,
-                            "confidence_level": "medium",
-                            "source": "DuckDuckGo"
-                        })
-
-            logger.info(f"DuckDuckGo search returned {len(results)} results")
-            return results
+        logger.info(f"DuckDuckGo search returned {len(results)} results")
+        return results
     except Exception as e:
         logger.error(f"Error in DuckDuckGo search: {str(e)}")
         return []
 
 # Enhanced search function that combines AI-powered query expansion with real-time online search
-async def perform_enhanced_search(query, model="rag", max_results=10):
+def perform_enhanced_search(query, model="rag", max_results=10):
     """
     Enhanced search functionality that combines:
     1. AI-powered query expansion
@@ -276,10 +277,10 @@ async def perform_enhanced_search(query, model="rag", max_results=10):
         logger.info(f"Starting enhanced search for query: '{query}' using model: {model}")
 
         # Step 1: AI-powered query expansion
-        expanded_query = await expand_query_with_ai(query)
+        expanded_query = expand_query_with_ai(query)
 
         # Step 2: Perform online search with expanded query
-        online_results = await search_duckduckgo(expanded_query, max_results)
+        online_results = search_duckduckgo(expanded_query, max_results)
 
         # Step 3: Get local mock results as a fallback or supplement
         mock_results = perform_ai_search(query, model)
@@ -324,13 +325,14 @@ async def perform_enhanced_search(query, model="rag", max_results=10):
 
 # Fetch sustainability metrics from FastAPI backend with improved error handling
 @cache_result(expire=300)
-async def get_sustainability_metrics():
+def get_sustainability_metrics():
     """Fetch sustainability metrics from FastAPI backend"""
     try:
         logger.info(f"Fetching metrics from FastAPI backend: {BACKEND_URL}/api/metrics")
-        async with httpx.AsyncClient(timeout=10.0) as client:
-            response = await client.get(f"{BACKEND_URL}/api/metrics")
-            response.raise_for_status()  # Raise exception for 4XX/5XX responses
+
+        # Use synchronous requests instead of async
+        response = requests.get(f"{BACKEND_URL}/api/metrics", timeout=10.0)
+        response.raise_for_status()  # Raise exception for 4XX/5XX responses
 
         metrics_data = response.json()
         logger.info(f"Successfully fetched {len(metrics_data)} metrics from API")
@@ -343,7 +345,7 @@ async def get_sustainability_metrics():
 
         return metrics_data
 
-    except httpx.HTTPError as e:
+    except requests.exceptions.RequestException as e:
         logger.error(f"Error fetching metrics from API: {str(e)}")
         logger.info("Falling back to mock data")
         # Fallback to mock data if API fails
@@ -434,9 +436,7 @@ def dashboard():
     """Dashboard page using data from FastAPI backend"""
     try:
         logger.info("Dashboard page requested, fetching metrics...")
-        loop = asyncio.new_event_loop()
-        asyncio.set_event_loop(loop)
-        metrics = loop.run_until_complete(get_sustainability_metrics())
+        metrics = get_sustainability_metrics()
         logger.info(f"Rendering dashboard with {len(metrics)} metrics")
         return render_template("dashboard.html", metrics=metrics)
     except Exception as e:
@@ -448,9 +448,7 @@ def api_metrics():
     """API endpoint for metrics data"""
     try:
         logger.info("API metrics endpoint called")
-        loop = asyncio.new_event_loop()
-        asyncio.set_event_loop(loop)
-        metrics = loop.run_until_complete(get_sustainability_metrics())
+        metrics = get_sustainability_metrics()
         logger.info(f"Returning {len(metrics)} metrics from API endpoint")
         return jsonify(metrics)
     except Exception as e:
@@ -582,7 +580,7 @@ def perform_ai_search(query: str, model="rag"):
     logger.info(f"Generated {len(results)} search results")
     return results
 
-# New API endpoint for real-time search results
+# Fix for real-time search API endpoint
 @app.route("/api/realtime-search")
 def api_realtime_search():
     """API endpoint for real-time search results"""
@@ -595,18 +593,12 @@ def api_realtime_search():
             logger.warning("Real-time search API called with empty query")
             return jsonify({"error": "Query parameter is required"}), 400
 
-        # Run the asynchronous search in a synchronous context
-        loop = asyncio.new_event_loop()
-        asyncio.set_event_loop(loop)
-        try:
-            results = loop.run_until_complete(perform_enhanced_search(query, model))
-        finally:
-            loop.close()
+        # Use synchronous function instead of async
+        results = perform_enhanced_search(query, model)
 
         logger.info(f"Real-time search returned {len(results)} results")
         return jsonify({
             "query": query,
-            "expanded_query": "", # We don't want to expose the expanded query directly
             "results": results,
             "timestamp": datetime.now().isoformat()
         })
@@ -728,7 +720,7 @@ def get_sustainability_trends(category=None):
             "current_value": 78.0,
             "trend_direction": "increasing",
             "virality_score": 72.4,
-            "keywords": "zero waste, circular economy, waste reduction",
+            "keywords": "zerowaste, circular economy, waste reduction",
             "trend_duration": "short-term",
             "timestamp": current_date.isoformat()
         },
