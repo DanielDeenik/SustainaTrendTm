@@ -159,6 +159,7 @@ def perform_ai_search(query, model="rag"):
 
     # Step 1: Generate mock search results based on query keywords
     keywords = query.lower().split()
+    logger.info(f"Search keywords: {keywords}")
 
     # Step 2: Mock categories that might match the search
     categories = []
@@ -176,6 +177,8 @@ def perform_ai_search(query, model="rag"):
     # If no specific categories match, include all
     if not categories:
         categories = ["emissions", "energy", "water", "waste", "social"]
+
+    logger.info(f"Matched categories: {categories}")
 
     # Step 3: Generate mock search results
     results = []
@@ -265,6 +268,7 @@ def perform_ai_search(query, model="rag"):
     # Sort by confidence (highest first)
     results.sort(key=lambda x: x["confidence"], reverse=True)
 
+    logger.info(f"Generated {len(results)} search results")
     return results
 
 @app.route('/search')
@@ -272,6 +276,8 @@ def search():
     """AI-powered search interface"""
     query = request.args.get('query', '')
     model = request.args.get('model', 'rag')  # Default to RAG model
+
+    logger.info(f"Search requested with query: '{query}', model: {model}")
 
     results = []
     if query:
@@ -419,11 +425,15 @@ def get_sustainability_trends(category=None):
     # Combine all trends
     all_trends = emissions_trends + energy_trends + water_trends + waste_trends + social_trends
 
+    logger.info(f"Generated {len(all_trends)} total trend records")
+
     # Step 2: Apply category filter if provided
     if category and category != 'all':
         filtered_trends = [trend for trend in all_trends if trend["category"] == category]
+        logger.info(f"Filtered to {len(filtered_trends)} trends for category: {category}")
     else:
         filtered_trends = all_trends
+        logger.info(f"Using all {len(filtered_trends)} trends (no category filter)")
 
     # Step 3: Generate chart data for trends over time (simulated)
     trend_chart_data = []
@@ -447,6 +457,8 @@ def get_sustainability_trends(category=None):
                 "virality_score": virality,
                 "timestamp": timestamp
             })
+
+    logger.info(f"Generated {len(trend_chart_data)} chart data points")
 
     return filtered_trends, trend_chart_data
 
@@ -476,6 +488,16 @@ def trend_analysis():
             trends.sort(key=lambda x: x['name'])
 
         logger.info(f"Rendering trend analysis with {len(trends)} trends")
+
+        # Return a simple response for debugging if requested
+        if request.args.get('debug') == 'true':
+            return jsonify({
+                'trends': trends,
+                'trend_chart_data': trend_chart_data,
+                'category': category,
+                'sort': sort
+            })
+
         return render_template("trend_analysis.html", 
                             trends=trends, 
                             trend_chart_data=trend_chart_data,
@@ -538,5 +560,5 @@ if __name__ == "__main__":
     logger.info(f"Registered routes: {routes}")
     logger.info(f"Starting Flask server on port {port}")
 
-    # Start Flask server
+    # Start Flask server - use host 0.0.0.0 to make it accessible from outside the container
     app.run(host="0.0.0.0", port=port, debug=True)
