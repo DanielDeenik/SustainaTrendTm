@@ -459,23 +459,32 @@ def trend_analysis():
     category = request.args.get('category', 'all')
     sort = request.args.get('sort', 'virality')
 
-    # Get trend analysis data
-    trends, trend_chart_data = get_sustainability_trends(category)
+    logger.info(f"Trend analysis request with category={category}, sort={sort}")
 
-    # Sort the trends based on user preference
-    if sort == 'virality':
-        trends.sort(key=lambda x: x['virality_score'], reverse=True)
-    elif sort == 'date':
-        trends.sort(key=lambda x: x['timestamp'], reverse=True)
-    elif sort == 'name':
-        trends.sort(key=lambda x: x['name'])
+    try:
+        # Get trend analysis data
+        trends, trend_chart_data = get_sustainability_trends(category)
 
-    logger.info(f"Rendering trend analysis with {len(trends)} trends")
-    return render_template("trend_analysis.html", 
-                          trends=trends, 
-                          trend_chart_data=trend_chart_data,
-                          category=category,
-                          sort=sort)
+        logger.info(f"Successfully generated {len(trends)} trends and {len(trend_chart_data)} chart data points")
+
+        # Sort the trends based on user preference
+        if sort == 'virality':
+            trends.sort(key=lambda x: x['virality_score'], reverse=True)
+        elif sort == 'date':
+            trends.sort(key=lambda x: x['timestamp'], reverse=True)
+        elif sort == 'name':
+            trends.sort(key=lambda x: x['name'])
+
+        logger.info(f"Rendering trend analysis with {len(trends)} trends")
+        return render_template("trend_analysis.html", 
+                            trends=trends, 
+                            trend_chart_data=trend_chart_data,
+                            category=category,
+                            sort=sort)
+    except Exception as e:
+        logger.error(f"Error in trend analysis: {str(e)}")
+        # Return a simple response for debugging
+        return f"Error in trend analysis: {str(e)}"
 
 @app.route('/api/trends')
 def api_trends():
