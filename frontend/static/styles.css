@@ -140,6 +140,17 @@ body {
     border-radius: 5px;
     background-color: #f8f9fa;
     border-left: 4px solid #198754;
+    transition: all 0.3s ease;
+    opacity: 1;
+}
+
+.search-result.new-result {
+    animation: fadeIn 0.5s ease-in-out;
+}
+
+@keyframes fadeIn {
+    from { opacity: 0; transform: translateY(20px); }
+    to { opacity: 1; transform: translateY(0); }
 }
 
 .search-highlight {
@@ -174,6 +185,97 @@ body {
 
 .confidence-low {
     background-color: #dc3545;
+}
+
+/* New styles for real-time search */
+.search-result-source {
+    display: inline-block;
+    padding: 2px 8px;
+    border-radius: 12px;
+    font-size: 0.75rem;
+    background-color: #e9ecef;
+    color: #495057;
+    margin-left: 10px;
+}
+
+.search-result-url {
+    font-size: 0.85rem;
+    color: #0d6efd;
+    margin-top: 5px;
+    display: block;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.search-loading {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 20px;
+    text-align: center;
+}
+
+.search-loading-spinner {
+    width: 40px;
+    height: 40px;
+    border: 4px solid #f3f3f3;
+    border-top: 4px solid #198754;
+    border-radius: 50%;
+    animation: spin 1s linear infinite;
+    margin-right: 10px;
+}
+
+@keyframes spin {
+    0% { transform: rotate(0deg); }
+    100% { transform: rotate(360deg); }
+}
+
+.live-search-toggle {
+    margin-left: 10px;
+    font-size: 0.85rem;
+}
+
+.search-error {
+    display: none;
+    padding: 10px;
+    background-color: #f8d7da;
+    color: #842029;
+    border-radius: 5px;
+    margin-bottom: 20px;
+}
+
+.search-stats {
+    font-size: 0.85rem;
+    color: #6c757d;
+    margin-bottom: 15px;
+}
+
+/* Suggestions container */
+.suggestions-container {
+    position: absolute;
+    width: 100%;
+    background-color: #fff;
+    border: 1px solid #ced4da;
+    border-radius: 0 0 5px 5px;
+    box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+    z-index: 1000;
+    max-height: 250px;
+    overflow-y: auto;
+    display: none;
+}
+
+.suggestion-item {
+    padding: 8px 15px;
+    cursor: pointer;
+}
+
+.suggestion-item:hover {
+    background-color: #f8f9fa;
+}
+
+.search-form-container {
+    position: relative;
 }
 
 /* Trend analysis styling */

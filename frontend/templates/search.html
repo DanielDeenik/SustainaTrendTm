@@ -14,6 +14,15 @@
         border-radius: 5px;
         background-color: #f8f9fa;
         border-left: 4px solid #198754;
+        transition: all 0.3s ease;
+        opacity: 1;
+    }
+    .search-result.new-result {
+        animation: fadeIn 0.5s ease-in-out;
+    }
+    @keyframes fadeIn {
+        from { opacity: 0; transform: translateY(20px); }
+        to { opacity: 1; transform: translateY(0); }
     }
     .search-highlight {
         background-color: rgba(25, 135, 84, 0.1);
@@ -65,6 +74,62 @@
     .search-form-container {
         position: relative;
     }
+    /* New styles for real-time search */
+    .search-result-source {
+        display: inline-block;
+        padding: 2px 8px;
+        border-radius: 12px;
+        font-size: 0.75rem;
+        background-color: #e9ecef;
+        color: #495057;
+        margin-left: 10px;
+    }
+    .search-result-url {
+        font-size: 0.85rem;
+        color: #0d6efd;
+        margin-top: 5px;
+        display: block;
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+    }
+    .search-loading {
+        display: none;
+        align-items: center;
+        justify-content: center;
+        padding: 20px;
+        text-align: center;
+    }
+    .search-loading-spinner {
+        width: 40px;
+        height: 40px;
+        border: 4px solid #f3f3f3;
+        border-top: 4px solid #198754;
+        border-radius: 50%;
+        animation: spin 1s linear infinite;
+        margin-right: 10px;
+    }
+    @keyframes spin {
+        0% { transform: rotate(0deg); }
+        100% { transform: rotate(360deg); }
+    }
+    .live-search-toggle {
+        margin-left: 10px;
+        font-size: 0.85rem;
+    }
+    .search-error {
+        display: none;
+        padding: 10px;
+        background-color: #f8d7da;
+        color: #842029;
+        border-radius: 5px;
+        margin-bottom: 20px;
+    }
+    .search-stats {
+        font-size: 0.85rem;
+        color: #6c757d;
+        margin-bottom: 15px;
+    }
 </style>
 {% endblock %}
 
@@ -73,7 +138,7 @@
     <div class="row mb-4">
         <div class="col-12">
             <h1 class="text-center">AI-Powered Sustainability Search</h1>
-            <p class="text-center text-muted">Leverage advanced NLP models to discover insights across your sustainability data</p>
+            <p class="text-center text-muted">Leverage advanced NLP models and real-time data to discover insights across sustainability topics</p>
         </div>
     </div>
 
@@ -96,7 +161,7 @@
                             </button>
                         </div>
                         <div id="search-suggestions" class="suggestions-container"></div>
-                        <div class="mt-2">
+                        <div class="mt-2 d-flex align-items-center">
                             <div class="form-check form-check-inline">
                                 <input class="form-check-input" type="radio" name="model" id="model-rag" value="rag" {% if model == 'rag' %}checked{% endif %}>
                                 <label class="form-check-label" for="model-rag">RAG</label>
@@ -109,35 +174,68 @@
                                 <input class="form-check-input" type="radio" name="model" id="model-gnn" value="gnn" {% if model == 'gnn' %}checked{% endif %}>
                                 <label class="form-check-label" for="model-gnn">Graph Neural Network</label>
                             </div>
+                            <div class="form-check form-switch ms-auto live-search-toggle">
+                                <input class="form-check-input" type="checkbox" id="live-search-toggle" checked>
+                                <label class="form-check-label" for="live-search-toggle">Live Search</label>
+                            </div>
                         </div>
                     </form>
                 </div>
 
                 {% if query %}
                 <div class="alert alert-info">
-                    <i class="bi bi-info-circle"></i> Showing results for: <strong>{{ query }}</strong> using <strong>{{ model|upper }}</strong> model
+                    <i class="bi bi-info-circle"></i> Showing results for: <strong id="current-query">{{ query }}</strong> using <strong>{{ model|upper }}</strong> model
                 </div>
 
-                {% if results %}
-                    <h2>Search Results</h2>
-                    {% for result in results %}
-                    <div class="search-result">
-                        <h4>{{ result.title }}</h4>
-                        <p>{{ result.snippet|safe }}</p>
-                        <div class="search-metadata">
-                            <span class="me-3"><i class="bi bi-calendar"></i> {{ result.date }}</span>
-                            <span class="me-3"><i class="bi bi-tag"></i> {{ result.category }}</span>
-                            <span class="search-confidence confidence-{{ result.confidence_level }}">
-                                {{ result.confidence }}% match
-                            </span>
+                <!-- Search error container -->
+                <div id="search-error" class="search-error">
+                    <i class="bi bi-exclamation-triangle"></i> <span id="error-message">Error fetching search results.</span>
+                </div>
+
+                <!-- Search loading spinner -->
+                <div id="search-loading" class="search-loading">
+                    <div class="search-loading-spinner"></div>
+                    <div>Fetching real-time sustainability insights...</div>
+                </div>
+
+                <!-- Search stats -->
+                <div id="search-stats" class="search-stats"></div>
+
+                <!-- Search results container -->
+                <div id="search-results-container">
+                    {% if results %}
+                        <h2>Search Results</h2>
+                        {% for result in results %}
+                        <div class="search-result">
+                            <h4>{{ result.title }}</h4>
+                            {% if result.url %}
+                            <a href="{{ result.url }}" class="search-result-url" target="_blank">{{ result.url }}</a>
+                            {% endif %}
+                            <p>{{ result.snippet|safe }}</p>
+                            <div class="search-metadata">
+                                {% if result.date %}
+                                <span class="me-3"><i class="bi bi-calendar"></i> {{ result.date }}</span>
+                                {% endif %}
+                                {% if result.category %}
+                                <span class="me-3"><i class="bi bi-tag"></i> {{ result.category }}</span>
+                                {% endif %}
+                                <span class="search-confidence confidence-{{ result.confidence_level }}">
+                                    {{ result.confidence }}% match
+                                </span>
+                                {% if result.source %}
+                                <span class="search-result-source">
+                                    {{ result.source }}
+                                </span>
+                                {% endif %}
+                            </div>
                         </div>
-                    </div>
-                    {% endfor %}
-                {% else %}
-                    <div class="alert alert-warning">
-                        <i class="bi bi-exclamation-triangle"></i> No results found for your query. Try different keywords or a broader search.
-                    </div>
-                {% endif %}
+                        {% endfor %}
+                    {% else %}
+                        <div class="alert alert-warning">
+                            <i class="bi bi-exclamation-triangle"></i> No results found for your query. Try different keywords or a broader search.
+                        </div>
+                    {% endif %}
+                </div>
                 {% endif %}
             </div>
         </div>
@@ -152,7 +250,18 @@
         // Setup for dynamic search suggestions
         const searchInput = document.getElementById('search-query');
         const suggestionsContainer = document.getElementById('search-suggestions');
+        const searchForm = document.getElementById('search-form');
+        const resultsContainer = document.getElementById('search-results-container');
+        const loadingContainer = document.getElementById('search-loading');
+        const errorContainer = document.getElementById('search-error');
+        const errorMessage = document.getElementById('error-message');
+        const searchStats = document.getElementById('search-stats');
+        const currentQueryDisplay = document.getElementById('current-query');
+        const liveSearchToggle = document.getElementById('live-search-toggle');
+
         let debounceTimer;
+        let lastQuery = '';
+        let isSearching = false;
 
         // Debounce function to prevent too many API calls
         function debounce(callback, delay = 300) {
@@ -199,7 +308,14 @@
                 item.addEventListener('click', () => {
                     searchInput.value = suggestion;
                     suggestionsContainer.style.display = 'none';
-                    document.getElementById('search-form').submit();
+
+                    // If live search is enabled, perform real-time search
+                    if (liveSearchToggle.checked) {
+                        performRealTimeSearch(suggestion);
+                    } else {
+                        // Otherwise submit the form
+                        searchForm.submit();
+                    }
                 });
 
                 suggestionsContainer.appendChild(item);
@@ -208,11 +324,196 @@
             suggestionsContainer.style.display = 'block';
         }
 
-        // Handle input changes for suggestions
+        // New function to perform real-time search
+        function performRealTimeSearch(query) {
+            // Don't search if query is empty or the same as last query
+            if (!query.trim() || query === lastQuery || isSearching) {
+                return;
+            }
+
+            lastQuery = query;
+            isSearching = true;
+
+            // Update URL without reloading the page
+            const url = new URL(window.location);
+            url.searchParams.set('query', query);
+            window.history.pushState({}, '', url);
+
+            // Update query display
+            if (currentQueryDisplay) {
+                currentQueryDisplay.textContent = query;
+            }
+
+            // Show loading spinner
+            if (loadingContainer) {
+                loadingContainer.style.display = 'flex';
+            }
+
+            // Hide error message if visible
+            if (errorContainer) {
+                errorContainer.style.display = 'none';
+            }
+
+            // Get selected model
+            const modelElements = document.querySelectorAll('input[name="model"]');
+            let selectedModel = 'rag';
+            for (const modelElement of modelElements) {
+                if (modelElement.checked) {
+                    selectedModel = modelElement.value;
+                    break;
+                }
+            }
+
+            // Start search timer
+            const startTime = performance.now();
+
+            // Fetch real-time search results
+            fetch(`/api/realtime-search?query=${encodeURIComponent(query)}&model=${selectedModel}`)
+                .then(response => {
+                    if (!response.ok) {
+                        throw new Error(`Search failed: ${response.status} ${response.statusText}`);
+                    }
+                    return response.json();
+                })
+                .then(data => {
+                    // Calculate search time
+                    const searchTime = ((performance.now() - startTime) / 1000).toFixed(2);
+
+                    // Update search stats
+                    if (searchStats) {
+                        searchStats.textContent = `Found ${data.results.length} results in ${searchTime} seconds`;
+                    }
+
+                    // Display results
+                    displaySearchResults(data.results);
+                })
+                .catch(error => {
+                    console.error('Error performing search:', error);
+
+                    // Show error message
+                    if (errorContainer && errorMessage) {
+                        errorMessage.textContent = error.message || 'Failed to fetch search results. Please try again.';
+                        errorContainer.style.display = 'block';
+                    }
+                })
+                .finally(() => {
+                    // Hide loading spinner
+                    if (loadingContainer) {
+                        loadingContainer.style.display = 'none';
+                    }
+                    isSearching = false;
+                });
+        }
+
+        // Display search results with smooth animations
+        function displaySearchResults(results) {
+            if (!resultsContainer) return;
+
+            // Clear existing results
+            resultsContainer.innerHTML = '';
+
+            // If no results, show message
+            if (!results || results.length === 0) {
+                resultsContainer.innerHTML = `
+                    <div class="alert alert-warning">
+                        <i class="bi bi-exclamation-triangle"></i> No results found for your query. Try different keywords or a broader search.
+                    </div>
+                `;
+                return;
+            }
+
+            // Add results heading
+            const heading = document.createElement('h2');
+            heading.textContent = 'Search Results';
+            resultsContainer.appendChild(heading);
+
+            // Add each result with animation
+            results.forEach((result, index) => {
+                // Create result element
+                const resultElement = document.createElement('div');
+                resultElement.className = 'search-result new-result';
+
+                // Calculate staggered delay for smoother animation
+                resultElement.style.animationDelay = `${index * 0.1}s`;
+
+                // Build result HTML
+                let resultHTML = `
+                    <h4>${result.title}</h4>
+                `;
+
+                // Add URL if available
+                if (result.url) {
+                    resultHTML += `<a href="${result.url}" class="search-result-url" target="_blank">${result.url}</a>`;
+                }
+
+                // Add snippet
+                resultHTML += `<p>${result.snippet}</p>`;
+
+                // Add metadata
+                resultHTML += `<div class="search-metadata">`;
+
+                if (result.date) {
+                    resultHTML += `<span class="me-3"><i class="bi bi-calendar"></i> ${result.date}</span>`;
+                }
+
+                if (result.category) {
+                    resultHTML += `<span class="me-3"><i class="bi bi-tag"></i> ${result.category}</span>`;
+                }
+
+                resultHTML += `
+                    <span class="search-confidence confidence-${result.confidence_level}">
+                        ${result.confidence}% match
+                    </span>
+                `;
+
+                if (result.source) {
+                    resultHTML += `
+                        <span class="search-result-source">
+                            ${result.source}
+                        </span>
+                    `;
+                }
+
+                resultHTML += `</div>`;
+
+                // Set HTML and append to container
+                resultElement.innerHTML = resultHTML;
+                resultsContainer.appendChild(resultElement);
+            });
+
+            // Highlight search terms
+            highlightSearchTerms(lastQuery);
+        }
+
+        // Highlight search terms in results
+        function highlightSearchTerms(query) {
+            if (!query) return;
+
+            const terms = query.toLowerCase().split(' ').filter(term => term.length > 2);
+
+            document.querySelectorAll('.search-result p').forEach(el => {
+                terms.forEach(term => {
+                    const regex = new RegExp('(' + term + ')', 'gi');
+                    el.innerHTML = el.innerHTML.replace(
+                        regex, 
+                        '<span class="search-highlight">$1</span>'
+                    );
+                });
+            });
+        }
+
+        // Handle input changes for suggestions and live search
         if (searchInput) {
             searchInput.addEventListener('input', function() {
                 const query = this.value.trim();
-                debounce(() => fetchSuggestions(query));
+
+                // Fetch suggestions
+                debounce(() => fetchSuggestions(query), 300);
+
+                // Perform live search if enabled and query is long enough
+                if (liveSearchToggle && liveSearchToggle.checked && query.length >= 3) {
+                    debounce(() => performRealTimeSearch(query), 600);
+                }
             });
 
             // Close suggestions when clicking outside
@@ -229,22 +530,33 @@
                     fetchSuggestions(query);
                 }
             });
+
+            // Handle form submission for live search
+            if (searchForm) {
+                searchForm.addEventListener('submit', function(event) {
+                    const query = searchInput.value.trim();
+
+                    // If live search is enabled and query is not empty, perform real-time search
+                    if (liveSearchToggle && liveSearchToggle.checked && query) {
+                        event.preventDefault();
+                        performRealTimeSearch(query);
+                    }
+                    // Otherwise, let the form submit normally
+                });
+            }
         }
 
-        // Highlight search terms in results (simple implementation)
+        // Initialize highlighting for existing results
         if ('{{ query }}') {
-            const query = '{{ query }}'.toLowerCase();
-            const terms = query.split(' ').filter(term => term.length > 2);
+            highlightSearchTerms('{{ query }}');
+        }
 
-            document.querySelectorAll('.search-result p').forEach(el => {
-                terms.forEach(term => {
-                    const regex = new RegExp('(' + term + ')', 'gi');
-                    el.innerHTML = el.innerHTML.replace(
-                        regex, 
-                        '<span class="search-highlight">$1</span>'
-                    );
-                });
-            });
+        // If there's a query and live search is enabled, perform real-time search on page load
+        if ('{{ query }}' && liveSearchToggle && liveSearchToggle.checked) {
+            // Slight delay to ensure DOM is fully loaded
+            setTimeout(() => {
+                performRealTimeSearch('{{ query }}');
+            }, 500);
         }
     });
 </script>
