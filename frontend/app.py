@@ -1,179 +1,106 @@
-from flask import Flask, render_template, jsonify
-import requests
-from flask_caching import Cache
-import os
+#!/usr/bin/env python3
+"""
+Bridge file to run the enhanced direct_app.py code
+while maintaining compatibility with Replit configuration
+"""
 import logging
-from datetime import datetime, timedelta
-import json
+import os
+import sys
+import traceback
 
 # Configure logging
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
-logger.info("Starting Sustainability Intelligence Dashboard")
+logger.info("Starting bridge to Sustainability Intelligence Dashboard")
+logger.info(f"Current working directory: {os.getcwd()}")
+logger.info(f"Python executable: {sys.executable}")
+logger.info(f"Python path: {sys.path}")
 
-# Initialize Flask
-app = Flask(__name__)
+# Check if direct_app.py exists
+direct_app_path = os.path.join(os.getcwd(), "direct_app.py")
+if os.path.exists(direct_app_path):
+    logger.info(f"direct_app.py found at {direct_app_path}")
+else:
+    logger.error(f"direct_app.py not found at {direct_app_path}")
+    # List directory contents to debug
+    logger.info(f"Directory contents: {os.listdir(os.getcwd())}")
 
-# Setup Redis Cache
-cache = Cache(app, config={
-    'CACHE_TYPE': 'RedisCache', 
-    'CACHE_REDIS_URL': os.getenv('REDIS_URL', 'redis://localhost:6379/0')
-})
+# Import the app and all functionality from direct_app.py
+try:
+    # This will import all the routes and functionality we've enhanced
+    from direct_app import app, logger
 
-# FastAPI backend URL
-BACKEND_URL = os.getenv('BACKEND_URL', 'http://localhost:8000')
-
-# Fetch sustainability metrics from FastAPI backend
-@cache.memoize(timeout=300)
-def get_sustainability_metrics():
-    """Fetch sustainability metrics from FastAPI backend"""
-    try:
-        logger.info(f"Fetching metrics from FastAPI backend: {BACKEND_URL}/api/metrics")
-        response = requests.get(f"{BACKEND_URL}/api/metrics", timeout=10.0)
-        response.raise_for_status()  # Raise exception for 4XX/5XX responses
-
-        metrics_data = response.json()
-        logger.info(f"Successfully fetched {len(metrics_data)} metrics from API")
-
-        # Log a sample of the metrics data to verify format
-        if metrics_data and len(metrics_data) > 0:
-            logger.info(f"Sample metric data: {json.dumps(metrics_data[0], indent=2)}")
-            logger.info(f"Metrics categories: {set(m['category'] for m in metrics_data)}")
-            logger.info(f"Metrics names: {set(m['name'] for m in metrics_data)}")
-
-        return metrics_data
-
-    except requests.exceptions.RequestException as e:
-        logger.error(f"Error fetching metrics from API: {str(e)}")
-        logger.info("Falling back to mock data")
-        # Fallback to mock data if API fails
-        return get_mock_sustainability_metrics()
-    except Exception as e:
-        logger.error(f"Unexpected error fetching metrics: {str(e)}")
-        return get_mock_sustainability_metrics()
-
-
-# Fallback mock data function
-def get_mock_sustainability_metrics():
-    """Generate mock sustainability metrics data as fallback"""
-    logger.info("Generating mock sustainability metrics data")
-    # Generate dates for the past 6 months
-    dates = []
-    for i in range(6):
-        dates.append((datetime.now() - timedelta(days=30 * (5 - i))).isoformat())
-
-    # Carbon emissions data (decreasing trend - good)
-    emissions_data = [
-        {"id": 1, "name": "Carbon Emissions", "category": "emissions", "value": 45, "unit": "tons CO2e", "timestamp": dates[0]},
-        {"id": 2, "name": "Carbon Emissions", "category": "emissions", "value": 42, "unit": "tons CO2e", "timestamp": dates[1]},
-        {"id": 3, "name": "Carbon Emissions", "category": "emissions", "value": 38, "unit": "tons CO2e", "timestamp": dates[2]},
-        {"id": 4, "name": "Carbon Emissions", "category": "emissions", "value": 35, "unit": "tons CO2e", "timestamp": dates[3]},
-        {"id": 5, "name": "Carbon Emissions", "category": "emissions", "value": 32, "unit": "tons CO2e", "timestamp": dates[4]},
-        {"id": 6, "name": "Carbon Emissions", "category": "emissions", "value": 30, "unit": "tons CO2e", "timestamp": dates[5]}
-    ]
-
-    # Energy consumption data (decreasing trend - good)
-    energy_data = [
-        {"id": 7, "name": "Energy Consumption", "category": "energy", "value": 1250, "unit": "MWh", "timestamp": dates[0]},
-        {"id": 8, "name": "Energy Consumption", "category": "energy", "value": 1200, "unit": "MWh", "timestamp": dates[1]},
-        {"id": 9, "name": "Energy Consumption", "category": "energy", "value": 1150, "unit": "MWh", "timestamp": dates[2]},
-        {"id": 10, "name": "Energy Consumption", "category": "energy", "value": 1100, "unit": "MWh", "timestamp": dates[3]},
-        {"id": 11, "name": "Energy Consumption", "category": "energy", "value": 1075, "unit": "MWh", "timestamp": dates[4]},
-        {"id": 12, "name": "Energy Consumption", "category": "energy", "value": 1050, "unit": "MWh", "timestamp": dates[5]}
-    ]
-
-    # Water usage data (decreasing trend - good)
-    water_data = [
-        {"id": 13, "name": "Water Usage", "category": "water", "value": 350, "unit": "kiloliters", "timestamp": dates[0]},
-        {"id": 14, "name": "Water Usage", "category": "water", "value": 340, "unit": "kiloliters", "timestamp": dates[1]},
-        {"id": 15, "name": "Water Usage", "category": "water", "value": 330, "unit": "kiloliters", "timestamp": dates[2]},
-        {"id": 16, "name": "Water Usage", "category": "water", "value": 320, "unit": "kiloliters", "timestamp": dates[3]},
-        {"id": 17, "name": "Water Usage", "category": "water", "value": 310, "unit": "kiloliters", "timestamp": dates[4]},
-        {"id": 18, "name": "Water Usage", "category": "water", "value": 300, "unit": "kiloliters", "timestamp": dates[5]}
-    ]
-
-    # Waste reduction data (increasing trend - good)
-    waste_data = [
-        {"id": 19, "name": "Waste Recycled", "category": "waste", "value": 65, "unit": "percent", "timestamp": dates[0]},
-        {"id": 20, "name": "Waste Recycled", "category": "waste", "value": 68, "unit": "percent", "timestamp": dates[1]},
-        {"id": 21, "name": "Waste Recycled", "category": "waste", "value": 72, "unit": "percent", "timestamp": dates[2]},
-        {"id": 22, "name": "Waste Recycled", "category": "waste", "value": 76, "unit": "percent", "timestamp": dates[3]},
-        {"id": 23, "name": "Waste Recycled", "category": "waste", "value": 80, "unit": "percent", "timestamp": dates[4]},
-        {"id": 24, "name": "Waste Recycled", "category": "waste", "value": 82, "unit": "percent", "timestamp": dates[5]}
-    ]
-
-    # ESG score data (increasing trend - good)
-    esg_data = [
-        {"id": 25, "name": "ESG Score", "category": "social", "value": 72, "unit": "score", "timestamp": dates[0]},
-        {"id": 26, "name": "ESG Score", "category": "social", "value": 74, "unit": "score", "timestamp": dates[1]},
-        {"id": 27, "name": "ESG Score", "category": "social", "value": 76, "unit": "score", "timestamp": dates[2]},
-        {"id": 28, "name": "ESG Score", "category": "social", "value": 78, "unit": "score", "timestamp": dates[3]},
-        {"id": 29, "name": "ESG Score", "category": "social", "value": 80, "unit": "score", "timestamp": dates[4]},
-        {"id": 30, "name": "ESG Score", "category": "social", "value": 82, "unit": "score", "timestamp": dates[5]}
-    ]
-
-    # Combine all data
-    all_data = emissions_data + energy_data + water_data + waste_data + esg_data
-
-    logger.info(f"Generated mock sustainability metrics with {len(all_data)} records")
-    return all_data
-
-# Routes
-@app.route('/')
-def home():
-    """Home page"""
-    return render_template("index.html")
-
-@app.route('/dashboard')
-def dashboard():
-    """Dashboard page using data from FastAPI backend"""
-    logger.info("Dashboard page requested, fetching metrics...")
-    metrics = get_sustainability_metrics()
-    logger.info(f"Rendering dashboard with {len(metrics)} metrics")
-    return render_template("dashboard.html", metrics=metrics)
-
-@app.route('/api/metrics')
-def api_metrics():
-    """API endpoint for metrics data"""
-    logger.info("API metrics endpoint called")
-    metrics = get_sustainability_metrics()
-    logger.info(f"Returning {len(metrics)} metrics from API endpoint")
-    return jsonify(metrics)
-
-@app.route('/debug')
-def debug_route():
-    """Debug route to check registered routes and connections"""
-    logger.info("Debug route called")
+    # Log all registered routes for debugging
     routes = [str(rule) for rule in app.url_map.iter_rules()]
-
-    # Also check FastAPI connection
-    try:
-        logger.info(f"Testing connection to FastAPI backend: {BACKEND_URL}/health")
-        response = requests.get(f"{BACKEND_URL}/health", timeout=5.0)
-        response.raise_for_status()
-        backend_status = response.json()
-        logger.info(f"FastAPI backend health check: {backend_status}")
-    except requests.exceptions.RequestException as e:
-        logger.error(f"Failed to connect to FastAPI backend: {str(e)}")
-        backend_status = {"status": "error", "message": str(e)}
-    except Exception as e:
-        logger.error(f"Unexpected error during backend health check: {str(e)}")
-        backend_status = {"status": "error", "message": str(e)}
-
-
-    debug_info = {
-        "routes": routes,
-        "backend_url": BACKEND_URL,
-        "backend_status": backend_status
-    }
-
-    return jsonify(debug_info)
-
-if __name__ == "__main__":
-    # Log registered routes for debugging
-    routes = [str(rule) for rule in app.url_map.iter_rules()]
+    logger.info(f"Successfully imported enhanced application from direct_app.py")
     logger.info(f"Registered routes: {routes}")
-    logger.info("Starting Flask server on port 5000")
 
-    # ALWAYS serve the app on port 5000
-    app.run(host="0.0.0.0", port=5000, debug=True)
+    if __name__ == "__main__":
+        # Use port 5000 to match Replit's expected configuration
+        port = 5000
+        logger.info(f"Starting Flask server on port {port}")
+
+        # Start Flask server - use host 0.0.0.0 to make it accessible from outside the container
+        app.run(host="0.0.0.0", port=port, debug=True)
+except Exception as e:
+    logger.error(f"Error importing or running enhanced application: {str(e)}")
+    logger.error(traceback.format_exc())
+
+    # Fall back to original implementation if there's an issue with direct_app.py
+    # This preserves the original functionality in case of problems
+    from flask import Flask, render_template, jsonify, request
+    import requests
+    from flask_caching import Cache
+    from datetime import datetime, timedelta
+    import json
+
+    logger.warning("Falling back to basic implementation due to error")
+
+    # Initialize Flask
+    app = Flask(__name__)
+
+    # Setup Simple Cache
+    cache = Cache(app, config={
+        'CACHE_TYPE': 'SimpleCache'
+    })
+
+    # Add basic routes with debug info
+    @app.route('/')
+    def home():
+        """Home page"""
+        logger.info(f"Home route called (fallback mode)")
+        return render_template("index.html")
+
+    @app.route('/search')
+    def search():
+        """Search route (fallback)"""
+        logger.info(f"Search route called (fallback mode)")
+        query = request.args.get('query', '')
+        return render_template("search.html", query=query, model="rag", results=[])
+
+    @app.route('/trend-analysis')
+    def trend_analysis():
+        """Trend analysis route (fallback)"""
+        logger.info(f"Trend analysis route called (fallback mode)")
+        return render_template("trend_analysis.html", trends=[], trend_chart_data=[], category="all", sort="virality")
+
+    @app.route('/debug')
+    def debug_route():
+        """Debug route to check registered routes"""
+        logger.info(f"Debug route called (fallback mode)")
+        routes = [str(rule) for rule in app.url_map.iter_rules()]
+        python_info = {
+            "sys.path": sys.path,
+            "current_dir": os.getcwd(),
+            "dir_contents": os.listdir(os.getcwd()),
+            "error": str(e),
+            "traceback": traceback.format_exc()
+        }
+        return jsonify({"routes": routes, "python_info": python_info})
+
+    if __name__ == "__main__":
+        # ALWAYS serve the app on port 5000
+        logger.info("Starting fallback Flask server on port 5000")
+        routes = [str(rule) for rule in app.url_map.iter_rules()]
+        logger.info(f"Registered routes (fallback): {routes}")
+        app.run(host="0.0.0.0", port=5000, debug=True)

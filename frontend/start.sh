@@ -17,7 +17,7 @@ pkill -f "gunicorn" || true
 python -m pip install flask==2.3.3 plotly pandas requests flask-caching
 
 # Set environment variables
-export FLASK_APP=direct_app.py
+export FLASK_APP=app.py
 export FLASK_ENV=development
 export FLASK_DEBUG=1
 
@@ -26,5 +26,5 @@ mkdir -p static
 mkdir -p templates
 
 echo "Starting Sustainability Dashboard on port 5000..."
-# Use direct_app.py instead of app.py for improved functionality
-python direct_app.py
+# Use app.py which is our bridge to direct_app.py
+python app.py
