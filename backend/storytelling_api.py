@@ -16,6 +16,7 @@ from services.predictive_analytics import (
     predict_sustainability_trends, 
     perform_materiality_assessment
 )
+from database import get_db  # Changed from backend.database to relative import
 
 # Configure logging
 logging.basicConfig(level=logging.INFO)
@@ -77,24 +78,6 @@ class StoryResponse(StoryBase):
     class Config:
         orm_mode = True
 
-# In-memory storage for stories since we don't have a DB connection yet
-stories_db = []
-story_id_counter = 1
-
-# Helper functions for story management
-def get_story_by_id(story_id: int):
-    for story in stories_db:
-        if story["id"] == story_id:
-            return story
-    return None
-
-def add_story(story_data):
-    global story_id_counter
-    story_data["id"] = story_id_counter
-    story_id_counter += 1
-    stories_db.append(story_data)
-    return story_data
-
 # Endpoint: Health check
 @app.get("/health")
 async def health_check():
@@ -109,24 +92,111 @@ async def health_check():
 # Endpoint: Retrieve Stories
 @app.get("/api/stories", response_model=List[StoryResponse])
 async def get_stories(skip: int = 0, limit: int = 10):
-    """Get all sustainability stories"""
+    """Get all sustainability stories from the database"""
     logger.info(f"Getting stories with skip={skip}, limit={limit}")
-    return stories_db[skip:skip+limit]
+
+    stories = []
+    try:
+        with get_db() as conn:
+            with conn.cursor() as cur:
+                # Get stories from the database
+                cur.execute("""
+                    SELECT id, company_name, industry, story_content, 
+                           created_at, updated_at, story_metadata
+                    FROM sustainability_stories 
+                    ORDER BY created_at DESC
+                    LIMIT %s OFFSET %s
+                """, (limit, skip))
+
+                db_stories = cur.fetchall()
+
+                # Convert to response model
+                for story in db_stories:
+                    # Extract metrics from metadata if available
+                    metrics = story.get('story_metadata', {}).get('metrics', {})
+                    if not metrics:
+                        metrics = StoryMetrics().dict()
+
+                    # Extract content from story_content
+                    content = story['story_content']
+
+                    # Build response object
+                    story_response = {
+                        "id": story['id'],
+                        "title": f"Sustainability Story for {story['company_name']}",
+                        "content": content,
+                        "company_name": story['company_name'],
+                        "industry": story['industry'],
+                        "metrics": metrics,
+                        "created_at": story['created_at'],
+                        "updated_at": story['updated_at']
+                    }
+                    stories.append(story_response)
+
+                logger.info(f"Retrieved {len(stories)} stories from database")
+    except Exception as e:
+        logger.error(f"Error retrieving stories from database: {str(e)}")
+        # Return empty list on error
+        return []
+
+    return stories
 
 # Endpoint: Get Story by ID
 @app.get("/api/stories/{story_id}", response_model=StoryResponse)
 async def get_story(story_id: int):
-    """Get a specific sustainability story by ID"""
+    """Get a specific sustainability story by ID from the database"""
     logger.info(f"Getting story with ID: {story_id}")
-    story = get_story_by_id(story_id)
-    if story is None:
-        raise HTTPException(status_code=404, detail="Story not found")
-    return story
+
+    try:
+        with get_db() as conn:
+            with conn.cursor() as cur:
+                # Get specific story from database
+                cur.execute("""
+                    SELECT id, company_name, industry, story_content, 
+                           created_at, updated_at, story_metadata
+                    FROM sustainability_stories 
+                    WHERE id = %s
+                """, (story_id,))
+
+                story = cur.fetchone()
+
+                if not story:
+                    raise HTTPException(status_code=404, detail="Story not found")
+
+                # Extract metrics from metadata if available
+                metrics = story.get('story_metadata', {}).get('metrics', {})
+                if not metrics:
+                    metrics = StoryMetrics().dict()
+
+                # Extract content from story_content
+                content = story['story_content']
+
+                # Build response object
+                story_response = {
+                    "id": story['id'],
+                    "title": f"Sustainability Story for {story['company_name']}",
+                    "content": content,
+                    "company_name": story['company_name'],
+                    "industry": story['industry'],
+                    "metrics": metrics,
+                    "created_at": story['created_at'],
+                    "updated_at": story['updated_at']
+                }
+
+                return story_response
+    except HTTPException:
+        raise
+    except Exception as e:
+        logger.error(f"Error retrieving story from database: {str(e)}")
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail=f"Failed to retrieve story: {str(e)}"
+        )
 
 # Endpoint: Create Story with AI-Powered Sustainability Narrative
 @app.post("/api/stories", response_model=StoryResponse, status_code=status.HTTP_201_CREATED)
 async def create_story(story: StoryCreate):
-    """Create a new sustainability story using AI-powered storytelling"""
+    """Create a new sustainability story using AI-powered storytelling and save to database"""
     logger.info(f"Creating new story for company: {story.company_name}, industry: {story.industry}")
 
     try:
@@ -149,11 +219,42 @@ async def create_story(story: StoryCreate):
         if not story_data.get("metrics"):
             story_data["metrics"] = StoryMetrics().dict()
 
-        # Save to our in-memory DB
-        saved_story = add_story(story_data)
+        # Convert to JSON as needed
+        if isinstance(story_data["content"], (dict, list)):
+            content_json = json.dumps(story_data["content"])
+        else:
+            content_json = json.dumps({"content": story_data["content"]})
 
-        logger.info(f"Successfully created story with ID: {saved_story['id']}")
-        return saved_story
+        # Create metadata JSON
+        metadata_json = json.dumps({"metrics": story_data["metrics"]})
+
+        # Save to database
+        with get_db() as conn:
+            with conn.cursor() as cur:
+                cur.execute("""
+                    INSERT INTO sustainability_stories
+                    (company_name, industry, story_content, created_at, updated_at, story_metadata)
+                    VALUES (%s, %s, %s, %s, %s, %s)
+                    RETURNING id
+                """, (
+                    story_data["company_name"],
+                    story_data["industry"],
+                    content_json,
+                    story_data["created_at"],
+                    story_data["updated_at"],
+                    metadata_json
+                ))
+
+                result = cur.fetchone()
+                story_id = result['id']
+
+                logger.info(f"Successfully saved story to database with ID: {story_id}")
+
+                # Build full response with new ID
+                story_data["id"] = story_id
+                story_data["author_id"] = "system"
+
+                return story_data
 
     except Exception as e:
         logger.error(f"Error creating sustainability story: {str(e)}")

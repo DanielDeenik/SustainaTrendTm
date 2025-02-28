@@ -6,7 +6,10 @@ import psycopg2
 from psycopg2.extras import RealDictCursor
 from psycopg2.pool import ThreadedConnectionPool
 from psycopg2.extensions import connection
-from backend.utils.logger import logger
+
+# Configure logging directly instead of relying on backend.utils.logger
+logging.basicConfig(level=logging.INFO)
+logger = logging.getLogger(__name__)
 
 # Global connection pool
 _pool = None
