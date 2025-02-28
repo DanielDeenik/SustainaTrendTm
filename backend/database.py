@@ -1,5 +1,6 @@
 import os
 import logging
+import traceback
 from contextlib import contextmanager
 from typing import Dict, Any, Generator
 import psycopg2
@@ -47,6 +48,7 @@ def get_connection_pool():
             logger.info("Database connection pool created successfully")
         except Exception as e:
             logger.error(f"Failed to create database connection pool: {str(e)}")
+            logger.error(traceback.format_exc())
             raise
     return _pool
 
@@ -74,24 +76,40 @@ def get_db() -> Generator[connection, None, None]:
             conn = psycopg2.connect(**get_db_config(), cursor_factory=RealDictCursor)
             logger.info("Direct database connection established")
 
+        # Ensure autocommit is OFF (default) to allow explicit transaction control
+        conn.autocommit = False
+
+        # Yield the connection for use in the with block
         yield conn
+
+        # If we got here without exception, commit the transaction
         conn.commit()
+        logger.info("Database transaction committed successfully")
+
     except psycopg2.OperationalError as e:
         error_message = str(e)
         if "endpoint is disabled" in error_message:
             logger.error("Database endpoint is disabled. Please activate the endpoint in your database provider's console.")
         else:
             logger.error(f"Database connection failed: {error_message}")
+            logger.error(traceback.format_exc())
+        if conn:
+            conn.rollback()
+            logger.info("Transaction rolled back due to error")
         raise Exception("Failed to connect to the database. Please check your database configuration.") from e
     except psycopg2.Error as e:
         logger.error(f"Database error: {str(e)}")
+        logger.error(traceback.format_exc())
         if conn:
             conn.rollback()
+            logger.info("Transaction rolled back due to database error")
         raise Exception(f"A database error occurred: {str(e)}") from e
     except Exception as e:
         logger.error(f"Unexpected error: {str(e)}")
+        logger.error(traceback.format_exc())
         if conn:
             conn.rollback()
+            logger.info("Transaction rolled back due to unexpected error")
         raise
     finally:
         if conn:
@@ -102,6 +120,7 @@ def get_db() -> Generator[connection, None, None]:
                     logger.debug("Connection returned to pool")
                 except Exception as return_error:
                     logger.error(f"Error returning connection to pool: {str(return_error)}")
+                    logger.error(traceback.format_exc())
                     conn.close()
                     logger.debug("Connection closed directly")
             else:
@@ -117,6 +136,20 @@ def verify_db_connection() -> bool:
                 cur.execute("SELECT 1")
                 logger.info("Database connection test successful")
 
+                # Create sustainability_stories table if it doesn't exist
+                cur.execute("""
+                    CREATE TABLE IF NOT EXISTS sustainability_stories (
+                        id SERIAL PRIMARY KEY,
+                        company_name TEXT NOT NULL,
+                        industry TEXT NOT NULL,
+                        story_content JSONB NOT NULL,
+                        created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+                        updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+                        story_metadata JSONB DEFAULT '{}'::jsonb
+                    )
+                """)
+                logger.info("Sustainability stories table verified/created successfully")
+
                 # Create metrics table if it doesn't exist
                 cur.execute("""
                     CREATE TABLE IF NOT EXISTS metrics (
@@ -130,9 +163,11 @@ def verify_db_connection() -> bool:
                     )
                 """)
                 logger.info("Metrics table verified/created successfully")
+
                 return True
     except Exception as e:
         logger.error(f"Database verification failed: {str(e)}")
+        logger.error(traceback.format_exc())
         return False
 
 def init_db() -> None:
@@ -144,5 +179,6 @@ def init_db() -> None:
         logger.info("Database initialization completed")
     except Exception as e:
         logger.error(f"Database initialization failed: {str(e)}")
+        logger.error(traceback.format_exc())
         # Continue instead of raising - let the app try to function
         logger.warning("Continuing startup despite database initialization failure")

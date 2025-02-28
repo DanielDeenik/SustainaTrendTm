@@ -11,6 +11,7 @@ from datetime import datetime
 import os
 import json
 import logging
+import traceback  # Added for detailed error logging
 from services.storytelling_ai import generate_sustainability_story
 from services.predictive_analytics import (
     predict_sustainability_trends, 
@@ -109,6 +110,7 @@ async def get_stories(skip: int = 0, limit: int = 10):
                 """, (limit, skip))
 
                 db_stories = cur.fetchall()
+                logger.info(f"Retrieved {len(db_stories)} stories from database")
 
                 # Convert to response model
                 for story in db_stories:
@@ -132,10 +134,9 @@ async def get_stories(skip: int = 0, limit: int = 10):
                         "updated_at": story['updated_at']
                     }
                     stories.append(story_response)
-
-                logger.info(f"Retrieved {len(stories)} stories from database")
     except Exception as e:
         logger.error(f"Error retrieving stories from database: {str(e)}")
+        logger.error(traceback.format_exc())
         # Return empty list on error
         return []
 
@@ -188,6 +189,7 @@ async def get_story(story_id: int):
         raise
     except Exception as e:
         logger.error(f"Error retrieving story from database: {str(e)}")
+        logger.error(traceback.format_exc())
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
             detail=f"Failed to retrieve story: {str(e)}"
@@ -200,15 +202,24 @@ async def create_story(story: StoryCreate):
     logger.info(f"Creating new story for company: {story.company_name}, industry: {story.industry}")
 
     try:
-        # Generate sustainability story using AI
-        logger.info("Starting chain-of-thought sustainability story generation...")
-        sustainability_story = generate_sustainability_story(story.company_name, story.industry)
-        logger.info("Sustainability story generation completed successfully")
+        # Generate sustainability story using AI if no content provided
+        sustainability_story = None
+        if not story.content:
+            logger.info("Starting chain-of-thought sustainability story generation...")
+            sustainability_story = generate_sustainability_story(story.company_name, story.industry)
+            logger.info("Sustainability story generation completed successfully")
+            logger.debug(f"Generated story: {sustainability_story}")
 
         # Create story object
         story_data = story.dict()
         if not story.content:  # If content not provided, use AI-generated content
             story_data["content"] = sustainability_story
+            logger.info("Using AI-generated content for story")
+        else:
+            logger.info("Using provided content for story")
+
+        # Debug log story data
+        logger.info(f"Story data prepared: company={story_data['company_name']}, industry={story_data['industry']}")
 
         # Add timestamps
         now = datetime.now()
@@ -225,39 +236,60 @@ async def create_story(story: StoryCreate):
         else:
             content_json = json.dumps({"content": story_data["content"]})
 
+        logger.info("Content prepared for database storage")
+
         # Create metadata JSON
         metadata_json = json.dumps({"metrics": story_data["metrics"]})
 
-        # Save to database
-        with get_db() as conn:
-            with conn.cursor() as cur:
-                cur.execute("""
-                    INSERT INTO sustainability_stories
-                    (company_name, industry, story_content, created_at, updated_at, story_metadata)
-                    VALUES (%s, %s, %s, %s, %s, %s)
-                    RETURNING id
-                """, (
-                    story_data["company_name"],
-                    story_data["industry"],
-                    content_json,
-                    story_data["created_at"],
-                    story_data["updated_at"],
-                    metadata_json
-                ))
+        # Log database operation attempt
+        logger.info("Attempting to save story to database...")
 
-                result = cur.fetchone()
-                story_id = result['id']
+        # Save to database with explicit error handling
+        try:
+            with get_db() as conn:
+                with conn.cursor() as cur:
+                    # Log the SQL query parameters (without sensitive data)
+                    logger.info(f"Executing INSERT into sustainability_stories for {story_data['company_name']}")
 
-                logger.info(f"Successfully saved story to database with ID: {story_id}")
+                    cur.execute("""
+                        INSERT INTO sustainability_stories
+                        (company_name, industry, story_content, created_at, updated_at, story_metadata)
+                        VALUES (%s, %s, %s, %s, %s, %s)
+                        RETURNING id
+                    """, (
+                        story_data["company_name"],
+                        story_data["industry"],
+                        content_json,
+                        story_data["created_at"],
+                        story_data["updated_at"],
+                        metadata_json
+                    ))
 
-                # Build full response with new ID
-                story_data["id"] = story_id
-                story_data["author_id"] = "system"
+                    result = cur.fetchone()
+                    if not result:
+                        logger.error("Database INSERT did not return an ID")
+                        raise Exception("Database INSERT operation failed to return ID")
 
-                return story_data
+                    story_id = result['id']
+                    logger.info(f"Successfully saved story to database with ID: {story_id}")
+
+                    # Verify database commit is happening
+                    logger.info("Database transaction committed successfully")
+
+                    # Build full response with new ID
+                    story_data["id"] = story_id
+                    story_data["author_id"] = "system"
+
+                    return story_data
+
+        except Exception as db_error:
+            logger.error(f"Database error while saving story: {str(db_error)}")
+            logger.error(traceback.format_exc())
+            raise Exception(f"Failed to save story to database: {str(db_error)}")
 
     except Exception as e:
         logger.error(f"Error creating sustainability story: {str(e)}")
+        logger.error(traceback.format_exc())
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
             detail=f"Failed to create sustainability story: {str(e)}"
@@ -281,6 +313,7 @@ async def get_sustainability_story(company_name: str, industry: str):
 
     except Exception as e:
         logger.error(f"Error generating sustainability story: {str(e)}")
+        logger.error(traceback.format_exc())
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
             detail=f"Failed to generate sustainability story: {str(e)}"
@@ -323,6 +356,7 @@ async def get_predictive_analytics(
 
     except Exception as e:
         logger.error(f"Error generating predictive analytics: {str(e)}")
+        logger.error(traceback.format_exc())
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
             detail=f"Failed to generate predictive analytics: {str(e)}"
@@ -364,6 +398,7 @@ async def get_materiality_assessment(
 
     except Exception as e:
         logger.error(f"Error performing materiality assessment: {str(e)}")
+        logger.error(traceback.format_exc())
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
             detail=f"Failed to perform materiality assessment: {str(e)}"
