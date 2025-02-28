@@ -1,4 +1,3 @@
-#!/usr/bin/env python3
 """
 Flask frontend with improved FastAPI connection
 for Sustainability Intelligence Dashboard
@@ -91,7 +90,7 @@ def cache_result(expire=300):
     return decorator
 
 # FastAPI backend URL
-BACKEND_URL = os.getenv('BACKEND_URL', 'http://localhost:8000')
+BACKEND_URL = os.getenv('BACKEND_URL', 'http://localhost:8080')
 logger.info(f"Using FastAPI backend URL: {BACKEND_URL}")
 
 
@@ -780,454 +779,254 @@ def search():
             results = perform_ai_search(query, model)
             logger.info(f"Initial search returned {len(results)} results for query: '{query}'")
 
-        return render_template("search.html", query=query, model=model, results=results)
+        return render_template("search.html", query=query, results=results, model=model)
     except Exception as e:
         logger.error(f"Error in search route: {str(e)}")
-        return f"Error in search: {str(e)}", 500
+        return f"Error loading search page: {str(e)}", 500
 
-# Trend analysis functionality
-def get_sustainability_trends(category=None):
-    """
-    Fetches and processes sustainability trends data using chain-of-thought reasoning.
-
-    This function simulates the AI-powered trend analysis. In production, this would
-    connect to an AI service like OpenAI's GPT model to perform real trend analysis.
-    """
-    logger.info(f"Generating sustainability trends data for category: {category}")
-
-    # Step 1: Generate base trend data
-    all_trends = []
-
-    # Current date for our simulated data
-    current_date = datetime.now()
-
-    # Carbon emissions trends
-    emissions_trends = [
-        {
-            "trend_id": 1,
-            "category": "emissions",
-            "name": "Carbon Emissions",
-            "current_value": 30.0,
-            "trend_direction": "decreasing",
-            "virality_score": 78.5,
-            "keywords": "carbon neutral, emissions reduction, climate impact",
-            "trend_duration": "long-term",
-            "timestamp": current_date.isoformat()
-        },
-        {
-            "trend_id": 2,
-            "category": "emissions",
-            "name": "Science-Based Targets",
-            "current_value": 45.0,
-            "trend_direction": "increasing",
-            "virality_score": 92.3,
-            "keywords": "SBTi, net-zero, climate goals, Paris Agreement",
-            "trend_duration": "long-term",
-            "timestamp": current_date.isoformat()
-        }
-    ]
-
-    # Energy consumption trends
-    energy_trends = [
-        {
-            "trend_id": 3,
-            "category": "energy",
-            "name": "Renewable Energy",
-            "current_value": 1050.0,
-            "trend_direction": "increasing",
-            "virality_score": 85.7,
-            "keywords": "renewable energy, solar, wind, clean power",
-            "trend_duration": "medium-term",
-            "timestamp": current_date.isoformat()
-        },
-        {
-            "trend_id": 4,
-            "category": "energy",
-            "name": "Energy Efficiency",
-            "current_value": 880.0,
-            "trend_direction": "decreasing",
-            "virality_score": 65.2,
-            "keywords": "efficiency, consumption reduction, power management",
-            "trend_duration": "medium-term",
-            "timestamp": current_date.isoformat()
-        }
-    ]
-
-    # Water usage trends
-    water_trends = [
-        {
-            "trend_id": 5,
-            "category": "water",
-            "name": "Water Conservation",
-            "current_value": 320.0,
-            "trend_direction": "decreasing",
-            "virality_score": 45.8,
-            "keywords": "water stewardship, conservation, usage reduction",
-            "trend_duration": "medium-term",
-            "timestamp": current_date.isoformat()
-        }
-    ]
-
-    # Waste management trends
-    waste_trends = [
-        {
-            "trend_id": 6,
-            "category": "waste",
-            "name":"Zero Waste Initiatives",
-            "current_value": 78.0,
-            "trend_direction": "increasing",
-            "virality_score": 72.4,
-            "keywords": "zerowaste, circular economy, waste reduction",
-            "trend_duration": "short-term",
-            "timestamp": current_date.isoformat()
-        },
-        {
-            "trend_id": 7,
-            "category": "waste",
-            "name": "Plastic Reduction",
-            "current_value": 65.0,
-            "trend_direction": "increasing",
-            "virality_score": 94.5,
-            "keywords": "plastic-free, reduction, single-use plastic",
-            "trend_duration": "long-term",
-            "timestamp": current_date.isoformat()
-        }
-    ]
-
-    # ESG and social trends
-    social_trends = [
-        {
-            "trend_id": 8,
-            "category": "social",
-            "name": "ESG Reporting Standards",
-            "current_value": 82.0,
-            "trend_direction": "increasing",
-            "virality_score": 89.7,
-            "keywords": "ESG reporting, sustainability metrics, corporate responsibility",
-            "trend_duration": "long-term",
-            "timestamp": current_date.isoformat()
-        },
-        {
-            "trend_id": 9,
-            "category": "social",
-            "name": "Supply Chain Transparency",
-            "current_value": 56.0,
-            "trend_direction": "increasing",
-            "virality_score": 76.3,
-            "keywords": "supply chain, transparency, ethical sourcing",
-            "trend_duration": "medium-term",
-            "timestamp": current_date.isoformat()
-        }
-    ]
-
-    # Combine all trends
-    all_trends = emissions_trends + energy_trends + water_trends + waste_trends + social_trends
-
-    logger.info(f"Generated {len(all_trends)} total trend records")
-
-    # Step 2: Apply category filter if provided
-    if category and category != 'all':
-        filtered_trends = [trend for trend in all_trends if trend["category"] == category]
-        logger.info(f"Filtered to {len(filtered_trends)} trends for category: {category}")
-    else:
-        filtered_trends = all_trends
-        logger.info(f"Using all {len(filtered_trends)} trends (no category filter)")
-
-    # Step 3: Generate chart data for trends over time (simulated)
-    trend_chart_data = []
-    for trend in filtered_trends:
-        # Generate 6 data points over the past 6 months for each trend
-        for i in range(6):
-            timestamp = (current_date - timedelta(days=30 * (5 - i))).isoformat()
-
-            # Simulate virality scores that evolve over time
-            base_virality = trend["virality_score"] * 0.7  # Start lower
-            growth_factor = 1 + (i * 0.1)  # Gradually increase
-
-            # Add some randomness
-            random_factor = random.uniform(0.9, 1.1)
-
-            virality = min(base_virality * growth_factor * random_factor, 100)
-
-            trend_chart_data.append({
-                "category": trend["category"],
-                "name": trend["name"],
-                "virality_score": virality,
-                "timestamp": timestamp
-            })
-
-    logger.info(f"Generated {len(trend_chart_data)} chart data points")
-
-    return filtered_trends, trend_chart_data
-
+# AI-powered trend analysis endpoint
 @app.route('/trend-analysis')
 def trend_analysis():
-    """Sustainability trend analysis page"""
+    """
+    AI-powered sustainability trend analysis page
+    Shows trends, predictions, and insights for sustainability metrics
+    """
     try:
         logger.info("Trend analysis page requested")
 
-        # Get category and sort filters from request args
-        category = request.args.get('category', 'all')
-        sort = request.args.get('sort', 'virality')
+        # Fetch metrics data
+        metrics = get_sustainability_metrics()
 
-        logger.info(f"Trend analysis request with category={category}, sort={sort}")
-
-        # Get trend analysis data
-        trends, trend_chart_data = get_sustainability_trends(category)
-
-        logger.info(f"Successfully generated {len(trends)} trends and {len(trend_chart_data)} chart data points")
-
-        # Sort the trends based on user preference
-        if sort == 'virality':
-            trends.sort(key=lambda x: x['virality_score'], reverse=True)
-        elif sort == 'date':
-            trends.sort(key=lambda x: x['timestamp'], reverse=True)
-        elif sort == 'name':
-            trends.sort(key=lambda x: x['name'])
-
-        logger.info(f"Rendering trend analysis with {len(trends)} trends")
-
-        # Return a simple response for debugging if requested
-        if request.args.get('debug') == 'true':
-            return jsonify({
-                'trends': trends,
-                'trend_chart_data': trend_chart_data,
-                'category': category,
-                'sort': sort
-            })
+        # Get unique categories from metrics
+        categories = list(set(metric["category"] for metric in metrics))
+        logger.info(f"Available categories for trend analysis: {categories}")
 
         return render_template("trend_analysis.html", 
-                            trends=trends, 
-                            trend_chart_data=trend_chart_data,
-                            category=category,
-                            sort=sort)
+                              metrics=metrics, 
+                              categories=categories)
     except Exception as e:
-        logger.error(f"Error in trend analysis: {str(e)}")
-        # Return a simple response for debugging
-        return f"Error in trend analysis: {str(e)}", 500
+        logger.error(f"Error in trend analysis route: {str(e)}")
+        return f"Error loading trend analysis: {str(e)}", 500
 
+# API endpoint for trend data
 @app.route('/api/trends')
 def api_trends():
     """API endpoint for sustainability trend data"""
     try:
-        logger.info("API trends endpoint called")
+        logger.info("Trend API endpoint called")
 
-        # Get category filter from request args if provided
-        category = request.args.get('category')
+        # Get category filter if provided
+        category = request.args.get('category', None)
 
-        # Get trend analysis data
-        trends, _ = get_sustainability_trends(category)
+        # Get data source preference
+        source = request.args.get('source', 'api')  # 'api' or 'mock'
 
-        logger.info(f"Returning {len(trends)} trends from API endpoint")
-        return jsonify(trends)
+        if source == 'api':
+            # Try to get from API first
+            try:
+                metrics = get_sustainability_metrics()
+                logger.info(f"Using API data for trend analysis with {len(metrics)} metrics")
+            except Exception as api_error:
+                logger.error(f"Error getting API metrics for trends: {str(api_error)}")
+                # Fall back to mock data
+                metrics = get_mock_sustainability_metrics()
+                logger.info(f"Falling back to mock data for trend analysis")
+        else:
+            # Use mock data as requested
+            metrics = get_mock_sustainability_metrics()
+            logger.info(f"Using mock data for trend analysis as requested")
+
+        # Filter by category if specified
+        if category:
+            logger.info(f"Filtering trend data by category: {category}")
+            metrics = [m for m in metrics if m.get('category') == category]
+
+        # Group metrics by name and sort by timestamp
+        grouped_metrics = {}
+        for metric in metrics:
+            name = metric.get("name")
+            if name not in grouped_metrics:
+                grouped_metrics[name] = []
+            grouped_metrics[name].append(metric)
+
+        # Sort each group by timestamp
+        for name in grouped_metrics:
+            grouped_metrics[name].sort(key=lambda x: x.get("timestamp", ""))
+
+        # Format for charting library
+        trend_data = []
+        for name, metrics_list in grouped_metrics.items():
+            trend_series = {
+                "name": name,
+                "category": metrics_list[0].get("category") if metrics_list else "unknown",
+                "unit": metrics_list[0].get("unit") if metrics_list else "",
+                "values": [m.get("value") for m in metrics_list],
+                "labels": [m.get("timestamp").split("T")[0] if "T" in m.get("timestamp", "") else m.get("timestamp") for m in metrics_list],
+            }
+            trend_data.append(trend_series)
+
+        logger.info(f"Returning trend data with {len(trend_data)} series")
+        return jsonify(trend_data)
     except Exception as e:
-        logger.error(f"Error in API trends endpoint: {str(e)}")
+        logger.error(f"Error in trend API endpoint: {str(e)}")
         return jsonify({"error": str(e)}), 500
 
+# Debug endpoint for checking app status
 @app.route('/debug')
-def debug_route():
-    """Debug route to check registered routes and connections"""
+def debug_info():
+    """Debug endpoint for checking app status and configuration"""
     try:
-        logger.info("Debug route called")
-        routes = [str(rule) for rule in app.url_map.iter_rules()]
+        logger.info("Debug endpoint called")
 
-        # Also check FastAPI connection
-        try:
-            logger.info(f"Testing connection to FastAPI backend: {BACKEND_URL}/health")
-            response = requests.get(f"{BACKEND_URL}/health", timeout=5.0)
-            response.raise_for_status()
-            backend_status = response.json()
-            logger.info(f"FastAPI backend health check: {backend_status}")
-        except requests.exceptions.RequestException as e:
-            logger.error(f"Failed to connect to FastAPI backend: {str(e)}")
-            backend_status = {"status": "error", "message": str(e)}
-        except Exception as e:
-            logger.error(f"Unexpected error during backend health check: {str(e)}")
-            backend_status = {"status": "error", "message": str(e)}
-
-        debug_info = {
-            "routes": routes,
-            "backend_url": BACKEND_URL,
-            "backend_status": backend_status
+        # Get environment information
+        env_info = {
+            "BACKEND_URL": BACKEND_URL,
+            "REDIS_AVAILABLE": REDIS_AVAILABLE,
+            "FLASK_ENV": os.environ.get("FLASK_ENV"),
+            "PORT": os.environ.get("PORT"),
+            "REQUEST_HOST": request.host,
+            "SERVER_NAME": app.config.get("SERVER_NAME"),
         }
 
-        return jsonify(debug_info)
+        # Get routes information
+        routes = []
+        for rule in app.url_map.iter_rules():
+            routes.append({
+                "endpoint": rule.endpoint,
+                "methods": [m for m in rule.methods if m not in ["HEAD", "OPTIONS"]],
+                "path": str(rule)
+            })
+
+        # Collect cache information
+        cache_info = {
+            "type": "Redis" if REDIS_AVAILABLE else "In-memory",
+            "keys": len(MEMORY_CACHE) if not REDIS_AVAILABLE else "Unknown",
+        }
+
+        # Test API connectivity
+        backend_status = "Unknown"
+        try:
+            response = requests.get(f"{BACKEND_URL}/health", timeout=2.0)
+            if response.status_code == 200:
+                backend_status = f"Connected ({response.status_code})"
+                backend_data = response.json()
+            else:
+                backend_status = f"Error ({response.status_code})"
+                backend_data = {}
+        except requests.exceptions.RequestException as e:
+            backend_status = f"Connection Failed: {str(e)}"
+            backend_data = {}
+
+        debug_data = {
+            "app_name": "Sustainability Intelligence Dashboard",
+            "environment": env_info,
+            "routes": routes,
+            "cache": cache_info,
+            "backend_api": {
+                "url": BACKEND_URL,
+                "status": backend_status,
+                "data": backend_data
+            },
+            "timestamp": datetime.now().isoformat()
+        }
+
+        # Log some summary info
+        logger.info(f"Debug info: Backend status: {backend_status}, Routes: {len(routes)}")
+
+        return jsonify(debug_data)
     except Exception as e:
-        logger.error(f"Error in debug route: {str(e)}")
+        logger.error(f"Error in debug endpoint: {str(e)}")
         return jsonify({"error": str(e)}), 500
 
-# New API endpoint for AI-powered summarization
-@app.route("/api/summarize", methods=["POST"])
-def api_summarize_results():
-    """API endpoint for AI-powered summarization of search results"""
+# Add API endpoint for summarization
+@app.route('/api/summarize', methods=['POST'])
+def summarize_text():
+    """API endpoint to summarize sustainability text using AI"""
     try:
-        data = request.get_json()
-        if not data or 'results' not in data or not data['results']:
-            logger.warning("Summarize API called with no results")
-            return jsonify({"error": "No results provided for summarization"}), 400
+        logger.info("Text summarization API endpoint called")
+        data = request.json
 
-        query = data.get('query', '')
-        results = data['results']
-        logger.info(f"Summarize API called for query: '{query}' with {len(results)} results")
+        if not data or not data.get('text'):
+            logger.warning("Empty request body or missing text in summarization endpoint")
+            return jsonify({"error": "Text parameter is required"}), 400
 
-        # Extract content from results
-        content = ""
-        for result in results:
-            content += f"Title: {result['title']}\n"
-            content += f"Content: {result['snippet']}\n"
-            if 'category' in result:
-                content += f"Category: {result['category']}\n"
-            content += "\n"
+        text = data.get('text')
+        max_length = data.get('max_length', 200)  # Default to 200 words max
 
-        # Generate summary using OpenAI API if available, otherwise use a mock summary
+        logger.info(f"Summarizing text with {len(text)} characters, max_length={max_length}")
+
+        # Try to use OpenAI if available
         openai_api_key = os.getenv('OPENAI_API_KEY')
         if openai_api_key:
             try:
-                summary = generate_ai_summary(query, content, openai_api_key)
-                logger.info(f"Generated AI summary for query: '{query}'")
+                logger.info("Using OpenAI for summarization")
+
+                response = requests.post(
+                    "https://api.openai.com/v1/chat/completions",
+                    headers={
+                        "Authorization": f"Bearer {openai_api_key}",
+                        "Content-Type": "application/json"
+                    },
+                    json={
+                        "model": "gpt-3.5-turbo",
+                        "messages": [
+                            {
+                                "role": "system", 
+                                "content": f"You are a sustainability expert. Summarize the following text in {max_length} words or less, focusing on key sustainability insights."
+                            },
+                            {"role": "user", "content": text}
+                        ],
+                        "max_tokens": 500,
+                        "temperature": 0.5
+                    },
+                    timeout=20.0
+                )
+
+                if response.status_code == 200:
+                    result = response.json()
+                    summary = result["choices"][0]["message"]["content"].strip()
+                    logger.info(f"Successfully generated AI summary with {len(summary.split())} words")
+                    return jsonify({
+                        "original_length": len(text.split()),
+                        "summary_length": len(summary.split()),
+                        "summary": summary
+                    })
+                else:
+                    logger.error(f"OpenAI API error: {response.status_code} - {response.text}")
+                    # Fall back to mock summarization
             except Exception as e:
-                logger.error(f"Error generating AI summary: {str(e)}")
-                summary = generate_mock_summary(query, results)
+                logger.error(f"Error using OpenAI for summarization: {str(e)}")
+                # Fall back to mock summarization
         else:
-            logger.warning("No OpenAI API key available, using mock summary")
-            summary = generate_mock_summary(query, results)
+            logger.warning("No OpenAI API key available, using mock summarization")
+
+        # Mock summarization as fallback
+        logger.info("Using mock summarization")
+
+        # Simple extractive summary (just first few sentences depending on desired length)
+        sentences = text.split('. ')
+        num_sentences = min(5, max(1, max_length // 20))  # Rough heuristic
+        mock_summary = '. '.join(sentences[:num_sentences]) + '.'
+
+        if len(mock_summary) > len(text):
+            mock_summary = text
+
+        logger.info(f"Generated mock summary with {len(mock_summary.split())} words")
 
         return jsonify({
-            "query": query,
-            "summary": summary,
-            "timestamp": datetime.now().isoformat()
+            "original_length": len(text.split()),
+            "summary_length": len(mock_summary.split()),
+            "summary": mock_summary,
+            "note": "This is a simplified mock summary as OpenAI API was not available."
         })
+
     except Exception as e:
-        logger.error(f"Error in summarize API: {str(e)}")
+        logger.error(f"Error in summarization endpoint: {str(e)}")
         return jsonify({"error": str(e)}), 500
 
-# Function to generate an AI-powered summary using OpenAI
-def generate_ai_summary(query, content, api_key):
-    """Generate a summary of search results using OpenAI API"""
-    try:
-        response = requests.post(
-            "https://api.openai.com/v1/chat/completions",
-            headers={
-                "Authorization": f"Bearer {api_key}",
-                "Content-Type": "application/json"
-            },
-            json={
-                "model": "gpt-3.5-turbo",
-                "messages": [
-                    {
-                        "role": "system", 
-                        "content": """You are a sustainability expert. Create a concise, insightful summary 
-                        of the search results provided. Focus on key sustainability themes, important trends, 
-                        and actionable insights. Format your response with HTML tags for better readability:
-                        - Use <h4> for section headings
-                        - Use <p> for paragraphs
-                        - Use <ul> and <li> for lists
-                        - Use <strong> for emphasis
-                        Include sections for: Key Themes, Important Findings, and Recommended Actions.
-                        """
-                    },
-                    {
-                        "role": "user", 
-                        "content": f"Query: {query}\n\nSearch Results:\n{content}\n\nPlease provide a summary focusing on sustainability aspects."
-                    }
-                ],
-                "max_tokens": 500,
-                "temperature": 0.5
-            },
-            timeout=15.0
-        )
-
-        if response.status_code == 200:
-            result = response.json()
-            summary = result["choices"][0]["message"]["content"].strip()
-            return summary
-        else:
-            logger.error(f"OpenAI API error: {response.status_code} - {response.text}")
-            return generate_mock_summary(query, content)
-    except Exception as e:
-        logger.error(f"Error in AI summary generation: {str(e)}")
-        return generate_mock_summary(query, content)
-
-# Function to generate a mock summary when OpenAI is not available
-def generate_mock_summary(query, results):
-    """Generate a mock summary based on the query and results"""
-    # Extract query keywords
-    keywords = query.lower().split()
-
-    # Determine the main sustainability themes based on keywords
-    themes = []
-    if any(k in keywords for k in ["carbon", "emission", "climate", "ghg", "greenhouse"]):
-        themes.append("emissions reduction")
-        themes.append("climate action")
-    if any(k in keywords for k in ["energy", "renewable", "solar", "wind", "power"]):
-        themes.append("renewable energy")
-        themes.append("energy efficiency")
-    if any(k in keywords for k in ["water", "resource", "conservation"]):
-        themes.append("water conservation")
-        themes.append("resource management")
-    if any(k in keywords for k in ["waste", "recycle", "circular", "plastic"]):
-        themes.append("waste reduction")
-        themes.append("circular economy")
-    if any(k in keywords for k in ["social", "governance", "esg", "ethical", "diversity"]):
-        themes.append("social responsibility")
-        themes.append("ESG performance")
-
-    # Use general sustainability themes if no specific ones are identified
-    if not themes:
-        themes = [
-            "sustainability practices",
-            "environmental impact",
-            "corporate sustainability",
-            "sustainable development",
-            "sustainability reporting"
-        ]
-
-    # Randomly select themes to highlight
-    selected_themes = random.sample(themes, min(3, len(themes)))
-
-    # Generate a formatted summary with HTML tags
-    summary = f"""
-    <h4>Key Themes: {query.title()}</h4>
-    <p>Based on the analysis of multiple sustainability sources, the following key themes emerged:</p>
-    <ul>
-        <li><strong>{selected_themes[0].title()}</strong>: Multiple sources emphasize the importance of {selected_themes[0]} in addressing sustainability challenges.</li>
-    """
-
-    # Add more theme items if available
-    if len(selected_themes) > 1:
-        summary += f"<li><strong>{selected_themes[1].title()}</strong>: Organizations are increasingly focusing on {selected_themes[1]} as a critical component of their sustainability strategies.</li>\n"
-    if len(selected_themes) > 2:
-        summary += f"<li><strong>{selected_themes[2].title()}</strong>: There is growing evidence for the business value of implementing {selected_themes[2]} initiatives.</li>\n"
-
-    summary += """
-    </ul>
-
-    <h4>Important Findings</h4>
-    <p>The search results highlight several important sustainability trends:</p>
-    <ul>
-        <li>Organizations are increasingly adopting science-based targets for measuring and reducing environmental impacts</li>
-        <li>Stakeholder engagement is becoming a crucial aspect of successful sustainability programs</li>
-        <li>There is a growing focus on data-driven approaches to sustainability management</li>
-    </ul>
-
-    <h4>Recommended Actions</h4>
-    <p>Based on the search results, the following actions are recommended:</p>
-    <ul>
-        <li>Establish clear metrics and targets for measuring sustainability progress</li>
-        <li>Integrate sustainability considerations into core business strategies</li>
-        <li>Engage with stakeholders to understand their priorities and concerns</li>
-        <li>Stay informed about emerging sustainability trends and best practices</li>
-    </ul>
-    """
-
-    return summary
-
-# Add these new routes to proxy to the sustainability API endpoints
-# Insert after the last defined API route, before if __name__ == "__main__"
-
-# New API endpoints for AI-powered analytics
+# New endpoint for AI-powered predictive analytics
 @app.route("/api/predictive-analytics", methods=["POST"])
-def api_predictive_analytics():
+def get_predictive_analytics():
     """API endpoint to proxy predictive analytics requests to the backend"""
     try:
         logger.info("Predictive analytics API endpoint called")
@@ -1237,203 +1036,85 @@ def api_predictive_analytics():
             logger.warning("Empty request body in predictive analytics endpoint")
             return jsonify({"error": "Request body is required"}), 400
 
-        # Extract parameters
-        company_name = data.get('company_name')
-        industry = data.get('industry')
-        forecast_periods = data.get('forecast_periods', 3)
-        metrics = data.get('metrics', [])
+        logger.info(f"Forwarding predictive analytics request: {data}")
 
-        if not company_name or not industry:
-            logger.warning("Missing required fields in predictive analytics request")
-            return jsonify({"error": "Company name and industry are required"}), 400
+        # Forward the request to the backend
+        response = requests.post(
+            f"{BACKEND_URL}/api/predictive-analytics",
+            json=data,
+            timeout=30.0  # Longer timeout for AI processing
+        )
 
-        logger.info(f"Generating predictive analytics for {company_name} in {industry} industry with {forecast_periods} forecast periods")
+        response.raise_for_status()
+        result = response.json()
 
-        # Forward the request to the FastAPI backend
-        try:
-            response = requests.post(
-                f"{BACKEND_URL}/api/predictive-analytics",
-                params={
-                    "company_name": company_name,
-                    "industry": industry,
-                    "forecast_periods": forecast_periods
+        logger.info(f"Successfully received predictive analytics from backend")
+        return jsonify(result)
+    except requests.exceptions.RequestException as e:
+        logger.error(f"Error forwarding predictive analytics request: {str(e)}")
+        # Return a mock response with predictive trends
+        mock_data = {
+            "metrics": data.get("metrics", []),
+            "forecast_periods": data.get("forecast_periods", 3),
+            "predictions": [
+                {
+                    "metric_name": "Carbon Emissions",
+                    "current_value": 30,
+                    "predicted_values": [28.5, 27.2, 26.1],
+                    "confidence_intervals": [[27.1, 29.9], [25.3, 29.1], [23.7, 28.5]],
+                    "trend": "decreasing",
+                    "trend_confidence": 0.85
                 },
-                json=metrics,
-                timeout=30.0  # Longer timeout for AI processing
-            )
-            response.raise_for_status()
-            result = response.json()
-
-            logger.info(f"Successfully generated predictive analytics for {company_name}")
-            return jsonify(result)
-
-        except requests.exceptions.RequestException as e:
-            logger.error(f"Error calling predictive analytics API: {str(e)}")
-            # Generate mock data as fallback
-            current_date = datetime.now().isoformat()
-            mock_data = {
-                "forecast_date": current_date,
-                "company": company_name,
-                "industry": industry,
-                "forecast_periods": forecast_periods,
-                "predictions": [
-                    {
-                        "name": "Carbon Emissions",
-                        "category": "emissions",
-                        "current_value": 78.5,
-                        "unit": "tCO2e",
-                        "predicted_values": [75.2, 72.1, 69.3],
-                        "confidence_intervals": [[73.1, 77.3], [69.5, 74.8], [65.2, 73.4]],
-                        "trend_direction": "decreasing",
-                        "trend_strength": "strong"
-                    },
-                    {
-                        "name": "Energy Consumption",
-                        "category": "energy",
-                        "current_value": 1240,
-                        "unit": "MWh",
-                        "predicted_values": [1180, 1120, 1075],
-                        "confidence_intervals": [[1150, 1210], [1080, 1160], [1020, 1130]],
-                        "trend_direction": "decreasing",
-                        "trend_strength": "moderate"
-                    },
-                    {
-                        "name": "Water Usage",
-                        "category": "water",
-                        "current_value": 430,
-                        "unit": "m³",
-                        "predicted_values": [410, 395, 385],
-                        "confidence_intervals": [[395, 425], [375, 415], [360, 410]],
-                        "trend_direction": "decreasing",
-                        "trend_strength": "moderate"
-                    }
-                ],
-                "ai_insights": [
-                    "Based on current trajectory, carbon emissions are expected to decrease by 11.7% over the forecast period",
-                    "Energy efficiency improvements show diminishing returns after period 2",
-                    "Water conservation efforts are showing steady improvement but at a slower rate than emissions reduction"
-                ]
-            }
-            return jsonify(mock_data)
-
+                {
+                    "metric_name": "Energy Consumption",
+                    "current_value": 1050,
+                    "predicted_values": [1010, 980, 950],
+                    "confidence_intervals": [[990, 1030], [950, 1010], [910, 990]],
+                    "trend": "decreasing",
+                    "trend_confidence": 0.82
+                },
+                {
+                    "metric_name": "Water Usage",
+                    "current_value": 300,
+                    "predicted_values": [290, 280, 270],
+                    "confidence_intervals": [[280, 300], [270, 290], [260, 280]],
+                    "trend": "decreasing",
+                    "trend_confidence": 0.79
+                },
+                {
+                    "metric_name": "Waste Recycled",
+                    "current_value": 82,
+                    "predicted_values": [84, 86, 88],
+                    "confidence_intervals": [[81, 87], [83, 89], [85, 91]],
+                    "trend": "increasing",
+                    "trend_confidence": 0.88
+                },
+                {
+                    "metric_name": "ESG Score",
+                    "current_value": 82,
+                    "predicted_values": [84, 86, 88],
+                    "confidence_intervals": [[81, 87], [83, 89], [85, 91]],
+                    "trend": "increasing",
+                    "trend_confidence": 0.9
+                }
+            ],
+            "overall_sustainability_trend": "positive",
+            "trend_drivers": [
+                "Continued investments in renewable energy",
+                "Implementation of water conservation technologies",
+                "Expansion of recycling program across operations",
+                "Strengthened ESG reporting and governance"
+            ],
+            "risk_factors": [
+                "Potential supply chain disruptions",
+                "Regulatory changes in carbon pricing",
+                "Climate change impacts on water availability"
+            ]
+        }
+        return jsonify(mock_data)
     except Exception as e:
         logger.error(f"Unexpected error in predictive analytics endpoint: {str(e)}")
         return jsonify({"error": str(e)}), 500
-
-@app.route("/api/materiality-assessment", methods=["POST"])
-def api_materiality_assessment():
-    """API endpoint to proxy materiality assessment requests to the backend"""
-    try:
-        logger.info("Materiality assessment API endpoint called")
-        data = request.json
-
-        if not data:
-            logger.warning("Empty request body in materiality assessment endpoint")
-            return jsonify({"error": "Request body is required"}), 400
-
-        # Extract parameters
-        company_name = data.get('company_name')
-        industry = data.get('industry')
-        metrics = data.get('metrics', [])
-
-        if not company_name or not industry:
-            logger.warning("Missing required fields in materiality assessment request")
-            return jsonify({"error": "Company name and industry are required"}), 400
-
-        logger.info(f"Performing materiality assessment for {company_name} in {industry} industry")
-
-        # Forward the request to the FastAPI backend
-        try:
-            response = requests.post(
-                f"{BACKEND_URL}/api/materiality-assessment",
-                params={
-                    "company_name": company_name,
-                    "industry": industry
-                },
-                json=metrics,
-                timeout=30.0  # Longer timeout for AI processing
-            )
-            response.raise_for_status()
-            result = response.json()
-
-            logger.info(f"Successfully performed materiality assessment for {company_name}")
-            return jsonify(result)
-
-        except requests.exceptions.RequestException as e:
-            logger.error(f"Error calling materiality assessment API: {str(e)}")
-            # Generate mock data as fallback
-            mock_data = {
-                "company": company_name,
-                "industry": industry,
-                "assessment_date": datetime.now().isoformat(),
-                "material_topics": [
-                    {
-                        "topic": "Carbon Emissions",
-                        "business_impact_score": 4.7,
-                        "stakeholder_concern_score": 4.5,
-                        "materiality_score": 4.6,
-                        "financial_impact": "High potential regulatory costs and market access limitations",
-                        "recommended_metrics": ["Scope 1-3 emissions (tCO2e)", "Carbon intensity (tCO2e/revenue)"]
-                    },
-                    {
-                        "topic": "Energy Management",
-                        "business_impact_score": 4.2,
-                        "stakeholder_concern_score": 3.8,
-                        "materiality_score": 4.0,
-                        "financial_impact": "Operational cost savings and enhanced resilience",
-                        "recommended_metrics": ["Energy intensity (MWh/revenue)", "Renewable energy (%)"]
-                    },
-                    {
-                        "topic": "Water Management",
-                        "business_impact_score": 3.8,
-                        "stakeholder_concern_score": 3.5,
-                        "materiality_score": 3.65,
-                        "financial_impact": "Operational continuity and regulatory compliance costs",
-                        "recommended_metrics": ["Water withdrawal (m³)", "Water recycling rate (%)"]
-                    },
-                    {
-                        "topic": "Waste Management",
-                        "business_impact_score": 3.2,
-                        "stakeholder_concern_score": 3.7,
-                        "materiality_score": 3.45,
-                        "financial_impact": "Disposal costs and circular economy opportunities",
-                        "recommended_metrics": ["Waste diverted from landfill (%)", "Hazardous waste (tonnes)"]
-                    },
-                    {
-                        "topic": "Supply Chain Sustainability",
-                        "business_impact_score": 4.0,
-                        "stakeholder_concern_score": 3.9,
-                        "materiality_score": 3.95,
-                        "financial_impact": "Reputational risk and potential supply disruptions",
-                        "recommended_metrics": ["Supplier ESG assessment coverage (%)", "Critical suppliers with science-based targets (%)"]
-                    }
-                ],
-                "materiality_matrix": {
-                    "x_axis": "Business Impact",
-                    "y_axis": "Stakeholder Concern",
-                    "quadrants": [
-                        {"name": "Focus", "topics": ["Carbon Emissions", "Energy Management", "Supply Chain Sustainability"]},
-                        {"name": "Monitor", "topics": ["Water Management", "Waste Management"]},
-                        {"name": "Low Priority", "topics": ["Community Relations", "Biodiversity"]}
-                    ]
-                }
-            }
-            return jsonify(mock_data)
-
-    except Exception as e:
-        logger.error(f"Unexpected error in materiality assessment endpoint: {str(e)}")
-        return jsonify({"error": str(e)}), 500
-
-# Add a new route for the analytics dashboard
-@app.route('/analytics-dashboard')
-def analytics_dashboard():
-    """AI-powered sustainability analytics dashboard"""
-    try:
-        logger.info("Analytics dashboard page requested")
-        return render_template("analytics_dashboard.html")
-    except Exception as e:
-        logger.error(f"Error in analytics dashboard route: {str(e)}")
-        return f"Error loading analytics dashboard: {str(e)}", 500
 
 @app.route("/api/sustainability-analysis", methods=["POST"])
 def api_sustainability_analysis():
@@ -1484,7 +1165,7 @@ def api_sustainability_analysis():
         }
         return jsonify(mock_data)
     except Exception as e:
-        logger.error(f"Unexpected error in sustainability analysis endpoint: {str(e)}")
+        logger.error(f"Unexpected error in predictive analytics endpoint: {str(e)}")
         return jsonify({"error": str(e)}), 500
 
 @app.route("/api/monetization-strategy", methods=["POST"])
@@ -1535,7 +1216,7 @@ def api_monetization_strategy():
             "Market Analysis": {
                 "Total Addressable Market": "$4.5B globally for sustainability data services",
                 "Competitive Landscape": "Emerging market with mix of startups and established sustainability consultancies",
-                "Growth Trends": "25-30% annual growth expected in sustainability data servicesmarket"
+                "Growth Trends": "25-30% annual growth expected in sustainability data services market"
             }
         }
         return jsonify(mock_data)
@@ -1598,29 +1279,116 @@ def api_apa_strategy():
 # Add after the other page routes (like /, /dashboard, /search, /trend-analysis)
 @app.route('/sustainability')
 def sustainability():
-    """Sustainability analysis page using McKinsey frameworks"""
+    """Sustainability page for corporate sustainability intelligence"""
     try:
-        logger.info("Sustainability analysis page requested")
+        logger.info("Sustainability page requested")
         return render_template("sustainability.html")
     except Exception as e:
         logger.error(f"Error in sustainability route: {str(e)}")
         return f"Error loading sustainability page: {str(e)}", 500
 
-# Add this route to render the sustainability_stories.html template
+# Add a route for the stories page
 @app.route('/sustainability-stories')
 def sustainability_stories():
-    """Sustainability storytelling page using McKinsey frameworks"""
+    """Sustainability stories page using data from FastAPI backend"""
     try:
-        logger.info("Sustainability storytelling page requested")
-        return render_template("sustainability_stories.html")
-    except Exception as e:
-        logger.error(f"Error in sustainability storytelling route: {str(e)}")
-        return f"Error loading sustainability storytelling page: {str(e)}", 500
+        logger.info("Sustainability stories page requested")
 
-# Add this API endpoint to proxy to our FastAPI storytelling backend
-@app.route("/api/storytelling", methods=["POST"])
+        # Try to fetch stories from backend
+        try:
+            response = requests.get(f"{BACKEND_URL}/api/stories", timeout=10.0)
+            response.raise_for_status()
+            stories = response.json()
+            logger.info(f"Successfully fetched {len(stories)} stories from API")
+        except Exception as e:
+            logger.error(f"Error fetching stories from API: {str(e)}")
+            logger.info("Using mock stories data")
+            # Mock stories if API fails
+            stories = get_mock_stories()
+
+        return render_template("sustainability_stories.html", stories=stories)
+    except Exception as e:
+        logger.error(f"Error in sustainability stories route: {str(e)}")
+        return f"Error loading sustainability stories: {str(e)}", 500
+
+# Helper function to generate mock stories
+def get_mock_stories():
+    """Generate mock sustainability stories as fallback"""
+    logger.info("Generating mock sustainability stories")
+    stories = [
+        {
+            "id": 1,
+            "title": "Sustainability Story for EcoTech Solutions",
+            "content": {
+                "Company": "EcoTech Solutions",
+                "Industry": "Technology",
+                "Industry_Context": "The technology sector faces growing scrutiny over electronic waste and energy consumption.",
+                "Sustainability_Strategy": "EcoTech has implemented a comprehensive circular economy approach to product design and manufacturing.",
+                "Competitor_Benchmarking": "Leading the industry with 45% reduction in carbon footprint compared to top 5 competitors.",
+                "Monetization_Model": "Premium pricing model justified by extended product lifespan and lower total cost of ownership.",
+                "Investment_Pathway": "Investing $50M in renewable energy infrastructure and sustainable material research over 5 years.",
+                "Actionable_Recommendations": [
+                    "Expand product takeback programs to emerging markets",
+                    "Implement blockchain-verified supply chain tracking",
+                    "Develop AI-powered energy optimization for data centers",
+                    "Launch sustainability impact scoring for products"
+                ]
+            },
+            "company_name": "EcoTech Solutions",
+            "industry": "Technology",
+            "created_at": (datetime.now() - timedelta(days=7)).isoformat()
+        },
+        {
+            "id": 2,
+            "title": "Sustainability Story for GreenLeaf Foods",
+            "content": {
+                "Company": "GreenLeaf Foods",
+                "Industry": "Food & Beverage",
+                "Industry_Context": "The food industry is under pressure to reduce emissions, water usage, and packaging waste.",
+                "Sustainability_Strategy": "GreenLeaf has adopted regenerative agriculture practices and plastic-free packaging.",
+                "Competitor_Benchmarking": "Among top 3 companies for sustainable packaging, but lags in emissions reduction.",
+                "Monetization_Model": "Brand premium and reduced costs through packaging optimization and waste reduction.",
+                "Investment_Pathway": "Allocating 30% of R&D budget to sustainable packaging and regenerative farming practices.",
+                "Actionable_Recommendations": [
+                    "Implement comprehensive emissions reduction plan across supply chain",
+                    "Expand regenerative agriculture to 80% of supplier network",
+                    "Transition to water-neutral manufacturing within 3 years",
+                    "Develop compostable packaging for all product lines"
+                ]
+            },
+            "company_name": "GreenLeaf Foods",
+            "industry": "Food & Beverage",
+            "created_at": (datetime.now() - timedelta(days=14)).isoformat()
+        },
+        {
+            "id": 3,
+            "title": "Sustainability Story for EcoMobility",
+            "content": {
+                "Company": "EcoMobility",
+                "Industry": "Transportation",
+                "Industry_Context": "Transportation is a major contributor to global emissions, facing regulatory pressure.",
+                "Sustainability_Strategy": "Transitioning to all-electric fleet with circular battery supply chain.",
+                "Competitor_Benchmarking": "Leading EV transition among peer group, 35% ahead of industry average.",
+                "Monetization_Model": "Innovative mobility-as-a-service model with sustainability subscription options.",
+                "Investment_Pathway": "Secured $120M green bond for charging infrastructure and fleet electrification.",
+                "Actionable_Recommendations": [
+                    "Accelerate charging infrastructure deployment in underserved regions",
+                    "Implement battery recycling and second-life programs",
+                    "Develop carbon offset program for remaining emissions",
+                    "Partner with renewable energy providers for charging networks"
+                ]
+            },
+            "company_name": "EcoMobility",
+            "industry": "Transportation",
+            "created_at": (datetime.now() - timedelta(days=21)).isoformat()
+        }
+    ]
+    return stories
+
+# Add API endpoint for storytelling
+@app.route('/api/storytelling', methods=['POST'])
 def api_storytelling():
-    """API endpoint to proxy storytelling requests to the FastAPI backend"""
+    """API endpoint to proxy storytelling requests to the backend"""
     try:
         logger.info("Storytelling API endpoint called")
         data = request.json
@@ -1633,65 +1401,94 @@ def api_storytelling():
         industry = data.get('industry')
 
         if not company_name or not industry:
-            logger.warning("Missing required fields in storytelling request")
-            return jsonify({"error": "Company name and industry are required"}), 400
+            logger.warning("Missing required parameters in storytelling request")
+            return jsonify({"error": "company_name and industry are required"}), 400
 
-        logger.info(f"Generating sustainability story for {company_name} in {industry} industry")
+        logger.info(f"Forwarding storytelling request for {company_name} in {industry} industry")
 
-        # Forward the request to the FastAPI backend
-        # The URL would be adjusted based on your deployment
-        storytelling_api_url = os.getenv('STORYTELLING_API_URL', 'http://localhost:8080')
+        # Forward the request to the backend
+        response = requests.post(
+            f"{BACKEND_URL}/api/sustainability-story",
+            params={"company_name": company_name, "industry": industry},
+            timeout=45.0  # Longer timeout for AI-generated content
+        )
 
-        try:
-            response = requests.post(
-                f"{storytelling_api_url}/api/sustainability-story",
-                params={"company_name": company_name, "industry": industry},
-                timeout=30.0  # Longer timeout for AI processing
-            )
-            response.raise_for_status()
-            result = response.json()
+        response.raise_for_status()
+        result = response.json()
 
-            logger.info(f"Successfully generated sustainability story for {company_name}")
-            return jsonify(result)
+        logger.info(f"Successfully received sustainability story from backend")
+        return jsonify(result)
+    except requests.exceptions.RequestException as e:
+        logger.error(f"Error forwarding storytelling request: {str(e)}")
 
-        except requests.exceptions.RequestException as e:
-            logger.error(f"Error calling storytelling API: {str(e)}")
-            # If the API call fails, use our local storytelling AI as fallback
+        # Generate mock sustainability story if backend is unavailable
+        company_name = data.get('company_name', 'Company')
+        industry = data.get('industry', 'Industry')
 
-            # Import the storytelling AI function (assuming it's available)
-            try:
-                from services.storytelling_ai import generate_sustainability_story
-                story = generate_sustainability_story(company_name, industry)
-                return jsonify(story)
-            except ImportError:
-                logger.error("Could not import storytelling_ai module")
-                # Generate a very simple mock story as a last resort
-                mock_story = {
-                    "Company": company_name,
-                    "Industry": industry,
-                    "Sustainability Strategy": f"A sustainable transformation strategy for {company_name} focusing on emission reductions, resource efficiency, and stakeholder engagement.",
-                    "Monetization Model": f"Sustainability data analytics platform enabling {company_name} to monetize insights and benchmarking.",
-                    "Investment Pathway": "Green bonds and sustainability-linked loans to finance initiatives with favorable terms.",
-                    "Actionable Recommendations": [
-                        "Implement science-based targets for emissions reduction",
-                        "Develop comprehensive ESG data management system",
-                        "Invest in renewable energy infrastructure"
-                    ]
-                }
-                return jsonify(mock_story)
+        logger.info(f"Generating mock sustainability story for {company_name}")
 
+        mock_story = {
+            "Company": company_name,
+            "Industry": industry,
+            "Industry_Context": f"The {industry} sector is experiencing rapid transformation due to sustainability pressures, regulatory changes, and evolving consumer preferences.",
+            "Sustainability_Strategy": f"{company_name} is implementing a multi-faceted sustainability strategy focused on emissions reduction, resource efficiency, and stakeholder engagement.",
+            "Competitor_Benchmarking": f"{company_name} ranks in the top quartile for sustainability reporting transparency but lags competitors in renewable energy adoption and water conservation.",
+            "Monetization_Model": "Sustainability initiatives are monetized through premium pricing, operational cost reductions, and new green product lines targeting eco-conscious consumers.",
+            "Investment_Pathway": "A phased 5-year investment plan allocates resources to emissions reduction technologies, supply chain optimization, and sustainable product innovation.",
+            "Actionable_Recommendations": [
+                f"Implement science-based targets for emissions reduction across {company_name}'s operations",
+                "Develop comprehensive supplier sustainability program with verification mechanisms",
+                "Launch green product innovation lab focused on circular economy principles",
+                "Enhance sustainability reporting with quantifiable metrics and third-party verification"
+            ]
+        }
+
+        return jsonify(mock_story)
     except Exception as e:
         logger.error(f"Unexpected error in storytelling endpoint: {str(e)}")
         return jsonify({"error": str(e)}), 500
 
+# Add a new route for the Analytics Dashboard
+@app.route('/analytics-dashboard')
+def analytics_dashboard():
+    """AI-powered sustainability analytics dashboard"""
+    try:
+        logger.info("Analytics dashboard page requested")
+        return render_template("analytics_dashboard.html")
+    except Exception as e:
+        logger.error(f"Error in analytics dashboard route: {str(e)}")
+        return f"Error loading analytics dashboard: {str(e)}", 500
+
+# Add a route for monetization opportunities page
+@app.route('/monetization-opportunities')
+def monetization_opportunities():
+    """Monetization opportunities page"""
+    try:
+        logger.info("Monetization opportunities page requested")
+        return render_template("monetization.html")
+    except Exception as e:
+        logger.error(f"Error in monetization opportunities route: {str(e)}")
+        return f"Error loading monetization opportunities page: {str(e)}", 500
+
+# Add the monetization strategy page route after the other page routes
+@app.route('/monetization')
+def monetization_strategy():
+    """Monetization Strategy page for SustainaTrend 2.0"""
+    try:
+        logger.info("Monetization strategy page requested")
+        return render_template("monetization.html")
+    except Exception as e:
+        logger.error(f"Error in monetization strategy route: {str(e)}")
+        return f"Error loading monetization strategy page: {str(e)}", 500
+
 if __name__ == "__main__":
-    # Use port 5000 to match Replit's expected configuration
-    port = 5000
+    # Use the PORT environment variable provided by Replit, or default to 5000
+    port = int(os.environ.get("PORT", 5000))
 
     # Log registered routes for debugging
     routes = [str(rule) for rule in app.url_map.iter_rules()]
     logger.info(f"Registered routes: {routes}")
     logger.info(f"Starting Flask server on port {port}")
 
-    # Start Flask server - use host 0.0.0.0 to make it accessible from outside the container
+    # Start the Flask app with the correct host and port
     app.run(host="0.0.0.0", port=port, debug=True)
