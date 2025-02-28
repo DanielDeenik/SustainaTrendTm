@@ -431,7 +431,8 @@ if __name__ == "__main__":
     for attempt in range(max_retries):
         try:
             # Explicitly set host to 0.0.0.0 for Replit compatibility
-            uvicorn.run("storytelling_api:app", host=host, port=port, reload=True)
+            # Removed reload=True to avoid issues with port binding and timeouts
+            uvicorn.run("storytelling_api:app", host=host, port=port)
             break
         except Exception as e:
             logger.error(f"Failed to start server on attempt {attempt + 1}/{max_retries}: {str(e)}")

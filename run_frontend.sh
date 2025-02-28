@@ -5,7 +5,7 @@ echo "Starting Flask frontend on port 5000..."
 cd frontend
 
 # Set backend URL
-export BACKEND_URL="http://localhost:8000"
+export BACKEND_URL="http://localhost:8080"
 echo "Using BACKEND_URL: $BACKEND_URL"
 
 # Check if psutil is installed, install if needed
