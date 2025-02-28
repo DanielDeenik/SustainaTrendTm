@@ -407,6 +407,37 @@ async def get_materiality_assessment(
 # Run the API with uvicorn when the script is executed directly
 if __name__ == "__main__":
     import uvicorn
+    import socket
+    import time
+
+    # Determine port from environment or use default
     port = int(os.environ.get("PORT", 8080))
-    logger.info(f"Starting FastAPI server on port {port}")
-    uvicorn.run("storytelling_api:app", host="0.0.0.0", port=port, reload=True)
+    host = os.environ.get("HOST", "0.0.0.0")  # Explicitly use 0.0.0.0 for Replit compatibility
+
+    # Log startup info
+    logger.info(f"Starting FastAPI server on host {host}, port {port}")
+
+    # Check if port is already in use
+    s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+    try:
+        s.bind((host, port))
+        s.close()
+        logger.info(f"Port {port} is available for binding")
+    except socket.error:
+        logger.warning(f"Port {port} is already in use, proceeding anyway (uvicorn will handle this)")
+
+    # Multiple retries for starting the server
+    max_retries = 3
+    for attempt in range(max_retries):
+        try:
+            # Explicitly set host to 0.0.0.0 for Replit compatibility
+            uvicorn.run("storytelling_api:app", host=host, port=port, reload=True)
+            break
+        except Exception as e:
+            logger.error(f"Failed to start server on attempt {attempt + 1}/{max_retries}: {str(e)}")
+            if attempt < max_retries - 1:
+                logger.info(f"Retrying in 3 seconds...")
+                time.sleep(3)
+            else:
+                logger.critical(f"Failed to start server after {max_retries} attempts")
+                raise
