@@ -26,7 +26,7 @@ logger = logging.getLogger(__name__)
 class PortManager:
     """Manages port allocations to prevent conflicts"""
 
-    def __init__(self, port=5000, max_retries=3, retry_delay=2, timeout=10):
+    def __init__(self, port=5000, max_retries=3, retry_delay=2, timeout=10, host="0.0.0.0"):
         """
         Initialize the PortManager
 
@@ -35,8 +35,10 @@ class PortManager:
             max_retries: Maximum number of retries to free the port
             retry_delay: Delay between retries in seconds
             timeout: Timeout in seconds when waiting for an application to start
+            host: The host to bind to (default: 0.0.0.0 for Replit compatibility)
         """
         self.port = port
+        self.host = host
         self.max_retries = max_retries
         self.retry_delay = retry_delay
         self.timeout = timeout
@@ -45,7 +47,10 @@ class PortManager:
     def is_port_in_use(self):
         """Check if the port is already in use"""
         with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as s:
-            return s.connect_ex(('localhost', self.port)) == 0
+            # Check both localhost and 0.0.0.0 bindings
+            localhost_in_use = s.connect_ex(('127.0.0.1', self.port)) == 0
+            any_in_use = s.connect_ex(('0.0.0.0', self.port)) == 0
+            return localhost_in_use or any_in_use
 
     def get_pid_using_port(self):
         """Find the PID of any process using the specified port"""
@@ -164,6 +169,7 @@ class PortManager:
         # Prepare environment with PORT variable set
         env = os.environ.copy()
         env['PORT'] = str(self.port)
+        env['HOST'] = self.host  # Ensure host is passed to the application
 
         # Start the application
         try:
@@ -235,13 +241,14 @@ def main():
 
     parser = argparse.ArgumentParser(description="Manage port allocations and run applications")
     parser.add_argument("--port", type=int, default=5000, help="Port to manage (default: 5000)")
+    parser.add_argument("--host", type=str, default="0.0.0.0", help="Host to bind to (default: 0.0.0.0)")
     parser.add_argument("--check", action="store_true", help="Check if port is in use")
     parser.add_argument("--free", action="store_true", help="Free the port if in use")
     parser.add_argument("--run", help="Run a command with the managed port")
     parser.add_argument("--flask", help="Run a Flask application with the managed port")
 
     args = parser.parse_args()
-    port_manager = PortManager(port=args.port)
+    port_manager = PortManager(port=args.port, host=args.host)
 
     if args.check:
         if port_manager.is_port_in_use():
