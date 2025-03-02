@@ -6,6 +6,7 @@ import httpx
 import asyncio
 import time
 import json
+import traceback
 from urllib.parse import quote_plus
 import redis
 import re
@@ -18,6 +19,13 @@ from flask_caching import Cache
 import logging
 from datetime import datetime, timedelta
 import random  # For generating mock AI search and trend data
+
+# Import enhanced search functionality
+try:
+    from enhanced_search import initialize_search_engine, perform_search, format_search_results
+    ENHANCED_SEARCH_AVAILABLE = True
+except ImportError as e:
+    ENHANCED_SEARCH_AVAILABLE = False
 
 # Load environment variables
 load_dotenv()
@@ -263,19 +271,68 @@ def search_duckduckgo(query, max_results=10):
         logger.error(f"Error in DuckDuckGo search: {str(e)}")
         return []
 
-# Enhanced search function that combines AI-powered query expansion with real-time online search
-def perform_enhanced_search(query, model="rag", max_results=15):
+# Enhanced search function that combines AI-powered query expansion with our advanced search engine
+def perform_enhanced_search(query, model="hybrid", max_results=15):
     """
     Enhanced search functionality that combines:
     1. AI-powered query expansion
-    2. Real-time online search results
-    3. Mock sustainability data (as fallback)
-    4. Advanced relevance ranking algorithm
+    2. Advanced search engine capabilities
+    3. Real-time online search results
+    4. Mock sustainability data (as fallback)
+    5. Advanced relevance ranking algorithm
     """
     try:
         start_time = time.time()
         logger.info(f"Starting enhanced search for query: '{query}' using model: {model}")
 
+        # Check if our advanced search engine is available
+        if ENHANCED_SEARCH_AVAILABLE:
+            try:
+                logger.info(f"Using advanced search engine for query: '{query}'")
+                
+                # Step 1: AI-powered query expansion
+                expanded_query = expand_query_with_ai(query)
+                
+                # Step 2: Use our advanced search engine
+                # Create an event loop if one is not already running
+                try:
+                    loop = asyncio.get_event_loop()
+                except RuntimeError:
+                    loop = asyncio.new_event_loop()
+                    asyncio.set_event_loop(loop)
+                
+                # Use our advanced search engine
+                search_results = loop.run_until_complete(
+                    perform_search(
+                        query=expanded_query,
+                        mode=model,
+                        max_results=max_results
+                    )
+                )
+                
+                # Format the results
+                formatted_results = format_search_results(search_results)
+                
+                # Extract the results list from the formatted response
+                results = formatted_results.get("results", [])
+                
+                # Log performance metrics
+                search_time = time.time() - start_time
+                logger.info(f"Advanced search completed in {search_time:.2f}s with {len(results)} results")
+                
+                # Always return a dictionary with results and explanation to maintain consistent format
+                return {
+                    "results": results,
+                    "explanation": formatted_results.get("explanation", None)
+                }
+                
+            except Exception as e:
+                logger.error(f"Advanced search engine failed, falling back to traditional search: {str(e)}")
+                # Continue with traditional search as fallback
+        
+        # Traditional search as fallback
+        logger.info(f"Using traditional enhanced search for query: '{query}'")
+        
         # Step 1: AI-powered query expansion
         expanded_query = expand_query_with_ai(query)
 
@@ -290,13 +347,22 @@ def perform_enhanced_search(query, model="rag", max_results=15):
 
         # Log performance metrics
         search_time = time.time() - start_time
-        logger.info(f"Enhanced search completed in {search_time:.2f}s with {len(combined_results)} results")
+        logger.info(f"Traditional enhanced search completed in {search_time:.2f}s with {len(combined_results)} results")
 
-        return combined_results
+        # Package in the same dictionary format as the advanced search
+        return {
+            "results": combined_results,
+            "explanation": {
+                "query_expansion": f"Original query '{query}' expanded to '{expanded_query}'",
+                "sources_used": ["DuckDuckGo", "Sustainability AI"]
+            }
+        }
     except Exception as e:
         logger.error(f"Error in enhanced search: {str(e)}")
         # Fallback to mock results if enhanced search fails
-        return perform_ai_search(query, model)
+        ai_search_results = perform_ai_search(query, model)
+        # The perform_ai_search function now also returns a dictionary with results and explanation
+        return ai_search_results
 
 # New function for advanced result ranking and combination
 def rank_and_combine_results(query, online_results, mock_results, max_results=15):
@@ -734,7 +800,16 @@ def perform_ai_search(query: str, model="rag"):
     results.sort(key=lambda x: x["confidence"], reverse=True)
 
     logger.info(f"Generated {len(results)} search results")
-    return results
+    
+    # Package in the same dictionary format as other search results
+    return {
+        "results": results,
+        "explanation": {
+            "model": model,
+            "query_analysis": f"Analyzed query '{query}' using {model} model",
+            "matching_categories": categories
+        }
+    }
 
 # Fix for real-time search API endpoint
 @app.route("/api/realtime-search")
@@ -742,22 +817,38 @@ def api_realtime_search():
     """API endpoint for real-time search results"""
     try:
         query = request.args.get('query', '')
-        model = request.args.get('model', 'rag')
+        model = request.args.get('model', 'hybrid')  # Default to hybrid model for new search engine
         logger.info(f"Real-time search API called with query: '{query}', model: {model}")
 
         if not query:
             logger.warning("Real-time search API called with empty query")
             return jsonify({"error": "Query parameter is required"}), 400
 
-        # Use synchronous function instead of async
-        results = perform_enhanced_search(query, model)
-
-        logger.info(f"Real-time search returned {len(results)} results")
-        return jsonify({
+        # Use our enhanced search engine which now always returns a dictionary with results and explanation
+        search_data = perform_enhanced_search(query, model)
+        
+        # Extract results from the standardized format
+        if isinstance(search_data, dict) and 'results' in search_data:
+            results = search_data.get('results', [])
+            explanation = search_data.get('explanation', None)
+        else:
+            # Fallback for backward compatibility
+            results = search_data
+            explanation = None
+            
+        # Prepare response
+        response_data = {
             "query": query,
             "results": results,
             "timestamp": datetime.now().isoformat()
-        })
+        }
+        
+        # Add explanation if we have it
+        if explanation:
+            response_data['explanation'] = explanation
+
+        logger.info(f"Real-time search returned {len(results) if isinstance(results, list) else 'unknown number of'} results")
+        return jsonify(response_data)
     except Exception as e:
         logger.error(f"Error in real-time search API: {str(e)}")
         return jsonify({"error": str(e)}), 500
@@ -765,21 +856,39 @@ def api_realtime_search():
 # Update the search route to use the enhanced search
 @app.route('/search')
 def search():
-    """Enhanced AI-powered search interface"""
+    """Enhanced AI-powered search interface with advanced search engine integration"""
     try:
         query = request.args.get('query', '')
-        model = request.args.get('model', 'rag')  # Default to RAG model
+        model = request.args.get('model', 'hybrid')  # Default to hybrid model for new search engine
 
         logger.info(f"Search requested with query: '{query}', model: {model}")
 
         results = []
+        explanation = None
+        
         if query:
-            # For the initial page load, use the synchronous mock search to avoid delay
-            # The UI will then fetch real-time results via AJAX
-            results = perform_ai_search(query, model)
-            logger.info(f"Initial search returned {len(results)} results for query: '{query}'")
+            # For the initial page load, use the enhanced search which will utilize 
+            # the advanced search engine if available
+            search_results = perform_enhanced_search(query, model)
+            
+            # Check if we're using the advanced search engine and have an explanation
+            if isinstance(search_results, dict) and 'explanation' in search_results:
+                results = search_results.get('results', [])
+                explanation = search_results.get('explanation')
+            else:
+                results = search_results
+                
+            logger.info(f"Initial search returned {len(results) if isinstance(results, list) else 'unknown number of'} results for query: '{query}'")
 
-        return render_template("search.html", query=query, results=results, model=model)
+        # Add new search engine availability to template variables
+        return render_template(
+            "search.html", 
+            query=query, 
+            results=results, 
+            model=model, 
+            enhanced_search_available=ENHANCED_SEARCH_AVAILABLE,
+            explanation=explanation
+        )
     except Exception as e:
         logger.error(f"Error in search route: {str(e)}")
         return f"Error loading search page: {str(e)}", 500
@@ -1470,16 +1579,120 @@ def monetization_opportunities():
         logger.error(f"Error in monetization opportunities route: {str(e)}")
         return f"Error loading monetization opportunities page: {str(e)}", 500
 
+# Add a test endpoint to check routing issues
+@app.route('/test-route')
+def test_route():
+    """Test route to diagnose routing issues"""
+    try:
+        logger.info("Test route requested")
+        return jsonify({
+            "status": "success",
+            "message": "Test route is working correctly",
+            "timestamp": datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+        })
+    except Exception as e:
+        logger.error(f"Error in test route: {str(e)}")
+        return jsonify({"error": str(e)}), 500
+
+# Add a simple monetization page for troubleshooting
+@app.route('/monetization-simple')
+def monetization_simple():
+    """Simple monetization page without complex HTML for troubleshooting"""
+    try:
+        logger.info("Simple monetization page requested")
+        content = """
+        <html>
+        <head>
+            <title>Monetization Strategy (Simple)</title>
+            <style>
+                body { font-family: Arial, sans-serif; margin: 20px; }
+                h1 { color: #2c7744; }
+                .card { border: 1px solid #ddd; padding: 15px; margin-bottom: 15px; border-radius: 5px; }
+            </style>
+        </head>
+        <body>
+            <h1>Monetization Strategy - Simple View</h1>
+            
+            <div class="card">
+                <h2>Strategy 1: Data-as-a-Service</h2>
+                <p>Provide subscription access to sustainability metrics and insights.</p>
+            </div>
+            
+            <div class="card">
+                <h2>Strategy 2: AI-Powered Analytics</h2>
+                <p>Offer premium AI analysis of sustainability trends and recommendations.</p>
+            </div>
+            
+            <div class="card">
+                <h2>Strategy 3: Consulting Services</h2>
+                <p>Leverage platform insights to deliver tailored sustainability consulting.</p>
+            </div>
+            
+            <p><a href="/">Return to Home</a></p>
+        </body>
+        </html>
+        """
+        return content
+    except Exception as e:
+        logger.error(f"Error in simple monetization route: {str(e)}")
+        return f"Error loading simple monetization page: {str(e)}", 500
+
 # Add the monetization strategy page route after the other page routes
 @app.route('/monetization')
 def monetization_strategy():
     """Monetization Strategy page for SustainaTrend 2.0"""
     try:
         logger.info("Monetization strategy page requested")
-        return render_template("monetization.html")
+        
+        # Check if this is a request from Replit's webview by examining headers
+        is_replit_webview = 'X-Forwarded-For' in request.headers or 'X-Replit-User-Id' in request.headers
+        logger.info(f"Request headers: {dict(request.headers)}")
+        logger.info(f"Is Replit webview: {is_replit_webview}")
+        
+        # Option to force text response for debugging in Replit
+        force_text = request.args.get('format') == 'text'
+        
+        # Add debug information to the template context
+        debug_info = {
+            "timestamp": datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
+            "route": "monetization",
+            "template": "monetization.html",
+            "server": "Flask/Python",
+            "headers": dict(request.headers),
+            "is_replit_webview": is_replit_webview
+        }
+        logger.info(f"Serving monetization page with debug info: {debug_info}")
+        
+        if force_text:
+            # Return a simple text response for debugging
+            return f"Monetization Strategy Page\n\nDebug Info: {json.dumps(debug_info, indent=2)}", 200, {'Content-Type': 'text/plain'}
+        else:
+            return render_template("monetization.html", debug_info=debug_info)
     except Exception as e:
+        error_details = traceback.format_exc()
         logger.error(f"Error in monetization strategy route: {str(e)}")
-        return f"Error loading monetization strategy page: {str(e)}", 500
+        logger.error(f"Error traceback: {error_details}")
+        return f"Error loading monetization strategy page: {str(e)}\n\nDetails: {error_details}", 500
+
+# Add a special error handler for 404 errors to help diagnose routing issues
+@app.errorhandler(404)
+def page_not_found(e):
+    """Custom 404 handler with detailed debugging info"""
+    logger.error(f"404 error: {str(e)}")
+    logger.error(f"Request path: {request.path}")
+    logger.error(f"Request headers: {dict(request.headers)}")
+    
+    # Create a debug response with helpful information
+    debug_info = {
+        "error": "Page not found",
+        "path": request.path,
+        "available_routes": [str(rule) for rule in app.url_map.iter_rules()],
+        "headers": dict(request.headers),
+        "timestamp": datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+    }
+    
+    # Return a more helpful 404 page
+    return render_template("404.html", debug_info=debug_info), 404
 
 if __name__ == "__main__":
     # Use the PORT environment variable provided by Replit, or default to 5000

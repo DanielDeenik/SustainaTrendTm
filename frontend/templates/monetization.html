@@ -2,6 +2,26 @@
 
 {% block title %}Monetization Framework - SustainaTrend™ 2.0{% endblock %}
 
+{% block head %}
+<!-- Debug info script to help diagnose routing issues -->
+<script type="text/javascript">
+document.addEventListener('DOMContentLoaded', function() {
+    console.log("Monetization page loaded successfully");
+    {% if debug_info %}
+    console.log("Debug info:", {{ debug_info|tojson }});
+    {% else %}
+    console.log("No debug info available");
+    {% endif %}
+    
+    // Add window error handler
+    window.onerror = function(message, source, lineno, colno, error) {
+        console.error("JS Error:", message, "at", source, "line:", lineno, "error:", error);
+        return false;
+    };
+});
+</script>
+{% endblock %}
+
 {% block styles %}
 <style>
     .monetization-header {
