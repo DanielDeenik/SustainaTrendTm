@@ -133,6 +133,11 @@
                             </a>
                         </li>
                         <li class="nav-item">
+                            <a class="nav-link {% if request.path == '/gemini-search' %}active{% endif %}" href="/gemini-search">
+                                <i class="bi bi-cpu"></i> Gemini AI Search
+                            </a>
+                        </li>
+                        <li class="nav-item">
                             <a class="nav-link {% if request.path == '/trend-analysis' %}active{% endif %}" href="/trend-analysis">
                                 <i class="bi bi-arrow-up-right"></i> Trend Analysis
                             </a>

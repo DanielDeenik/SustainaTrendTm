@@ -20,19 +20,32 @@ import logging
 from datetime import datetime, timedelta
 import random  # For generating mock AI search and trend data
 
-# Import enhanced search functionality
-try:
-    from enhanced_search import initialize_search_engine, perform_search, format_search_results
-    ENHANCED_SEARCH_AVAILABLE = True
-except ImportError as e:
-    ENHANCED_SEARCH_AVAILABLE = False
+# Configure logging first
+logging.basicConfig(level=logging.INFO)
+logger = logging.getLogger(__name__)
 
 # Load environment variables
 load_dotenv()
 
-# Configure logging
-logging.basicConfig(level=logging.INFO)
-logger = logging.getLogger(__name__)
+# Import enhanced search functionality
+try:
+    from enhanced_search import initialize_search_engine, perform_search, format_search_results
+    ENHANCED_SEARCH_AVAILABLE = True
+    logger.info("Enhanced search functionality loaded successfully")
+except ImportError as e:
+    ENHANCED_SEARCH_AVAILABLE = False
+    logger.warning(f"Enhanced search not available: {e}")
+
+# Import Gemini search controller
+try:
+    from gemini_search import GeminiSearchController
+    GEMINI_SEARCH_AVAILABLE = True
+    gemini_search_controller = GeminiSearchController()
+    logger.info("Gemini search controller initialized successfully")
+except ImportError as e:
+    GEMINI_SEARCH_AVAILABLE = False
+    logger.warning(f"Gemini search not available: {e}")
+
 logger.info("Starting Sustainability Intelligence Dashboard")
 
 # Initialize Flask
@@ -1673,6 +1686,136 @@ def monetization_strategy():
         logger.error(f"Error in monetization strategy route: {str(e)}")
         logger.error(f"Error traceback: {error_details}")
         return f"Error loading monetization strategy page: {str(e)}\n\nDetails: {error_details}", 500
+
+# Gemini-powered Search Routes
+@app.route("/gemini-search")
+def gemini_search():
+    """
+    Gemini-powered enhanced AI search interface with Google Search integration
+    """
+    try:
+        query = request.args.get('query', '')
+        mode = request.args.get('mode', 'hybrid')  # hybrid, gemini, google
+        
+        logger.info(f"Gemini search requested with query: '{query}', mode: {mode}")
+        
+        results = []
+        enhanced_query = query
+        query_analysis = None
+        
+        if query:
+            if GEMINI_SEARCH_AVAILABLE:
+                try:
+                    # Use Gemini search controller
+                    # Create an event loop if one is not already running
+                    try:
+                        loop = asyncio.get_event_loop()
+                    except RuntimeError:
+                        loop = asyncio.new_event_loop()
+                        asyncio.set_event_loop(loop)
+                    
+                    # Perform the search with Gemini
+                    search_response = loop.run_until_complete(
+                        gemini_search_controller.enhanced_search(
+                            query=query,
+                            mode=mode,
+                            max_results=15
+                        )
+                    )
+                    
+                    # Extract results and metadata
+                    results = search_response.get("results", [])
+                    metadata = search_response.get("metadata", {})
+                    enhanced_query = metadata.get("enhanced_query", query)
+                    query_analysis = search_response.get("query_analysis", "")
+                    
+                    logger.info(f"Gemini search returned {len(results)} results for query: '{query}'")
+                except Exception as e:
+                    logger.error(f"Error in Gemini search: {str(e)}")
+                    # Fall back to standard enhanced search
+                    search_results = perform_enhanced_search(query, model="hybrid")
+                    results = search_results.get("results", [])
+            else:
+                # Fall back to standard enhanced search
+                logger.warning(f"Gemini search not available, falling back to standard search")
+                search_results = perform_enhanced_search(query, model="hybrid")
+                results = search_results.get("results", [])
+        
+        # Render the search template with results
+        return render_template('gemini_search.html', 
+                              query=query,
+                              mode=mode,
+                              results=results,
+                              enhanced_query=enhanced_query,
+                              query_analysis=query_analysis)
+    
+    except Exception as e:
+        logger.error(f"Error in Gemini search route: {str(e)}")
+        # Return an error message but still render the template
+        return render_template('gemini_search.html', 
+                              query=query if 'query' in locals() else "",
+                              mode=mode if 'mode' in locals() else "hybrid",
+                              results=[],
+                              error=str(e))
+
+@app.route("/api-gemini-search")
+def api_gemini_search():
+    """
+    API endpoint for Gemini-powered search
+    Used for AJAX requests from the search page
+    """
+    try:
+        query = request.args.get('query', '')
+        mode = request.args.get('mode', 'hybrid')
+        
+        logger.info(f"API Gemini search requested with query: '{query}', mode: {mode}")
+        
+        if not query:
+            return jsonify({"error": "Query parameter is required"}), 400
+        
+        if GEMINI_SEARCH_AVAILABLE:
+            try:
+                # Use Gemini search controller
+                # Create an event loop if one is not already running
+                try:
+                    loop = asyncio.get_event_loop()
+                except RuntimeError:
+                    loop = asyncio.new_event_loop()
+                    asyncio.set_event_loop(loop)
+                
+                # Perform the search with Gemini
+                search_response = loop.run_until_complete(
+                    gemini_search_controller.enhanced_search(
+                        query=query,
+                        mode=mode,
+                        max_results=15
+                    )
+                )
+                
+                # Return the search response
+                return jsonify(search_response)
+            
+            except Exception as e:
+                logger.error(f"Error in API Gemini search: {str(e)}")
+                return jsonify({"error": str(e), "results": []}), 500
+        else:
+            # Fall back to standard enhanced search
+            logger.warning(f"Gemini search not available for API, falling back to standard search")
+            search_results = perform_enhanced_search(query, model="hybrid")
+            return jsonify({
+                "results": search_results.get("results", []),
+                "metadata": {
+                    "query": query,
+                    "enhanced_query": query,
+                    "source": "traditional",
+                    "result_count": len(search_results.get("results", []))
+                },
+                "query_analysis": "Standard search analysis (Gemini not available)"
+            })
+    
+    except Exception as e:
+        logger.error(f"Error in API Gemini search route: {str(e)}")
+        return jsonify({"error": str(e), "results": []}), 500
 
 # Add a special error handler for 404 errors to help diagnose routing issues
 @app.errorhandler(404)
