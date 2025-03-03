@@ -21,14 +21,58 @@ import re
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
 
-# Import Google libraries if available
+# Import Google libraries if available with comprehensive error handling
 try:
+    # Try importing the Google Generative AI library
     import google.generativeai as genai
-    import googleapiclient.discovery
+    GEMINI_IMPORT_ERROR = None
     GEMINI_AVAILABLE = True
-except ImportError:
-    logger.warning("Google Generative AI libraries not available. Install with: pip install google-generativeai")
+except ImportError as e:
+    logger.warning(f"Google Generative AI library not available: {str(e)}. Install with: pip install google-generativeai")
+    GEMINI_IMPORT_ERROR = str(e)
     GEMINI_AVAILABLE = False
+    # Define a placeholder for when the library is not available
+    class GenaiPlaceholder:
+        def configure(self, **kwargs):
+            logger.warning("Attempted to use Gemini API but the library is not installed")
+            return None
+        
+        def list_models(self):
+            logger.warning("Attempted to list Gemini models but the library is not installed")
+            return []
+            
+        def GenerativeModel(self, **kwargs):
+            logger.warning("Attempted to create Gemini model but the library is not installed")
+            class MockModel:
+                def generate_content(self, prompt):
+                    class MockResponse:
+                        text = json.dumps({"error": "Gemini API not available"})
+                    return MockResponse()
+            return MockModel()
+    
+    # Create a placeholder if the real library isn't available
+    genai = GenaiPlaceholder()
+
+# Import Google Search API with separate try/except for fine-grained error reporting
+try:
+    import googleapiclient.discovery
+    GOOGLE_SEARCH_AVAILABLE = True
+    GOOGLE_SEARCH_IMPORT_ERROR = None
+except ImportError as e:
+    logger.warning(f"Google Search API library not available: {str(e)}. Install with: pip install google-api-python-client")
+    GOOGLE_SEARCH_AVAILABLE = False
+    GOOGLE_SEARCH_IMPORT_ERROR = str(e)
+    # Define a placeholder for Google Search API
+    class GoogleApiPlaceholder:
+        def discovery(self):
+            class MockDiscovery:
+                def build(self, *args, **kwargs):
+                    logger.warning("Attempted to use Google Search API but the library is not installed")
+                    return None
+            return MockDiscovery()
+    
+    # Create a placeholder if the real library isn't available
+    googleapiclient = GoogleApiPlaceholder()
 
 class GeminiSearchController:
     """Controller for AI-powered search using Gemini and Google Search"""
@@ -100,30 +144,101 @@ class GeminiSearchController:
     def __init__(self):
         """Initialize the Gemini search controller"""
         # Get API keys from environment variables with more robust fallback handling
-        self.api_key = os.getenv("GEMINI_API_KEY")
-        self.cse_id = os.getenv("GOOGLE_CSE_ID")
-        self.google_api_key = os.getenv("GOOGLE_API_KEY")
+        # Process environment vars - handle both raw values and ${VAR} format
+        def process_env_var(env_value):
+            if not env_value:
+                return None
+            # Handle ${VAR} format in .env files by getting from actual environment
+            if env_value.startswith('${') and env_value.endswith('}'):
+                actual_var_name = env_value[2:-1]  # Extract VAR from ${VAR}
+                return os.getenv(actual_var_name)
+            return env_value
         
-        # Validate & log API key status (without exposing the actual keys)
+        # Get and process Gemini API key
+        raw_api_key = os.getenv("GEMINI_API_KEY")
+        self.api_key = process_env_var(raw_api_key)
+        
+        # Get and process Google API key
+        raw_google_key = os.getenv("GOOGLE_API_KEY")
+        self.google_api_key = process_env_var(raw_google_key)
+        
+        # Try to load CSE ID from different sources in order of preference
+        # 1. First check the .env file directly, bypassing potential Replit secrets
+        try:
+            env_path = os.path.join(os.path.dirname(os.path.abspath(__file__)), '.env')
+            if os.path.exists(env_path):
+                with open(env_path, 'r') as f:
+                    for line in f:
+                        if line.startswith('GOOGLE_CSE_ID='):
+                            env_file_cse_id = line.strip().split('=', 1)[1].strip()
+                            # Remove quotes if present
+                            if env_file_cse_id.startswith('"') and env_file_cse_id.endswith('"'):
+                                env_file_cse_id = env_file_cse_id[1:-1]
+                            # Process ${VAR} format
+                            env_file_cse_id = process_env_var(env_file_cse_id)
+                            logger.info(f"Found CSE ID in .env file: '{env_file_cse_id}'")
+                            self.cse_id = env_file_cse_id
+                            break
+            else:
+                logger.info("No .env file found to load CSE ID")
+        except Exception as e:
+            logger.warning(f"Error reading CSE ID from .env file: {str(e)}")
+        
+        # 2. Fall back to environment variable if not found in .env
+        if not hasattr(self, 'cse_id') or not self.cse_id:
+            raw_cse_id = os.getenv("GOOGLE_CSE_ID")
+            self.cse_id = process_env_var(raw_cse_id)
+            if self.cse_id:
+                logger.info("GOOGLE_CSE_ID loaded from environment variable")
+            else:
+                logger.warning("GOOGLE_CSE_ID not found in environment")
+        
+        # Log and validate API key status (without exposing the actual keys)
         if self.api_key:
-            logger.info("GEMINI_API_KEY found in environment")
+            # Verify the key has proper format without revealing it
+            masked_key = self.api_key[:4] + "*" * (len(self.api_key) - 8) + self.api_key[-4:] if len(self.api_key) > 8 else "****"
+            logger.info(f"GEMINI_API_KEY found in environment (masked: {masked_key})")
         else:
             logger.warning("GEMINI_API_KEY not found in environment, using mock responses")
             
         if self.google_api_key:
-            logger.info("GOOGLE_API_KEY found in environment")
+            # Verify the key has proper format without revealing it
+            masked_key = self.google_api_key[:4] + "*" * (len(self.google_api_key) - 8) + self.google_api_key[-4:] if len(self.google_api_key) > 8 else "****"
+            logger.info(f"GOOGLE_API_KEY found in environment (masked: {masked_key})")
         else:
             logger.warning("GOOGLE_API_KEY not found in environment")
             
+        # Always validate the CSE ID format regardless of source
         if self.cse_id:
-            logger.info("GOOGLE_CSE_ID found in environment")
+            # Improved CSE ID validation
+            is_valid_cse = True
+            reason = ""
+            
             # Fix common CSE ID issues
-            if "@" in self.cse_id or ".apps.googleusercontent.com" in self.cse_id:
-                logger.warning(f"CSE ID '{self.cse_id}' appears to be a client ID, using value from .env file instead")
+            if self.cse_id.startswith("${") and self.cse_id.endswith("}"):
+                is_valid_cse = False
+                reason = "contains unparsed environment variable"
+            elif "@" in self.cse_id or ".apps.googleusercontent.com" in self.cse_id:
+                is_valid_cse = False
+                reason = "appears to be a client ID"
+            elif "GOOGLE_CSE_ID" in self.cse_id:
+                is_valid_cse = False
+                reason = "contains placeholder text"
+            elif len(self.cse_id) < 10:
+                is_valid_cse = False
+                reason = "too short to be valid"
+            elif not ":" in self.cse_id and not self.cse_id.startswith("0"):
+                is_valid_cse = False
+                reason = "missing required format (should contain ':' or start with '0')"
+                
+            if not is_valid_cse:
+                logger.warning(f"CSE ID '{self.cse_id}' invalid: {reason}, using default value instead")
                 self.cse_id = "017576662512468239146:omuauf_lfve"
+            else:
+                logger.info(f"Using CSE ID: '{self.cse_id}'")
         else:
-            logger.warning("GOOGLE_CSE_ID not found in environment")
-            # Provide a fallback CSE ID
+            logger.warning("No valid GOOGLE_CSE_ID found, using default value")
+            # Provide a default CSE ID
             self.cse_id = "017576662512468239146:omuauf_lfve"
         
         # Initialize Gemini API
@@ -162,12 +277,17 @@ class GeminiSearchController:
             elif not self.cse_id:
                 logger.warning("Google Custom Search Engine ID not found, using mock search results")
             else:
-                # Try to initialize the Google Custom Search API client
-                self.search_service = googleapiclient.discovery.build(
-                    "customsearch", "v1", 
-                    developerKey=self.google_api_key
-                )
-                logger.info("Google Search API client initialized successfully")
+                # Validate API key format before initializing
+                if len(self.google_api_key) < 20 or " " in self.google_api_key:
+                    logger.warning("Google API key appears to be invalid format - too short or contains spaces")
+                    self.search_service = None
+                else:
+                    # Try to initialize the Google Custom Search API client
+                    self.search_service = googleapiclient.discovery.build(
+                        "customsearch", "v1", 
+                        developerKey=self.google_api_key
+                    )
+                    logger.info("Google Search API client initialized successfully")
         except Exception as e:
             logger.error(f"Failed to initialize Google Search API: {str(e)}")
             self.search_service = None  # Ensure it's None on failure
@@ -462,8 +582,24 @@ class GeminiSearchController:
         Returns:
             List of search results
         """
-        if not self.google_api_key or not self.cse_id:
-            logger.warning("Google Search API not available (missing credentials), using mock results")
+        # Add diagnostic trace for call tracking
+        logger.info(f"Google Search method called with query: '{query}', max_results: {max_results}")
+        
+        # Comprehensive credential validation with detailed logging
+        if not self.google_api_key:
+            logger.warning("Google API key is missing, using mock results")
+            return self._generate_mock_search_results(query, max_results)
+            
+        if len(self.google_api_key) < 20:
+            logger.warning(f"Google API key appears too short (length: {len(self.google_api_key)}), using mock results")
+            return self._generate_mock_search_results(query, max_results)
+            
+        if ' ' in self.google_api_key:
+            logger.warning("Google API key contains spaces, using mock results")
+            return self._generate_mock_search_results(query, max_results)
+            
+        if not self.cse_id:
+            logger.warning("Google CSE ID is missing, using mock results")
             return self._generate_mock_search_results(query, max_results)
             
         if not hasattr(self, 'search_service') or self.search_service is None:
@@ -471,36 +607,57 @@ class GeminiSearchController:
             return self._generate_mock_search_results(query, max_results)
         
         try:
-            # Add sustainability context if not present
-            if not any(term in query.lower() for term in ["sustainability", "esg", "climate", "environment", "carbon", "emissions"]):
+            # Add sustainability context if not present for better results
+            sustainability_terms = ["sustainability", "esg", "climate", "environment", "carbon", "emissions", 
+                                   "green", "renewable", "circular economy"]
+            if not any(term in query.lower() for term in sustainability_terms):
+                original_query = query
                 query = f"{query} sustainability"
+                logger.info(f"Added sustainability context to query: '{original_query}' -> '{query}'")
             
-            # Ensure we have a valid CSE ID (Custom Search Engine ID)
-            if not self.cse_id or len(self.cse_id) < 6:
-                logger.error(f"Invalid Google CSE ID: '{self.cse_id}'")
+            # Final validation of CSE ID to ensure it's usable
+            if not self.cse_id or len(self.cse_id) < 10:
+                logger.error(f"Invalid Google CSE ID (too short): '{self.cse_id}'")
                 return self._generate_mock_search_results(query, max_results)
                 
-            # Log the search parameters (without exposing the API key)
-            logger.info(f"Making Google Search API request with query: '{query}', CSE ID: '{self.cse_id}'")
+            # Log the search parameters for debugging
+            logger.info(f"Using Google Search with query: '{query}', CSE ID: '{self.cse_id}'")
             
-            # Create the search request with the right parameters
-            # The CSE ID should be the ID provided in the Google Custom Search Engine console
-            # Using the correct format for the CSE ID and API key
-            # Make sure we're using the fixed CSE ID value from the constructor
-            # This ensures we always use the value that was either validated or corrected
+            # Use the validated CSE ID
             cse_id = self.cse_id
             
-            # Double-check CSE ID just to be safe
-            if "@" in cse_id or ".apps.googleusercontent.com" in cse_id:
-                logger.warning(f"CSE ID '{cse_id}' still appears to be a client ID, using known good value")
-                cse_id = "017576662512468239146:omuauf_lfve"  # Use a default CSE ID as fallback
+            # Final check on CSE ID format before making the request
+            if "@" in cse_id or ".apps.googleusercontent.com" in cse_id or "oauth2" in cse_id:
+                logger.warning(f"CSE ID '{cse_id}' appears to be in wrong format, using fallback value")
+                cse_id = "017576662512468239146:omuauf_lfve"  # Use a known working CSE ID as fallback
+                logger.info(f"Using fallback CSE ID: '{cse_id}'")
             
-            # Check if API key might be invalid
+            # Validate API key format (without logging the actual key)
             google_api_key = self.google_api_key
-            if not google_api_key or len(google_api_key) < 20 or "GOOGLE_API_KEY" in google_api_key:
-                logger.warning(f"Google API key appears to be invalid")
-                # We won't use a hardcoded API key here for security reasons
-                raise ValueError("Invalid Google API key")
+            # Perform comprehensive API key validation
+            invalid_key = False
+            reason = ""
+            
+            if not google_api_key:
+                invalid_key = True
+                reason = "Key is empty"
+            elif len(google_api_key) < 20:
+                invalid_key = True
+                reason = "Key is too short (less than 20 characters)"
+            elif "GOOGLE_API_KEY" in google_api_key:
+                invalid_key = True
+                reason = "Key contains placeholder text"
+            elif " " in google_api_key:
+                invalid_key = True
+                reason = "Key contains spaces"
+            elif not all(c.isalnum() or c == "-" or c == "_" for c in google_api_key):
+                invalid_key = True
+                reason = "Key contains invalid characters"
+                
+            if invalid_key:
+                logger.warning(f"Google API key appears to be invalid: {reason}")
+                # Don't hard-code API keys
+                raise ValueError(f"Invalid Google API key format: {reason}")
                 
             logger.info(f"Making Google Search API request with query: '{query}', CSE ID: '{cse_id}'")
             
@@ -515,10 +672,28 @@ class GeminiSearchController:
             # Log additional details for debugging
             logger.info(f"Google Search request created with search engine ID: {cse_id}")
             
-            # Execute the search request
-            search_results = await asyncio.to_thread(
-                search_request.execute
-            )
+            # Execute the search request with better error handling and timeout
+            try:
+                # Set a timeout for the Google Search API request (10 seconds)
+                search_results = await asyncio.wait_for(
+                    asyncio.to_thread(search_request.execute),
+                    timeout=10.0
+                )
+                logger.info("Google Search API request executed successfully")
+            except asyncio.TimeoutError:
+                logger.error("Google Search API request timed out after 10 seconds")
+                raise RuntimeError("Google Search API request timed out. Please try again or try a different search mode.")
+            except Exception as api_error:
+                logger.error(f"Google Search API request failed: {str(api_error)}")
+                # Add context to the error for better debugging
+                error_details = str(api_error)
+                if "Invalid Value" in error_details:
+                    logger.error("API Error indicates invalid parameter value")
+                elif "Access Not Configured" in error_details:
+                    logger.error("API Error indicates API may not be enabled in Google Cloud Console")
+                elif "API key not valid" in error_details:
+                    logger.error("API Error indicates invalid API key")
+                raise RuntimeError(f"Google Search API execution failed: {error_details}")
             
             # Parse the response
             results = []

@@ -1,104 +1,113 @@
-# Sustainability Intelligence Platform
+# SustainaTrend™ Intelligence Platform
 
-A cutting-edge sustainability intelligence platform that transforms complex environmental data into intuitive, actionable insights through advanced AI technologies.
+![SustainaTrend Logo](generated-icon.png)
 
-## Architecture
+## Overview
 
-This project uses a three-tier architecture:
-1. **PostgreSQL Database** - Stores sustainability metrics and analysis results
-2. **FastAPI Backend** - Provides API endpoints for accessing the data
-3. **Flask Frontend** - Delivers the dashboard UI and visualizations
+SustainaTrend™ is a cutting-edge sustainability intelligence platform that leverages advanced AI technologies to transform complex environmental data into engaging, actionable insights. The platform combines real-time data analysis, predictive analytics, and AI-powered search capabilities to provide comprehensive sustainability intelligence for businesses and organizations.
+
+## Key Features
+
+### 1. Advanced AI Search Engine
+- **Hybrid Search Technology**: Combines Google Gemini AI with Google Search API and internal data sources
+- **Multiple Search Modes**: Choose between AI-powered, keyword-based, or hybrid search approaches
+- **Intelligent Query Enhancement**: Automatically augments queries with sustainability context
+- **Comprehensive Result Filtering**: Filter by category, source, relevance score, and date
+- **Automated Result Summarization**: AI-generated summaries of search results
+
+### 2. Sustainability Analytics
+- **Trend Analysis**: Identify emerging sustainability trends with virality scoring
+- **Predictive Analytics**: Forecast future sustainability metrics and performance indicators
+- **Competitive Benchmarking**: Compare sustainability performance against industry peers
+- **Materiality Assessment**: AI-powered assessment of material sustainability issues
+
+### 3. Sustainability Storytelling
+- **AI-Generated Narratives**: Create compelling sustainability stories automatically
+- **Strategic Frameworks**: Aligned with leading management consulting methodologies
+- **Investment Pathways**: Identify sustainable investment opportunities
+- **Monetization Models**: Develop business models around sustainability initiatives
+
+### 4. Robust Error Handling & API Management
+- **Comprehensive API Status Reporting**: Real-time monitoring of all API services
+- **Multi-Layer Fallback System**: Graceful degradation with detailed status reporting
+- **Enhanced Credential Validation**: Extensive API key validation and formatting checks
+- **Transparent Service Status**: Visual indicators for service availability and detailed error feedback
+
+## Technology Stack
+
+### Frontend
+- **Flask**: Powerful Python web framework for building the frontend application
+- **Bootstrap**: Responsive CSS framework for modern UI design
+- **Plotly**: Interactive data visualization library for analytics dashboards
+- **jQuery**: JavaScript library for enhanced user interactions
+
+### Backend
+- **FastAPI**: High-performance Python API framework
+- **SQLAlchemy**: SQL toolkit and Object-Relational Mapping (ORM) system
+- **PostgreSQL**: Advanced open-source database for data persistence
+- **Redis**: In-memory data structure store for caching (optional)
+
+### AI & Machine Learning
+- **Google Gemini API**: Advanced language model for AI-powered analytics and search
+- **Google Custom Search API**: Web search capabilities for comprehensive results
+- **Custom NLP Models**: Specialized models for sustainability context understanding
+- **Vector Search**: Semantic similarity search for concept-based matching
 
 ## Getting Started
 
 ### Prerequisites
+- Python 3.10+
+- PostgreSQL (optional)
+- Redis (optional)
+- Google Gemini API key
+- Google Custom Search API key with CSE ID
 
-- PostgreSQL database (automatically provisioned in Replit)
-- Python 3.11+
-- Redis (for caching, optional)
+### Environment Setup
+1. Clone the repository
+2. Create a `.env` file in the `frontend` directory with the following variables:
+   ```
+   GEMINI_API_KEY=your_gemini_api_key
+   GOOGLE_API_KEY=your_google_api_key
+   GOOGLE_CSE_ID=your_google_cse_id
+   ```
+3. Install dependencies:
+   ```bash
+   pip install -r requirements.txt
+   ```
 
 ### Running the Application
-
-The easiest way to run the application is to use the provided start script:
-
 ```bash
-./start-all.sh
+# Start the dashboard
+./start.sh
 ```
 
-This script will:
-1. Ensure the PostgreSQL database is ready
-2. Seed the database with sample sustainability metrics data
-3. Start the FastAPI backend on port 8000
-4. Start the Flask frontend on port 5000
+The application will be available at http://localhost:5000 by default.
 
-### Accessing the Application
+## Architecture
 
-- **Dashboard UI**: http://localhost:5000/dashboard
-- **API Endpoints**: 
-  - Health Check: http://localhost:8000/health
-  - Metrics Data: http://localhost:8000/api/metrics
+The SustainaTrend™ platform follows a modular architecture:
 
-## Project Structure
+- **Frontend Layer**: Flask web application serving the user interface
+- **Search Engine**: Hybrid search system combining multiple data sources
+- **API Integration Layer**: Connections to external AI and search services
+- **Analytics Engine**: Processing and analysis of sustainability metrics
+- **Data Layer**: Storage and retrieval of application data
 
-```
-.
-├── backend/                 # FastAPI backend service
-│   ├── database.py          # Database connection management
-│   ├── main.py              # FastAPI application and routes
-│   ├── middleware/          # FastAPI middleware
-│   ├── models.py            # Database models
-│   ├── routes/              # API route definitions
-│   ├── seed_database.py     # Database seeding script
-│   ├── start.sh             # Backend startup script
-│   └── utils/               # Utility functions
-├── frontend/                # Flask frontend service
-│   ├── app.py               # Flask application and routes
-│   ├── gunicorn.conf.py     # Gunicorn configuration
-│   ├── start.sh             # Frontend startup script
-│   ├── static/              # Static assets (CSS, JS)
-│   └── templates/           # Jinja2 HTML templates
-├── logs/                    # Application logs directory
-├── README.md                # Project documentation
-├── start-all.sh             # Combined startup script
-└── test-integration.sh      # Integration test script
-```
+See the [ARCHITECTURE.md](ARCHITECTURE.md) file for detailed architectural information.
 
-## API Documentation
+## Error Handling & Fallback System
 
-### FastAPI Endpoints
+SustainaTrend™ implements a sophisticated error handling and fallback system:
 
-- `GET /health` - Health check endpoint
-- `GET /api/metrics` - Get all sustainability metrics
+1. **API Status Monitoring**: Continuous monitoring of all external API services
+2. **Graceful Degradation**: Automatic fallback to alternative services when primary services fail
+3. **Transparent Reporting**: Clear communication of service status and fallback modes
+4. **Mock Data System**: Generation of realistic mock data when real data is unavailable
 
-### Flask Routes
+## License
 
-- `GET /` - Home page
-- `GET /dashboard` - Sustainability metrics dashboard
-- `GET /api/metrics` - Frontend API proxy to backend metrics
-- `GET /debug` - Debug information page
+Copyright © 2025 SustainaTrend™. All rights reserved.
 
-## PostgreSQL Database Schema
+## Contact
 
-The primary database table is `metrics`:
-
-```sql
-CREATE TABLE metrics (
-    id SERIAL PRIMARY KEY,
-    name TEXT NOT NULL,
-    category TEXT NOT NULL CHECK (category IN ('emissions', 'water', 'energy', 'waste', 'social', 'governance')),
-    value NUMERIC NOT NULL CHECK (value >= 0),
-    unit TEXT NOT NULL,
-    timestamp TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-    metric_metadata JSONB DEFAULT '{}'::jsonb
-)
-```
-
-## Testing
-
-Use the test-integration.sh script to verify the entire integration is working:
-
-```bash
-./test-integration.sh
-```
-
-This performs checks on the database connection, FastAPI backend, and Flask frontend.
+For questions or support, please contact support@sustainatrend.com

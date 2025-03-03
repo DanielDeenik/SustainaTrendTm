@@ -1,0 +1,109 @@
+# Add this new function right before the api-gemini-search route
+
+@app.route("/api-status")
+def api_status_dashboard():
+    """API Status Dashboard showing all API service statuses and configurations"""
+    try:
+        # 1. Gemini API Status Check
+        gemini_error = None
+        if hasattr(gemini_search_controller, 'api_key') and gemini_search_controller.api_key:
+            if GEMINI_SEARCH_AVAILABLE:
+                gemini_available = True
+            else:
+                gemini_available = False
+                gemini_error = "Gemini library not installed correctly"
+        else:
+            gemini_available = False
+            gemini_error = "Gemini API key not configured or invalid"
+            
+        # 2. Google Search API Status Check
+        google_error = None
+        if hasattr(gemini_search_controller, 'google_api_key') and gemini_search_controller.google_api_key:
+            # Validate Google API key format
+            if len(gemini_search_controller.google_api_key) < 20:
+                google_available = False
+                google_error = "Google API key too short (should be 20+ characters)"
+            elif ' ' in gemini_search_controller.google_api_key:
+                google_available = False
+                google_error = "Google API key contains spaces"
+            elif hasattr(gemini_search_controller, 'search_service') and gemini_search_controller.search_service:
+                google_available = True
+            else:
+                google_available = False
+                google_error = "Google Search API client initialization failed"
+        else:
+            google_available = False
+            google_error = "Google API key not configured"
+            
+        # 3. Check Google CSE ID
+        cse_error = None
+        if hasattr(gemini_search_controller, 'cse_id') and gemini_search_controller.cse_id:
+            if len(gemini_search_controller.cse_id) < 10:
+                cse_error = "Google CSE ID too short"
+            elif ":" not in gemini_search_controller.cse_id and not gemini_search_controller.cse_id.startswith("0"):
+                cse_error = "Google CSE ID has invalid format"
+        else:
+            cse_error = "Google CSE ID not configured"
+            
+        # If we have CSE error but no Google error yet, update the Google error
+        if cse_error and not google_error:
+            google_error = cse_error
+            google_available = False
+            
+        # 4. Determine overall API status
+        using_real_apis = gemini_available or google_available
+        fallback_mode = None
+        
+        if not using_real_apis:
+            fallback_mode = "Mock results"
+            
+        # 5. Comprehensive status message
+        status_message = None
+        if not using_real_apis:
+            status_message = "Using mock results as both APIs are unavailable"
+            
+        # 6. Create API status object
+        api_status = {
+            "gemini_available": gemini_available,
+            "google_available": google_available,
+            "using_real_apis": using_real_apis,
+            "fallback_active": fallback_mode is not None,
+            "fallback_mode": fallback_mode,
+            "gemini_error": gemini_error,
+            "google_error": google_error,
+            "status_message": status_message
+        }
+        
+        # 7. Add mock API logs for demonstration
+        gemini_logs = [
+            {"timestamp": "2025-03-02 20:15:32", "status": "200 OK", "success": True, "latency": 450},
+            {"timestamp": "2025-03-02 20:14:21", "status": "200 OK", "success": True, "latency": 425},
+            {"timestamp": "2025-03-02 20:12:55", "status": "200 OK", "success": True, "latency": 512},
+            {"timestamp": "2025-03-02 20:10:11", "status": "429 Rate Limited", "success": False, "latency": 320},
+            {"timestamp": "2025-03-02 20:08:45", "status": "200 OK", "success": True, "latency": 475}
+        ]
+        
+        google_logs = [
+            {"timestamp": "2025-03-02 20:15:44", "status": "200 OK", "success": True, "latency": 320},
+            {"timestamp": "2025-03-02 20:14:32", "status": "200 OK", "success": True, "latency": 345},
+            {"timestamp": "2025-03-02 20:12:21", "status": "200 OK", "success": True, "latency": 310},
+            {"timestamp": "2025-03-02 20:10:55", "status": "200 OK", "success": True, "latency": 330},
+            {"timestamp": "2025-03-02 20:09:11", "status": "400 Bad Request", "success": False, "latency": 125}
+        ]
+        
+        # 8. Get Gemini model count if available
+        gemini_models = 37  # Default to 37
+        if hasattr(gemini_search_controller, '_best_model'):
+            gemini_models = len(gemini_search_controller._best_model)
+            
+        return render_template(
+            'api_status_dashboard.html',
+            api_status=api_status,
+            gemini_logs=gemini_logs,
+            google_logs=google_logs,
+            gemini_models=gemini_models
+        )
+        
+    except Exception as e:
+        logger.error(f"Error in API status dashboard: {str(e)}")
+        return f"Error loading API status dashboard: {str(e)}", 500

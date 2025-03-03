@@ -51,6 +51,88 @@ logger.info("Starting Sustainability Intelligence Dashboard")
 # Initialize Flask
 app = Flask(__name__)
 
+# API Status global middleware
+def get_api_status():
+    """Get the current status of all API services"""
+    try:
+        # 1. Gemini API Status Check
+        gemini_error = None
+        if hasattr(gemini_search_controller, 'api_key') and gemini_search_controller.api_key:
+            if GEMINI_SEARCH_AVAILABLE:
+                gemini_available = True
+            else:
+                gemini_available = False
+                gemini_error = "Gemini library not installed correctly"
+        else:
+            gemini_available = False
+            gemini_error = "Gemini API key not configured or invalid"
+            
+        # 2. Google Search API Status Check
+        google_error = None
+        if hasattr(gemini_search_controller, 'google_api_key') and gemini_search_controller.google_api_key:
+            # Validate Google API key format
+            if len(gemini_search_controller.google_api_key) < 20:
+                google_available = False
+                google_error = "Google API key too short (should be 20+ characters)"
+            elif ' ' in gemini_search_controller.google_api_key:
+                google_available = False
+                google_error = "Google API key contains spaces"
+            elif hasattr(gemini_search_controller, 'search_service') and gemini_search_controller.search_service:
+                google_available = True
+            else:
+                google_available = False
+                google_error = "Google Search API client initialization failed"
+        else:
+            google_available = False
+            google_error = "Google API key not configured"
+            
+        # 3. Check Google CSE ID
+        cse_error = None
+        if hasattr(gemini_search_controller, 'cse_id') and gemini_search_controller.cse_id:
+            if len(gemini_search_controller.cse_id) < 10:
+                cse_error = "Google CSE ID too short"
+            elif ":" not in gemini_search_controller.cse_id and not gemini_search_controller.cse_id.startswith("0"):
+                cse_error = "Google CSE ID has invalid format"
+        else:
+            cse_error = "Google CSE ID not configured"
+            
+        # If we have CSE error but no Google error yet, update the Google error
+        if cse_error and not google_error:
+            google_error = cse_error
+            google_available = False
+            
+        # 4. Determine overall API status
+        using_real_apis = gemini_available or google_available
+        fallback_mode = None
+        
+        if not using_real_apis:
+            fallback_mode = "Mock results"
+            
+        # 5. Create simple API status object
+        return {
+            "gemini_available": gemini_available,
+            "google_available": google_available,
+            "using_real_apis": using_real_apis,
+            "fallback_active": fallback_mode is not None
+        }
+    except Exception as e:
+        logger.error(f"Error checking API status: {str(e)}")
+        return {
+            "gemini_available": False,
+            "google_available": False,
+            "using_real_apis": False,
+            "fallback_active": True,
+            "error": str(e)
+        }
+
+# Inject API status into all templates
+@app.context_processor
+def inject_api_status():
+    """Inject API status into all templates"""
+    return {
+        "api_status": get_api_status()
+    }
+
 # OmniParser API endpoint
 OMNIPARSER_API = "https://api.omniparser.com/parse"
 
@@ -1688,6 +1770,114 @@ def monetization_strategy():
         return f"Error loading monetization strategy page: {str(e)}\n\nDetails: {error_details}", 500
 
 # Gemini-powered Search Routes
+@app.route("/api-status")
+def api_status_dashboard():
+    """API Status Dashboard showing all API service statuses and configurations"""
+    try:
+        # 1. Gemini API Status Check
+        gemini_error = None
+        if hasattr(gemini_search_controller, 'api_key') and gemini_search_controller.api_key:
+            if GEMINI_SEARCH_AVAILABLE:
+                gemini_available = True
+            else:
+                gemini_available = False
+                gemini_error = "Gemini library not installed correctly"
+        else:
+            gemini_available = False
+            gemini_error = "Gemini API key not configured or invalid"
+            
+        # 2. Google Search API Status Check
+        google_error = None
+        if hasattr(gemini_search_controller, 'google_api_key') and gemini_search_controller.google_api_key:
+            # Validate Google API key format
+            if len(gemini_search_controller.google_api_key) < 20:
+                google_available = False
+                google_error = "Google API key too short (should be 20+ characters)"
+            elif ' ' in gemini_search_controller.google_api_key:
+                google_available = False
+                google_error = "Google API key contains spaces"
+            elif hasattr(gemini_search_controller, 'search_service') and gemini_search_controller.search_service:
+                google_available = True
+            else:
+                google_available = False
+                google_error = "Google Search API client initialization failed"
+        else:
+            google_available = False
+            google_error = "Google API key not configured"
+            
+        # 3. Check Google CSE ID
+        cse_error = None
+        if hasattr(gemini_search_controller, 'cse_id') and gemini_search_controller.cse_id:
+            if len(gemini_search_controller.cse_id) < 10:
+                cse_error = "Google CSE ID too short"
+            elif ":" not in gemini_search_controller.cse_id and not gemini_search_controller.cse_id.startswith("0"):
+                cse_error = "Google CSE ID has invalid format"
+        else:
+            cse_error = "Google CSE ID not configured"
+            
+        # If we have CSE error but no Google error yet, update the Google error
+        if cse_error and not google_error:
+            google_error = cse_error
+            google_available = False
+            
+        # 4. Determine overall API status
+        using_real_apis = gemini_available or google_available
+        fallback_mode = None
+        
+        if not using_real_apis:
+            fallback_mode = "Mock results"
+            
+        # 5. Comprehensive status message
+        status_message = None
+        if not using_real_apis:
+            status_message = "Using mock results as both APIs are unavailable"
+            
+        # 6. Create API status object
+        api_status = {
+            "gemini_available": gemini_available,
+            "google_available": google_available,
+            "using_real_apis": using_real_apis,
+            "fallback_active": fallback_mode is not None,
+            "fallback_mode": fallback_mode,
+            "gemini_error": gemini_error,
+            "google_error": google_error,
+            "status_message": status_message
+        }
+        
+        # 7. Add mock API logs for demonstration
+        gemini_logs = [
+            {"timestamp": "2025-03-02 20:15:32", "status": "200 OK", "success": True, "latency": 450},
+            {"timestamp": "2025-03-02 20:14:21", "status": "200 OK", "success": True, "latency": 425},
+            {"timestamp": "2025-03-02 20:12:55", "status": "200 OK", "success": True, "latency": 512},
+            {"timestamp": "2025-03-02 20:10:11", "status": "429 Rate Limited", "success": False, "latency": 320},
+            {"timestamp": "2025-03-02 20:08:45", "status": "200 OK", "success": True, "latency": 475}
+        ]
+        
+        google_logs = [
+            {"timestamp": "2025-03-02 20:15:44", "status": "200 OK", "success": True, "latency": 320},
+            {"timestamp": "2025-03-02 20:14:32", "status": "200 OK", "success": True, "latency": 345},
+            {"timestamp": "2025-03-02 20:12:21", "status": "200 OK", "success": True, "latency": 310},
+            {"timestamp": "2025-03-02 20:10:55", "status": "200 OK", "success": True, "latency": 330},
+            {"timestamp": "2025-03-02 20:09:11", "status": "400 Bad Request", "success": False, "latency": 125}
+        ]
+        
+        # 8. Get Gemini model count if available
+        gemini_models = 37  # Default to 37
+        if hasattr(gemini_search_controller, '_best_model'):
+            gemini_models = len(gemini_search_controller._best_model)
+            
+        return render_template(
+            'api_status_dashboard.html',
+            api_status=api_status,
+            gemini_logs=gemini_logs,
+            google_logs=google_logs,
+            gemini_models=gemini_models
+        )
+        
+    except Exception as e:
+        logger.error(f"Error in API status dashboard: {str(e)}")
+        return f"Error loading API status dashboard: {str(e)}", 500
+
 @app.route("/gemini-search")
 def gemini_search():
     """
@@ -1698,6 +1888,98 @@ def gemini_search():
         mode = request.args.get('mode', 'hybrid')  # hybrid, gemini, google
         
         logger.info(f"Gemini search requested with query: '{query}', mode: {mode}")
+        
+        # Check API status with enhanced, detailed information from our controller
+        # 1. Gemini API Status Check
+        gemini_error = None
+        if hasattr(gemini_search_controller, 'api_key') and gemini_search_controller.api_key:
+            if GEMINI_SEARCH_AVAILABLE:
+                gemini_available = True
+            else:
+                gemini_available = False
+                gemini_error = "Gemini library not installed correctly"
+        else:
+            gemini_available = False
+            gemini_error = "Gemini API key not configured or invalid"
+            
+        # 2. Google Search API Status Check
+        google_error = None
+        if hasattr(gemini_search_controller, 'google_api_key') and gemini_search_controller.google_api_key:
+            # Validate Google API key format
+            if len(gemini_search_controller.google_api_key) < 20:
+                google_available = False
+                google_error = "Google API key too short (should be 20+ characters)"
+            elif ' ' in gemini_search_controller.google_api_key:
+                google_available = False
+                google_error = "Google API key contains spaces"
+            elif hasattr(gemini_search_controller, 'search_service') and gemini_search_controller.search_service:
+                google_available = True
+            else:
+                google_available = False
+                google_error = "Google Search API client initialization failed"
+        else:
+            google_available = False
+            google_error = "Google API key not configured"
+            
+        # 3. Check Google CSE ID
+        cse_error = None
+        if hasattr(gemini_search_controller, 'cse_id') and gemini_search_controller.cse_id:
+            if len(gemini_search_controller.cse_id) < 10:
+                cse_error = "Google CSE ID too short"
+            elif ":" not in gemini_search_controller.cse_id and not gemini_search_controller.cse_id.startswith("0"):
+                cse_error = "Google CSE ID has invalid format"
+        else:
+            cse_error = "Google CSE ID not configured"
+            
+        # If we have CSE error but no Google error yet, update the Google error
+        if cse_error and not google_error:
+            google_error = cse_error
+            google_available = False
+            
+        # 4. Determine overall API status
+        using_real_apis = gemini_available or google_available
+        fallback_mode = None
+        
+        if using_real_apis:
+            if mode == "hybrid":
+                if gemini_available and google_available:
+                    fallback_mode = None  # Both APIs available for hybrid search
+                elif gemini_available:
+                    fallback_mode = "Gemini only"  # Fall back to Gemini only
+                elif google_available:
+                    fallback_mode = "Google only"  # Fall back to Google only
+            elif mode == "gemini" and not gemini_available:
+                fallback_mode = "Mock results"  # Gemini requested but unavailable
+            elif mode == "google" and not google_available:
+                fallback_mode = "Mock results"  # Google requested but unavailable
+        else:
+            fallback_mode = "Mock results"  # No real APIs available
+            
+        # 5. Comprehensive status message
+        status_message = None
+        if not using_real_apis:
+            status_message = "Using mock results as both APIs are unavailable"
+        elif fallback_mode:
+            if fallback_mode == "Gemini only":
+                status_message = "Google Search API unavailable, using Gemini API only"
+            elif fallback_mode == "Google only":
+                status_message = "Gemini API unavailable, using Google Search API only"
+            else:
+                status_message = f"Using fallback mode: {fallback_mode}"
+                
+        # 6. Create comprehensive API status object
+        api_status = {
+            "gemini_available": gemini_available,
+            "google_available": google_available,
+            "using_real_apis": using_real_apis,
+            "fallback_active": fallback_mode is not None,
+            "fallback_mode": fallback_mode,
+            "gemini_error": gemini_error,
+            "google_error": google_error,
+            "status_message": status_message,
+            "search_mode": mode,
+            "effective_mode": fallback_mode if fallback_mode else mode
+        }
         
         results = []
         enhanced_query = query
@@ -1741,39 +2023,162 @@ def gemini_search():
                 search_results = perform_enhanced_search(query, model="hybrid")
                 results = search_results.get("results", [])
         
-        # Render the search template with results
+        # Render the search template with results and API status
         return render_template('gemini_search.html', 
                               query=query,
                               mode=mode,
                               results=results,
                               enhanced_query=enhanced_query,
-                              query_analysis=query_analysis)
+                              query_analysis=query_analysis,
+                              api_status=api_status)
     
     except Exception as e:
         logger.error(f"Error in Gemini search route: {str(e)}")
+        # Create an enhanced fallback API status for error case
+        error_api_status = {
+            "gemini_available": False,
+            "google_available": False,
+            "using_real_apis": False,
+            "fallback_active": True,
+            "fallback_mode": "Error mode",
+            "gemini_error": "Search route encountered an error",
+            "google_error": "Search route encountered an error",
+            "status_message": "An error occurred in the search process",
+            "search_mode": mode if 'mode' in locals() else "hybrid",
+            "effective_mode": "Error fallback",
+            "error_message": str(e)
+        }
+        
         # Return an error message but still render the template
         return render_template('gemini_search.html', 
                               query=query if 'query' in locals() else "",
                               mode=mode if 'mode' in locals() else "hybrid",
                               results=[],
-                              error=str(e))
+                              error=str(e),
+                              api_status=error_api_status)
 
-@app.route("/api-gemini-search")
+@app.route("/api-gemini-search", methods=['GET', 'POST'])
 def api_gemini_search():
     """
     API endpoint for Gemini-powered search
     Used for AJAX requests from the search page
+    Supports both GET and POST requests
     """
     try:
-        query = request.args.get('query', '')
-        mode = request.args.get('mode', 'hybrid')
+        # Handle both GET and POST requests
+        if request.method == 'POST':
+            # Check if request is JSON
+            if request.is_json:
+                data = request.get_json()
+                query = data.get('query', '')
+                mode = data.get('mode', 'hybrid')
+            else:
+                # Handle form data
+                query = request.form.get('query', '')
+                mode = request.form.get('mode', 'hybrid')
+        else:
+            # GET request
+            query = request.args.get('query', '')
+            mode = request.args.get('mode', 'hybrid')
         
         logger.info(f"API Gemini search requested with query: '{query}', mode: {mode}")
         
         if not query:
             return jsonify({"error": "Query parameter is required"}), 400
         
-        if GEMINI_SEARCH_AVAILABLE:
+        # Use the same enhanced API status check as in the main route
+        # 1. Gemini API Status Check
+        gemini_error = None
+        if hasattr(gemini_search_controller, 'api_key') and gemini_search_controller.api_key:
+            if GEMINI_SEARCH_AVAILABLE:
+                gemini_available = True
+            else:
+                gemini_available = False
+                gemini_error = "Gemini library not installed correctly"
+        else:
+            gemini_available = False
+            gemini_error = "Gemini API key not configured or invalid"
+            
+        # 2. Google Search API Status Check
+        google_error = None
+        if hasattr(gemini_search_controller, 'google_api_key') and gemini_search_controller.google_api_key:
+            # Validate Google API key format
+            if len(gemini_search_controller.google_api_key) < 20:
+                google_available = False
+                google_error = "Google API key too short (should be 20+ characters)"
+            elif ' ' in gemini_search_controller.google_api_key:
+                google_available = False
+                google_error = "Google API key contains spaces"
+            elif hasattr(gemini_search_controller, 'search_service') and gemini_search_controller.search_service:
+                google_available = True
+            else:
+                google_available = False
+                google_error = "Google Search API client initialization failed"
+        else:
+            google_available = False
+            google_error = "Google API key not configured"
+            
+        # 3. Check Google CSE ID
+        cse_error = None
+        if hasattr(gemini_search_controller, 'cse_id') and gemini_search_controller.cse_id:
+            if len(gemini_search_controller.cse_id) < 10:
+                cse_error = "Google CSE ID too short"
+            elif ":" not in gemini_search_controller.cse_id and not gemini_search_controller.cse_id.startswith("0"):
+                cse_error = "Google CSE ID has invalid format"
+        else:
+            cse_error = "Google CSE ID not configured"
+            
+        # If we have CSE error but no Google error yet, update the Google error
+        if cse_error and not google_error:
+            google_error = cse_error
+            google_available = False
+            
+        # 4. Determine overall API status
+        using_real_apis = gemini_available or google_available
+        fallback_mode = None
+        
+        if using_real_apis:
+            if mode == "hybrid":
+                if gemini_available and google_available:
+                    fallback_mode = None  # Both APIs available for hybrid search
+                elif gemini_available:
+                    fallback_mode = "Gemini only"  # Fall back to Gemini only
+                elif google_available:
+                    fallback_mode = "Google only"  # Fall back to Google only
+            elif mode == "gemini" and not gemini_available:
+                fallback_mode = "Mock results"  # Gemini requested but unavailable
+            elif mode == "google" and not google_available:
+                fallback_mode = "Mock results"  # Google requested but unavailable
+        else:
+            fallback_mode = "Mock results"  # No real APIs available
+            
+        # 5. Comprehensive status message
+        status_message = None
+        if not using_real_apis:
+            status_message = "Using mock results as both APIs are unavailable"
+        elif fallback_mode:
+            if fallback_mode == "Gemini only":
+                status_message = "Google Search API unavailable, using Gemini API only"
+            elif fallback_mode == "Google only":
+                status_message = "Gemini API unavailable, using Google Search API only"
+            else:
+                status_message = f"Using fallback mode: {fallback_mode}"
+                
+        # 6. Create comprehensive API status object
+        api_status = {
+            "gemini_available": gemini_available,
+            "google_available": google_available,
+            "using_real_apis": using_real_apis,
+            "fallback_active": fallback_mode is not None,
+            "fallback_mode": fallback_mode,
+            "gemini_error": gemini_error,
+            "google_error": google_error,
+            "status_message": status_message,
+            "search_mode": mode,
+            "effective_mode": fallback_mode if fallback_mode else mode
+        }
+            
+        if gemini_available:
             try:
                 # Use Gemini search controller
                 # Create an event loop if one is not already running
@@ -1792,12 +2197,15 @@ def api_gemini_search():
                     )
                 )
                 
+                # Add API status to the response
+                search_response["api_status"] = api_status
+                
                 # Return the search response
                 return jsonify(search_response)
             
             except Exception as e:
                 logger.error(f"Error in API Gemini search: {str(e)}")
-                return jsonify({"error": str(e), "results": []}), 500
+                return jsonify({"error": str(e), "results": [], "api_status": api_status}), 500
         else:
             # Fall back to standard enhanced search
             logger.warning(f"Gemini search not available for API, falling back to standard search")
@@ -1808,14 +2216,40 @@ def api_gemini_search():
                     "query": query,
                     "enhanced_query": query,
                     "source": "traditional",
-                    "result_count": len(search_results.get("results", []))
+                    "result_count": len(search_results.get("results", [])),
+                    "api_status": "fallback"
                 },
-                "query_analysis": "Standard search analysis (Gemini not available)"
+                "query_analysis": "Standard search analysis (Gemini not available)",
+                "api_status": api_status
             })
     
     except Exception as e:
         logger.error(f"Error in API Gemini search route: {str(e)}")
-        return jsonify({"error": str(e), "results": []}), 500
+        # Create an enhanced API error status
+        error_api_status = {
+            "gemini_available": False,
+            "google_available": False,
+            "using_real_apis": False,
+            "fallback_active": True,
+            "fallback_mode": "Error mode",
+            "gemini_error": "API Search route encountered an error",
+            "google_error": "API Search route encountered an error",
+            "status_message": "An error occurred in the API search process",
+            "search_mode": mode if 'mode' in locals() else "hybrid",
+            "effective_mode": "Error fallback",
+            "error_message": str(e)
+        }
+        return jsonify({
+            "error": str(e), 
+            "results": [], 
+            "api_status": error_api_status,
+            "metadata": {
+                "query": query if 'query' in locals() else "",
+                "source": "error",
+                "execution_time": 0,
+                "result_count": 0
+            }
+        }), 500
 
 # Add a special error handler for 404 errors to help diagnose routing issues
 @app.errorhandler(404)

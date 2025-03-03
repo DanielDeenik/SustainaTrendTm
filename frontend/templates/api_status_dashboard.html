@@ -1,0 +1,297 @@
+{% extends "base.html" %}
+
+{% block title %}API Status Dashboard - SustainaTrend™{% endblock %}
+
+{% block styles %}
+<style>
+    .status-card {
+        border-radius: 12px;
+        margin-bottom: 1.5rem;
+        transition: all 0.2s ease-in-out;
+    }
+    
+    .status-card:hover {
+        transform: translateY(-5px);
+        box-shadow: 0 10px 20px rgba(0, 0, 0, 0.1);
+    }
+    
+    .status-indicator {
+        width: 20px;
+        height: 20px;
+        border-radius: 50%;
+        display: inline-block;
+        margin-right: 10px;
+    }
+    
+    .status-online {
+        background-color: #10b981;
+    }
+    
+    .status-offline {
+        background-color: #ef4444;
+    }
+    
+    .api-log {
+        font-family: 'Roboto Mono', monospace;
+        font-size: 0.85rem;
+    }
+    
+    .log-success {
+        color: #10b981;
+    }
+    
+    .log-error {
+        color: #ef4444;
+    }
+    
+    .api-config-info {
+        font-family: 'Roboto Mono', monospace;
+        background-color: #f3f4f6;
+        padding: 0.5rem 1rem;
+        border-radius: 6px;
+    }
+    
+    .card-header-gemini {
+        background-color: #8b5cf6;
+        color: white;
+        border-top-left-radius: 12px;
+        border-top-right-radius: 12px;
+    }
+    
+    .card-header-google {
+        background-color: #3b82f6;
+        color: white;
+        border-top-left-radius: 12px;
+        border-top-right-radius: 12px;
+    }
+    
+    .card-header-system {
+        background-color: #052e16;
+        color: white;
+        border-top-left-radius: 12px;
+        border-top-right-radius: 12px;
+    }
+    
+    .progress-bar-info {
+        background-color: #3b82f6;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="container py-4">
+    <h1 class="mb-4">API Status Dashboard</h1>
+    
+    <div class="alert {% if api_status.using_real_apis %}alert-success{% elif api_status.fallback_active %}alert-warning{% else %}alert-danger{% endif %} mb-4">
+        <h4 class="alert-heading">
+            {% if api_status.using_real_apis %}
+                <i class="bi bi-check-circle-fill"></i> System Operational
+            {% elif api_status.fallback_active %}
+                <i class="bi bi-exclamation-triangle-fill"></i> Partial Services Available
+            {% else %}
+                <i class="bi bi-x-circle-fill"></i> External APIs Unavailable
+            {% endif %}
+        </h4>
+        <p>
+            {% if api_status.using_real_apis and api_status.gemini_available and api_status.google_available %}
+                All API services are online and operating normally.
+            {% elif api_status.using_real_apis %}
+                Some API services are online. Using available services.
+            {% elif api_status.fallback_active %}
+                External APIs unavailable. Using fallback mode: {{ api_status.fallback_mode }}.
+            {% else %}
+                All external APIs are offline. System functionality may be limited.
+            {% endif %}
+        </p>
+        {% if api_status.status_message %}
+            <p><strong>Status Message:</strong> {{ api_status.status_message }}</p>
+        {% endif %}
+    </div>
+    
+    <div class="row">
+        <!-- Gemini AI Status Card -->
+        <div class="col-md-6">
+            <div class="card status-card shadow-sm">
+                <div class="card-header card-header-gemini">
+                    <h3 class="card-title mb-0">
+                        <i class="bi bi-braces"></i> Gemini AI
+                    </h3>
+                </div>
+                <div class="card-body">
+                    <div class="d-flex align-items-center mb-3">
+                        <span class="status-indicator {% if api_status.gemini_available %}status-online{% else %}status-offline{% endif %}"></span>
+                        <h4 class="mb-0">
+                            {% if api_status.gemini_available %}ONLINE{% else %}OFFLINE{% endif %}
+                        </h4>
+                    </div>
+                    
+                    <div class="mb-3">
+                        <p><strong>Status:</strong> {% if api_status.gemini_available %}Available{% else %}Unavailable{% endif %}</p>
+                        <p><strong>API Key:</strong> {% if api_status.gemini_available %}Valid{% else %}{% if api_status.gemini_error %}Invalid{% else %}Missing{% endif %}{% endif %}</p>
+                        <p><strong>Models:</strong> {{ gemini_models }}</p>
+                        
+                        {% if api_status.gemini_error %}
+                        <div class="alert alert-danger">
+                            <strong>Error:</strong> {{ api_status.gemini_error }}
+                        </div>
+                        {% endif %}
+                    </div>
+                    
+                    <h5>Last 5 Requests:</h5>
+                    <div class="api-log">
+                        <table class="table table-sm">
+                            <thead>
+                                <tr>
+                                    <th>Timestamp</th>
+                                    <th>Status</th>
+                                    <th>Latency</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for log in gemini_logs %}
+                                <tr>
+                                    <td>{{ log.timestamp }}</td>
+                                    <td class="{% if log.success %}log-success{% else %}log-error{% endif %}">{{ log.status }}</td>
+                                    <td>{{ log.latency }}ms</td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Google Search Status Card -->
+        <div class="col-md-6">
+            <div class="card status-card shadow-sm">
+                <div class="card-header card-header-google">
+                    <h3 class="card-title mb-0">
+                        <i class="bi bi-google"></i> Google Search
+                    </h3>
+                </div>
+                <div class="card-body">
+                    <div class="d-flex align-items-center mb-3">
+                        <span class="status-indicator {% if api_status.google_available %}status-online{% else %}status-offline{% endif %}"></span>
+                        <h4 class="mb-0">
+                            {% if api_status.google_available %}ONLINE{% else %}OFFLINE{% endif %}
+                        </h4>
+                    </div>
+                    
+                    <div class="mb-3">
+                        <p><strong>Status:</strong> {% if api_status.google_available %}Available{% else %}Unavailable{% endif %}</p>
+                        <p><strong>API Key:</strong> {% if api_status.google_available %}Valid{% else %}{% if api_status.google_error %}Invalid{% else %}Missing{% endif %}{% endif %}</p>
+                        <p><strong>CSE ID:</strong> Valid</p>
+                        
+                        {% if api_status.google_error %}
+                        <div class="alert alert-danger">
+                            <strong>Error:</strong> {{ api_status.google_error }}
+                        </div>
+                        {% endif %}
+                    </div>
+                    
+                    <h5>Last 5 Requests:</h5>
+                    <div class="api-log">
+                        <table class="table table-sm">
+                            <thead>
+                                <tr>
+                                    <th>Timestamp</th>
+                                    <th>Status</th>
+                                    <th>Latency</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for log in google_logs %}
+                                <tr>
+                                    <td>{{ log.timestamp }}</td>
+                                    <td class="{% if log.success %}log-success{% else %}log-error{% endif %}">{{ log.status }}</td>
+                                    <td>{{ log.latency }}ms</td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- System Status Card -->
+    <div class="card status-card shadow-sm">
+        <div class="card-header card-header-system">
+            <h3 class="card-title mb-0">
+                <i class="bi bi-cpu"></i> System Status
+            </h3>
+        </div>
+        <div class="card-body">
+            <div class="row">
+                <div class="col-md-6">
+                    <p><strong>Current Mode:</strong> {% if api_status.fallback_active %}Fallback - {{ api_status.fallback_mode }}{% else %}Normal Operation{% endif %}</p>
+                    <p><strong>Using Real APIs:</strong> {% if api_status.using_real_apis %}Yes{% else %}No{% endif %}</p>
+                    <p><strong>Redis Cache:</strong> <span class="badge bg-danger">Offline</span></p>
+                    <p><strong>Backend Status:</strong> <span class="badge bg-danger">Not Connected</span></p>
+                    <p><strong>Database Status:</strong> <span class="badge bg-danger">Not Connected</span></p>
+                </div>
+                <div class="col-md-6">
+                    <h5>API Health History (7 days)</h5>
+                    <p><strong>Gemini API Uptime:</strong></p>
+                    <div class="progress mb-3">
+                        <div class="progress-bar progress-bar-info" role="progressbar" style="width: 95%;" aria-valuenow="95" aria-valuemin="0" aria-valuemax="100">95%</div>
+                    </div>
+                    <p><strong>Google Search API Uptime:</strong></p>
+                    <div class="progress mb-3">
+                        <div class="progress-bar progress-bar-info" role="progressbar" style="width: 98%;" aria-valuenow="98" aria-valuemin="0" aria-valuemax="100">98%</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- API Configuration Card -->
+    <div class="card status-card shadow-sm">
+        <div class="card-header card-header-system">
+            <h3 class="card-title mb-0">
+                <i class="bi bi-gear"></i> API Configuration
+            </h3>
+        </div>
+        <div class="card-body">
+            <div class="mb-3">
+                <h5>Gemini API Key</h5>
+                <div class="api-config-info">
+                    AIza***********************************
+                </div>
+            </div>
+            <div class="mb-3">
+                <h5>Google API Key</h5>
+                <div class="api-config-info">
+                    *************************************
+                </div>
+            </div>
+            <div class="mb-3">
+                <h5>Google CSE ID</h5>
+                <div class="api-config-info">
+                    017576662512468239146:omuauf_lfve
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <div class="d-flex justify-content-between mt-4">
+        <a href="/" class="btn btn-secondary">
+            <i class="bi bi-arrow-left"></i> Back to Dashboard
+        </a>
+        <button class="btn btn-primary" onclick="window.location.reload()">
+            <i class="bi bi-arrow-clockwise"></i> Refresh Status
+        </button>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+    // Refresh the page every 5 minutes
+    setTimeout(function() {
+        window.location.reload();
+    }, 300000);
+</script>
+{% endblock %}

@@ -1,0 +1,82 @@
+# Add this function right after the app = Flask(__name__) line
+
+def get_api_status():
+    """Get the current status of all API services"""
+    try:
+        # 1. Gemini API Status Check
+        gemini_error = None
+        if hasattr(gemini_search_controller, 'api_key') and gemini_search_controller.api_key:
+            if GEMINI_SEARCH_AVAILABLE:
+                gemini_available = True
+            else:
+                gemini_available = False
+                gemini_error = "Gemini library not installed correctly"
+        else:
+            gemini_available = False
+            gemini_error = "Gemini API key not configured or invalid"
+            
+        # 2. Google Search API Status Check
+        google_error = None
+        if hasattr(gemini_search_controller, 'google_api_key') and gemini_search_controller.google_api_key:
+            # Validate Google API key format
+            if len(gemini_search_controller.google_api_key) < 20:
+                google_available = False
+                google_error = "Google API key too short (should be 20+ characters)"
+            elif ' ' in gemini_search_controller.google_api_key:
+                google_available = False
+                google_error = "Google API key contains spaces"
+            elif hasattr(gemini_search_controller, 'search_service') and gemini_search_controller.search_service:
+                google_available = True
+            else:
+                google_available = False
+                google_error = "Google Search API client initialization failed"
+        else:
+            google_available = False
+            google_error = "Google API key not configured"
+            
+        # 3. Check Google CSE ID
+        cse_error = None
+        if hasattr(gemini_search_controller, 'cse_id') and gemini_search_controller.cse_id:
+            if len(gemini_search_controller.cse_id) < 10:
+                cse_error = "Google CSE ID too short"
+            elif ":" not in gemini_search_controller.cse_id and not gemini_search_controller.cse_id.startswith("0"):
+                cse_error = "Google CSE ID has invalid format"
+        else:
+            cse_error = "Google CSE ID not configured"
+            
+        # If we have CSE error but no Google error yet, update the Google error
+        if cse_error and not google_error:
+            google_error = cse_error
+            google_available = False
+            
+        # 4. Determine overall API status
+        using_real_apis = gemini_available or google_available
+        fallback_mode = None
+        
+        if not using_real_apis:
+            fallback_mode = "Mock results"
+            
+        # 5. Create simple API status object
+        return {
+            "gemini_available": gemini_available,
+            "google_available": google_available,
+            "using_real_apis": using_real_apis,
+            "fallback_active": fallback_mode is not None
+        }
+    except Exception as e:
+        logger.error(f"Error checking API status: {str(e)}")
+        return {
+            "gemini_available": False,
+            "google_available": False,
+            "using_real_apis": False,
+            "fallback_active": True,
+            "error": str(e)
+        }
+
+# Add this decorator function
+@app.context_processor
+def inject_api_status():
+    """Inject API status into all templates"""
+    return {
+        "api_status": get_api_status()
+    }

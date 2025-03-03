@@ -4,5 +4,8 @@
   "run_command": "./start.sh",
   "onStart": "chmod +x ./start.sh ./frontend/start.sh",
   "restartable": true,
-  "language": "python"
+  "language": "python",
+  "wait_for_port": 5000,
+  "timeout": 30000,
+  "prevent_reboot_loop": true
 }
