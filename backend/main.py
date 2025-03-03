@@ -6,11 +6,21 @@ import os
 import traceback
 import psycopg2
 from psycopg2.extras import RealDictCursor
+import logging
+
+# Import route modules
+try:
+    from routes.ethical_ai import router as ethical_ai_router
+    ETHICAL_AI_ROUTES_AVAILABLE = True
+    logging.info("Ethical AI routes loaded successfully")
+except ImportError:
+    ETHICAL_AI_ROUTES_AVAILABLE = False
+    logging.warning("Ethical AI routes not available")
 
 # Initialize FastAPI app
 app = FastAPI(
-    title="Sustainability Metrics API",
-    description="API for managing sustainability metrics",
+    title="Sustainability Intelligence Platform API",
+    description="API for sustainability metrics, analytics, and ethical AI compliance",
     version="1.0.0"
 )
 
@@ -22,6 +32,11 @@ app.add_middleware(
     allow_methods=["*"],
     allow_headers=["*"],
 )
+
+# Include routers
+if ETHICAL_AI_ROUTES_AVAILABLE:
+    app.include_router(ethical_ai_router)
+    logging.info("Included Ethical AI routes in FastAPI app")
 
 # Direct database connection function
 def get_db_connection():

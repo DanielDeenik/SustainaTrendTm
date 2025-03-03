@@ -1,0 +1,1023 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Ethical AI & Transparency Compliance - SustainaTrend™</title>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css">
+    <link rel="stylesheet" href="{{ url_for('static', filename='styles.css') }}">
+    <style>
+        .feature-card {
+            border-left: 4px solid #1e8449;
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+        }
+        
+        .feature-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 10px 20px rgba(0, 0, 0, 0.1);
+        }
+        
+        .feature-icon {
+            font-size: 2rem;
+            color: #1e8449;
+        }
+        
+        .compliance-indicator {
+            display: inline-block;
+            width: 20px;
+            height: 20px;
+            border-radius: 50%;
+            margin-right: 8px;
+        }
+        
+        .compliance-compliant {
+            background-color: #28a745;
+        }
+        
+        .compliance-partial {
+            background-color: #ffc107;
+        }
+        
+        .compliance-noncompliant {
+            background-color: #dc3545;
+        }
+        
+        .explanation-box {
+            background-color: #f8f9fa;
+            border-left: 4px solid #17a2b8;
+            padding: 15px;
+            margin: 15px 0;
+            border-radius: 4px;
+        }
+        
+        .bias-score-indicator {
+            height: 8px;
+            background-color: #e9ecef;
+            border-radius: 4px;
+            margin: 10px 0;
+        }
+        
+        .bias-score-fill {
+            height: 100%;
+            border-radius: 4px;
+            transition: width 0.5s ease;
+        }
+        
+        .ai-explanation-toggle {
+            cursor: pointer;
+            color: #0066cc;
+            text-decoration: underline;
+        }
+        
+        #report-text {
+            min-height: 200px;
+            font-family: monospace;
+        }
+        
+        .requirement-list {
+            list-style-type: none;
+            padding-left: 0;
+        }
+        
+        .requirement-item {
+            padding: 8px 0;
+            border-bottom: 1px solid #eee;
+        }
+        
+        .requirement-satisfied {
+            color: #28a745;
+        }
+        
+        .requirement-unsatisfied {
+            color: #dc3545;
+        }
+        
+        .result-panel {
+            display: none;
+            animation: fadeIn 0.5s;
+        }
+        
+        @keyframes fadeIn {
+            from { opacity: 0; }
+            to { opacity: 1; }
+        }
+        
+        .loading {
+            text-align: center;
+            padding: 20px;
+            display: none;
+        }
+        
+        .loading-spinner {
+            width: 50px;
+            height: 50px;
+            border: 5px solid #f3f3f3;
+            border-top: 5px solid #1e8449;
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+            margin: 0 auto 15px auto;
+        }
+        
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+        
+        #documentation-result pre {
+            max-height: 500px;
+            overflow-y: auto;
+        }
+    </style>
+</head>
+<body>
+    {% include 'navbar.html' %}
+    
+    <div class="container my-5">
+        <div class="row mb-4">
+            <div class="col-12">
+                <h1 class="display-5 mb-3">Ethical AI & Transparency Compliance</h1>
+                <p class="lead">
+                    Ensure your AI-driven sustainability assessments adhere to global regulations and ethical AI principles including CSRD, GDPR, and AI transparency requirements.
+                </p>
+                <hr class="my-4">
+            </div>
+        </div>
+        
+        <!-- Key Features -->
+        <div class="row mb-5">
+            <div class="col-md-6 col-lg-3 mb-4">
+                <div class="card h-100 feature-card">
+                    <div class="card-body">
+                        <div class="mb-3">
+                            <i class="bi bi-lightbulb feature-icon"></i>
+                        </div>
+                        <h5 class="card-title">Explainable AI (XAI)</h5>
+                        <p class="card-text">Generate human-readable explanations for AI-driven sustainability assessments.</p>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="col-md-6 col-lg-3 mb-4">
+                <div class="card h-100 feature-card">
+                    <div class="card-body">
+                        <div class="mb-3">
+                            <i class="bi bi-shield-check feature-icon"></i>
+                        </div>
+                        <h5 class="card-title">Bias Detection</h5>
+                        <p class="card-text">Identify and mitigate potential bias in AI-generated sustainability analysis.</p>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="col-md-6 col-lg-3 mb-4">
+                <div class="card h-100 feature-card">
+                    <div class="card-body">
+                        <div class="mb-3">
+                            <i class="bi bi-check2-circle feature-icon"></i>
+                        </div>
+                        <h5 class="card-title">Regulatory Compliance</h5>
+                        <p class="card-text">Check compliance with CSRD, GDPR, and AI transparency requirements.</p>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="col-md-6 col-lg-3 mb-4">
+                <div class="card h-100 feature-card">
+                    <div class="card-body">
+                        <div class="mb-3">
+                            <i class="bi bi-file-earmark-text feature-icon"></i>
+                        </div>
+                        <h5 class="card-title">Documentation Generation</h5>
+                        <p class="card-text">Generate comprehensive documentation for audit trails and compliance records.</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Tools -->
+        <div class="row">
+            <div class="col-12">
+                <ul class="nav nav-tabs" id="ethicalAiTabs" role="tablist">
+                    <li class="nav-item" role="presentation">
+                        <button class="nav-link active" id="explain-tab" data-bs-toggle="tab" data-bs-target="#explain" type="button" role="tab" aria-controls="explain" aria-selected="true">Explainable AI</button>
+                    </li>
+                    <li class="nav-item" role="presentation">
+                        <button class="nav-link" id="bias-tab" data-bs-toggle="tab" data-bs-target="#bias" type="button" role="tab" aria-controls="bias" aria-selected="false">Bias Detection</button>
+                    </li>
+                    <li class="nav-item" role="presentation">
+                        <button class="nav-link" id="compliance-tab" data-bs-toggle="tab" data-bs-target="#compliance" type="button" role="tab" aria-controls="compliance" aria-selected="false">Compliance Check</button>
+                    </li>
+                    <li class="nav-item" role="presentation">
+                        <button class="nav-link" id="report-tab" data-bs-toggle="tab" data-bs-target="#report" type="button" role="tab" aria-controls="report" aria-selected="false">Report Analysis</button>
+                    </li>
+                    <li class="nav-item" role="presentation">
+                        <button class="nav-link" id="documentation-tab" data-bs-toggle="tab" data-bs-target="#documentation" type="button" role="tab" aria-controls="documentation" aria-selected="false">Documentation</button>
+                    </li>
+                </ul>
+                
+                <div class="tab-content p-4 border border-top-0 rounded-bottom" id="ethicalAiTabContent">
+                    <!-- Explainable AI Tab -->
+                    <div class="tab-pane fade show active" id="explain" role="tabpanel" aria-labelledby="explain-tab">
+                        <h4 class="mb-4">Generate Explanations for AI-Driven Analysis</h4>
+                        <form id="explain-form">
+                            <div class="mb-3">
+                                <label for="analysis-json" class="form-label">Analysis Result (JSON)</label>
+                                <textarea class="form-control" id="analysis-json" rows="10" placeholder='{"Company": "GreenTech Inc", "Industry": "Technology", "Sustainability Score": 78, "Strategic Fit Score": 82, "Recommended Initiatives": ["Solar power adoption", "Waste reduction program"]}' required></textarea>
+                            </div>
+                            <div class="mb-3">
+                                <label class="form-label">Explanation Detail Level</label>
+                                <div class="form-check">
+                                    <input class="form-check-input" type="radio" name="detail-level" id="detail-low" value="low">
+                                    <label class="form-check-label" for="detail-low">Low (Brief explanations)</label>
+                                </div>
+                                <div class="form-check">
+                                    <input class="form-check-input" type="radio" name="detail-level" id="detail-medium" value="medium" checked>
+                                    <label class="form-check-label" for="detail-medium">Medium (Balanced detail)</label>
+                                </div>
+                                <div class="form-check">
+                                    <input class="form-check-input" type="radio" name="detail-level" id="detail-high" value="high">
+                                    <label class="form-check-label" for="detail-high">High (Comprehensive explanations)</label>
+                                </div>
+                            </div>
+                            <button type="submit" class="btn btn-primary">Generate Explanations</button>
+                        </form>
+                        
+                        <div class="loading" id="explain-loading">
+                            <div class="loading-spinner"></div>
+                            <p>Generating explanations...</p>
+                        </div>
+                        
+                        <div class="result-panel mt-4" id="explain-result">
+                            <h5>Original Analysis with Explanations</h5>
+                            <div class="card">
+                                <div class="card-body">
+                                    <pre id="explanation-json" class="mb-0"></pre>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- Bias Detection Tab -->
+                    <div class="tab-pane fade" id="bias" role="tabpanel" aria-labelledby="bias-tab">
+                        <h4 class="mb-4">Detect Bias in AI-Generated Analysis</h4>
+                        <form id="bias-form">
+                            <div class="mb-3">
+                                <label for="bias-analysis-json" class="form-label">Analysis Result (JSON)</label>
+                                <textarea class="form-control" id="bias-analysis-json" rows="8" placeholder='{"Company": "GreenTech Inc", "Industry": "Technology", "Sustainability Score": 78}' required></textarea>
+                            </div>
+                            <div class="mb-3">
+                                <label for="company-data-json" class="form-label">Company Data (JSON)</label>
+                                <textarea class="form-control" id="company-data-json" rows="8" placeholder='{"name": "GreenTech Inc", "industry": "Technology", "size": "large", "region": "North America"}' required></textarea>
+                            </div>
+                            <button type="submit" class="btn btn-primary">Detect Bias</button>
+                        </form>
+                        
+                        <div class="loading" id="bias-loading">
+                            <div class="loading-spinner"></div>
+                            <p>Analyzing potential bias...</p>
+                        </div>
+                        
+                        <div class="result-panel mt-4" id="bias-result">
+                            <h5>Bias Detection Results</h5>
+                            <div class="card mb-4">
+                                <div class="card-body">
+                                    <div class="d-flex justify-content-between align-items-center mb-3">
+                                        <h6 class="mb-0">Bias Assessment</h6>
+                                        <span class="badge" id="bias-detected-badge"></span>
+                                    </div>
+                                    <p>Bias Score:</p>
+                                    <div class="bias-score-indicator">
+                                        <div class="bias-score-fill" id="bias-score-fill"></div>
+                                    </div>
+                                    <small class="text-muted">0 = No bias detected, 1 = Significant bias detected</small>
+                                </div>
+                            </div>
+                            
+                            <div class="card mb-4">
+                                <div class="card-header">Bias Checks</div>
+                                <div class="card-body p-0">
+                                    <div class="table-responsive">
+                                        <table class="table table-striped mb-0">
+                                            <thead>
+                                                <tr>
+                                                    <th>Check Name</th>
+                                                    <th>Result</th>
+                                                    <th>Confidence</th>
+                                                    <th>Explanation</th>
+                                                </tr>
+                                            </thead>
+                                            <tbody id="bias-checks-table">
+                                            </tbody>
+                                        </table>
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            <div class="card">
+                                <div class="card-header">Recommendations</div>
+                                <div class="card-body">
+                                    <ul id="bias-recommendations" class="mb-0"></ul>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- Compliance Check Tab -->
+                    <div class="tab-pane fade" id="compliance" role="tabpanel" aria-labelledby="compliance-tab">
+                        <h4 class="mb-4">Check Regulatory Compliance</h4>
+                        <form id="compliance-form">
+                            <div class="mb-3">
+                                <label for="compliance-analysis-json" class="form-label">Analysis Result (JSON)</label>
+                                <textarea class="form-control" id="compliance-analysis-json" rows="10" placeholder='{"Company": "GreenTech Inc", "Industry": "Technology", "Sustainability Score": 78, "Strategic Fit Score": 82, "Recommended Initiatives": ["Solar power adoption", "Waste reduction program"]}' required></textarea>
+                            </div>
+                            <div class="mb-3">
+                                <label class="form-label">Regulations to Check</label>
+                                <div class="form-check">
+                                    <input class="form-check-input" type="checkbox" id="check-csrd" name="regulations" value="CSRD" checked>
+                                    <label class="form-check-label" for="check-csrd">CSRD (Corporate Sustainability Reporting Directive)</label>
+                                </div>
+                                <div class="form-check">
+                                    <input class="form-check-input" type="checkbox" id="check-gdpr" name="regulations" value="GDPR" checked>
+                                    <label class="form-check-label" for="check-gdpr">GDPR (General Data Protection Regulation)</label>
+                                </div>
+                            </div>
+                            <button type="submit" class="btn btn-primary">Check Compliance</button>
+                        </form>
+                        
+                        <div class="loading" id="compliance-loading">
+                            <div class="loading-spinner"></div>
+                            <p>Checking regulatory compliance...</p>
+                        </div>
+                        
+                        <div class="result-panel mt-4" id="compliance-result">
+                            <h5>Compliance Check Results</h5>
+                            <div class="card mb-4">
+                                <div class="card-body">
+                                    <div class="d-flex justify-content-between align-items-center mb-3">
+                                        <h6 class="mb-0">Overall Compliance</h6>
+                                        <span class="badge" id="overall-compliance-badge"></span>
+                                    </div>
+                                    <p id="compliance-summary"></p>
+                                </div>
+                            </div>
+                            
+                            <div id="compliance-details-container">
+                                <!-- Compliance details will be inserted here -->
+                            </div>
+                            
+                            <div class="card">
+                                <div class="card-header">Recommendations</div>
+                                <div class="card-body">
+                                    <ul id="compliance-recommendations" class="mb-0"></ul>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- Report Analysis Tab -->
+                    <div class="tab-pane fade" id="report" role="tabpanel" aria-labelledby="report-tab">
+                        <h4 class="mb-4">Analyze Sustainability Report Compliance</h4>
+                        <form id="report-form">
+                            <div class="mb-3">
+                                <label for="report-text" class="form-label">Sustainability Report Text</label>
+                                <textarea class="form-control" id="report-text" rows="12" placeholder="Paste sustainability report content here..." required></textarea>
+                            </div>
+                            <div class="mb-3">
+                                <label class="form-label">Regulations to Check</label>
+                                <div class="form-check">
+                                    <input class="form-check-input" type="checkbox" id="report-check-csrd" name="report-regulations" value="CSRD" checked>
+                                    <label class="form-check-label" for="report-check-csrd">CSRD (Corporate Sustainability Reporting Directive)</label>
+                                </div>
+                                <div class="form-check">
+                                    <input class="form-check-input" type="checkbox" id="report-check-gdpr" name="report-regulations" value="GDPR" checked>
+                                    <label class="form-check-label" for="report-check-gdpr">GDPR (General Data Protection Regulation)</label>
+                                </div>
+                            </div>
+                            <button type="submit" class="btn btn-primary">Analyze Report</button>
+                        </form>
+                        
+                        <div class="loading" id="report-loading">
+                            <div class="loading-spinner"></div>
+                            <p>Analyzing sustainability report...</p>
+                        </div>
+                        
+                        <div class="result-panel mt-4" id="report-result">
+                            <h5>Report Analysis Results</h5>
+                            <div class="card mb-4">
+                                <div class="card-header">Compliance Scores</div>
+                                <div class="card-body">
+                                    <div id="compliance-scores-container">
+                                        <!-- Compliance scores will be inserted here -->
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            <div class="card mb-4">
+                                <div class="card-header">Risk Areas</div>
+                                <div class="card-body">
+                                    <ul id="report-risk-areas" class="mb-0"></ul>
+                                </div>
+                            </div>
+                            
+                            <div class="card mb-4">
+                                <div class="card-header">Recommendations</div>
+                                <div class="card-body">
+                                    <ul id="report-recommendations" class="mb-0"></ul>
+                                </div>
+                            </div>
+                            
+                            <div class="card">
+                                <div class="card-header">Detailed Analysis</div>
+                                <div class="card-body">
+                                    <div id="report-detailed-analysis">
+                                        <!-- Detailed analysis will be inserted here -->
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- Documentation Tab -->
+                    <div class="tab-pane fade" id="documentation" role="tabpanel" aria-labelledby="documentation-tab">
+                        <h4 class="mb-4">Generate Compliance Documentation</h4>
+                        <form id="documentation-form">
+                            <div class="mb-3">
+                                <label for="doc-analysis-json" class="form-label">Analysis Result (JSON)</label>
+                                <textarea class="form-control" id="doc-analysis-json" rows="8" placeholder='{"Company": "GreenTech Inc", "Industry": "Technology", "Sustainability Score": 78}' required></textarea>
+                            </div>
+                            <div class="mb-3">
+                                <label for="doc-compliance-json" class="form-label">Compliance Report (JSON)</label>
+                                <textarea class="form-control" id="doc-compliance-json" rows="8" placeholder='{"overall_compliance": "Partially compliant", "regulations_checked": ["CSRD", "GDPR"], "compliance_results": {...}, "recommendations": [...]}' required></textarea>
+                            </div>
+                            <button type="submit" class="btn btn-primary">Generate Documentation</button>
+                        </form>
+                        
+                        <div class="loading" id="documentation-loading">
+                            <div class="loading-spinner"></div>
+                            <p>Generating compliance documentation...</p>
+                        </div>
+                        
+                        <div class="result-panel mt-4" id="documentation-result">
+                            <h5>Documentation</h5>
+                            <div class="card">
+                                <div class="card-body">
+                                    <pre id="documentation-json" class="mb-0"></pre>
+                                </div>
+                            </div>
+                            <div class="mt-3">
+                                <button class="btn btn-outline-secondary btn-sm" id="download-documentation">
+                                    <i class="bi bi-download"></i> Download Documentation
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <footer class="footer py-4 bg-light mt-5">
+        <div class="container">
+            <div class="row">
+                <div class="col-md-6">
+                    <p class="mb-1">© 2025 SustainaTrend™ - Ethical AI Compliance Platform</p>
+                    <p class="text-muted small mb-0">Ensuring transparent and compliant AI-driven sustainability assessments</p>
+                </div>
+                <div class="col-md-6 text-md-end">
+                    <ul class="list-inline mb-0">
+                        <li class="list-inline-item"><a href="#">Privacy Policy</a></li>
+                        <li class="list-inline-item"><a href="#">Terms of Use</a></li>
+                        <li class="list-inline-item"><a href="#">Contact</a></li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+    </footer>
+    
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            // Explainable AI Form
+            document.getElementById('explain-form').addEventListener('submit', function(e) {
+                e.preventDefault();
+                
+                // Show loading indicator
+                document.getElementById('explain-loading').style.display = 'block';
+                document.getElementById('explain-result').style.display = 'none';
+                
+                // Get form data
+                const analysisJson = document.getElementById('analysis-json').value;
+                const detailLevel = document.querySelector('input[name="detail-level"]:checked').value;
+                
+                // Validate JSON
+                try {
+                    const parsedJson = JSON.parse(analysisJson);
+                    
+                    // Send request to backend
+                    fetch('/api/ethical-ai/explain', {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json'
+                        },
+                        body: JSON.stringify({
+                            analysis_result: parsedJson,
+                            detail_level: detailLevel
+                        })
+                    })
+                    .then(response => {
+                        if (!response.ok) {
+                            throw new Error(`HTTP error! Status: ${response.status}`);
+                        }
+                        return response.json();
+                    })
+                    .then(data => {
+                        // Hide loading indicator
+                        document.getElementById('explain-loading').style.display = 'none';
+                        
+                        // Display result
+                        document.getElementById('explanation-json').textContent = JSON.stringify(data.result, null, 2);
+                        document.getElementById('explain-result').style.display = 'block';
+                    })
+                    .catch(error => {
+                        console.error('Error:', error);
+                        alert('An error occurred: ' + error.message);
+                        document.getElementById('explain-loading').style.display = 'none';
+                    });
+                    
+                } catch (error) {
+                    alert('Invalid JSON: ' + error.message);
+                    document.getElementById('explain-loading').style.display = 'none';
+                }
+            });
+            
+            // Bias Detection Form
+            document.getElementById('bias-form').addEventListener('submit', function(e) {
+                e.preventDefault();
+                
+                // Show loading indicator
+                document.getElementById('bias-loading').style.display = 'block';
+                document.getElementById('bias-result').style.display = 'none';
+                
+                // Get form data
+                const analysisJson = document.getElementById('bias-analysis-json').value;
+                const companyDataJson = document.getElementById('company-data-json').value;
+                
+                // Validate JSON
+                try {
+                    const parsedAnalysis = JSON.parse(analysisJson);
+                    const parsedCompanyData = JSON.parse(companyDataJson);
+                    
+                    // Send request to backend
+                    fetch('/api/ethical-ai/detect-bias', {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json'
+                        },
+                        body: JSON.stringify({
+                            analysis_result: parsedAnalysis,
+                            company_data: parsedCompanyData
+                        })
+                    })
+                    .then(response => {
+                        if (!response.ok) {
+                            throw new Error(`HTTP error! Status: ${response.status}`);
+                        }
+                        return response.json();
+                    })
+                    .then(data => {
+                        // Hide loading indicator
+                        document.getElementById('bias-loading').style.display = 'none';
+                        
+                        // Display result
+                        const result = data.result;
+                        
+                        // Set bias badge
+                        const biasBadge = document.getElementById('bias-detected-badge');
+                        if (result.bias_detected) {
+                            biasBadge.textContent = 'Bias Detected';
+                            biasBadge.className = 'badge bg-warning text-dark';
+                        } else {
+                            biasBadge.textContent = 'No Bias Detected';
+                            biasBadge.className = 'badge bg-success';
+                        }
+                        
+                        // Set bias score
+                        const biasScoreFill = document.getElementById('bias-score-fill');
+                        biasScoreFill.style.width = `${result.bias_score * 100}%`;
+                        if (result.bias_score < 0.3) {
+                            biasScoreFill.style.backgroundColor = '#28a745'; // green
+                        } else if (result.bias_score < 0.7) {
+                            biasScoreFill.style.backgroundColor = '#ffc107'; // yellow
+                        } else {
+                            biasScoreFill.style.backgroundColor = '#dc3545'; // red
+                        }
+                        
+                        // Populate bias checks
+                        const biasChecksTable = document.getElementById('bias-checks-table');
+                        biasChecksTable.innerHTML = '';
+                        result.bias_checks.forEach(check => {
+                            const row = document.createElement('tr');
+                            row.innerHTML = `
+                                <td>${check.check_name}</td>
+                                <td><span class="badge ${check.result === 'Pass' ? 'bg-success' : 'bg-warning text-dark'}">${check.result}</span></td>
+                                <td>${(check.confidence * 100).toFixed(0)}%</td>
+                                <td>${check.explanation}</td>
+                            `;
+                            biasChecksTable.appendChild(row);
+                        });
+                        
+                        // Populate recommendations
+                        const biasRecommendations = document.getElementById('bias-recommendations');
+                        biasRecommendations.innerHTML = '';
+                        result.recommendations.forEach(recommendation => {
+                            const li = document.createElement('li');
+                            li.textContent = recommendation;
+                            biasRecommendations.appendChild(li);
+                        });
+                        
+                        document.getElementById('bias-result').style.display = 'block';
+                    })
+                    .catch(error => {
+                        console.error('Error:', error);
+                        alert('An error occurred: ' + error.message);
+                        document.getElementById('bias-loading').style.display = 'none';
+                    });
+                    
+                } catch (error) {
+                    alert('Invalid JSON: ' + error.message);
+                    document.getElementById('bias-loading').style.display = 'none';
+                }
+            });
+            
+            // Compliance Check Form
+            document.getElementById('compliance-form').addEventListener('submit', function(e) {
+                e.preventDefault();
+                
+                // Show loading indicator
+                document.getElementById('compliance-loading').style.display = 'block';
+                document.getElementById('compliance-result').style.display = 'none';
+                
+                // Get form data
+                const analysisJson = document.getElementById('compliance-analysis-json').value;
+                const regulationCheckboxes = document.querySelectorAll('input[name="regulations"]:checked');
+                const regulations = Array.from(regulationCheckboxes).map(checkbox => checkbox.value);
+                
+                if (regulations.length === 0) {
+                    alert('Please select at least one regulation to check.');
+                    document.getElementById('compliance-loading').style.display = 'none';
+                    return;
+                }
+                
+                // Validate JSON
+                try {
+                    const parsedAnalysis = JSON.parse(analysisJson);
+                    
+                    // Send request to backend
+                    fetch('/api/ethical-ai/check-compliance', {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json'
+                        },
+                        body: JSON.stringify({
+                            analysis_result: parsedAnalysis,
+                            regulations: regulations
+                        })
+                    })
+                    .then(response => {
+                        if (!response.ok) {
+                            throw new Error(`HTTP error! Status: ${response.status}`);
+                        }
+                        return response.json();
+                    })
+                    .then(data => {
+                        // Hide loading indicator
+                        document.getElementById('compliance-loading').style.display = 'none';
+                        
+                        // Display result
+                        const result = data.result;
+                        
+                        // Set overall compliance badge
+                        const complianceBadge = document.getElementById('overall-compliance-badge');
+                        if (result.overall_compliance === 'Compliant') {
+                            complianceBadge.textContent = 'Compliant';
+                            complianceBadge.className = 'badge bg-success';
+                        } else if (result.overall_compliance === 'Partially compliant') {
+                            complianceBadge.textContent = 'Partially Compliant';
+                            complianceBadge.className = 'badge bg-warning text-dark';
+                        } else {
+                            complianceBadge.textContent = 'Non-Compliant';
+                            complianceBadge.className = 'badge bg-danger';
+                        }
+                        
+                        // Set compliance summary
+                        document.getElementById('compliance-summary').textContent = 
+                            `This analysis was checked against ${result.regulations_checked.join(', ')} regulations.`;
+                        
+                        // Populate compliance details
+                        const complianceDetailsContainer = document.getElementById('compliance-details-container');
+                        complianceDetailsContainer.innerHTML = '';
+                        
+                        Object.entries(result.compliance_results).forEach(([regulation, details]) => {
+                            const card = document.createElement('div');
+                            card.className = 'card mb-4';
+                            
+                            let badgeClass = 'bg-success';
+                            if (details.compliance_level === 'Partially compliant') {
+                                badgeClass = 'bg-warning text-dark';
+                            } else if (details.compliance_level === 'Non-compliant') {
+                                badgeClass = 'bg-danger';
+                            }
+                            
+                            const requirementsList = details.requirements.map(req => {
+                                return `
+                                    <li class="requirement-item">
+                                        <div class="d-flex justify-content-between">
+                                            <div>
+                                                <i class="bi ${req.satisfied ? 'bi-check-circle requirement-satisfied' : 'bi-x-circle requirement-unsatisfied'}"></i>
+                                                <strong>${req.requirement}</strong>
+                                            </div>
+                                            <span class="badge ${req.satisfied ? 'bg-success' : 'bg-danger'}">${req.satisfied ? 'Satisfied' : 'Not Satisfied'}</span>
+                                        </div>
+                                        <div class="ms-4 mt-1 text-muted small">${req.description}</div>
+                                    </li>
+                                `;
+                            }).join('');
+                            
+                            card.innerHTML = `
+                                <div class="card-header d-flex justify-content-between align-items-center">
+                                    <span>${regulation} Compliance</span>
+                                    <span class="badge ${badgeClass}">${details.compliance_level}</span>
+                                </div>
+                                <div class="card-body">
+                                    <ul class="requirement-list">
+                                        ${requirementsList}
+                                    </ul>
+                                </div>
+                            `;
+                            
+                            complianceDetailsContainer.appendChild(card);
+                        });
+                        
+                        // Populate recommendations
+                        const complianceRecommendations = document.getElementById('compliance-recommendations');
+                        complianceRecommendations.innerHTML = '';
+                        result.recommendations.forEach(recommendation => {
+                            const li = document.createElement('li');
+                            li.textContent = recommendation;
+                            complianceRecommendations.appendChild(li);
+                        });
+                        
+                        document.getElementById('compliance-result').style.display = 'block';
+                    })
+                    .catch(error => {
+                        console.error('Error:', error);
+                        alert('An error occurred: ' + error.message);
+                        document.getElementById('compliance-loading').style.display = 'none';
+                    });
+                    
+                } catch (error) {
+                    alert('Invalid JSON: ' + error.message);
+                    document.getElementById('compliance-loading').style.display = 'none';
+                }
+            });
+            
+            // Report Analysis Form
+            document.getElementById('report-form').addEventListener('submit', function(e) {
+                e.preventDefault();
+                
+                // Show loading indicator
+                document.getElementById('report-loading').style.display = 'block';
+                document.getElementById('report-result').style.display = 'none';
+                
+                // Get form data
+                const reportText = document.getElementById('report-text').value;
+                const regulationCheckboxes = document.querySelectorAll('input[name="report-regulations"]:checked');
+                const regulations = Array.from(regulationCheckboxes).map(checkbox => checkbox.value);
+                
+                if (regulations.length === 0) {
+                    alert('Please select at least one regulation to check.');
+                    document.getElementById('report-loading').style.display = 'none';
+                    return;
+                }
+                
+                if (reportText.trim().length < 50) {
+                    alert('Please enter a longer report text for meaningful analysis.');
+                    document.getElementById('report-loading').style.display = 'none';
+                    return;
+                }
+                
+                // Send request to backend
+                fetch('/api/ethical-ai/analyze-report', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({
+                        report_text: reportText,
+                        regulations: regulations
+                    })
+                })
+                .then(response => {
+                    if (!response.ok) {
+                        throw new Error(`HTTP error! Status: ${response.status}`);
+                    }
+                    return response.json();
+                })
+                .then(data => {
+                    // Hide loading indicator
+                    document.getElementById('report-loading').style.display = 'none';
+                    
+                    // Display result
+                    const result = data.result;
+                    
+                    // Populate compliance scores
+                    const complianceScoresContainer = document.getElementById('compliance-scores-container');
+                    complianceScoresContainer.innerHTML = '';
+                    
+                    Object.entries(result.compliance_scores).forEach(([regulation, score]) => {
+                        let scoreColor = '#28a745'; // green
+                        if (score < 60) {
+                            scoreColor = '#dc3545'; // red
+                        } else if (score < 80) {
+                            scoreColor = '#ffc107'; // yellow
+                        }
+                        
+                        const scoreItem = document.createElement('div');
+                        scoreItem.className = 'mb-3';
+                        scoreItem.innerHTML = `
+                            <div class="d-flex justify-content-between align-items-center mb-1">
+                                <span>${regulation}</span>
+                                <span><strong>${score}</strong>/100</span>
+                            </div>
+                            <div class="progress" style="height: 8px;">
+                                <div class="progress-bar" role="progressbar" 
+                                     style="width: ${score}%; background-color: ${scoreColor};" 
+                                     aria-valuenow="${score}" aria-valuemin="0" aria-valuemax="100"></div>
+                            </div>
+                        `;
+                        
+                        complianceScoresContainer.appendChild(scoreItem);
+                    });
+                    
+                    // Populate risk areas
+                    const riskAreasList = document.getElementById('report-risk-areas');
+                    riskAreasList.innerHTML = '';
+                    if (result.risk_areas.length === 0) {
+                        const li = document.createElement('li');
+                        li.textContent = 'No significant risk areas identified.';
+                        riskAreasList.appendChild(li);
+                    } else {
+                        result.risk_areas.forEach(risk => {
+                            const li = document.createElement('li');
+                            li.textContent = risk;
+                            riskAreasList.appendChild(li);
+                        });
+                    }
+                    
+                    // Populate recommendations
+                    const reportRecommendations = document.getElementById('report-recommendations');
+                    reportRecommendations.innerHTML = '';
+                    if (result.recommendations.length === 0) {
+                        const li = document.createElement('li');
+                        li.textContent = 'No specific recommendations provided.';
+                        reportRecommendations.appendChild(li);
+                    } else {
+                        result.recommendations.forEach(recommendation => {
+                            const li = document.createElement('li');
+                            li.textContent = recommendation;
+                            reportRecommendations.appendChild(li);
+                        });
+                    }
+                    
+                    // Populate detailed analysis
+                    const detailedAnalysis = document.getElementById('report-detailed-analysis');
+                    detailedAnalysis.innerHTML = '';
+                    
+                    Object.entries(result.detailed_analysis).forEach(([regulation, details]) => {
+                        const analysisSection = document.createElement('div');
+                        analysisSection.className = 'mb-4';
+                        
+                        let riskList = '';
+                        if (details.risk_areas && details.risk_areas.length > 0) {
+                            riskList = `
+                                <h6 class="mt-3">Risk Areas:</h6>
+                                <ul>
+                                    ${details.risk_areas.map(risk => `<li>${risk}</li>`).join('')}
+                                </ul>
+                            `;
+                        }
+                        
+                        let recommendationsList = '';
+                        if (details.recommendations && details.recommendations.length > 0) {
+                            recommendationsList = `
+                                <h6 class="mt-3">Recommendations:</h6>
+                                <ul>
+                                    ${details.recommendations.map(rec => `<li>${rec}</li>`).join('')}
+                                </ul>
+                            `;
+                        }
+                        
+                        analysisSection.innerHTML = `
+                            <h5 class="mb-3">${regulation} Analysis</h5>
+                            <div class="card">
+                                <div class="card-body">
+                                    <div class="d-flex justify-content-between align-items-center mb-3">
+                                        <span>Compliance Score</span>
+                                        <span class="badge bg-${details.score >= 80 ? 'success' : (details.score >= 60 ? 'warning' : 'danger')}">
+                                            ${details.score}/100
+                                        </span>
+                                    </div>
+                                    ${riskList}
+                                    ${recommendationsList}
+                                </div>
+                            </div>
+                        `;
+                        
+                        detailedAnalysis.appendChild(analysisSection);
+                    });
+                    
+                    document.getElementById('report-result').style.display = 'block';
+                })
+                .catch(error => {
+                    console.error('Error:', error);
+                    alert('An error occurred: ' + error.message);
+                    document.getElementById('report-loading').style.display = 'none';
+                });
+            });
+            
+            // Documentation Generation Form
+            document.getElementById('documentation-form').addEventListener('submit', function(e) {
+                e.preventDefault();
+                
+                // Show loading indicator
+                document.getElementById('documentation-loading').style.display = 'block';
+                document.getElementById('documentation-result').style.display = 'none';
+                
+                // Get form data
+                const analysisJson = document.getElementById('doc-analysis-json').value;
+                const complianceJson = document.getElementById('doc-compliance-json').value;
+                
+                // Validate JSON
+                try {
+                    const parsedAnalysis = JSON.parse(analysisJson);
+                    const parsedCompliance = JSON.parse(complianceJson);
+                    
+                    // Send request to backend
+                    fetch('/api/ethical-ai/generate-documentation', {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json'
+                        },
+                        body: JSON.stringify({
+                            analysis_result: parsedAnalysis,
+                            compliance_report: parsedCompliance
+                        })
+                    })
+                    .then(response => {
+                        if (!response.ok) {
+                            throw new Error(`HTTP error! Status: ${response.status}`);
+                        }
+                        return response.json();
+                    })
+                    .then(data => {
+                        // Hide loading indicator
+                        document.getElementById('documentation-loading').style.display = 'none';
+                        
+                        // Display result
+                        document.getElementById('documentation-json').textContent = JSON.stringify(data.result, null, 2);
+                        document.getElementById('documentation-result').style.display = 'block';
+                        
+                        // Enable download button
+                        document.getElementById('download-documentation').addEventListener('click', function() {
+                            const documentationContent = JSON.stringify(data.result, null, 2);
+                            const blob = new Blob([documentationContent], { type: 'application/json' });
+                            const url = URL.createObjectURL(blob);
+                            
+                            const a = document.createElement('a');
+                            a.href = url;
+                            a.download = `ethical-ai-documentation-${new Date().toISOString().slice(0, 10)}.json`;
+                            document.body.appendChild(a);
+                            a.click();
+                            
+                            setTimeout(() => {
+                                document.body.removeChild(a);
+                                URL.revokeObjectURL(url);
+                            }, 0);
+                        });
+                    })
+                    .catch(error => {
+                        console.error('Error:', error);
+                        alert('An error occurred: ' + error.message);
+                        document.getElementById('documentation-loading').style.display = 'none';
+                    });
+                    
+                } catch (error) {
+                    alert('Invalid JSON: ' + error.message);
+                    document.getElementById('documentation-loading').style.display = 'none';
+                }
+            });
+        });
+    </script>
+</body>
+</html>

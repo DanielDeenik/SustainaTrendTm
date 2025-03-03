@@ -7,7 +7,7 @@
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.2.3/dist/css/bootstrap.min.css">
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.3/font/bootstrap-icons.css">
     <link rel="stylesheet" href="{{ url_for('static', filename='styles.css') }}">
-    <script src="https://cdn.plot.ly/plotly-latest.min.js"></script>
+    <script src="https://cdn.plot.ly/plotly-2.24.1.min.js"></script>
     <style>
         .sentiment-card {
             border-radius: 10px;
@@ -661,8 +661,24 @@
             }
             
             function createSentimentTrendChart(weeklyData) {
-                const dates = weeklyData.map(week => week.week);
-                const scores = weeklyData.map(week => week.average_score * 100); // Convert to 0-100 scale
+                try {
+                    // Check if the chart container exists
+                    const chartElement = document.getElementById('sentimentTrendChart');
+                    if (!chartElement) {
+                        console.warn('Sentiment trend chart container not found in DOM');
+                        return;
+                    }
+                    
+                    // Verify data is valid
+                    if (!weeklyData || !Array.isArray(weeklyData) || weeklyData.length === 0) {
+                        console.warn('No weekly data available for sentiment trend chart');
+                        // Display a simple message in the chart area
+                        chartElement.innerHTML = '<div class="alert alert-warning">No trend data available</div>';
+                        return;
+                    }
+                    
+                    const dates = weeklyData.map(week => week.week);
+                    const scores = weeklyData.map(week => week.average_score * 100); // Convert to 0-100 scale
                 
                 const data = [{
                     x: dates,
@@ -716,137 +732,197 @@
                 };
                 
                 Plotly.newPlot('sentimentTrendChart', data, layout);
+                } catch (error) {
+                    console.error('Error creating sentiment trend chart:', error);
+                }
             }
             
             function createEngagementChart(engagementData) {
-                const data = [{
-                    x: ['Negative', 'Neutral', 'Positive'],
-                    y: [engagementData.negative, engagementData.neutral, engagementData.positive],
-                    type: 'bar',
-                    marker: {
-                        color: ['#dc3545', '#6c757d', '#28a745']
+                try {
+                    // Check if chart container exists
+                    const chartElement = document.getElementById('engagementChart');
+                    if (!chartElement) {
+                        console.warn('Engagement chart container not found in DOM');
+                        return;
                     }
-                }];
-                
-                const layout = {
-                    title: 'Engagement by Sentiment',
-                    xaxis: {
-                        title: 'Sentiment'
-                    },
-                    yaxis: {
-                        title: 'Engagement Score'
+                    
+                    // Verify data is valid
+                    if (!engagementData || typeof engagementData !== 'object') {
+                        console.warn('No engagement data available for chart');
+                        chartElement.innerHTML = '<div class="alert alert-warning">No engagement data available</div>';
+                        return;
                     }
-                };
-                
-                Plotly.newPlot('engagementChart', data, layout);
+                    
+                    const data = [{
+                        x: ['Negative', 'Neutral', 'Positive'],
+                        y: [engagementData.negative, engagementData.neutral, engagementData.positive],
+                        type: 'bar',
+                        marker: {
+                            color: ['#dc3545', '#6c757d', '#28a745']
+                        }
+                    }];
+                    
+                    const layout = {
+                        title: 'Engagement by Sentiment',
+                        xaxis: {
+                            title: 'Sentiment'
+                        },
+                        yaxis: {
+                            title: 'Engagement Score'
+                        }
+                    };
+                    
+                    Plotly.newPlot('engagementChart', data, layout);
+                } catch (error) {
+                    console.error('Error creating engagement chart:', error);
+                }
             }
             
             function createSourceChart(sources) {
-                const sourceNames = Object.keys(sources);
-                const sentimentScores = sourceNames.map(source => sources[source].average_sentiment * 100);
-                const postCounts = sourceNames.map(source => sources[source].count);
-                
-                // Size bubbles based on post count
-                const bubbleSizes = postCounts.map(count => Math.max(15, Math.min(50, count * 2)));
-                
-                const data = [{
-                    x: sourceNames,
-                    y: sentimentScores,
-                    mode: 'markers',
-                    marker: {
-                        size: bubbleSizes,
-                        color: sentimentScores,
-                        colorscale: 'RdYlGn',
-                        cmin: 0,
-                        cmax: 100,
-                        line: {
-                            color: 'rgba(0, 0, 0, 0.3)',
-                            width: 1
-                        }
-                    },
-                    text: sourceNames.map((source, i) => 
-                        `${source}<br>Posts: ${postCounts[i]}<br>Sentiment: ${sentimentScores[i].toFixed(1)}`
-                    ),
-                    hoverinfo: 'text'
-                }];
-                
-                const layout = {
-                    title: 'Source Sentiment Analysis',
-                    xaxis: {
-                        title: 'Source'
-                    },
-                    yaxis: {
-                        title: 'Average Sentiment Score',
-                        range: [0, 100]
-                    },
-                    shapes: [{
-                        type: 'line',
-                        y0: 50,
-                        y1: 50,
-                        x0: 0,
-                        x1: 1,
-                        xref: 'paper',
-                        line: {
-                            color: '#6c757d',
-                            width: 1,
-                            dash: 'dash'
-                        }
-                    }]
-                };
-                
-                Plotly.newPlot('sourceChart', data, layout);
+                try {
+                    // Check if chart container exists
+                    const chartElement = document.getElementById('sourceChart');
+                    if (!chartElement) {
+                        console.warn('Source chart container not found in DOM');
+                        return;
+                    }
+                    
+                    // Verify data is valid
+                    if (!sources || typeof sources !== 'object' || Object.keys(sources).length === 0) {
+                        console.warn('No source data available for chart');
+                        chartElement.innerHTML = '<div class="alert alert-warning">No source data available</div>';
+                        return;
+                    }
+                    
+                    const sourceNames = Object.keys(sources);
+                    const sentimentScores = sourceNames.map(source => sources[source].average_sentiment * 100);
+                    const postCounts = sourceNames.map(source => sources[source].count);
+                    
+                    // Size bubbles based on post count
+                    const bubbleSizes = postCounts.map(count => Math.max(15, Math.min(50, count * 2)));
+                    
+                    const data = [{
+                        x: sourceNames,
+                        y: sentimentScores,
+                        mode: 'markers',
+                        marker: {
+                            size: bubbleSizes,
+                            color: sentimentScores,
+                            colorscale: 'RdYlGn',
+                            cmin: 0,
+                            cmax: 100,
+                            line: {
+                                color: 'rgba(0, 0, 0, 0.3)',
+                                width: 1
+                            }
+                        },
+                        text: sourceNames.map((source, i) => 
+                            `${source}<br>Posts: ${postCounts[i]}<br>Sentiment: ${sentimentScores[i].toFixed(1)}`
+                        ),
+                        hoverinfo: 'text'
+                    }];
+                    
+                    const layout = {
+                        title: 'Source Sentiment Analysis',
+                        xaxis: {
+                            title: 'Source'
+                        },
+                        yaxis: {
+                            title: 'Average Sentiment Score',
+                            range: [0, 100]
+                        },
+                        shapes: [{
+                            type: 'line',
+                            y0: 50,
+                            y1: 50,
+                            x0: 0,
+                            x1: 1,
+                            xref: 'paper',
+                            line: {
+                                color: '#6c757d',
+                                width: 1,
+                                dash: 'dash'
+                            }
+                        }]
+                    };
+                    
+                    Plotly.newPlot('sourceChart', data, layout);
+                } catch (error) {
+                    console.error('Error creating source chart:', error);
+                }
             }
             
             function displaySamplePosts(posts) {
-                const container = document.getElementById('samplePosts');
-                container.innerHTML = '';
-                
-                posts.forEach(post => {
-                    const col = document.createElement('div');
-                    col.className = 'col-md-6 mb-3';
-                    
-                    // Get source icon
-                    let sourceIcon = 'bi-globe';
-                    if (post.source === 'Twitter') {
-                        sourceIcon = 'bi-twitter';
-                    } else if (post.source === 'LinkedIn') {
-                        sourceIcon = 'bi-linkedin';
-                    } else if (post.source === 'Reddit') {
-                        sourceIcon = 'bi-reddit';
+                try {
+                    const container = document.getElementById('samplePosts');
+                    if (!container) {
+                        console.warn('Sample posts container not found in DOM');
+                        return;
                     }
                     
-                    // Calculate sentiment class
-                    let sentimentClass = 'bg-secondary';
-                    if (post.sentiment === 'positive') {
-                        sentimentClass = 'bg-success';
-                    } else if (post.sentiment === 'negative') {
-                        sentimentClass = 'bg-danger';
+                    // Clear the container
+                    container.innerHTML = '';
+                    
+                    // Verify data is valid
+                    if (!posts || !Array.isArray(posts) || posts.length === 0) {
+                        console.warn('No sample posts available to display');
+                        container.innerHTML = '<div class="alert alert-warning">No sample posts available</div>';
+                        return;
                     }
                     
-                    col.innerHTML = `
-                        <div class="post-card border">
-                            <div class="d-flex justify-content-between align-items-start mb-2">
-                                <div>
-                                    <i class="bi ${sourceIcon} source-icon"></i>
-                                    <span class="fw-bold">${post.source}</span>
+                    posts.forEach(post => {
+                        try {
+                            const col = document.createElement('div');
+                            col.className = 'col-md-6 mb-3';
+                            
+                            // Get source icon
+                            let sourceIcon = 'bi-globe';
+                            if (post.source === 'Twitter') {
+                                sourceIcon = 'bi-twitter';
+                            } else if (post.source === 'LinkedIn') {
+                                sourceIcon = 'bi-linkedin';
+                            } else if (post.source === 'Reddit') {
+                                sourceIcon = 'bi-reddit';
+                            }
+                            
+                            // Calculate sentiment class
+                            let sentimentClass = 'bg-secondary';
+                            if (post.sentiment === 'positive') {
+                                sentimentClass = 'bg-success';
+                            } else if (post.sentiment === 'negative') {
+                                sentimentClass = 'bg-danger';
+                            }
+                            
+                            col.innerHTML = `
+                                <div class="post-card border">
+                                    <div class="d-flex justify-content-between align-items-start mb-2">
+                                        <div>
+                                            <i class="bi ${sourceIcon} source-icon"></i>
+                                            <span class="fw-bold">${post.source || 'Unknown'}</span>
+                                        </div>
+                                        <span class="badge ${sentimentClass}">${capitalizeFirstLetter(post.sentiment || 'neutral')}</span>
+                                    </div>
+                                    <p class="mb-2">${post.content || 'No content available'}</p>
+                                    <div class="d-flex justify-content-between align-items-center small text-muted">
+                                        <div>
+                                            <i class="bi bi-calendar"></i> ${formatDate(post.date || new Date())}
+                                        </div>
+                                        <div>
+                                            <span><i class="bi bi-heart"></i> ${post.engagement?.likes || 0}</span>
+                                            <span class="ms-2"><i class="bi bi-share"></i> ${post.engagement?.shares || 0}</span>
+                                        </div>
+                                    </div>
                                 </div>
-                                <span class="badge ${sentimentClass}">${capitalizeFirstLetter(post.sentiment)}</span>
-                            </div>
-                            <p class="mb-2">${post.content}</p>
-                            <div class="d-flex justify-content-between align-items-center small text-muted">
-                                <div>
-                                    <i class="bi bi-calendar"></i> ${formatDate(post.date)}
-                                </div>
-                                <div>
-                                    <span><i class="bi bi-heart"></i> ${post.engagement.likes}</span>
-                                    <span class="ms-2"><i class="bi bi-share"></i> ${post.engagement.shares}</span>
-                                </div>
-                            </div>
-                        </div>
-                    `;
-                    
-                    container.appendChild(col);
-                });
+                            `;
+                            
+                            container.appendChild(col);
+                        } catch (postError) {
+                            console.warn('Error displaying individual post:', postError);
+                        }
+                    });
+                } catch (error) {
+                    console.error('Error displaying sample posts:', error);
+                }
             }
             
             // Helper functions

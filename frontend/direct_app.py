@@ -66,6 +66,15 @@ except ImportError as e:
     SENTIMENT_ANALYSIS_AVAILABLE = False
     logger.warning(f"Sentiment Analysis module not available: {e}")
 
+# Import Ethical AI Compliance Module
+try:
+    from ethical_ai import register_routes as register_ethical_ai_routes
+    ETHICAL_AI_AVAILABLE = True
+    logger.info("Ethical AI Compliance module loaded successfully")
+except ImportError as e:
+    ETHICAL_AI_AVAILABLE = False
+    logger.warning(f"Ethical AI Compliance module not available: {e}")
+
 # Initialize Flask
 app = Flask(__name__)
 
@@ -78,6 +87,11 @@ if AI_DEVELOPMENT_TOOLS_AVAILABLE:
 if SENTIMENT_ANALYSIS_AVAILABLE:
     register_sentiment_analysis_routes(app)
     logger.info("Sentiment Analysis routes registered successfully")
+
+# Register Ethical AI Compliance routes if available
+if ETHICAL_AI_AVAILABLE:
+    register_ethical_ai_routes(app)
+    logger.info("Ethical AI Compliance routes registered successfully")
 
 # API Status global middleware
 def get_api_status():
