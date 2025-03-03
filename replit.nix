@@ -1,5 +1,8 @@
 {pkgs}: {
   deps = [
+    pkgs.nodejs
+    pkgs.geckodriver
+    pkgs.firefox
     pkgs.bash
     pkgs.glibcLocales
     pkgs.redis

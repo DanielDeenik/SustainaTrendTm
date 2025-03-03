@@ -48,8 +48,22 @@ except ImportError as e:
 
 logger.info("Starting Sustainability Intelligence Dashboard")
 
+# Import AI Development Tools
+try:
+    from ai_development_tools import register_routes as register_ai_development_routes
+    AI_DEVELOPMENT_TOOLS_AVAILABLE = True
+    logger.info("AI Development Tools loaded successfully")
+except ImportError as e:
+    AI_DEVELOPMENT_TOOLS_AVAILABLE = False
+    logger.warning(f"AI Development Tools not available: {e}")
+
 # Initialize Flask
 app = Flask(__name__)
+
+# Register AI Development Tools routes if available
+if AI_DEVELOPMENT_TOOLS_AVAILABLE:
+    register_ai_development_routes(app)
+    logger.info("AI Development Tools routes registered successfully")
 
 # API Status global middleware
 def get_api_status():
