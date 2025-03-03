@@ -1,0 +1,864 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AI-Powered Sentiment Analysis - SustainaTrend™</title>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.2.3/dist/css/bootstrap.min.css">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.3/font/bootstrap-icons.css">
+    <link rel="stylesheet" href="{{ url_for('static', filename='styles.css') }}">
+    <script src="https://cdn.plot.ly/plotly-latest.min.js"></script>
+    <style>
+        .sentiment-card {
+            border-radius: 10px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+            transition: transform 0.3s ease;
+            height: 100%;
+        }
+        .sentiment-card:hover {
+            transform: translateY(-5px);
+        }
+        .sentiment-positive {
+            border-left: 5px solid #28a745;
+        }
+        .sentiment-negative {
+            border-left: 5px solid #dc3545;
+        }
+        .sentiment-neutral {
+            border-left: 5px solid #6c757d;
+        }
+        .sentiment-score {
+            font-size: 2.5rem;
+            font-weight: bold;
+        }
+        .score-positive {
+            color: #28a745;
+        }
+        .score-negative {
+            color: #dc3545;
+        }
+        .score-neutral {
+            color: #6c757d;
+        }
+        .sentiment-meter {
+            height: 8px;
+            width: 100%;
+            background-color: #f0f0f0;
+            border-radius: 4px;
+            margin: 10px 0;
+            position: relative;
+        }
+        .sentiment-meter-fill {
+            height: 100%;
+            border-radius: 4px;
+            background: linear-gradient(to right, #dc3545, #ffc107, #28a745);
+        }
+        .sentiment-meter-marker {
+            position: absolute;
+            width: 10px;
+            height: 16px;
+            background-color: #343a40;
+            top: -4px;
+            transform: translateX(-50%);
+            z-index: 1;
+        }
+        .topic-selector {
+            border-radius: 20px;
+            padding: 8px 20px;
+            margin: 5px;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+        .topic-selector.active {
+            background-color: #0d6efd;
+            color: white;
+        }
+        .post-card {
+            border-radius: 8px;
+            margin-bottom: 15px;
+            padding: 15px;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+        }
+        .dashboard-section {
+            margin-bottom: 2rem;
+        }
+        .sentiment-chart {
+            height: 300px;
+            width: 100%;
+        }
+        .loading-overlay {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(255, 255, 255, 0.8);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            z-index: 1000;
+        }
+        .source-icon {
+            font-size: 1.2rem;
+            margin-right: 5px;
+        }
+    </style>
+</head>
+<body>
+    {% include 'navbar.html' %}
+
+    <div class="container-fluid py-3">
+        <div class="row">
+            <div class="col-12">
+                <div class="d-flex justify-content-between align-items-center mb-4">
+                    <h1 class="mb-0">
+                        <i class="bi bi-graph-up text-primary"></i> 
+                        AI-Powered Sentiment Analysis
+                    </h1>
+                    <div class="api-status">
+                        <span class="badge bg-success">BERT Ready</span>
+                    </div>
+                </div>
+                <p class="lead mb-4">
+                    Analyze sustainability sentiment across social media, news, and corporate reports using advanced BERT models. 
+                    Track sentiment trends, identify emerging risks, and generate AI-driven recommendations.
+                </p>
+            </div>
+        </div>
+
+        <!-- Live Text Analysis Section -->
+        <div class="row dashboard-section">
+            <div class="col-12">
+                <div class="card mb-4">
+                    <div class="card-header bg-light">
+                        <h2 class="h5 mb-0">
+                            <i class="bi bi-clipboard-data"></i> 
+                            Real-Time Sentiment Analysis
+                        </h2>
+                    </div>
+                    <div class="card-body">
+                        <form id="sentimentForm">
+                            <div class="mb-3">
+                                <label for="analysisText" class="form-label">Enter sustainability-related text to analyze:</label>
+                                <textarea class="form-control" id="analysisText" rows="4" placeholder="Paste or type sustainability content, news articles, social media posts, or corporate statements..."></textarea>
+                            </div>
+                            <div class="mb-3">
+                                <label class="form-label">Topic focus (optional):</label>
+                                <div class="d-flex flex-wrap">
+                                    <div class="form-check form-check-inline">
+                                        <input class="form-check-input" type="radio" name="topic" id="topicNone" value="" checked>
+                                        <label class="form-check-label" for="topicNone">General</label>
+                                    </div>
+                                    <div class="form-check form-check-inline">
+                                        <input class="form-check-input" type="radio" name="topic" id="topicClimate" value="climate">
+                                        <label class="form-check-label" for="topicClimate">Climate</label>
+                                    </div>
+                                    <div class="form-check form-check-inline">
+                                        <input class="form-check-input" type="radio" name="topic" id="topicSocial" value="social">
+                                        <label class="form-check-label" for="topicSocial">Social</label>
+                                    </div>
+                                    <div class="form-check form-check-inline">
+                                        <input class="form-check-input" type="radio" name="topic" id="topicGovernance" value="governance">
+                                        <label class="form-check-label" for="topicGovernance">Governance</label>
+                                    </div>
+                                    <div class="form-check form-check-inline">
+                                        <input class="form-check-input" type="radio" name="topic" id="topicWater" value="water">
+                                        <label class="form-check-label" for="topicWater">Water</label>
+                                    </div>
+                                    <div class="form-check form-check-inline">
+                                        <input class="form-check-input" type="radio" name="topic" id="topicWaste" value="waste">
+                                        <label class="form-check-label" for="topicWaste">Waste</label>
+                                    </div>
+                                </div>
+                            </div>
+                            <button type="submit" class="btn btn-primary">
+                                <i class="bi bi-graph-up"></i> Analyze Sentiment
+                            </button>
+                        </form>
+
+                        <div id="analysisResult" class="mt-4" style="display: none;">
+                            <div class="row">
+                                <div class="col-md-6">
+                                    <div id="sentimentCard" class="card sentiment-card">
+                                        <div class="card-body">
+                                            <h5 class="card-title">Sentiment Analysis Results</h5>
+                                            <div class="text-center my-3">
+                                                <div>
+                                                    <span id="sentimentLabel" class="badge rounded-pill"></span>
+                                                    <span id="modelType" class="badge bg-secondary ms-2"></span>
+                                                </div>
+                                                <div class="mt-2">
+                                                    <span id="sentimentScore" class="sentiment-score"></span>
+                                                </div>
+                                                <div>
+                                                    <small id="confidenceText" class="text-muted"></small>
+                                                </div>
+                                            </div>
+                                            <div class="sentiment-meter">
+                                                <div class="sentiment-meter-fill"></div>
+                                                <div id="sentimentMarker" class="sentiment-meter-marker"></div>
+                                            </div>
+                                            <div class="d-flex justify-content-between text-muted small">
+                                                <span>Negative</span>
+                                                <span>Neutral</span>
+                                                <span>Positive</span>
+                                            </div>
+                                            <div id="analysisDetails" class="mt-3">
+                                                <p id="analysisExplanation" class="card-text"></p>
+                                                <div id="topicDetails" style="display: none;">
+                                                    <h6>Topic Focus: <span id="topicName"></span></h6>
+                                                    <p id="relevantText" class="small text-muted"></p>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="col-md-6">
+                                    <div class="card sentiment-card h-100">
+                                        <div class="card-body">
+                                            <h5 class="card-title">Recommendations</h5>
+                                            <div id="recommendationsContent">
+                                                <div class="mb-3">
+                                                    <h6><i class="bi bi-lightbulb"></i> Key Insights</h6>
+                                                    <ul id="keyInsights" class="list-group list-group-flush">
+                                                        <!-- Dynamically populated -->
+                                                    </ul>
+                                                </div>
+                                                <div>
+                                                    <h6><i class="bi bi-arrow-right-circle"></i> Suggested Actions</h6>
+                                                    <ul id="suggestedActions" class="list-group list-group-flush">
+                                                        <!-- Dynamically populated -->
+                                                    </ul>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Social Sentiment Dashboard -->
+        <div class="row dashboard-section">
+            <div class="col-12">
+                <div class="card mb-4">
+                    <div class="card-header bg-light">
+                        <div class="d-flex justify-content-between align-items-center">
+                            <h2 class="h5 mb-0">
+                                <i class="bi bi-people"></i> 
+                                Social Media Sentiment Tracker
+                            </h2>
+                            <div class="d-flex align-items-center">
+                                <div class="me-3">
+                                    <select id="socialTimeframe" class="form-select form-select-sm">
+                                        <option value="30d">Last 30 Days</option>
+                                        <option value="90d" selected>Last 90 Days</option>
+                                        <option value="1y">Last Year</option>
+                                    </select>
+                                </div>
+                                <div>
+                                    <select id="socialTopic" class="form-select form-select-sm">
+                                        <option value="sustainability" selected>Sustainability (All)</option>
+                                        <option value="climate">Climate</option>
+                                        <option value="social">Social</option>
+                                        <option value="governance">Governance</option>
+                                    </select>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="card-body position-relative">
+                        <div id="socialSentimentLoading" class="loading-overlay">
+                            <div class="spinner-border text-primary" role="status">
+                                <span class="visually-hidden">Loading...</span>
+                            </div>
+                        </div>
+                        <div id="socialSentimentContent">
+                            <div class="row mb-4">
+                                <div class="col-md-7">
+                                    <div id="sentimentTrendChart" class="sentiment-chart"></div>
+                                </div>
+                                <div class="col-md-5">
+                                    <div class="row h-100">
+                                        <div class="col-12">
+                                            <div class="card h-100">
+                                                <div class="card-body">
+                                                    <h5 class="card-title">
+                                                        <span id="socialTopicTitle">Sustainability</span> Sentiment Overview
+                                                    </h5>
+                                                    <div class="d-flex justify-content-between align-items-center mb-3">
+                                                        <div>
+                                                            <span class="fs-5">Overall Sentiment:</span>
+                                                        </div>
+                                                        <div>
+                                                            <span id="overallSentimentBadge" class="badge rounded-pill px-3 py-2 fs-6">Neutral</span>
+                                                        </div>
+                                                    </div>
+                                                    <div id="sentimentDistribution"></div>
+                                                    <div class="mt-3">
+                                                        <h6>Trend Analysis:</h6>
+                                                        <p id="trendDescription" class="mb-1"></p>
+                                                        <div class="d-flex align-items-center">
+                                                            <span id="trendDirection" class="badge rounded-pill me-2"></span>
+                                                            <small id="trendChange" class="text-muted"></small>
+                                                        </div>
+                                                    </div>
+                                                    <div class="mt-3">
+                                                        <p class="mb-0"><small id="postsAnalyzed" class="text-muted"></small></p>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="row mb-4">
+                                <div class="col-md-6">
+                                    <div class="card h-100">
+                                        <div class="card-body">
+                                            <h5 class="card-title">Engagement by Sentiment</h5>
+                                            <div id="engagementChart" class="sentiment-chart"></div>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="col-md-6">
+                                    <div class="card h-100">
+                                        <div class="card-body">
+                                            <h5 class="card-title">Sentiment by Source</h5>
+                                            <div id="sourceChart" class="sentiment-chart"></div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="row">
+                                <div class="col-12">
+                                    <h5 class="mb-3">Sample Posts</h5>
+                                    <div id="samplePosts" class="row">
+                                        <!-- Dynamically populated -->
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            // Initialize sentiment analysis form
+            const sentimentForm = document.getElementById('sentimentForm');
+            const analysisResult = document.getElementById('analysisResult');
+            
+            // Initialize social sentiment dashboard
+            loadSocialSentiment();
+            
+            // Event listeners
+            sentimentForm.addEventListener('submit', function(e) {
+                e.preventDefault();
+                analyzeSentiment();
+            });
+            
+            document.getElementById('socialTimeframe').addEventListener('change', function() {
+                loadSocialSentiment();
+            });
+            
+            document.getElementById('socialTopic').addEventListener('change', function() {
+                loadSocialSentiment();
+            });
+            
+            // Functions for sentiment analysis
+            async function analyzeSentiment() {
+                const text = document.getElementById('analysisText').value.trim();
+                if (!text) {
+                    alert('Please enter text to analyze');
+                    return;
+                }
+                
+                // Get selected topic
+                const topicInput = document.querySelector('input[name="topic"]:checked');
+                const topic = topicInput ? topicInput.value : '';
+                
+                try {
+                    // Show loading
+                    document.getElementById('analysisResult').style.display = 'none';
+                    
+                    // Make API request
+                    const response = await fetch('/api/sentiment-analysis', {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                        },
+                        body: JSON.stringify({ text, topic }),
+                    });
+                    
+                    if (!response.ok) {
+                        throw new Error('Failed to analyze sentiment');
+                    }
+                    
+                    const result = await response.json();
+                    displaySentimentResults(result);
+                } catch (error) {
+                    console.error('Error analyzing sentiment:', error);
+                    alert('Error analyzing sentiment. Please try again.');
+                }
+            }
+            
+            function displaySentimentResults(result) {
+                // Update sentiment card border
+                const sentimentCard = document.getElementById('sentimentCard');
+                sentimentCard.className = 'card sentiment-card';
+                sentimentCard.classList.add(`sentiment-${result.sentiment}`);
+                
+                // Update sentiment label
+                const sentimentLabel = document.getElementById('sentimentLabel');
+                sentimentLabel.textContent = capitalizeFirstLetter(result.sentiment);
+                sentimentLabel.className = 'badge rounded-pill';
+                
+                if (result.sentiment === 'positive') {
+                    sentimentLabel.classList.add('bg-success');
+                } else if (result.sentiment === 'negative') {
+                    sentimentLabel.classList.add('bg-danger');
+                } else {
+                    sentimentLabel.classList.add('bg-secondary');
+                }
+                
+                // Update model type
+                const modelType = document.getElementById('modelType');
+                modelType.textContent = result.analysis_type === 'bert' ? 'BERT Model' : 'Rule-Based';
+                
+                // Update sentiment score
+                const sentimentScore = document.getElementById('sentimentScore');
+                const score = Math.round(result.score * 100);
+                sentimentScore.textContent = score;
+                sentimentScore.className = 'sentiment-score';
+                
+                if (score > 60) {
+                    sentimentScore.classList.add('score-positive');
+                } else if (score < 40) {
+                    sentimentScore.classList.add('score-negative');
+                } else {
+                    sentimentScore.classList.add('score-neutral');
+                }
+                
+                // Update confidence text
+                document.getElementById('confidenceText').textContent = 
+                    `Confidence: ${Math.round(result.confidence * 100)}%`;
+                
+                // Update sentiment meter marker
+                document.getElementById('sentimentMarker').style.left = `${score}%`;
+                
+                // Update analysis explanation
+                let explanation = '';
+                if (result.sentiment === 'positive') {
+                    explanation = 'The text conveys a positive sentiment towards sustainability topics, which could indicate support, progress, or optimism.';
+                } else if (result.sentiment === 'negative') {
+                    explanation = 'The text conveys a negative sentiment towards sustainability topics, which could indicate concerns, criticism, or challenges.';
+                } else {
+                    explanation = 'The text conveys a neutral sentiment towards sustainability topics, focusing on facts or balanced perspectives.';
+                }
+                
+                document.getElementById('analysisExplanation').textContent = explanation;
+                
+                // Update topic details if available
+                const topicDetails = document.getElementById('topicDetails');
+                if (result.topic) {
+                    document.getElementById('topicName').textContent = capitalizeFirstLetter(result.topic);
+                    document.getElementById('relevantText').textContent = result.relevant_text || '';
+                    topicDetails.style.display = 'block';
+                } else {
+                    topicDetails.style.display = 'none';
+                }
+                
+                // Generate recommendations
+                generateRecommendations(result);
+                
+                // Show the result
+                analysisResult.style.display = 'block';
+            }
+            
+            function generateRecommendations(result) {
+                const keyInsights = document.getElementById('keyInsights');
+                const suggestedActions = document.getElementById('suggestedActions');
+                
+                // Clear previous content
+                keyInsights.innerHTML = '';
+                suggestedActions.innerHTML = '';
+                
+                // Generate insights based on sentiment
+                const insights = [];
+                const actions = [];
+                
+                if (result.sentiment === 'positive') {
+                    insights.push('The content reflects a positive view of sustainability efforts.');
+                    insights.push('This positivity could be leveraged in communication strategies.');
+                    if (result.score > 0.8) {
+                        insights.push('The extremely positive sentiment suggests strong enthusiasm or success story.');
+                    }
+                    
+                    actions.push('Amplify this message across communication channels.');
+                    actions.push('Identify specific success factors that can be replicated.');
+                    actions.push('Connect with stakeholders mentioned to strengthen relationships.');
+                } else if (result.sentiment === 'negative') {
+                    insights.push('The content indicates concerns or challenges with sustainability initiatives.');
+                    insights.push('This could represent a reputation risk that needs addressing.');
+                    if (result.score < 0.2) {
+                        insights.push('The extremely negative sentiment suggests urgent attention may be needed.');
+                    }
+                    
+                    actions.push('Investigate the specific concerns raised in the content.');
+                    actions.push('Develop a response strategy to address negative perceptions.');
+                    actions.push('Monitor for similar sentiment patterns across other sources.');
+                } else {
+                    insights.push('The content presents a balanced or fact-based view of sustainability.');
+                    insights.push('Neutral content provides opportunity to shape perception.');
+                    
+                    actions.push('Add more emotional or values-based messaging to engage audience.');
+                    actions.push('Provide additional context to help interpret the information.');
+                    actions.push('Use this content as a baseline for measuring sentiment shifts.');
+                }
+                
+                // Add topic-specific insights
+                if (result.topic) {
+                    insights.push(`The focus on ${result.topic} topics could indicate heightened stakeholder interest.`);
+                    actions.push(`Develop specific messaging strategy for ${result.topic}-related topics.`);
+                }
+                
+                // Add insights to UI
+                insights.forEach(insight => {
+                    const li = document.createElement('li');
+                    li.className = 'list-group-item border-0 py-1';
+                    li.innerHTML = `<i class="bi bi-dot"></i> ${insight}`;
+                    keyInsights.appendChild(li);
+                });
+                
+                // Add actions to UI
+                actions.forEach(action => {
+                    const li = document.createElement('li');
+                    li.className = 'list-group-item border-0 py-1';
+                    li.innerHTML = `<i class="bi bi-arrow-right-short"></i> ${action}`;
+                    suggestedActions.appendChild(li);
+                });
+            }
+            
+            // Functions for social sentiment dashboard
+            async function loadSocialSentiment() {
+                try {
+                    // Show loading
+                    document.getElementById('socialSentimentLoading').style.display = 'flex';
+                    
+                    // Get selected filters
+                    const timeframe = document.getElementById('socialTimeframe').value;
+                    const topic = document.getElementById('socialTopic').value;
+                    
+                    // Make API request
+                    const response = await fetch(`/api/social-sentiment?topic=${topic}&timeframe=${timeframe}`);
+                    
+                    if (!response.ok) {
+                        throw new Error('Failed to load social sentiment data');
+                    }
+                    
+                    const result = await response.json();
+                    displaySocialSentiment(result);
+                } catch (error) {
+                    console.error('Error loading social sentiment:', error);
+                    alert('Error loading social sentiment data. Please try again.');
+                } finally {
+                    // Hide loading
+                    document.getElementById('socialSentimentLoading').style.display = 'none';
+                }
+            }
+            
+            function displaySocialSentiment(data) {
+                // Update topic title
+                document.getElementById('socialTopicTitle').textContent = capitalizeFirstLetter(data.topic);
+                
+                // Update overall sentiment badge
+                const overallBadge = document.getElementById('overallSentimentBadge');
+                overallBadge.textContent = capitalizeFirstLetter(data.overall_sentiment);
+                overallBadge.className = 'badge rounded-pill px-3 py-2 fs-6';
+                
+                if (data.overall_sentiment === 'positive') {
+                    overallBadge.classList.add('bg-success');
+                } else if (data.overall_sentiment === 'negative') {
+                    overallBadge.classList.add('bg-danger');
+                } else {
+                    overallBadge.classList.add('bg-secondary');
+                }
+                
+                // Update trend description and direction
+                document.getElementById('trendDescription').textContent = data.trend.description;
+                
+                const trendDirection = document.getElementById('trendDirection');
+                trendDirection.textContent = capitalizeFirstLetter(data.trend.direction);
+                trendDirection.className = 'badge rounded-pill';
+                
+                if (data.trend.direction === 'improving') {
+                    trendDirection.classList.add('bg-success');
+                    document.getElementById('trendChange').textContent = 
+                        `+${data.trend.percent_change.toFixed(1)}% change`;
+                } else if (data.trend.direction === 'worsening') {
+                    trendDirection.classList.add('bg-danger');
+                    document.getElementById('trendChange').textContent = 
+                        `${data.trend.percent_change.toFixed(1)}% change`;
+                } else {
+                    trendDirection.classList.add('bg-secondary');
+                    document.getElementById('trendChange').textContent = 
+                        `${data.trend.percent_change.toFixed(1)}% change`;
+                }
+                
+                // Update posts analyzed count
+                document.getElementById('postsAnalyzed').textContent = 
+                    `Based on ${data.total_posts_analyzed} posts over the selected time period`;
+                
+                // Create sentiment distribution chart
+                createSentimentDistributionChart(data.sentiment_distribution);
+                
+                // Create sentiment trend chart
+                createSentimentTrendChart(data.weekly_averages);
+                
+                // Create engagement chart
+                createEngagementChart(data.engagement_by_sentiment);
+                
+                // Create source chart
+                createSourceChart(data.sources);
+                
+                // Display sample posts
+                displaySamplePosts(data.sample_posts);
+            }
+            
+            function createSentimentDistributionChart(distribution) {
+                const colors = ['#dc3545', '#6c757d', '#28a745'];
+                const labels = ['Negative', 'Neutral', 'Positive'];
+                const values = [distribution.negative, distribution.neutral, distribution.positive];
+                
+                const data = [{
+                    type: 'pie',
+                    values: values,
+                    labels: labels,
+                    textinfo: 'percent',
+                    textposition: 'inside',
+                    marker: {
+                        colors: colors
+                    },
+                }];
+                
+                const layout = {
+                    showlegend: true,
+                    legend: {
+                        orientation: 'h',
+                        y: -0.1
+                    },
+                    height: 200,
+                    margin: { t: 0, b: 0, l: 0, r: 0 }
+                };
+                
+                Plotly.newPlot('sentimentDistribution', data, layout, {displayModeBar: false});
+            }
+            
+            function createSentimentTrendChart(weeklyData) {
+                const dates = weeklyData.map(week => week.week);
+                const scores = weeklyData.map(week => week.average_score * 100); // Convert to 0-100 scale
+                
+                const data = [{
+                    x: dates,
+                    y: scores,
+                    type: 'scatter',
+                    mode: 'lines+markers',
+                    marker: {
+                        color: '#0d6efd',
+                        size: 8
+                    },
+                    line: {
+                        color: '#0d6efd',
+                        width: 3
+                    }
+                }];
+                
+                const layout = {
+                    title: 'Sentiment Trend Over Time',
+                    xaxis: {
+                        title: 'Week'
+                    },
+                    yaxis: {
+                        title: 'Sentiment Score',
+                        range: [0, 100]
+                    },
+                    shapes: [{
+                        type: 'line',
+                        y0: 50,
+                        y1: 50,
+                        x0: 0,
+                        x1: 1,
+                        xref: 'paper',
+                        line: {
+                            color: '#6c757d',
+                            width: 1,
+                            dash: 'dash'
+                        }
+                    }],
+                    annotations: [{
+                        x: 0.02,
+                        y: 50,
+                        xref: 'paper',
+                        text: 'Neutral',
+                        showarrow: false,
+                        font: {
+                            color: '#6c757d'
+                        },
+                        bgcolor: '#f8f9fa',
+                        borderpad: 2
+                    }]
+                };
+                
+                Plotly.newPlot('sentimentTrendChart', data, layout);
+            }
+            
+            function createEngagementChart(engagementData) {
+                const data = [{
+                    x: ['Negative', 'Neutral', 'Positive'],
+                    y: [engagementData.negative, engagementData.neutral, engagementData.positive],
+                    type: 'bar',
+                    marker: {
+                        color: ['#dc3545', '#6c757d', '#28a745']
+                    }
+                }];
+                
+                const layout = {
+                    title: 'Engagement by Sentiment',
+                    xaxis: {
+                        title: 'Sentiment'
+                    },
+                    yaxis: {
+                        title: 'Engagement Score'
+                    }
+                };
+                
+                Plotly.newPlot('engagementChart', data, layout);
+            }
+            
+            function createSourceChart(sources) {
+                const sourceNames = Object.keys(sources);
+                const sentimentScores = sourceNames.map(source => sources[source].average_sentiment * 100);
+                const postCounts = sourceNames.map(source => sources[source].count);
+                
+                // Size bubbles based on post count
+                const bubbleSizes = postCounts.map(count => Math.max(15, Math.min(50, count * 2)));
+                
+                const data = [{
+                    x: sourceNames,
+                    y: sentimentScores,
+                    mode: 'markers',
+                    marker: {
+                        size: bubbleSizes,
+                        color: sentimentScores,
+                        colorscale: 'RdYlGn',
+                        cmin: 0,
+                        cmax: 100,
+                        line: {
+                            color: 'rgba(0, 0, 0, 0.3)',
+                            width: 1
+                        }
+                    },
+                    text: sourceNames.map((source, i) => 
+                        `${source}<br>Posts: ${postCounts[i]}<br>Sentiment: ${sentimentScores[i].toFixed(1)}`
+                    ),
+                    hoverinfo: 'text'
+                }];
+                
+                const layout = {
+                    title: 'Source Sentiment Analysis',
+                    xaxis: {
+                        title: 'Source'
+                    },
+                    yaxis: {
+                        title: 'Average Sentiment Score',
+                        range: [0, 100]
+                    },
+                    shapes: [{
+                        type: 'line',
+                        y0: 50,
+                        y1: 50,
+                        x0: 0,
+                        x1: 1,
+                        xref: 'paper',
+                        line: {
+                            color: '#6c757d',
+                            width: 1,
+                            dash: 'dash'
+                        }
+                    }]
+                };
+                
+                Plotly.newPlot('sourceChart', data, layout);
+            }
+            
+            function displaySamplePosts(posts) {
+                const container = document.getElementById('samplePosts');
+                container.innerHTML = '';
+                
+                posts.forEach(post => {
+                    const col = document.createElement('div');
+                    col.className = 'col-md-6 mb-3';
+                    
+                    // Get source icon
+                    let sourceIcon = 'bi-globe';
+                    if (post.source === 'Twitter') {
+                        sourceIcon = 'bi-twitter';
+                    } else if (post.source === 'LinkedIn') {
+                        sourceIcon = 'bi-linkedin';
+                    } else if (post.source === 'Reddit') {
+                        sourceIcon = 'bi-reddit';
+                    }
+                    
+                    // Calculate sentiment class
+                    let sentimentClass = 'bg-secondary';
+                    if (post.sentiment === 'positive') {
+                        sentimentClass = 'bg-success';
+                    } else if (post.sentiment === 'negative') {
+                        sentimentClass = 'bg-danger';
+                    }
+                    
+                    col.innerHTML = `
+                        <div class="post-card border">
+                            <div class="d-flex justify-content-between align-items-start mb-2">
+                                <div>
+                                    <i class="bi ${sourceIcon} source-icon"></i>
+                                    <span class="fw-bold">${post.source}</span>
+                                </div>
+                                <span class="badge ${sentimentClass}">${capitalizeFirstLetter(post.sentiment)}</span>
+                            </div>
+                            <p class="mb-2">${post.content}</p>
+                            <div class="d-flex justify-content-between align-items-center small text-muted">
+                                <div>
+                                    <i class="bi bi-calendar"></i> ${formatDate(post.date)}
+                                </div>
+                                <div>
+                                    <span><i class="bi bi-heart"></i> ${post.engagement.likes}</span>
+                                    <span class="ms-2"><i class="bi bi-share"></i> ${post.engagement.shares}</span>
+                                </div>
+                            </div>
+                        </div>
+                    `;
+                    
+                    container.appendChild(col);
+                });
+            }
+            
+            // Helper functions
+            function capitalizeFirstLetter(string) {
+                return string.charAt(0).toUpperCase() + string.slice(1);
+            }
+            
+            function formatDate(dateString) {
+                const date = new Date(dateString);
+                return date.toLocaleDateString();
+            }
+        });
+    </script>
+</body>
+</html>

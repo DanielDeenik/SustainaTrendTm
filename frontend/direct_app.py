@@ -57,6 +57,15 @@ except ImportError as e:
     AI_DEVELOPMENT_TOOLS_AVAILABLE = False
     logger.warning(f"AI Development Tools not available: {e}")
 
+# Import Sentiment Analysis Module
+try:
+    from sentiment_analysis import register_routes as register_sentiment_analysis_routes
+    SENTIMENT_ANALYSIS_AVAILABLE = True
+    logger.info("Sentiment Analysis module loaded successfully")
+except ImportError as e:
+    SENTIMENT_ANALYSIS_AVAILABLE = False
+    logger.warning(f"Sentiment Analysis module not available: {e}")
+
 # Initialize Flask
 app = Flask(__name__)
 
@@ -64,6 +73,11 @@ app = Flask(__name__)
 if AI_DEVELOPMENT_TOOLS_AVAILABLE:
     register_ai_development_routes(app)
     logger.info("AI Development Tools routes registered successfully")
+
+# Register Sentiment Analysis routes if available
+if SENTIMENT_ANALYSIS_AVAILABLE:
+    register_sentiment_analysis_routes(app)
+    logger.info("Sentiment Analysis routes registered successfully")
 
 # API Status global middleware
 def get_api_status():

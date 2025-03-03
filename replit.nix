@@ -1,5 +1,6 @@
 {pkgs}: {
   deps = [
+    pkgs.jq
     pkgs.nodejs
     pkgs.geckodriver
     pkgs.firefox
