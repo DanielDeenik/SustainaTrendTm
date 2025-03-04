@@ -3,328 +3,182 @@
 {% block title %}Sustainability Trend Analysis{% endblock %}
 
 {% block extra_css %}
+<!-- This is still needed for the fallback non-React experience -->
 <script src="https://cdn.plot.ly/plotly-latest.min.js"></script>
-<style>
-    .trend-card {
-        border-radius: 12px;
-        overflow: hidden;
-        transition: all 0.3s;
-        margin-bottom: 20px;
-        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
-        border: 1px solid var(--border-color);
-    }
-    .trend-card:hover {
-        transform: translateY(-5px);
-        box-shadow: 0 8px 24px rgba(0, 0, 0, 0.15);
-    }
-    .trend-header {
-        padding: 16px 20px;
-        color: white;
-        font-weight: bold;
-        display: flex;
-        align-items: center;
-        justify-content: space-between;
-    }
-    .trend-header i {
-        font-size: 1.5rem;
-        opacity: 0.9;
-    }
-    .trend-body {
-        padding: 24px;
-        background-color: var(--card-bg);
-        color: var(--text-color);
-    }
-    .trend-emissions {
-        background-color: #198754;
-    }
-    .trend-energy {
-        background-color: #0d6efd;
-    }
-    .trend-water {
-        background-color: #0dcaf0;
-    }
-    .trend-waste {
-        background-color: #6c757d;
-    }
-    .trend-social {
-        background-color: #6f42c1;
-    }
-    .virality-score {
-        width: 80px;
-        height: 80px;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        border-radius: 50%;
-        font-size: 1.5rem;
-        font-weight: bold;
-        color: white;
-        margin: 0 auto 15px;
-    }
-    .virality-high {
-        background-color: #dc3545;
-    }
-    .virality-medium {
-        background-color: #fd7e14;
-    }
-    .virality-low {
-        background-color: #198754;
-    }
-    .keyword-chip {
-        display: inline-block;
-        padding: 6px 12px;
-        background-color: var(--bg-body);
-        border-radius: 20px;
-        margin: 0 5px 5px 0;
-        font-size: 0.8rem;
-        border: 1px solid var(--border-color);
-        transition: all 0.2s;
-    }
-    
-    .keyword-chip:hover {
-        background-color: var(--primary-light);
-        transform: translateY(-2px);
-    }
-    
-    .trend-chart {
-        height: 350px;
-        border-radius: 8px;
-        overflow: hidden;
-    }
-    
-    /* Page header styles */
-    .trend-page-header {
-        margin-bottom: 2rem;
-        text-align: center;
-    }
-    
-    .trend-page-header h1 {
-        font-size: 2.2rem;
-        font-weight: 700;
-        color: var(--text-color);
-        margin-bottom: 0.5rem;
-    }
-    
-    .trend-page-header p {
-        font-size: 1.1rem;
-        color: var(--text-muted);
-        max-width: 800px;
-        margin: 0 auto;
-    }
-    
-    /* Filter card */
-    .filter-card {
-        background-color: var(--card-bg);
-        border-radius: 12px;
-        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
-        border: 1px solid var(--border-color);
-        padding: 1.5rem;
-        margin-bottom: 2rem;
-    }
-    
-    /* Form controls */
-    .form-select, .form-control {
-        background-color: var(--card-bg);
-        color: var(--text-color);
-        border: 1px solid var(--border-color);
-        border-radius: 8px;
-        padding: 0.75rem 1rem;
-    }
-    
-    .form-label {
-        color: var(--text-color);
-        font-weight: 500;
-        margin-bottom: 0.5rem;
-    }
-    
-    /* Chart card */
-    .chart-card {
-        background-color: var(--card-bg);
-        border-radius: 12px;
-        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
-        border: 1px solid var(--border-color);
-        margin-bottom: 2rem;
-        overflow: hidden;
-    }
-    
-    .chart-card-header {
-        padding: 1.25rem 1.5rem;
-        background-color: var(--card-bg);
-        border-bottom: 1px solid var(--border-color);
-    }
-    
-    .chart-card-body {
-        padding: 1.5rem;
-    }
-</style>
 {% endblock %}
 
 {% block content %}
-<div class="container py-5">
-    <div class="trend-page-header">
-        <h1>Sustainability Trend Analysis</h1>
-        <p class="text-muted">AI-driven insights into emerging sustainability trends</p>
-    </div>
+<div class="trend-page-header">
+    <h1>Sustainability Trend Analysis</h1>
+    <p class="text-muted">AI-driven insights into emerging sustainability trends</p>
+</div>
 
-    <!-- Filter Controls -->
-    <div class="row mb-4">
-        <div class="col-md-8 offset-md-2">
-            <div class="filter-card">
-                <form method="get" action="/trend-analysis" class="row g-3">
-                    <div class="col-md-4">
-                        <label for="category" class="form-label">Category</label>
-                        <select name="category" id="category" class="form-select">
-                            <option value="all" {% if not category or category == 'all' %}selected{% endif %}>All Categories</option>
-                            <option value="emissions" {% if category == 'emissions' %}selected{% endif %}>Emissions</option>
-                            <option value="energy" {% if category == 'energy' %}selected{% endif %}>Energy</option>
-                            <option value="water" {% if category == 'water' %}selected{% endif %}>Water</option>
-                            <option value="waste" {% if category == 'waste' %}selected{% endif %}>Waste</option>
-                            <option value="social" {% if category == 'social' %}selected{% endif %}>Social</option>
-                        </select>
-                    </div>
-                    <div class="col-md-4">
-                        <label for="sort" class="form-label">Sort By</label>
-                        <select name="sort" id="sort" class="form-select">
-                            <option value="virality" {% if sort == 'virality' %}selected{% endif %}>Virality Score</option>
-                            <option value="date" {% if sort == 'date' %}selected{% endif %}>Date</option>
-                            <option value="name" {% if sort == 'name' %}selected{% endif %}>Name</option>
-                        </select>
-                    </div>
-                    <div class="col-md-4 d-flex align-items-end">
-                        <button type="submit" class="btn btn-primary w-100">Apply Filters</button>
-                    </div>
-                </form>
-            </div>
+<!-- React App Mount Point -->
+<div id="react-trend-dashboard" class="mt-4">
+    <!-- Loading state that will be replaced by React -->
+    <div class="d-flex justify-content-center my-5">
+        <div class="spinner-border text-primary" role="status">
+            <span class="visually-hidden">Loading trend dashboard...</span>
         </div>
     </div>
-
-    <!-- Trend Overview Chart -->
-    <div class="row mb-5">
-        <div class="col-12">
-            <div class="chart-card">
-                <div class="chart-card-header">
-                    <h5>Sustainability Trends Overview</h5>
-                </div>
-                <div class="chart-card-body">
-                    <div id="trend-chart" class="trend-chart"></div>
+    
+    <!-- Fallback content if JavaScript is disabled -->
+    <noscript>
+        <div class="alert alert-warning">
+            <i class="bi bi-exclamation-triangle me-2"></i>
+            Please enable JavaScript to view the interactive trend dashboard.
+        </div>
+        
+        <!-- Filter Controls (non-JS fallback) -->
+        <div class="row mb-4">
+            <div class="col-md-8 offset-md-2">
+                <div class="filter-card">
+                    <form method="get" action="/trend-analysis" class="row g-3">
+                        <div class="col-md-4">
+                            <label for="category" class="form-label">Category</label>
+                            <select name="category" id="category" class="form-select">
+                                <option value="all" {% if not category or category == 'all' %}selected{% endif %}>All Categories</option>
+                                <option value="emissions" {% if category == 'emissions' %}selected{% endif %}>Emissions</option>
+                                <option value="energy" {% if category == 'energy' %}selected{% endif %}>Energy</option>
+                                <option value="water" {% if category == 'water' %}selected{% endif %}>Water</option>
+                                <option value="waste" {% if category == 'waste' %}selected{% endif %}>Waste</option>
+                                <option value="social" {% if category == 'social' %}selected{% endif %}>Social</option>
+                            </select>
+                        </div>
+                        <div class="col-md-4">
+                            <label for="sort" class="form-label">Sort By</label>
+                            <select name="sort" id="sort" class="form-select">
+                                <option value="virality" {% if sort == 'virality' %}selected{% endif %}>Virality Score</option>
+                                <option value="date" {% if sort == 'date' %}selected{% endif %}>Date</option>
+                                <option value="name" {% if sort == 'name' %}selected{% endif %}>Name</option>
+                            </select>
+                        </div>
+                        <div class="col-md-4 d-flex align-items-end">
+                            <button type="submit" class="btn btn-primary w-100">Apply Filters</button>
+                        </div>
+                    </form>
                 </div>
             </div>
         </div>
-    </div>
 
-    <!-- Trend Analysis Cards -->
-    <div class="row">
-        {% if trends %}
-            {% for trend in trends %}
-            <div class="col-md-4">
-                <div class="trend-card">
-                    <div class="trend-header trend-{{ trend.category }}">
-                        <span>{{ trend.name }}</span>
-                        <i class="bi 
-                          {% if trend.category == 'emissions' %}bi-cloud-fill
-                          {% elif trend.category == 'energy' %}bi-lightning-fill
-                          {% elif trend.category == 'water' %}bi-droplet-fill
-                          {% elif trend.category == 'waste' %}bi-recycle
-                          {% elif trend.category == 'social' %}bi-people-fill
-                          {% else %}bi-graph-up
-                          {% endif %}">
-                        </i>
-                    </div>
-                    <div class="trend-body">
-                        <div class="virality-score virality-{% if trend.virality_score > 80 %}high{% elif trend.virality_score > 50 %}medium{% else %}low{% endif %}">
-                            {{ trend.virality_score|round|int }}
+        <!-- Trend Cards (non-JS fallback) -->
+        <div class="row">
+            {% if trends %}
+                {% for trend in trends %}
+                <div class="col-md-4">
+                    <div class="trend-card">
+                        <div class="trend-header trend-{{ trend.category }}">
+                            <span>{{ trend.name }}</span>
+                            <i class="bi 
+                              {% if trend.category == 'emissions' %}bi-cloud-fill
+                              {% elif trend.category == 'energy' %}bi-lightning-fill
+                              {% elif trend.category == 'water' %}bi-droplet-fill
+                              {% elif trend.category == 'waste' %}bi-recycle
+                              {% elif trend.category == 'social' %}bi-people-fill
+                              {% else %}bi-graph-up
+                              {% endif %}">
+                            </i>
                         </div>
-                        
-                        <h5 class="text-center mb-3">Virality Score</h5>
-                        
-                        <div class="mb-3">
-                            <strong>Trend Direction:</strong>
-                            <span class="{% if trend.trend_direction == 'increasing' %}text-success{% else %}text-danger{% endif %}">
-                                <i class="bi {% if trend.trend_direction == 'increasing' %}bi-arrow-up-right{% else %}bi-arrow-down-right{% endif %}"></i>
-                                {{ trend.trend_direction|capitalize }}
-                            </span>
-                        </div>
-                        
-                        <div class="mb-3">
-                            <strong>Duration:</strong> 
-                            <span>
-                                <i class="bi {% if trend.trend_duration == 'long-term' %}bi-calendar-check{% elif trend.trend_duration == 'medium-term' %}bi-calendar-week{% else %}bi-calendar-day{% endif %}"></i>
-                                {{ trend.trend_duration|capitalize }}
-                            </span>
-                        </div>
-                        
-                        <div>
-                            <strong><i class="bi bi-tags"></i> Keywords:</strong>
-                            <div class="mt-2">
-                                {% for keyword in trend.keywords.split(',') %}
-                                <span class="keyword-chip">{{ keyword.strip() }}</span>
-                                {% endfor %}
+                        <div class="trend-body">
+                            <div class="virality-score virality-{% if trend.virality_score > 80 %}high{% elif trend.virality_score > 50 %}medium{% else %}low{% endif %}">
+                                {{ trend.virality_score|round|int }}
+                            </div>
+                            
+                            <h5 class="text-center mb-3">Virality Score</h5>
+                            
+                            <div class="mb-3">
+                                <strong>Trend Direction:</strong>
+                                <span class="{% if trend.trend_direction == 'increasing' %}text-success{% else %}text-danger{% endif %}">
+                                    <i class="bi {% if trend.trend_direction == 'increasing' %}bi-arrow-up-right{% else %}bi-arrow-down-right{% endif %}"></i>
+                                    {{ trend.trend_direction|capitalize }}
+                                </span>
+                            </div>
+                            
+                            <div class="mb-3">
+                                <strong>Duration:</strong> 
+                                <span>
+                                    <i class="bi {% if trend.trend_duration == 'long-term' %}bi-calendar-check{% elif trend.trend_duration == 'medium-term' %}bi-calendar-week{% else %}bi-calendar-day{% endif %}"></i>
+                                    {{ trend.trend_duration|capitalize }}
+                                </span>
+                            </div>
+                            
+                            <div>
+                                <strong><i class="bi bi-tags"></i> Keywords:</strong>
+                                <div class="mt-2">
+                                    {% for keyword in trend.keywords.split(',') %}
+                                    <span class="keyword-chip">{{ keyword.strip() }}</span>
+                                    {% endfor %}
+                                </div>
                             </div>
                         </div>
                     </div>
                 </div>
-            </div>
-            {% endfor %}
-        {% else %}
-            <div class="col-12">
-                <div class="alert alert-info text-center">
-                    <i class="bi bi-info-circle me-2"></i>
-                    No trend data available for the selected filters.
+                {% endfor %}
+            {% else %}
+                <div class="col-12">
+                    <div class="alert alert-info text-center">
+                        <i class="bi bi-info-circle me-2"></i>
+                        No trend data available for the selected filters.
+                    </div>
                 </div>
-            </div>
-        {% endif %}
-    </div>
+            {% endif %}
+        </div>
+    </noscript>
 </div>
 {% endblock %}
 
 {% block scripts %}
-<script src="https://cdn.plot.ly/plotly-latest.min.js"></script>
+<!-- React Dashboard Bundle -->
+<script src="{{ url_for('static', filename='js/react/dist/trendDashboard.bundle.js') }}"></script>
+
+<!-- Fallback script for non-React browsers -->
 <script>
-document.addEventListener('DOMContentLoaded', function() {
-    // Sample data for the trend chart (will be replaced by actual data)
-    const trendData = {{ trend_chart_data|tojson|safe if trend_chart_data else '[]' }};
-    
-    if (trendData.length > 0) {
-        const traces = [];
-        const categories = [...new Set(trendData.map(item => item.category))];
+if (typeof React === 'undefined') {
+    // If React isn't loaded, handle the fallback chart
+    document.addEventListener('DOMContentLoaded', function() {
+        // Sample data for the trend chart (will be replaced by actual data)
+        const trendData = {{ trend_chart_data|tojson|safe if trend_chart_data else '[]' }};
         
-        categories.forEach(category => {
-            const filteredData = trendData.filter(item => item.category === category);
-            traces.push({
-                x: filteredData.map(item => item.timestamp),
-                y: filteredData.map(item => item.virality_score),
-                mode: 'lines+markers',
-                name: category.charAt(0).toUpperCase() + category.slice(1),
-                line: {
-                    width: 3
-                }
+        if (trendData.length > 0) {
+            const traces = [];
+            const categories = [...new Set(trendData.map(item => item.category))];
+            
+            categories.forEach(category => {
+                const filteredData = trendData.filter(item => item.category === category);
+                traces.push({
+                    x: filteredData.map(item => item.timestamp),
+                    y: filteredData.map(item => item.virality_score),
+                    mode: 'lines+markers',
+                    name: category.charAt(0).toUpperCase() + category.slice(1),
+                    line: {
+                        width: 3
+                    }
+                });
             });
-        });
-        
-        const layout = {
-            showlegend: true,
-            legend: {
-                orientation: 'h',
-                y: -0.2
-            },
-            margin: {
-                l: 50,
-                r: 20,
-                t: 20,
-                b: 50
-            },
-            xaxis: {
-                title: 'Date'
-            },
-            yaxis: {
-                title: 'Virality Score'
-            }
-        };
-        
-        Plotly.newPlot('trend-chart', traces, layout, {responsive: true});
-    } else {
-        document.getElementById('trend-chart').innerHTML = '<div class="alert alert-info">No trend data available for charting</div>';
-    }
-});
+            
+            const layout = {
+                showlegend: true,
+                legend: {
+                    orientation: 'h',
+                    y: -0.2
+                },
+                margin: {
+                    l: 50,
+                    r: 20,
+                    t: 20,
+                    b: 50
+                },
+                xaxis: {
+                    title: 'Date'
+                },
+                yaxis: {
+                    title: 'Virality Score'
+                }
+            };
+            
+            Plotly.newPlot('trend-chart', traces, layout, {responsive: true});
+        }
+    });
+}
 </script>
 {% endblock %}

@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="en" class="light-mode">
+<html lang="en" class="dark-mode">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -549,7 +549,8 @@
             
             // Check for saved state
             const isSidebarCollapsed = localStorage.getItem('sidebarCollapsed') === 'true';
-            const darkModeEnabled = localStorage.getItem('darkMode') === 'true';
+            // Default to dark mode if no preference is set
+            const darkModeEnabled = localStorage.getItem('darkMode') !== 'false';
             
             // Initialize sidebar state
             if (isSidebarCollapsed) {

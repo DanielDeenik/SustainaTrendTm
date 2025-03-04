@@ -1123,7 +1123,7 @@ def trend_analysis():
 # API endpoint for trend data
 @app.route('/api/trends')
 def api_trends():
-    """API endpoint for sustainability trend data"""
+    """API endpoint for sustainability trend data for React dashboard"""
     try:
         logger.info("Trend API endpoint called")
 
@@ -1149,39 +1149,97 @@ def api_trends():
             logger.info(f"Using mock data for trend analysis as requested")
 
         # Filter by category if specified
-        if category:
+        if category and category != 'all':
             logger.info(f"Filtering trend data by category: {category}")
             metrics = [m for m in metrics if m.get('category') == category]
 
-        # Group metrics by name and sort by timestamp
-        grouped_metrics = {}
+        # Process metrics into trend cards format using our analysis function
+        from sustainability_trend import calculate_trend_virality
+        trends = calculate_trend_virality(metrics, category)
+        
+        # Ensure trends are sorted by virality score (high to low)
+        trends = sorted(trends, key=lambda x: x.get("virality_score", 0), reverse=True)
+        
+        # Format chart data for visualization with timestamps
+        trend_chart_data = []
+        
+        # Get unique categories 
+        categories = list(set(trend["category"] for trend in trends))
+        
+        # Get unique timestamps from the metrics data
+        all_timestamps = []
         for metric in metrics:
-            name = metric.get("name")
-            if name not in grouped_metrics:
-                grouped_metrics[name] = []
-            grouped_metrics[name].append(metric)
-
-        # Sort each group by timestamp
-        for name in grouped_metrics:
-            grouped_metrics[name].sort(key=lambda x: x.get("timestamp", ""))
-
-        # Format for charting library
-        trend_data = []
-        for name, metrics_list in grouped_metrics.items():
-            trend_series = {
-                "name": name,
-                "category": metrics_list[0].get("category") if metrics_list else "unknown",
-                "unit": metrics_list[0].get("unit") if metrics_list else "",
-                "values": [m.get("value") for m in metrics_list],
-                "labels": [m.get("timestamp").split("T")[0] if "T" in m.get("timestamp", "") else m.get("timestamp") for m in metrics_list],
-            }
-            trend_data.append(trend_series)
-
-        logger.info(f"Returning trend data with {len(trend_data)} series")
-        return jsonify(trend_data)
+            if metric.get("timestamp"):
+                all_timestamps.append(metric.get("timestamp"))
+        all_timestamps = sorted(list(set(all_timestamps)))
+        
+        # For each timestamp, get the virality score for each category
+        for timestamp in all_timestamps:
+            # Create a formatted timestamp for chart labels (YYYY-MM-DD)
+            formatted_timestamp = timestamp.split("T")[0] if "T" in timestamp else timestamp
+            
+            # Find all trends at this timestamp by category
+            chart_point = {"timestamp": formatted_timestamp}
+            
+            # Add category data
+            for cat in categories:
+                cat_trends = [t for t in trends if 
+                              t.get("category") == cat and 
+                              t.get("timestamp") == timestamp]
+                
+                if cat_trends:
+                    # Use the highest virality score for this category
+                    chart_point[cat] = max(t.get("virality_score", 0) for t in cat_trends)
+                else:
+                    chart_point[cat] = 0
+                    
+            trend_chart_data.append(chart_point)
+        
+        # Helper function to convert numpy numeric types to Python native types
+        def convert_numeric_types(obj):
+            if hasattr(obj, 'item'):  # Handle numpy numeric types (int64, float64)
+                return obj.item()  # Converts numpy types to Python native types
+            elif isinstance(obj, dict):
+                return {k: convert_numeric_types(v) for k, v in obj.items()}
+            elif isinstance(obj, list):
+                return [convert_numeric_types(i) for i in obj]
+            else:
+                return obj
+        
+        # Clean the trends data to ensure all values are JSON serializable
+        cleaned_trends = []
+        for trend in trends:
+            cleaned_trend = {}
+            for key, value in trend.items():
+                cleaned_trend[key] = convert_numeric_types(value)
+            cleaned_trends.append(cleaned_trend)
+        
+        # Clean chart data
+        cleaned_chart_data = []
+        for point in trend_chart_data:
+            cleaned_point = {}
+            for key, value in point.items():
+                cleaned_point[key] = convert_numeric_types(value)
+            cleaned_chart_data.append(cleaned_point)
+        
+        # Format response with trend data (both cards and chart data)
+        response = {
+            "success": True, 
+            "trends": cleaned_trends,
+            "chart_data": cleaned_chart_data,
+            "category_counts": {}
+        }
+        
+        # Count trends by category for distribution charts
+        for cat in categories:
+            count = len([t for t in trends if t["category"] == cat])
+            response["category_counts"][cat] = int(count)  # Ensure count is a Python int
+            
+        logger.info(f"Returning trend data with {len(trends)} trends across {len(categories)} categories")
+        return jsonify(response)
     except Exception as e:
         logger.error(f"Error in trend API endpoint: {str(e)}")
-        return jsonify({"error": str(e)}), 500
+        return jsonify({"success": False, "error": str(e)}), 500
 
 # Debug endpoint for checking app status
 @app.route('/debug')
