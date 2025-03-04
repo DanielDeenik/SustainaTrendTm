@@ -1,11 +1,13 @@
 {
   "name": "Start Dashboard",
-  "entrypoint": "./start.sh",
-  "run_command": "./start.sh",
-  "onStart": "chmod +x ./start.sh ./frontend/start.sh",
+  "entrypoint": "cd frontend && python app.py",
+  "run_command": "cd frontend && python app.py",
+  "onStart": "",
   "restartable": true,
   "language": "python",
   "wait_for_port": 5000,
   "timeout": 30000,
-  "prevent_reboot_loop": true
+  "prevent_reboot_loop": true,
+  "display": "Docker terminal",
+  "web_processes": [{"name": "flask", "start": true, "default": true, "port": 5000}]
 }
