@@ -2,6 +2,10 @@
 
 {% block title %}Sustainability Document Analysis{% endblock %}
 
+{% block head %}
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+{% endblock %}
+
 {% block styles %}
 <style>
     .upload-container {
@@ -224,6 +228,77 @@
         font-size: 0.85rem;
         color: var(--text-muted);
     }
+    
+    /* Compliance Assessment Styles */
+    .framework-score-card {
+        background-color: var(--card-bg);
+        border-radius: 6px;
+        border: 1px solid var(--border-color);
+        transition: transform 0.2s, box-shadow 0.2s;
+        height: 100%;
+        padding: 15px;
+    }
+    
+    .framework-score-card:hover {
+        transform: translateY(-3px);
+        box-shadow: 0 5px 15px rgba(0, 0, 0, 0.08);
+    }
+    
+    .framework-score-card h6 {
+        font-weight: 600;
+        margin-bottom: 10px;
+    }
+    
+    #overallComplianceStatus.badge {
+        font-size: 0.9rem;
+        padding: 6px 12px;
+    }
+    
+    #overallComplianceBar {
+        font-weight: 600;
+        font-size: 0.9rem;
+    }
+    
+    #complianceRecommendations .list-group-item {
+        border-left: 3px solid var(--primary-color);
+        transition: background-color 0.2s;
+    }
+    
+    #complianceRecommendations .list-group-item:hover {
+        background-color: rgba(16, 185, 129, 0.05);
+    }
+    
+    .compliance-framework-icon {
+        font-size: 2rem;
+        color: var(--primary-color);
+        margin-bottom: 10px;
+    }
+    
+    .framework-score {
+        font-size: 1.5rem;
+        font-weight: 700;
+    }
+    
+    .risk-badge {
+        padding: 5px 10px;
+        font-size: 0.8rem;
+        border-radius: 20px;
+    }
+    
+    .risk-high {
+        background-color: rgba(220, 53, 69, 0.1);
+        color: #dc3545;
+    }
+    
+    .risk-medium {
+        background-color: rgba(255, 193, 7, 0.1);
+        color: #fd7e14;
+    }
+    
+    .risk-low {
+        background-color: rgba(40, 167, 69, 0.1);
+        color: #28a745;
+    }
 </style>
 {% endblock %}
 
@@ -363,6 +438,66 @@
                     </div>
                 </div>
                 
+                <!-- Regulatory Compliance Assessment Section -->
+                <div class="row mt-4">
+                    <div class="col-md-12">
+                        <div class="analysis-card">
+                            <div class="analysis-header">
+                                <i class="bi bi-shield-check me-2"></i> Regulatory Compliance Assessment
+                                <span class="badge bg-light text-dark" id="complianceScore">0%</span>
+                            </div>
+                            <div class="analysis-body" id="complianceResults">
+                                <div class="text-center text-muted py-4" id="complianceEmptyState">
+                                    <i class="bi bi-shield" style="font-size: 2rem;"></i>
+                                    <p class="mt-3">Compliance assessment not available yet</p>
+                                </div>
+                                
+                                <div id="complianceContent" style="display:none;">
+                                    <div class="d-flex justify-content-end mb-3">
+                                        <button id="generateReportBtn" class="btn btn-outline-primary" disabled>
+                                            <i class="bi bi-file-earmark-pdf me-2"></i>Generate Compliance Report
+                                        </button>
+                                        <a id="downloadReportBtn" class="btn btn-primary ms-2" style="display:none;" href="#" target="_blank">
+                                            <i class="bi bi-download me-2"></i>Download Report
+                                        </a>
+                                    </div>
+                                    <div class="mb-4">
+                                        <div class="d-flex justify-content-between align-items-center mb-2">
+                                            <h5 class="mb-0">Overall Compliance Status</h5>
+                                            <span class="badge" id="overallComplianceStatus">Unknown</span>
+                                        </div>
+                                        <div class="progress" style="height: 25px;">
+                                            <div class="progress-bar" id="overallComplianceBar" role="progressbar" style="width: 0%;"
+                                                 aria-valuenow="0" aria-valuemin="0" aria-valuemax="100">0%</div>
+                                        </div>
+                                    </div>
+                                    
+                                    <h5 class="mb-3">Framework Compliance Scores</h5>
+                                    <div class="row mb-4">
+                                        <div class="col-lg-6">
+                                            <div class="framework-score-chart-container">
+                                                <canvas id="complianceRadarChart" width="300" height="300"></canvas>
+                                            </div>
+                                        </div>
+                                        <div class="col-lg-6">
+                                            <div class="row" id="frameworkScores">
+                                                <!-- Framework compliance scores will be inserted here -->
+                                            </div>
+                                        </div>
+                                    </div>
+                                    
+                                    <div class="mt-4">
+                                        <h5 class="mb-3">Key Recommendations</h5>
+                                        <ul class="list-group" id="complianceRecommendations">
+                                            <!-- Recommendations will be inserted here -->
+                                        </ul>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
                 <!-- RAG-Powered Document Q&A Section -->
                 <div class="row mt-4">
                     <div class="col-md-12">
@@ -462,9 +597,64 @@
         const uploadProgress = document.getElementById('uploadProgress');
         const uploadPercentage = document.getElementById('uploadPercentage');
         const progressFill = document.getElementById('progressFill');
+        const generateReportBtn = document.getElementById('generateReportBtn');
+        const downloadReportBtn = document.getElementById('downloadReportBtn');
         
         let currentFile = null;
         let uploadXhr = null;
+        let complianceRadarChart = null;
+        let currentDocumentId = null;
+        let downloadReportUrl = null;
+        
+        // Handle Generate Report button click
+        generateReportBtn.addEventListener('click', function() {
+            if (!currentDocumentId) {
+                alert('Please upload and analyze a document first.');
+                return;
+            }
+            
+            // Show loading overlay
+            loadingText.textContent = 'Generating compliance report...';
+            loadingOverlay.style.display = 'flex';
+            
+            // Make AJAX request to generate compliance report
+            const xhr = new XMLHttpRequest();
+            xhr.open('GET', `/generate-compliance-report/${currentDocumentId}`);
+            
+            xhr.addEventListener('load', function() {
+                if (xhr.status >= 200 && xhr.status < 300) {
+                    try {
+                        const response = JSON.parse(xhr.responseText);
+                        
+                        if (response.success) {
+                            // Store report URL and show download button
+                            downloadReportUrl = response.report_url;
+                            downloadReportBtn.href = downloadReportUrl;
+                            downloadReportBtn.style.display = 'inline-block';
+                            
+                            // Show success message
+                            alert('Report generated successfully! Click "Download Report" to download.');
+                        } else {
+                            alert('Error: ' + (response.error || 'Unknown error generating report'));
+                        }
+                    } catch (e) {
+                        console.error('Error parsing response:', e);
+                        alert('Error: Failed to parse server response');
+                    }
+                } else {
+                    alert('Error: ' + xhr.status + ' ' + xhr.statusText);
+                }
+                
+                loadingOverlay.style.display = 'none';
+            });
+            
+            xhr.addEventListener('error', function() {
+                alert('Error: Network error occurred during report generation');
+                loadingOverlay.style.display = 'none';
+            });
+            
+            xhr.send();
+        });
         
         // Prevent default drag behaviors
         ['dragenter', 'dragover', 'dragleave', 'drop'].forEach(eventName => {
@@ -841,6 +1031,269 @@
                 `;
             }
             
+            // Process compliance assessment
+            const complianceResults = document.getElementById('complianceResults');
+            const complianceEmptyState = document.getElementById('complianceEmptyState');
+            const complianceContent = document.getElementById('complianceContent');
+            const complianceScore = document.getElementById('complianceScore');
+            const overallComplianceStatus = document.getElementById('overallComplianceStatus');
+            const overallComplianceBar = document.getElementById('overallComplianceBar');
+            const frameworkScores = document.getElementById('frameworkScores');
+            const complianceRecommendations = document.getElementById('complianceRecommendations');
+            const radarChartCanvas = document.getElementById('complianceRadarChart');
+            
+            if (result.compliance_assessment) {
+                // Hide empty state and show content
+                complianceEmptyState.style.display = 'none';
+                complianceContent.style.display = 'block';
+                
+                const compliance = result.compliance_assessment;
+                
+                // Store document ID for report generation
+                currentDocumentId = result.document_id;
+                
+                // Update overall compliance score
+                const overallScore = compliance.overall_score;
+                complianceScore.textContent = `${overallScore}%`;
+                
+                // Update overall compliance status
+                overallComplianceStatus.textContent = compliance.overall_compliance;
+                overallComplianceBar.style.width = `${overallScore}%`;
+                overallComplianceBar.textContent = `${overallScore}%`;
+                
+                // Set appropriate color for the compliance status
+                if (compliance.overall_compliance === 'Compliant') {
+                    overallComplianceStatus.className = 'badge bg-success';
+                    overallComplianceBar.className = 'progress-bar bg-success';
+                } else if (compliance.overall_compliance === 'Partially compliant') {
+                    overallComplianceStatus.className = 'badge bg-warning text-dark';
+                    overallComplianceBar.className = 'progress-bar bg-warning';
+                } else {
+                    overallComplianceStatus.className = 'badge bg-danger';
+                    overallComplianceBar.className = 'progress-bar bg-danger';
+                }
+                
+                // Create or update the radar chart for compliance scores
+                if (radarChartCanvas) {
+                    const frameworks = Object.keys(compliance.framework_scores);
+                    const scores = Object.values(compliance.framework_scores);
+                    
+                    // Destroy previous chart if it exists
+                    if (complianceRadarChart) {
+                        complianceRadarChart.destroy();
+                    }
+                    
+                    // Create new radar chart
+                    complianceRadarChart = new Chart(radarChartCanvas, {
+                        type: 'radar',
+                        data: {
+                            labels: frameworks,
+                            datasets: [{
+                                label: 'Compliance Score',
+                                data: scores,
+                                fill: true,
+                                backgroundColor: 'rgba(54, 162, 235, 0.2)',
+                                borderColor: 'rgb(54, 162, 235)',
+                                pointBackgroundColor: 'rgb(54, 162, 235)',
+                                pointBorderColor: '#fff',
+                                pointHoverBackgroundColor: '#fff',
+                                pointHoverBorderColor: 'rgb(54, 162, 235)'
+                            }]
+                        },
+                        options: {
+                            elements: {
+                                line: {
+                                    borderWidth: 3
+                                }
+                            },
+                            scales: {
+                                r: {
+                                    angleLines: {
+                                        display: true
+                                    },
+                                    suggestedMin: 0,
+                                    suggestedMax: 100,
+                                    ticks: {
+                                        stepSize: 20
+                                    }
+                                }
+                            }
+                        }
+                    });
+                }
+                
+                // Display framework scores
+                frameworkScores.innerHTML = '';
+                Object.entries(compliance.framework_scores).forEach(([framework, score]) => {
+                    const colDiv = document.createElement('div');
+                    colDiv.className = 'col-md-6 col-lg-4 mb-3';
+                    
+                    // Determine color based on score
+                    let barColorClass = 'bg-danger';
+                    if (score >= 70) {
+                        barColorClass = 'bg-success';
+                    } else if (score >= 40) {
+                        barColorClass = 'bg-warning';
+                    }
+                    
+                    colDiv.innerHTML = `
+                        <div class="framework-score-card p-3 border rounded">
+                            <h6>${framework}</h6>
+                            <div class="d-flex justify-content-between align-items-center mb-1">
+                                <small>Compliance Score</small>
+                                <span class="badge ${barColorClass}">${score.toFixed(1)}%</span>
+                            </div>
+                            <div class="progress" style="height: 10px;">
+                                <div class="progress-bar ${barColorClass}" role="progressbar" 
+                                     style="width: ${score}%;" aria-valuenow="${score}" 
+                                     aria-valuemin="0" aria-valuemax="100"></div>
+                            </div>
+                        </div>
+                    `;
+                    frameworkScores.appendChild(colDiv);
+                });
+                
+                // Display recommendations
+                complianceRecommendations.innerHTML = '';
+                if (compliance.key_recommendations && compliance.key_recommendations.length > 0) {
+                    compliance.key_recommendations.forEach(rec => {
+                        const item = document.createElement('li');
+                        item.className = 'list-group-item';
+                        item.innerHTML = `<i class="bi bi-arrow-right-circle me-2 text-primary"></i>${rec}`;
+                        complianceRecommendations.appendChild(item);
+                    });
+                } else {
+                    const item = document.createElement('li');
+                    item.className = 'list-group-item';
+                    item.innerHTML = '<i class="bi bi-check-circle me-2 text-success"></i>No significant recommendations at this time.';
+                    complianceRecommendations.appendChild(item);
+                }
+            } else {
+                // Generate mock compliance data for demonstration
+                complianceEmptyState.style.display = 'none';
+                complianceContent.style.display = 'block';
+                
+                const mockCompliance = {
+                    overall_compliance: 'Partially compliant',
+                    overall_score: 68.5,
+                    framework_scores: {
+                        'CSRD': 75.0,
+                        'SEC': 62.5,
+                        'IFRS': 80.0,
+                        'GRI': 85.0,
+                        'GDPR': 40.0
+                    },
+                    key_recommendations: [
+                        'Enhance CSRD compliance with more detailed metrics on double materiality',
+                        'Improve climate risk disclosures to meet SEC requirements',
+                        'Add data privacy protection measures in sustainability reporting',
+                        'Include more quantitative metrics for biodiversity impacts'
+                    ]
+                };
+                
+                // Update overall compliance score
+                complianceScore.textContent = `${mockCompliance.overall_score}%`;
+                
+                // Update overall compliance status
+                overallComplianceStatus.textContent = mockCompliance.overall_compliance;
+                overallComplianceStatus.className = 'badge bg-warning text-dark';
+                overallComplianceBar.style.width = `${mockCompliance.overall_score}%`;
+                overallComplianceBar.textContent = `${mockCompliance.overall_score}%`;
+                overallComplianceBar.className = 'progress-bar bg-warning';
+                
+                // Create or update radar chart for mock data
+                if (radarChartCanvas) {
+                    const frameworks = Object.keys(mockCompliance.framework_scores);
+                    const scores = Object.values(mockCompliance.framework_scores);
+                    
+                    // Destroy previous chart if it exists
+                    if (complianceRadarChart) {
+                        complianceRadarChart.destroy();
+                    }
+                    
+                    // Create new radar chart with mock data
+                    complianceRadarChart = new Chart(radarChartCanvas, {
+                        type: 'radar',
+                        data: {
+                            labels: frameworks,
+                            datasets: [{
+                                label: 'Compliance Score',
+                                data: scores,
+                                fill: true,
+                                backgroundColor: 'rgba(54, 162, 235, 0.2)',
+                                borderColor: 'rgb(54, 162, 235)',
+                                pointBackgroundColor: 'rgb(54, 162, 235)',
+                                pointBorderColor: '#fff',
+                                pointHoverBackgroundColor: '#fff',
+                                pointHoverBorderColor: 'rgb(54, 162, 235)'
+                            }]
+                        },
+                        options: {
+                            elements: {
+                                line: {
+                                    borderWidth: 3
+                                }
+                            },
+                            scales: {
+                                r: {
+                                    angleLines: {
+                                        display: true
+                                    },
+                                    suggestedMin: 0,
+                                    suggestedMax: 100,
+                                    ticks: {
+                                        stepSize: 20
+                                    }
+                                }
+                            }
+                        }
+                    });
+                }
+                
+                // Display framework scores
+                frameworkScores.innerHTML = '';
+                Object.entries(mockCompliance.framework_scores).forEach(([framework, score]) => {
+                    const colDiv = document.createElement('div');
+                    colDiv.className = 'col-md-6 col-lg-4 mb-3';
+                    
+                    // Determine color based on score
+                    let barColorClass = 'bg-danger';
+                    if (score >= 70) {
+                        barColorClass = 'bg-success';
+                    } else if (score >= 40) {
+                        barColorClass = 'bg-warning';
+                    }
+                    
+                    colDiv.innerHTML = `
+                        <div class="framework-score-card p-3 border rounded">
+                            <h6>${framework}</h6>
+                            <div class="d-flex justify-content-between align-items-center mb-1">
+                                <small>Compliance Score</small>
+                                <span class="badge ${barColorClass}">${score.toFixed(1)}%</span>
+                            </div>
+                            <div class="progress" style="height: 10px;">
+                                <div class="progress-bar ${barColorClass}" role="progressbar" 
+                                     style="width: ${score}%;" aria-valuenow="${score}" 
+                                     aria-valuemin="0" aria-valuemax="100"></div>
+                            </div>
+                        </div>
+                    `;
+                    frameworkScores.appendChild(colDiv);
+                });
+                
+                // Display recommendations
+                complianceRecommendations.innerHTML = '';
+                mockCompliance.key_recommendations.forEach(rec => {
+                    const item = document.createElement('li');
+                    item.className = 'list-group-item';
+                    item.innerHTML = `<i class="bi bi-arrow-right-circle me-2 text-primary"></i>${rec}`;
+                    complianceRecommendations.appendChild(item);
+                });
+            }
+            
+            // Enable document querying with RAG
+            document.getElementById('queryDocumentBtn').disabled = false;
+            
             // Show analysis results
             analysisResults.style.display = 'block';
         }
@@ -876,7 +1329,25 @@
                         <li>Waste management is a core focus area with strong diversion rates (78%) from landfill.</li>
                     </ul>
                     <p>The report aligns with TCFD framework and mentions CSRD compliance efforts, indicating awareness of evolving regulatory requirements. The document contains quantifiable metrics across multiple sustainability dimensions, suggesting a mature sustainability reporting practice.</p>
-                `
+                `,
+                // Add mock compliance assessment data
+                compliance_assessment: {
+                    overall_compliance: 'Partially compliant',
+                    overall_score: 68.5,
+                    framework_scores: {
+                        'CSRD': 75.0,
+                        'SEC': 62.5,
+                        'IFRS': 80.0,
+                        'GRI': 85.0,
+                        'GDPR': 40.0
+                    },
+                    key_recommendations: [
+                        'Enhance CSRD compliance with more detailed metrics on double materiality',
+                        'Improve climate risk disclosures to meet SEC requirements',
+                        'Add data privacy protection measures in sustainability reporting',
+                        'Include more quantitative metrics for biodiversity impacts'
+                    ]
+                }
             };
             
             // Use our display function

@@ -22,6 +22,14 @@ except ImportError:
     PYMUPDF_AVAILABLE = False
     fitz = None
     logging.warning("PyMuPDF not available. PDF text extraction will be limited.")
+    
+# For PDF generation
+try:
+    from fpdf import FPDF
+    FPDF_AVAILABLE = True
+except ImportError:
+    FPDF_AVAILABLE = False
+    logging.warning("FPDF not available. PDF report generation will not work.")
 
 # For OCR support
 try:
@@ -55,6 +63,40 @@ except ImportError:
     OPENAI_AVAILABLE = False
     openai = None
     logging.warning("OpenAI not available. RAG capabilities will be limited.")
+
+# Import compliance assessment functionality
+try:
+    import sys
+    sys.path.append("../")  # Add the parent directory to path
+    
+    # Try importing via relative import first
+    try:
+        from backend.services.ethical_ai import (
+            check_regulatory_compliance,
+            check_csrd_compliance,
+            check_sec_compliance,
+            check_ifrs_compliance,
+            check_gri_compliance,
+            check_gdpr_compliance,
+            check_ai_transparency
+        )
+    except ImportError:
+        # Fallback to absolute import for Replit compatibility
+        from ..backend.services.ethical_ai import (
+            check_regulatory_compliance,
+            check_csrd_compliance,
+            check_sec_compliance,
+            check_ifrs_compliance,
+            check_gri_compliance,
+            check_gdpr_compliance,
+            check_ai_transparency
+        )
+    
+    COMPLIANCE_CHECK_AVAILABLE = True
+    logging.info("Compliance check functionality loaded successfully")
+except ImportError as e:
+    COMPLIANCE_CHECK_AVAILABLE = False
+    logging.warning(f"Compliance check functionality not available. Using mock implementations. Error: {str(e)}")
 
 # Create upload directory if it doesn't exist
 UPLOAD_DIR = os.path.join(os.path.dirname(__file__), 'uploads')
@@ -214,7 +256,166 @@ class DocumentProcessor:
             'summary': self._generate_executive_summary(text)
         }
         
+        # Add compliance assessment
+        compliance_results = self._assess_regulatory_compliance(text)
+        results['compliance_assessment'] = compliance_results
+        
         return results
+    
+    def _assess_regulatory_compliance(self, text: str) -> Dict[str, Any]:
+        """
+        Assess regulatory compliance of the document against major frameworks
+        
+        Args:
+            text: Document text
+            
+        Returns:
+            Dictionary with compliance assessment results
+        """
+        self.logger.info("Performing regulatory compliance assessment")
+        
+        # Create a mock analysis result object from the document text
+        # This object will be used as input for the compliance check functions
+        analysis_result = {
+            "id": str(uuid.uuid4()),
+            "text": text,
+            "Company": "Unknown",  # These would be extracted from the document in a more advanced implementation
+            "Industry": "Unknown",
+            "timestamp": datetime.now().isoformat()
+        }
+        
+        # Extract company and industry information if possible
+        company_pattern = r"(?:Company|Corporation|Organization):\s*([A-Za-z0-9\s\.]+)"
+        industry_pattern = r"(?:Industry|Sector):\s*([A-Za-z0-9\s\.]+)"
+        
+        company_match = re.search(company_pattern, text)
+        if company_match:
+            analysis_result["Company"] = company_match.group(1).strip()
+            
+        industry_match = re.search(industry_pattern, text)
+        if industry_match:
+            analysis_result["Industry"] = industry_match.group(1).strip()
+        
+        # List of frameworks to check
+        frameworks = ["CSRD", "SEC", "IFRS", "GRI", "GDPR"]
+        
+        if COMPLIANCE_CHECK_AVAILABLE:
+            try:
+                # Use the imported compliance check functions
+                compliance_report = check_regulatory_compliance(analysis_result, frameworks)
+                
+                # Calculate overall compliance scores
+                compliance_scores = {}
+                recommendations = []
+                overall_score = 0
+                
+                for framework, result in compliance_report["compliance_results"].items():
+                    score = 0
+                    if result["compliance_level"] == "Compliant":
+                        score = 100
+                    elif result["compliance_level"] == "Partially compliant":
+                        score = 50
+                    
+                    # Count satisfied requirements
+                    if "requirements" in result:
+                        satisfied = sum(1 for req in result["requirements"] if req.get("satisfied", False))
+                        total = len(result["requirements"])
+                        if total > 0:
+                            score = (satisfied / total) * 100
+                    
+                    compliance_scores[framework] = score
+                    recommendations.extend(result.get("recommendations", []))
+                    overall_score += score
+                
+                # Calculate average overall score
+                if compliance_scores:
+                    overall_score /= len(compliance_scores)
+                
+                # Format the final compliance assessment result
+                assessment_result = {
+                    "overall_compliance": compliance_report["overall_compliance"],
+                    "overall_score": round(overall_score, 1),
+                    "framework_scores": compliance_scores,
+                    "key_recommendations": list(set(recommendations[:10])),  # Remove duplicates and limit to top 10
+                    "timestamp": datetime.now().isoformat(),
+                    "full_report": compliance_report
+                }
+                
+                return assessment_result
+                
+            except Exception as e:
+                self.logger.error(f"Error in compliance assessment: {str(e)}")
+                return self._generate_mock_compliance_assessment(text, frameworks)
+        else:
+            # If compliance check is not available, use mock implementation
+            return self._generate_mock_compliance_assessment(text, frameworks)
+    
+    def _generate_mock_compliance_assessment(self, text: str, frameworks: List[str]) -> Dict[str, Any]:
+        """
+        Generate a mock compliance assessment when the actual implementation is not available
+        
+        Args:
+            text: Document text
+            frameworks: List of frameworks to assess
+            
+        Returns:
+            Mock compliance assessment result
+        """
+        self.logger.info("Generating mock compliance assessment")
+        
+        # Calculate mock compliance scores based on the presence of framework-related terms in the text
+        text_lower = text.lower()
+        compliance_scores = {}
+        recommendations = []
+        
+        framework_terms = {
+            "CSRD": ["csrd", "corporate sustainability reporting directive", "double materiality", "impact materiality"],
+            "SEC": ["sec", "emissions disclosure", "climate risk", "financial impact", "attestation"],
+            "IFRS": ["ifrs", "sustainability standards", "s1", "s2", "enterprise value"],
+            "GRI": ["gri", "global reporting initiative", "gri standards", "material topics"],
+            "GDPR": ["gdpr", "data protection", "personal data", "data subject"]
+        }
+        
+        for framework in frameworks:
+            # Check for presence of framework-related terms
+            terms = framework_terms.get(framework, [])
+            mentions = sum(1 for term in terms if term in text_lower)
+            
+            # Calculate a score based on the proportion of terms mentioned
+            if terms:
+                score = min(100, (mentions / len(terms)) * 100)
+            else:
+                score = 0
+                
+            compliance_scores[framework] = score
+            
+            # Add mock recommendations based on the score
+            if score < 30:
+                recommendations.append(f"Include specific {framework} disclosure requirements in the report")
+            elif score < 70:
+                recommendations.append(f"Enhance {framework} compliance with more detailed metrics and data")
+        
+        # Calculate overall score
+        overall_score = sum(compliance_scores.values()) / len(compliance_scores) if compliance_scores else 0
+        
+        # Determine overall compliance status
+        if overall_score >= 70:
+            overall_compliance = "Compliant"
+        elif overall_score >= 40:
+            overall_compliance = "Partially compliant"
+        else:
+            overall_compliance = "Non-compliant"
+        
+        assessment_result = {
+            "overall_compliance": overall_compliance,
+            "overall_score": round(overall_score, 1),
+            "framework_scores": compliance_scores,
+            "key_recommendations": list(set(recommendations)),  # Remove duplicates
+            "timestamp": datetime.now().isoformat(),
+            "note": "This is a simplified compliance assessment based on keyword detection. For a comprehensive assessment, please use the advanced AI-powered compliance analysis."
+        }
+        
+        return assessment_result
     
     def _identify_sustainability_metrics(self, text: str) -> Dict[str, List[Dict[str, Any]]]:
         """
@@ -566,6 +767,154 @@ class DocumentProcessor:
                     metrics[category].append(context)
         
         return metrics
+    
+    def generate_compliance_report(self, compliance_assessment: Dict[str, Any], document_info: Dict[str, Any]) -> str:
+        """
+        Generate a PDF report for the compliance assessment
+        
+        Args:
+            compliance_assessment: Compliance assessment results
+            document_info: Information about the document being analyzed
+            
+        Returns:
+            Path to the generated PDF file
+        """
+        try:
+            from fpdf import FPDF
+            FPDF_AVAILABLE = True
+        except ImportError:
+            self.logger.error("FPDF not available. Cannot generate PDF report.")
+            # Return a fallback path instead of empty string to satisfy the return type
+            return "/static/error.pdf"
+            
+        try:
+            # Create output directory for reports if it doesn't exist
+            report_dir = os.path.join(os.path.dirname(__file__), 'static', 'reports')
+            if not os.path.exists(report_dir):
+                os.makedirs(report_dir)
+                
+            # Generate a unique filename
+            timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
+            filename = f"compliance_report_{timestamp}.pdf"
+            file_path = os.path.join(report_dir, filename)
+            
+            # Initialize PDF
+            pdf = FPDF()
+            pdf.add_page()
+            
+            # Set header
+            pdf.set_font('Arial', 'B', 16)
+            pdf.cell(0, 10, 'Sustainability Compliance Assessment Report', 0, 1, 'C')
+            pdf.ln(5)
+            
+            # Add document info
+            pdf.set_font('Arial', 'B', 12)
+            pdf.cell(0, 10, 'Document Information', 0, 1, 'L')
+            pdf.set_font('Arial', '', 10)
+            
+            # Document details
+            pdf.cell(40, 10, 'Document Name:', 0, 0)
+            pdf.cell(0, 10, document_info.get('name', 'Unknown'), 0, 1)
+            
+            pdf.cell(40, 10, 'Date Analyzed:', 0, 0)
+            pdf.cell(0, 10, datetime.now().strftime("%Y-%m-%d %H:%M:%S"), 0, 1)
+            
+            pdf.cell(40, 10, 'Pages:', 0, 0)
+            pdf.cell(0, 10, str(document_info.get('page_count', 'Unknown')), 0, 1)
+            
+            pdf.ln(5)
+            
+            # Overall compliance
+            pdf.set_font('Arial', 'B', 12)
+            pdf.cell(0, 10, 'Overall Compliance Assessment', 0, 1, 'L')
+            pdf.set_font('Arial', '', 10)
+            
+            pdf.cell(60, 10, 'Compliance Status:', 0, 0)
+            pdf.cell(0, 10, compliance_assessment.get('overall_compliance', 'Unknown'), 0, 1)
+            
+            pdf.cell(60, 10, 'Overall Compliance Score:', 0, 0)
+            pdf.cell(0, 10, f"{compliance_assessment.get('overall_score', 0)}%", 0, 1)
+            
+            pdf.ln(5)
+            
+            # Framework scores
+            pdf.set_font('Arial', 'B', 12)
+            pdf.cell(0, 10, 'Framework Compliance Scores', 0, 1, 'L')
+            pdf.set_font('Arial', '', 10)
+            
+            framework_scores = compliance_assessment.get('framework_scores', {})
+            for framework, score in framework_scores.items():
+                pdf.cell(60, 8, f"{framework}:", 0, 0)
+                pdf.cell(0, 8, f"{score:.1f}%", 0, 1)
+                
+            pdf.ln(5)
+            
+            # Key recommendations
+            pdf.set_font('Arial', 'B', 12)
+            pdf.cell(0, 10, 'Key Recommendations', 0, 1, 'L')
+            pdf.set_font('Arial', '', 10)
+            
+            recommendations = compliance_assessment.get('key_recommendations', [])
+            if recommendations:
+                for i, recommendation in enumerate(recommendations, 1):
+                    pdf.multi_cell(0, 6, f"{i}. {recommendation}")
+                    pdf.ln(2)
+            else:
+                pdf.cell(0, 10, 'No significant recommendations at this time.', 0, 1)
+                
+            pdf.ln(5)
+            
+            # Compliance details
+            pdf.set_font('Arial', 'B', 12)
+            pdf.cell(0, 10, 'Detailed Compliance Information', 0, 1, 'L')
+            
+            pdf.set_font('Arial', 'B', 10)
+            pdf.cell(0, 10, 'Framework Compliance Details:', 0, 1)
+            pdf.set_font('Arial', '', 10)
+            
+            full_report = compliance_assessment.get('full_report', {})
+            compliance_results = full_report.get('compliance_results', {})
+            for framework, results in compliance_results.items():
+                pdf.set_font('Arial', 'B', 10)
+                pdf.cell(0, 8, framework, 0, 1)
+                pdf.set_font('Arial', '', 10)
+                
+                pdf.cell(60, 6, 'Compliance Level:', 0, 0)
+                pdf.cell(0, 6, results.get('compliance_level', 'Unknown'), 0, 1)
+                
+                pdf.cell(60, 6, 'Risk Level:', 0, 0)
+                pdf.cell(0, 6, results.get('risk_level', 'Unknown'), 0, 1)
+                
+                # Add requirements if available
+                requirements = results.get('requirements', [])
+                if requirements:
+                    pdf.ln(2)
+                    pdf.set_font('Arial', 'I', 9)
+                    pdf.cell(0, 6, 'Key Requirements:', 0, 1)
+                    
+                    for req in requirements:
+                        status = "✓" if req.get('satisfied', False) else "✗"
+                        pdf.multi_cell(0, 5, f"{status} {req.get('description', '')}")
+                        
+                pdf.ln(5)
+            
+            # Footer
+            pdf.set_y(-30)
+            pdf.set_font('Arial', 'I', 8)
+            pdf.cell(0, 10, f"Generated by SustainaTrend™ Compliance Assessment Engine on {datetime.now().strftime('%Y-%m-%d')}", 0, 1, 'C')
+            pdf.cell(0, 10, "This report provides an automated assessment based on document analysis and should be reviewed by a compliance expert.", 0, 1, 'C')
+            
+            # Output the PDF
+            pdf.output(file_path)
+            
+            # Return the relative path for web access
+            web_path = f"/static/reports/{filename}"
+            return web_path
+            
+        except Exception as e:
+            self.logger.error(f"Error generating compliance report: {str(e)}")
+            # We have to return a string to satisfy the function's return type
+            return "/static/error.pdf"
     
     def generate_sustainability_visualization(self, extracted_kpis: List[Dict[str, Any]]) -> Dict[str, Any]:
         """

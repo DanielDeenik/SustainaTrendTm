@@ -266,7 +266,7 @@ def detect_bias(analysis_result: Dict[str, Any], company_data: Dict[str, Any]) -
     return bias_report
 
 def check_regulatory_compliance(analysis_result: Dict[str, Any], 
-                               regulations: List[str] = ["CSRD", "GDPR"]) -> Dict[str, Any]:
+                               regulations: List[str] = ["CSRD", "GDPR", "SEC", "IFRS", "GRI"]) -> Dict[str, Any]:
     """
     Check if an AI-generated analysis meets regulatory compliance requirements.
     
@@ -296,6 +296,33 @@ def check_regulatory_compliance(analysis_result: Dict[str, Any],
         if csrd_check["compliance_level"] in ["Non-compliant", "Partially compliant"]:
             compliance_report["overall_compliance"] = "Partially compliant"
             compliance_report["recommendations"].extend(csrd_check["recommendations"])
+    
+    # Check SEC compliance if requested
+    if "SEC" in regulations:
+        sec_check = check_sec_compliance(analysis_result)
+        compliance_report["compliance_results"]["SEC"] = sec_check
+        
+        if sec_check["compliance_level"] in ["Non-compliant", "Partially compliant"]:
+            compliance_report["overall_compliance"] = "Partially compliant"
+            compliance_report["recommendations"].extend(sec_check["recommendations"])
+    
+    # Check IFRS compliance if requested
+    if "IFRS" in regulations:
+        ifrs_check = check_ifrs_compliance(analysis_result)
+        compliance_report["compliance_results"]["IFRS"] = ifrs_check
+        
+        if ifrs_check["compliance_level"] in ["Non-compliant", "Partially compliant"]:
+            compliance_report["overall_compliance"] = "Partially compliant"
+            compliance_report["recommendations"].extend(ifrs_check["recommendations"])
+    
+    # Check GRI compliance if requested
+    if "GRI" in regulations:
+        gri_check = check_gri_compliance(analysis_result)
+        compliance_report["compliance_results"]["GRI"] = gri_check
+        
+        if gri_check["compliance_level"] in ["Non-compliant", "Partially compliant"]:
+            compliance_report["overall_compliance"] = "Partially compliant"
+            compliance_report["recommendations"].extend(gri_check["recommendations"])
     
     # Check GDPR compliance if requested
     if "GDPR" in regulations:
@@ -403,6 +430,279 @@ def check_csrd_compliance(analysis_result: Dict[str, Any]) -> Dict[str, Any]:
     return {
         "compliance_level": compliance_level,
         "requirements": csrd_requirements,
+        "recommendations": recommendations
+    }
+
+def check_sec_compliance(analysis_result: Dict[str, Any]) -> Dict[str, Any]:
+    """
+    Check compliance with SEC climate disclosure requirements.
+    
+    Args:
+        analysis_result: The AI-generated analysis
+        
+    Returns:
+        Dictionary with SEC compliance results
+    """
+    # Define SEC requirements
+    sec_requirements = [
+        {
+            "requirement": "Climate Risk Disclosure",
+            "description": "Disclosure of material climate-related risks",
+            "satisfied": False
+        },
+        {
+            "requirement": "GHG Emissions Reporting",
+            "description": "Reporting of Scope 1 and Scope 2 GHG emissions",
+            "satisfied": False
+        },
+        {
+            "requirement": "Climate Risk Management",
+            "description": "Description of processes for managing climate-related risks",
+            "satisfied": False
+        },
+        {
+            "requirement": "Financial Impact Assessment",
+            "description": "Assessment of financial impacts of climate-related risks",
+            "satisfied": False
+        },
+        {
+            "requirement": "Attestation Requirements",
+            "description": "Appropriate attestation of reported information",
+            "satisfied": False
+        }
+    ]
+    
+    # Check if requirements are satisfied
+    compliance_level = "Non-compliant"
+    recommendations = []
+    
+    # Check climate risk disclosure
+    if any(term.lower() in str(analysis_result).lower() for term in 
+           ["climate risk", "climate-related risk", "climate change risk"]):
+        sec_requirements[0]["satisfied"] = True
+    else:
+        recommendations.append("Include disclosure of material climate-related risks")
+    
+    # Check GHG emissions reporting
+    ghg_terms = ["greenhouse gas", "ghg emissions", "scope 1", "scope 2", "carbon emissions"]
+    if any(term.lower() in str(analysis_result).lower() for term in ghg_terms):
+        sec_requirements[1]["satisfied"] = True
+    else:
+        recommendations.append("Include reporting of Scope 1 and Scope 2 GHG emissions")
+    
+    # Check climate risk management
+    management_terms = ["risk management", "climate strategy", "mitigation measures", "adaptation measures"]
+    if any(term.lower() in str(analysis_result).lower() for term in management_terms):
+        sec_requirements[2]["satisfied"] = True
+    else:
+        recommendations.append("Describe processes for identifying, assessing, and managing climate-related risks")
+    
+    # Check financial impact assessment
+    financial_terms = ["financial impact", "financial risk", "financial consequence", "financial assessment"]
+    if any(term.lower() in str(analysis_result).lower() for term in financial_terms):
+        sec_requirements[3]["satisfied"] = True
+    else:
+        recommendations.append("Include assessment of financial impacts of climate-related risks")
+    
+    # Check attestation requirements
+    attestation_terms = ["attestation", "assurance", "verification", "audit", "certified"]
+    if any(term.lower() in str(analysis_result).lower() for term in attestation_terms):
+        sec_requirements[4]["satisfied"] = True
+    else:
+        recommendations.append("Include information on attestation of reported climate-related information")
+    
+    # Determine overall compliance level
+    satisfied_count = sum(1 for req in sec_requirements if req["satisfied"])
+    if satisfied_count == len(sec_requirements):
+        compliance_level = "Compliant"
+    elif satisfied_count >= 3:
+        compliance_level = "Partially compliant"
+    
+    return {
+        "compliance_level": compliance_level,
+        "requirements": sec_requirements,
+        "recommendations": recommendations
+    }
+
+def check_ifrs_compliance(analysis_result: Dict[str, Any]) -> Dict[str, Any]:
+    """
+    Check compliance with IFRS Sustainability Disclosure Standards.
+    
+    Args:
+        analysis_result: The AI-generated analysis
+        
+    Returns:
+        Dictionary with IFRS compliance results
+    """
+    # Define IFRS requirements
+    ifrs_requirements = [
+        {
+            "requirement": "General Requirements",
+            "description": "Compliance with IFRS S1 General Requirements",
+            "satisfied": False
+        },
+        {
+            "requirement": "Climate Disclosures",
+            "description": "Compliance with IFRS S2 Climate-related Disclosures",
+            "satisfied": False
+        },
+        {
+            "requirement": "Materiality Assessment",
+            "description": "Enterprise value-focused materiality assessment",
+            "satisfied": False
+        },
+        {
+            "requirement": "Connected Information",
+            "description": "Connection between sustainability and financial information",
+            "satisfied": False
+        },
+        {
+            "requirement": "Fair Presentation",
+            "description": "Fair presentation of sustainability-related risks and opportunities",
+            "satisfied": False
+        }
+    ]
+    
+    # Check if requirements are satisfied
+    compliance_level = "Non-compliant"
+    recommendations = []
+    
+    # Check general requirements
+    general_terms = ["ifrs s1", "general requirements", "sustainability-related financial information"]
+    if any(term.lower() in str(analysis_result).lower() for term in general_terms):
+        ifrs_requirements[0]["satisfied"] = True
+    else:
+        recommendations.append("Include disclosure in accordance with IFRS S1 General Requirements")
+    
+    # Check climate disclosures
+    climate_terms = ["ifrs s2", "climate-related disclosures", "climate risk", "climate opportunity"]
+    if any(term.lower() in str(analysis_result).lower() for term in climate_terms):
+        ifrs_requirements[1]["satisfied"] = True
+    else:
+        recommendations.append("Include climate-related disclosures in accordance with IFRS S2")
+    
+    # Check materiality assessment
+    materiality_terms = ["materiality assessment", "enterprise value", "material information"]
+    if any(term.lower() in str(analysis_result).lower() for term in materiality_terms):
+        ifrs_requirements[2]["satisfied"] = True
+    else:
+        recommendations.append("Include enterprise value-focused materiality assessment")
+    
+    # Check connected information
+    connected_terms = ["connected information", "financial statements", "connection to financial"]
+    if any(term.lower() in str(analysis_result).lower() for term in connected_terms):
+        ifrs_requirements[3]["satisfied"] = True
+    else:
+        recommendations.append("Connect sustainability information to financial information")
+    
+    # Check fair presentation
+    fair_terms = ["fair presentation", "complete", "neutral", "accurate", "balanced view"]
+    if any(term.lower() in str(analysis_result).lower() for term in fair_terms):
+        ifrs_requirements[4]["satisfied"] = True
+    else:
+        recommendations.append("Ensure fair presentation of sustainability-related risks and opportunities")
+    
+    # Determine overall compliance level
+    satisfied_count = sum(1 for req in ifrs_requirements if req["satisfied"])
+    if satisfied_count == len(ifrs_requirements):
+        compliance_level = "Compliant"
+    elif satisfied_count >= 3:
+        compliance_level = "Partially compliant"
+    
+    return {
+        "compliance_level": compliance_level,
+        "requirements": ifrs_requirements,
+        "recommendations": recommendations
+    }
+
+def check_gri_compliance(analysis_result: Dict[str, Any]) -> Dict[str, Any]:
+    """
+    Check compliance with Global Reporting Initiative (GRI) Standards.
+    
+    Args:
+        analysis_result: The AI-generated analysis
+        
+    Returns:
+        Dictionary with GRI compliance results
+    """
+    # Define GRI requirements
+    gri_requirements = [
+        {
+            "requirement": "Universal Standards",
+            "description": "Disclosure of GRI 1, 2, and 3 information",
+            "satisfied": False
+        },
+        {
+            "requirement": "Material Topics",
+            "description": "Identification and disclosure of material topics",
+            "satisfied": False
+        },
+        {
+            "requirement": "Topic-Specific Disclosures",
+            "description": "Detailed reporting on material topics using GRI topic standards",
+            "satisfied": False
+        },
+        {
+            "requirement": "Stakeholder Engagement",
+            "description": "Disclosure of stakeholder engagement processes",
+            "satisfied": False
+        },
+        {
+            "requirement": "Reporting Principles",
+            "description": "Adherence to GRI reporting principles",
+            "satisfied": False
+        }
+    ]
+    
+    # Check if requirements are satisfied
+    compliance_level = "Non-compliant"
+    recommendations = []
+    
+    # Check universal standards
+    universal_terms = ["gri 1", "gri 2", "gri 3", "universal standards", "foundation", "general disclosures"]
+    if any(term.lower() in str(analysis_result).lower() for term in universal_terms):
+        gri_requirements[0]["satisfied"] = True
+    else:
+        recommendations.append("Include disclosures in accordance with GRI Universal Standards")
+    
+    # Check material topics
+    material_terms = ["material topic", "materiality assessment", "materiality analysis"]
+    if any(term.lower() in str(analysis_result).lower() for term in material_terms):
+        gri_requirements[1]["satisfied"] = True
+    else:
+        recommendations.append("Identify and disclose material topics according to GRI Standards")
+    
+    # Check topic-specific disclosures
+    topic_terms = ["topic standard", "topic-specific", "gri 3", "management approach"]
+    if any(term.lower() in str(analysis_result).lower() for term in topic_terms):
+        gri_requirements[2]["satisfied"] = True
+    else:
+        recommendations.append("Include topic-specific disclosures for each material topic")
+    
+    # Check stakeholder engagement
+    stakeholder_terms = ["stakeholder engagement", "stakeholder consultation", "stakeholder input"]
+    if any(term.lower() in str(analysis_result).lower() for term in stakeholder_terms):
+        gri_requirements[3]["satisfied"] = True
+    else:
+        recommendations.append("Disclose stakeholder engagement processes and outcomes")
+    
+    # Check reporting principles
+    principle_terms = ["reporting principle", "accuracy", "balance", "clarity", "comparability", "completeness"]
+    if any(term.lower() in str(analysis_result).lower() for term in principle_terms):
+        gri_requirements[4]["satisfied"] = True
+    else:
+        recommendations.append("Demonstrate adherence to GRI reporting principles")
+    
+    # Determine overall compliance level
+    satisfied_count = sum(1 for req in gri_requirements if req["satisfied"])
+    if satisfied_count == len(gri_requirements):
+        compliance_level = "Compliant"
+    elif satisfied_count >= 3:
+        compliance_level = "Partially compliant"
+    
+    return {
+        "compliance_level": compliance_level,
+        "requirements": gri_requirements,
         "recommendations": recommendations
     }
 

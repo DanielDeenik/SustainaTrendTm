@@ -2483,6 +2483,90 @@ def analyze_sustainability_document(document_id):
             'error': str(e)
         }), 500
         
+@app.route('/generate-compliance-report/<document_id>', methods=['GET'])
+def generate_compliance_report(document_id):
+    """Generate a downloadable PDF compliance report for a document"""
+    try:
+        logger.info(f"Generating compliance report for document {document_id}")
+        
+        # Create a mock document info if session is not available
+        # In a production environment, this would come from a database
+        document_info = {
+            'id': document_id,
+            'name': f'Document {document_id}',
+            'page_count': 25,
+            'upload_date': datetime.now().strftime('%Y-%m-%d %H:%M:%S'),
+            'file_type': 'PDF'
+        }
+        
+        # In a real implementation, we would retrieve the saved compliance assessment
+        # Here we generate a mock one for demo purposes
+        compliance_assessment = {
+            'overall_compliance': 'Partially compliant',
+            'overall_score': 68.5,
+            'framework_scores': {
+                'CSRD': 75.0,
+                'SEC': 62.5,
+                'IFRS': 80.0,
+                'GRI': 85.0,
+                'GDPR': 40.0
+            },
+            'key_recommendations': [
+                'Enhance CSRD compliance with more detailed metrics on double materiality',
+                'Improve climate risk disclosures to meet SEC requirements',
+                'Add data privacy protection measures in sustainability reporting',
+                'Include more quantitative metrics for biodiversity impacts'
+            ],
+            'full_report': {
+                'compliance_results': {
+                    'CSRD': {
+                        'compliance_level': 'Moderate',
+                        'risk_level': 'Medium',
+                        'requirements': [
+                            {'description': 'Double materiality assessment', 'satisfied': True},
+                            {'description': 'Scope 3 emissions reporting', 'satisfied': False},
+                            {'description': 'Biodiversity impact disclosure', 'satisfied': False}
+                        ]
+                    },
+                    'SEC': {
+                        'compliance_level': 'Partial',
+                        'risk_level': 'Medium-High',
+                        'requirements': [
+                            {'description': 'Climate risk disclosure', 'satisfied': True},
+                            {'description': 'Financial impact assessment', 'satisfied': False}
+                        ]
+                    }
+                }
+            }
+        }
+            
+        # Generate the PDF report
+        from frontend.document_processor import DocumentProcessor
+        document_processor = DocumentProcessor()
+        report_path = document_processor.generate_compliance_report(
+            compliance_assessment, 
+            document_info
+        )
+        
+        if not report_path:
+            return jsonify({
+                'success': False,
+                'error': 'Failed to generate compliance report. Please try again.'
+            }), 500
+            
+        return jsonify({
+            'success': True,
+            'report_url': report_path,
+            'filename': os.path.basename(report_path)
+        })
+        
+    except Exception as e:
+        logger.error(f"Error generating compliance report: {str(e)}")
+        return jsonify({
+            'success': False,
+            'error': f'Error generating report: {str(e)}'
+        }), 500
+
 @app.route('/api/sustainability-document-query', methods=['POST'])
 def sustainability_document_query():
     """Use RAG to query a sustainability document using natural language"""

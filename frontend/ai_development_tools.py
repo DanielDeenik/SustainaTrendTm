@@ -20,7 +20,10 @@ if backend_path not in sys.path:
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
 
-# Try to import AI code automation utilities from backend
+# Try different import strategies for AI code automation utilities
+HAS_AI_CODE_AUTOMATION = False
+
+# Try absolute import first
 try:
     from backend.utils.ai_code_automation import (
         optimize_function, 
@@ -31,10 +34,53 @@ try:
     )
     from backend.utils.fixed_test_generator import SustainabilityTestGenerator
     HAS_AI_CODE_AUTOMATION = True
-    logger.info("AI code automation utilities loaded successfully")
+    logger.info("AI code automation utilities loaded successfully (absolute import)")
 except ImportError as e:
-    HAS_AI_CODE_AUTOMATION = False
-    logger.warning(f"AI code automation utilities not available: {e}")
+    logger.debug(f"Absolute import failed: {e}")
+    
+    # Try relative import
+    try:
+        import sys
+        parent_dir = os.path.abspath(os.path.join(os.path.dirname(__file__), '..'))
+        if parent_dir not in sys.path:
+            sys.path.insert(0, parent_dir)
+            
+        from backend.utils.ai_code_automation import (
+            optimize_function, 
+            generate_unit_tests, 
+            suggest_code_improvements, 
+            extract_sustainability_data,
+            AI_LIBRARIES_AVAILABLE
+        )
+        from backend.utils.fixed_test_generator import SustainabilityTestGenerator
+        HAS_AI_CODE_AUTOMATION = True
+        logger.info("AI code automation utilities loaded successfully (relative import)")
+    except ImportError as e:
+        logger.warning(f"AI code automation utilities not available: {e}")
+        
+# Define mock implementations if imports failed
+if not HAS_AI_CODE_AUTOMATION:
+    # Mock implementations for required functions
+    def optimize_function(function, optimization_goal="efficiency", context="sustainability"):
+        return f"# Mock optimized function for {function.__name__}\n# Original code would be optimized for {optimization_goal} in {context} context"
+        
+    def generate_unit_tests(function, test_framework="pytest", test_coverage=0.8):
+        return f"# Mock unit tests for {function.__name__}\n# Would generate {test_framework} tests with {test_coverage*100}% coverage"
+        
+    def suggest_code_improvements(code, improvement_type="all"):
+        return [{"type": "mock_suggestion", "description": "This is a mock code improvement suggestion", "example": "# Example improved code"}]
+        
+    def extract_sustainability_data(api_endpoint, data_format="json"):
+        return {"mock_data": True, "metrics": ["carbon_emissions", "water_usage", "energy_consumption"]}
+        
+    AI_LIBRARIES_AVAILABLE = False
+    
+    class SustainabilityTestGenerator:
+        def __init__(self, test_framework="pytest"):
+            self.test_framework = test_framework
+            
+        def generate_test_for_function(self, function):
+            return generate_unit_tests(function, self.test_framework)
 
 def get_ai_development_status() -> Dict[str, Any]:
     """
