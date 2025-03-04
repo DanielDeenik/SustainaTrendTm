@@ -13,12 +13,13 @@ import re
 from functools import wraps
 import os
 from dotenv import load_dotenv
-from flask import Flask, render_template, jsonify, request
+from flask import Flask, render_template, jsonify, request, redirect, url_for, abort
 import requests
 from flask_caching import Cache
 import logging
 from datetime import datetime, timedelta
 import random  # For generating mock AI search and trend data
+from werkzeug.utils import secure_filename
 
 # Configure logging first
 logging.basicConfig(level=logging.INFO)
@@ -74,6 +75,15 @@ try:
 except ImportError as e:
     ETHICAL_AI_AVAILABLE = False
     logger.warning(f"Ethical AI Compliance module not available: {e}")
+
+# Import Document Processor for PDF analysis
+try:
+    from document_processor import document_processor
+    DOCUMENT_PROCESSOR_AVAILABLE = True
+    logger.info("Document processor loaded successfully")
+except ImportError as e:
+    DOCUMENT_PROCESSOR_AVAILABLE = False
+    logger.warning(f"Document processor not available: {e}")
 
 # Initialize Flask
 app = Flask(__name__)
@@ -2312,6 +2322,158 @@ def page_not_found(e):
     
     # Return a more helpful 404 page
     return render_template("404.html", debug_info=debug_info), 404
+
+# Set up document upload configuration
+UPLOAD_FOLDER = os.path.join(os.path.dirname(__file__), 'uploads')
+if not os.path.exists(UPLOAD_FOLDER):
+    os.makedirs(UPLOAD_FOLDER)
+    
+ALLOWED_EXTENSIONS = {'pdf'}
+MAX_CONTENT_LENGTH = 20 * 1024 * 1024  # 20MB
+
+def allowed_file(filename):
+    """Check if a file has an allowed extension"""
+    return '.' in filename and filename.rsplit('.', 1)[1].lower() in ALLOWED_EXTENSIONS
+
+@app.route('/document-upload')
+def document_upload():
+    """Document upload page for AI-powered sustainability document analysis"""
+    try:
+        logger.info("Document upload page requested")
+        return render_template("document_upload.html")
+    except Exception as e:
+        logger.error(f"Error in document upload route: {str(e)}")
+        return f"Error loading document upload page: {str(e)}", 500
+
+@app.route('/upload-sustainability-document', methods=['POST'])
+def upload_sustainability_document():
+    """Handle document upload and processing"""
+    try:
+        logger.info("Document upload requested")
+        
+        # Check if document processor is available
+        if not DOCUMENT_PROCESSOR_AVAILABLE:
+            logger.error("Document processor not available")
+            return jsonify({
+                'success': False,
+                'error': 'Document processing service is currently unavailable'
+            }), 500
+            
+        # Check if file was included in request
+        if 'file' not in request.files:
+            logger.warning("No file part in request")
+            return jsonify({
+                'success': False,
+                'error': 'No file provided'
+            }), 400
+            
+        file = request.files['file']
+        
+        # Check if a file was selected
+        if file.filename == '':
+            logger.warning("No file selected")
+            return jsonify({
+                'success': False,
+                'error': 'No file selected'
+            }), 400
+            
+        # Check if file is allowed
+        if not allowed_file(file.filename):
+            logger.warning(f"Invalid file type: {file.filename}")
+            return jsonify({
+                'success': False,
+                'error': 'Invalid file format. Only PDF files are supported.'
+            }), 400
+            
+        # Get OCR option
+        use_ocr = request.form.get('use_ocr', 'false').lower() == 'true'
+        logger.info(f"Processing document with OCR: {use_ocr}")
+        
+        # Process the file with our document processor
+        result = document_processor.save_uploaded_file(file, use_ocr)
+        
+        if not result['success']:
+            logger.error(f"Error processing document: {result.get('error')}")
+            return jsonify({
+                'success': False,
+                'error': result.get('error', 'Unknown error during document processing')
+            }), 500
+            
+        # Return success response with document ID for the frontend
+        return jsonify({
+            'success': True,
+            'document_id': result['file_info']['saved_name'],
+            'page_count': result.get('page_count', 0),
+            'word_count': result.get('word_count', 0),
+            'text_preview': result.get('preview', '')
+        })
+        
+    except Exception as e:
+        logger.error(f"Error in document upload endpoint: {str(e)}")
+        logger.error(traceback.format_exc())
+        return jsonify({
+            'success': False,
+            'error': str(e)
+        }), 500
+
+@app.route('/analyze-sustainability-document/<document_id>')
+def analyze_sustainability_document(document_id):
+    """Analyze a previously uploaded sustainability document"""
+    try:
+        logger.info(f"Document analysis requested for document: {document_id}")
+        
+        # Check if document processor is available
+        if not DOCUMENT_PROCESSOR_AVAILABLE:
+            logger.error("Document processor not available")
+            return jsonify({
+                'success': False,
+                'error': 'Document analysis service is currently unavailable'
+            }), 500
+            
+        # Check if document exists
+        filepath = os.path.join(UPLOAD_FOLDER, document_id)
+        if not os.path.exists(filepath):
+            logger.warning(f"Document not found: {document_id}")
+            return jsonify({
+                'success': False,
+                'error': 'Document not found'
+            }), 404
+            
+        # Get document content (in a real implementation this would be retrieved from a database)
+        try:
+            result = document_processor.process_document(filepath, use_ocr=False)
+            if not result['success']:
+                raise Exception(result.get('error', 'Unknown error'))
+                
+            document_text = result['text']
+        except Exception as e:
+            logger.error(f"Error retrieving document content: {str(e)}")
+            return jsonify({
+                'success': False,
+                'error': f'Error retrieving document content: {str(e)}'
+            }), 500
+            
+        # Analyze the document
+        analysis_results = document_processor.analyze_document(document_text)
+        
+        # Add success flag
+        analysis_results['success'] = True
+        
+        # Log success
+        logger.info(f"Document analysis successful for document: {document_id}")
+        logger.info(f"Found {sum(len(metrics) for metrics in analysis_results['metrics_identified'].values())} metrics, " + 
+                   f"{sum(analysis_results['frameworks_mentioned'].values())} framework mentions, " +
+                   f"{len(analysis_results['numerical_kpis'])} KPIs")
+        
+        return jsonify(analysis_results)
+        
+    except Exception as e:
+        logger.error(f"Error in document analysis endpoint: {str(e)}")
+        logger.error(traceback.format_exc())
+        return jsonify({
+            'success': False,
+            'error': str(e)
+        }), 500
 
 if __name__ == "__main__":
     # Use the PORT environment variable provided by Replit, or default to 5000

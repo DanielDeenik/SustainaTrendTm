@@ -2,68 +2,89 @@
 
 {% block title %}Sustainability Analysis - SustainaTrend™{% endblock %}
 
-{% block styles %}
+{% block extra_css %}
 <style>
     .analysis-card {
-        transition: transform 0.3s, box-shadow 0.3s;
+        transition: all 0.3s;
         margin-bottom: 20px;
-        border: none;
-        border-radius: 8px;
+        border: 1px solid var(--border-color);
+        border-radius: 12px;
         overflow: hidden;
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+        background-color: var(--card-bg);
     }
     
     .analysis-card:hover {
         transform: translateY(-5px);
-        box-shadow: 0 10px 20px rgba(0,0,0,0.1);
+        box-shadow: 0 8px 24px rgba(0, 0, 0, 0.15);
     }
     
     .card-header.primary-header {
-        background-color: #2c7744;
+        background-color: var(--primary-dark);
         color: white;
         font-weight: bold;
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        padding: 16px 20px;
+    }
+    
+    .card-header.primary-header i {
+        font-size: 1.5rem;
+        opacity: 0.9;
     }
     
     .card-header.secondary-header {
-        background-color: #3d9970;
+        background-color: var(--primary-color);
         color: white;
+        padding: 14px 20px;
     }
     
     .analysis-form {
-        background-color: #f8f9fa;
-        padding: 20px;
-        border-radius: 8px;
-        box-shadow: 0 4px 6px rgba(0,0,0,0.05);
+        background-color: var(--card-bg);
+        padding: 24px;
+        border-radius: 12px;
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
         margin-bottom: 30px;
+        border: 1px solid var(--border-color);
     }
     
     .score-circle {
-        width: 80px;
-        height: 80px;
+        width: 90px;
+        height: 90px;
         border-radius: 50%;
-        background-color: #2c7744;
+        background-color: var(--primary-color);
         color: white;
-        font-size: 1.5rem;
+        font-size: 1.8rem;
         font-weight: bold;
         display: flex;
         justify-content: center;
         align-items: center;
-        margin: 0 auto 15px;
+        margin: 0 auto 20px;
+        box-shadow: 0 4px 10px rgba(0, 0, 0, 0.15);
+        transition: transform 0.3s;
+    }
+    
+    .score-circle:hover {
+        transform: scale(1.1);
     }
     
     .insight-item {
-        border-left: 4px solid #3d9970;
-        padding-left: 15px;
+        border-left: 4px solid var(--primary-color);
+        padding: 12px 15px;
         margin-bottom: 15px;
-        background-color: #f8f9fa;
-        padding: 10px 15px;
-        border-radius: 0 5px 5px 0;
+        background-color: var(--card-bg);
+        border-radius: 0 8px 8px 0;
+        box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
     }
     
     .initiative-item {
-        background-color: #f0f7f2;
-        padding: 12px;
+        background-color: var(--card-bg);
+        padding: 14px;
         border-radius: 8px;
-        margin-bottom: 12px;
+        margin-bottom: 14px;
+        border-left: 4px solid var(--primary-dark);
+        box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
     }
     
     .analysis-tabs {
@@ -71,50 +92,72 @@
     }
     
     .analysis-tabs .nav-link {
-        color: #495057;
+        color: var(--text-color);
         font-weight: 500;
+        border: none;
+        border-bottom: 3px solid transparent;
+        transition: all 0.3s;
+        border-radius: 0;
+        padding: 0.75rem 1.25rem;
+        margin-right: 4px;
+    }
+    
+    .analysis-tabs .nav-link:hover {
+        background-color: rgba(0, 0, 0, 0.03);
     }
     
     .analysis-tabs .nav-link.active {
-        color: #2c7744;
-        border-bottom: 3px solid #2c7744;
+        color: var(--primary-color);
+        border-bottom: 3px solid var(--primary-color);
         font-weight: 700;
+        background-color: transparent;
     }
     
     .monetization-path {
-        border: 1px solid #dee2e6;
-        border-radius: 8px;
-        padding: 15px;
-        margin-bottom: 15px;
-        transition: transform 0.2s;
+        border: 1px solid var(--border-color);
+        border-radius: 12px;
+        padding: 18px;
+        margin-bottom: 18px;
+        transition: all 0.3s;
+        background-color: var(--card-bg);
     }
     
     .monetization-path:hover {
-        transform: translateY(-3px);
-        box-shadow: 0 5px 10px rgba(0,0,0,0.05);
-        border-color: #3d9970;
+        transform: translateY(-5px);
+        box-shadow: 0 8px 15px rgba(0, 0, 0, 0.1);
+        border-color: var(--primary-color);
     }
     
     .loading-container {
         display: none;
         text-align: center;
-        padding: 30px;
+        padding: 40px;
+        background-color: var(--card-bg);
+        border-radius: 12px;
+        border: 1px solid var(--border-color);
+        margin: 20px 0;
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
     }
     
     .spinner-border {
-        width: 3rem;
-        height: 3rem;
+        width: 3.5rem;
+        height: 3.5rem;
+        color: var(--primary-color);
     }
     
     .score-label {
         font-size: 0.9rem;
-        color: #6c757d;
+        color: var(--text-muted);
         text-align: center;
+        margin-top: 10px;
     }
     
     .api-error {
         display: none;
         margin: 20px 0;
+        border-radius: 8px;
+        padding: 15px;
+        border-left: 5px solid #dc3545;
     }
 </style>
 {% endblock %}

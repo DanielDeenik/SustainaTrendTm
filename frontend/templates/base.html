@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="en" class="light-mode">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -8,6 +8,49 @@
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.0/font/bootstrap-icons.css">
     <style>
+        :root {
+            --primary-color: #10b981;
+            --primary-dark: #059669;
+            --primary-light: #d1fae5;
+            --bg-sidebar: #052e16;
+            --bg-sidebar-hover: rgba(255, 255, 255, 0.1);
+            --bg-body: #f8f9fa;
+            --text-color: #333;
+            --text-muted: #6c757d;
+            --card-bg: #fff;
+            --border-color: rgba(0, 0, 0, 0.1);
+            --transition-speed: 0.3s;
+        }
+
+        .light-mode {
+            --bg-sidebar: #042f2e;
+            --bg-sidebar-hover: rgba(255, 255, 255, 0.1);
+            --bg-body: #f8fafc;
+            --text-color: #334155;
+            --text-muted: #64748b;
+            --card-bg: #ffffff;
+            --border-color: #e2e8f0;
+        }
+        
+        .dark-mode {
+            --bg-sidebar: #0f172a;
+            --bg-sidebar-hover: rgba(255, 255, 255, 0.05);
+            --bg-body: #1e293b;
+            --text-color: #e2e8f0;
+            --text-muted: #94a3b8;
+            --card-bg: #0f172a;
+            --border-color: #334155;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            margin: 0;
+            padding: 0;
+            color: var(--text-color);
+            background-color: var(--bg-body);
+            transition: background-color var(--transition-speed), color var(--transition-speed);
+        }
+
         /* Left sidebar styles */
         .sidebar {
             position: fixed;
@@ -15,146 +58,433 @@
             bottom: 0;
             left: 0;
             z-index: 100;
-            padding: 24px 0 0;
-            box-shadow: inset -1px 0 0 rgba(0, 0, 0, .1);
-            background-color: #052e16;
-            width: 250px;
+            padding: 0;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+            background-color: var(--bg-sidebar);
+            width: 280px;
+            transition: all var(--transition-speed) ease;
+            overflow: hidden;
+        }
+
+        .sidebar.collapsed {
+            width: 70px;
         }
 
         .sidebar-sticky {
             position: sticky;
             top: 0;
-            height: calc(100vh);
-            padding-top: 1.5rem;
+            height: 100vh;
             overflow-x: hidden;
             overflow-y: auto;
+            padding-bottom: 60px; /* Space for the theme toggle */
         }
 
         .sidebar .nav-link {
             font-weight: 500;
-            color: #d1fae5;
-            padding: 0.75rem 1rem;
+            color: var(--primary-light);
+            padding: 0.75rem 1.25rem;
             border-left: 4px solid transparent;
             transition: all 0.2s ease;
+            display: flex;
+            align-items: center;
+            white-space: nowrap;
         }
 
         .sidebar .nav-link:hover,
         .sidebar .nav-link.active {
             color: #fff;
-            background-color: rgba(255, 255, 255, 0.1);
-            border-left: 4px solid #10b981;
+            background-color: var(--bg-sidebar-hover);
+            border-left: 4px solid var(--primary-color);
         }
 
         .sidebar .nav-link i {
-            margin-right: 10px;
+            margin-right: 15px;
+            font-size: 1.1rem;
+            min-width: 24px;
+            text-align: center;
+        }
+
+        .sidebar.collapsed .nav-link span,
+        .sidebar.collapsed .sidebar-heading,
+        .sidebar.collapsed .sidebar-logo h4,
+        .sidebar.collapsed .sidebar-logo small {
+            display: none;
+        }
+
+        .sidebar.collapsed .sidebar-logo {
+            padding: 1rem 0;
+        }
+
+        .sidebar.collapsed .nav-link {
+            padding: 0.75rem;
+            justify-content: center;
+        }
+
+        .sidebar.collapsed .nav-link i {
+            margin-right: 0;
+            font-size: 1.2rem;
         }
 
         .sidebar-heading {
             font-size: 0.75rem;
             text-transform: uppercase;
-            padding: 0.5rem 1rem;
+            padding: 0.75rem 1.25rem;
             margin-top: 1rem;
-            color: #d1fae5;
-            opacity: 0.7;
+            color: var(--primary-light);
+            opacity: 0.8;
+            letter-spacing: 1px;
         }
 
         /* Logo and branding area */
         .sidebar-logo {
-            padding: 0.5rem 1rem 1.5rem;
-            text-align: center;
+            padding: 1.5rem 1.25rem;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            border-bottom: 1px solid var(--bg-sidebar-hover);
+        }
+
+        .sidebar-logo-content {
+            display: flex;
+            flex-direction: column;
         }
 
         .sidebar-logo h4 {
             color: white;
             margin-bottom: 0;
+            font-size: 1.2rem;
+            font-weight: 600;
+        }
+
+        .sidebar-logo small {
+            color: var(--primary-light);
+            opacity: 0.8;
+            font-size: 0.75rem;
+        }
+
+        /* Hamburger toggle button */
+        .sidebar-toggle {
+            background: transparent;
+            border: none;
+            color: white;
+            cursor: pointer;
+            font-size: 1.2rem;
+            margin-left: 10px;
+            padding: 0;
+            height: 32px;
+            width: 32px;
+            border-radius: 4px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: background-color 0.2s;
+        }
+
+        .sidebar-toggle:hover {
+            background-color: var(--bg-sidebar-hover);
         }
 
         /* Main content adjustment to account for sidebar */
         .main-content {
-            margin-left: 250px;
+            margin-left: 280px;
             padding-top: 1.5rem;
+            transition: all var(--transition-speed) ease;
         }
 
-        /* Make sidebar collapsible on mobile */
-        @media (max-width: 767.98px) {
+        .main-content.expanded {
+            margin-left: 70px;
+        }
+
+        /* Theme toggle at bottom of sidebar */
+        .theme-toggle {
+            position: fixed;
+            bottom: 0;
+            left: 0;
+            width: 280px;
+            padding: 1rem;
+            background-color: var(--bg-sidebar);
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            transition: width var(--transition-speed) ease;
+            border-top: 1px solid var(--bg-sidebar-hover);
+            color: var(--primary-light);
+        }
+
+        .sidebar.collapsed .theme-toggle {
+            width: 70px;
+            justify-content: center;
+        }
+
+        .theme-toggle span {
+            font-size: 0.85rem;
+            margin-right: 10px;
+        }
+
+        .sidebar.collapsed .theme-toggle span {
+            display: none;
+        }
+
+        .theme-toggle-button {
+            background: transparent;
+            border: none;
+            color: var(--primary-light);
+            cursor: pointer;
+            font-size: 1.1rem;
+            padding: 5px;
+            border-radius: 4px;
+            transition: background-color 0.2s;
+        }
+
+        .theme-toggle-button:hover {
+            background-color: var(--bg-sidebar-hover);
+        }
+
+        /* Badge Styles */
+        .status-badge {
+            font-size: 0.7rem;
+            padding: 0.25rem 0.5rem;
+            border-radius: 50px;
+            margin-left: 10px;
+        }
+
+        /* Custom Section Icon */
+        .section-icon {
+            display: inline-block;
+            width: 24px;
+            height: 24px;
+            margin-right: 10px;
+            background-color: var(--primary-color);
+            border-radius: 4px;
+            text-align: center;
+            line-height: 24px;
+            color: white;
+            font-size: 14px;
+        }
+
+        /* Responsive adjustments */
+        @media (max-width: 991.98px) {
             .sidebar {
-                width: 100%;
-                height: auto;
-                position: relative;
-                padding-top: 0;
+                width: 70px;
+            }
+
+            .sidebar .nav-link span,
+            .sidebar .sidebar-heading,
+            .sidebar .sidebar-logo h4,
+            .sidebar .sidebar-logo small {
+                display: none;
+            }
+
+            .sidebar .sidebar-logo {
+                padding: 1rem 0;
+            }
+
+            .sidebar .nav-link {
+                padding: 0.75rem;
+                justify-content: center;
+            }
+
+            .sidebar .nav-link i {
+                margin-right: 0;
+                font-size: 1.2rem;
             }
 
             .main-content {
-                margin-left: 0;
+                margin-left: 70px;
             }
 
-            .sidebar-sticky {
-                height: auto;
+            .theme-toggle {
+                width: 70px;
+                justify-content: center;
             }
+
+            .theme-toggle span {
+                display: none;
+            }
+
+            /* For mobile, make sidebar fully collapsible */
+            @media (max-width: 767.98px) {
+                .sidebar {
+                    transform: translateX(-100%);
+                }
+
+                .sidebar.mobile-expanded {
+                    transform: translateX(0);
+                    width: 280px;
+                }
+
+                .sidebar.mobile-expanded .nav-link span,
+                .sidebar.mobile-expanded .sidebar-heading,
+                .sidebar.mobile-expanded .sidebar-logo h4,
+                .sidebar.mobile-expanded .sidebar-logo small {
+                    display: block;
+                }
+
+                .sidebar.mobile-expanded .nav-link {
+                    padding: 0.75rem 1.25rem;
+                    justify-content: flex-start;
+                }
+
+                .sidebar.mobile-expanded .nav-link i {
+                    margin-right: 15px;
+                }
+
+                .sidebar.mobile-expanded .theme-toggle {
+                    width: 280px;
+                    justify-content: space-between;
+                }
+
+                .sidebar.mobile-expanded .theme-toggle span {
+                    display: block;
+                }
+
+                .main-content {
+                    margin-left: 0;
+                }
+
+                /* Mobile toggle button */
+                .mobile-toggle {
+                    position: fixed;
+                    top: 15px;
+                    left: 15px;
+                    z-index: 1000;
+                    background-color: var(--primary-color);
+                    color: white;
+                    border: none;
+                    border-radius: 5px;
+                    width: 40px;
+                    height: 40px;
+                    display: flex;
+                    align-items: center;
+                    justify-content: center;
+                    cursor: pointer;
+                    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2);
+                }
+            }
+        }
+
+        /* Cards */
+        .card {
+            background-color: var(--card-bg);
+            border-radius: 8px;
+            border: 1px solid var(--border-color);
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.05);
+            transition: transform 0.3s, box-shadow 0.3s;
+        }
+
+        .card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 8px 15px rgba(0, 0, 0, 0.1);
+        }
+
+        /* Footer */
+        .footer {
+            background-color: var(--card-bg);
+            color: var(--text-muted);
+            border-top: 1px solid var(--border-color);
+            transition: background-color var(--transition-speed), color var(--transition-speed);
         }
     </style>
     {% block extra_css %}{% endblock %}
 </head>
 <body>
+    <!-- Mobile Sidebar Toggle (visible on small screens) -->
+    <button class="mobile-toggle d-md-none">
+        <i class="bi bi-list"></i>
+    </button>
+
     <!-- Main Container -->
-    <div class="container-fluid">
-        <div class="row">
+    <div class="container-fluid p-0">
+        <div class="row g-0">
             <!-- Left Sidebar -->
-            <nav id="sidebar" class="col-md-3 col-lg-2 d-md-block sidebar">
+            <nav id="sidebar" class="sidebar">
                 <div class="sidebar-sticky">
                     <div class="sidebar-logo">
-                        <h4>Sustainability Intelligence</h4>
-                        <small class="text-white-50">Advanced Analytics Platform</small>
+                        <div class="sidebar-logo-content">
+                            <h4>SustainaTrend™</h4>
+                            <small>Intelligence Platform</small>
+                        </div>
+                        <button class="sidebar-toggle">
+                            <i class="bi bi-chevron-left"></i>
+                        </button>
                     </div>
 
-                    <ul class="nav flex-column">
+                    <ul class="nav flex-column mt-3">
                         <li class="nav-item">
                             <a class="nav-link {% if request.path == '/' %}active{% endif %}" href="/">
-                                <i class="bi bi-house-door"></i> Home
+                                <i class="bi bi-house-door-fill"></i> <span>Home</span>
                             </a>
                         </li>
                         <li class="nav-item">
                             <a class="nav-link {% if request.path == '/dashboard' %}active{% endif %}" href="/dashboard">
-                                <i class="bi bi-speedometer2"></i> Dashboard
+                                <i class="bi bi-speedometer2"></i> <span>Dashboard</span>
                             </a>
                         </li>
                         <li class="nav-item">
                             <a class="nav-link {% if request.path == '/analytics-dashboard' %}active{% endif %}" href="/analytics-dashboard">
-                                <i class="bi bi-graph-up"></i> Analytics
+                                <i class="bi bi-graph-up-arrow"></i> <span>Analytics</span>
                             </a>
                         </li>
                     </ul>
 
-                    <h6 class="sidebar-heading mt-4">Analysis Tools</h6>
+                    <h6 class="sidebar-heading mt-4">AI Tools</h6>
                     <ul class="nav flex-column">
                         <li class="nav-item">
                             <a class="nav-link {% if request.path == '/search' %}active{% endif %}" href="/search">
-                                <i class="bi bi-search"></i> AI Search
+                                <i class="bi bi-search"></i> <span>AI Search</span>
                             </a>
                         </li>
                         <li class="nav-item">
                             <a class="nav-link {% if request.path == '/gemini-search' %}active{% endif %}" href="/gemini-search">
-                                <i class="bi bi-cpu"></i> Gemini AI Search
-                            </a>
-                        </li>
-                        <li class="nav-item">
-                            <a class="nav-link {% if request.path == '/trend-analysis' %}active{% endif %}" href="/trend-analysis">
-                                <i class="bi bi-arrow-up-right"></i> Trend Analysis
-                            </a>
-                        </li>
-                        <li class="nav-item">
-                            <a class="nav-link {% if request.path == '/sustainability' %}active{% endif %}" href="/sustainability">
-                                <i class="bi bi-bar-chart"></i> Sustainability Analysis
+                                <i class="bi bi-stars"></i> <span>Gemini Search</span>
                             </a>
                         </li>
                         <li class="nav-item">
                             <a class="nav-link {% if request.path == '/sustainability-stories' %}active{% endif %}" href="/sustainability-stories">
-                                <i class="bi bi-book"></i> Sustainability Stories
+                                <i class="bi bi-book"></i> <span>AI Stories</span>
+                            </a>
+                        </li>
+                    </ul>
+
+                    <h6 class="sidebar-heading mt-4">Sustainability</h6>
+                    <ul class="nav flex-column">
+                        <li class="nav-item">
+                            <a class="nav-link {% if request.path == '/trend-analysis' %}active{% endif %}" href="/trend-analysis">
+                                <i class="bi bi-arrow-up-right"></i> <span>Trend Analysis</span>
                             </a>
                         </li>
                         <li class="nav-item">
+                            <a class="nav-link {% if request.path == '/sustainability' %}active{% endif %}" href="/sustainability">
+                                <i class="bi bi-bar-chart-fill"></i> <span>ESG Analysis</span>
+                            </a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link {% if request.path == '/sentiment-analysis' %}active{% endif %}" href="/sentiment-analysis">
+                                <i class="bi bi-emoji-smile"></i> <span>Sentiment</span>
+                            </a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link {% if request.path == '/document-upload' %}active{% endif %}" href="/document-upload">
+                                <i class="bi bi-file-earmark-pdf"></i> <span>Document Analysis</span>
+                            </a>
+                        </li>
+                    </ul>
+
+                    <h6 class="sidebar-heading mt-4">Business</h6>
+                    <ul class="nav flex-column">
+                        <li class="nav-item">
                             <a class="nav-link {% if request.path == '/monetization' %}active{% endif %}" href="/monetization">
-                                <i class="bi bi-currency-dollar"></i> Monetization Strategy
+                                <i class="bi bi-currency-dollar"></i> <span>Monetization</span>
+                            </a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link {% if request.path == '/ethical-ai' %}active{% endif %}" href="/ethical-ai">
+                                <i class="bi bi-shield-check"></i> <span>Ethical AI</span>
+                            </a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link {% if request.path == '/ai-development-tools' %}active{% endif %}" href="/ai-development-tools">
+                                <i class="bi bi-code-slash"></i> <span>Dev Tools</span>
                             </a>
                         </li>
                     </ul>
@@ -163,49 +493,44 @@
                     <ul class="nav flex-column">
                         <li class="nav-item">
                             <a class="nav-link {% if request.path == '/api-status' %}active{% endif %}" href="/api-status">
-                                <i class="bi bi-hdd-network"></i> API Status
+                                <i class="bi bi-hdd-network"></i> <span>API Status</span>
                                 {% if api_status %}
                                     {% if api_status.using_real_apis %}
-                                        <span class="badge bg-success ms-2">Online</span>
+                                        <span class="status-badge bg-success">Online</span>
                                     {% elif api_status.fallback_active %}
-                                        <span class="badge bg-warning text-dark ms-2">Fallback</span>
+                                        <span class="status-badge bg-warning text-dark">Fallback</span>
                                     {% else %}
-                                        <span class="badge bg-danger ms-2">Offline</span>
+                                        <span class="status-badge bg-danger">Offline</span>
                                     {% endif %}
                                 {% endif %}
                             </a>
                         </li>
                         <li class="nav-item">
                             <a class="nav-link {% if request.path == '/debug' %}active{% endif %}" href="/debug">
-                                <i class="bi bi-bug"></i> Debug Info
-                            </a>
-                        </li>
-                        <li class="nav-item">
-                            <a class="nav-link" href="#">
-                                <i class="bi bi-sliders"></i> Preferences
-                            </a>
-                        </li>
-                        <li class="nav-item">
-                            <a class="nav-link" href="#">
-                                <i class="bi bi-question-circle"></i> Help & Support
-                            </a>
-                        </li>
-                        <li class="nav-item">
-                            <a class="nav-link" href="#">
-                                <i class="bi bi-person-circle"></i> Account
+                                <i class="bi bi-bug"></i> <span>Debug Info</span>
                             </a>
                         </li>
                     </ul>
                 </div>
+
+                <!-- Theme Toggle -->
+                <div class="theme-toggle">
+                    <span>Dark Mode</span>
+                    <button class="theme-toggle-button">
+                        <i class="bi bi-moon-fill"></i>
+                    </button>
+                </div>
             </nav>
 
             <!-- Main Content -->
-            <main class="col-md-9 ms-sm-auto col-lg-10 px-md-4 main-content">
-                {% block content %}{% endblock %}
+            <main id="mainContent" class="main-content">
+                <div class="container-fluid px-4 py-3">
+                    {% block content %}{% endblock %}
+                </div>
 
                 <footer class="footer py-4 mt-5">
                     <div class="container text-center">
-                        <p>&copy; 2025 Sustainability Intelligence Platform. All rights reserved.</p>
+                        <p>&copy; 2025 SustainaTrend™ Intelligence Platform. All rights reserved.</p>
                     </div>
                 </footer>
             </main>
@@ -213,6 +538,73 @@
     </div>
 
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script>
+        // Sidebar toggling
+        document.addEventListener('DOMContentLoaded', function() {
+            const sidebar = document.getElementById('sidebar');
+            const mainContent = document.getElementById('mainContent');
+            const sidebarToggle = document.querySelector('.sidebar-toggle');
+            const mobileToggle = document.querySelector('.mobile-toggle');
+            const themeToggle = document.querySelector('.theme-toggle-button');
+            
+            // Check for saved state
+            const isSidebarCollapsed = localStorage.getItem('sidebarCollapsed') === 'true';
+            const darkModeEnabled = localStorage.getItem('darkMode') === 'true';
+            
+            // Initialize sidebar state
+            if (isSidebarCollapsed) {
+                sidebar.classList.add('collapsed');
+                mainContent.classList.add('expanded');
+                sidebarToggle.innerHTML = '<i class="bi bi-chevron-right"></i>';
+            }
+            
+            // Initialize theme
+            if (darkModeEnabled) {
+                document.documentElement.classList.remove('light-mode');
+                document.documentElement.classList.add('dark-mode');
+                themeToggle.innerHTML = '<i class="bi bi-sun-fill"></i>';
+            }
+            
+            // Desktop toggle
+            sidebarToggle.addEventListener('click', function() {
+                sidebar.classList.toggle('collapsed');
+                mainContent.classList.toggle('expanded');
+                
+                // Update icon and save state
+                if (sidebar.classList.contains('collapsed')) {
+                    this.innerHTML = '<i class="bi bi-chevron-right"></i>';
+                    localStorage.setItem('sidebarCollapsed', 'true');
+                } else {
+                    this.innerHTML = '<i class="bi bi-chevron-left"></i>';
+                    localStorage.setItem('sidebarCollapsed', 'false');
+                }
+            });
+            
+            // Mobile toggle
+            if (mobileToggle) {
+                mobileToggle.addEventListener('click', function() {
+                    sidebar.classList.toggle('mobile-expanded');
+                });
+            }
+            
+            // Theme toggle
+            themeToggle.addEventListener('click', function() {
+                const isDarkMode = document.documentElement.classList.contains('dark-mode');
+                
+                if (isDarkMode) {
+                    document.documentElement.classList.remove('dark-mode');
+                    document.documentElement.classList.add('light-mode');
+                    this.innerHTML = '<i class="bi bi-moon-fill"></i>';
+                    localStorage.setItem('darkMode', 'false');
+                } else {
+                    document.documentElement.classList.remove('light-mode');
+                    document.documentElement.classList.add('dark-mode');
+                    this.innerHTML = '<i class="bi bi-sun-fill"></i>';
+                    localStorage.setItem('darkMode', 'true');
+                }
+            });
+        });
+    </script>
     {% block scripts %}{% endblock %}
 </body>
 </html>

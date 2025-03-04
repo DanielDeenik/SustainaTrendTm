@@ -1,9 +1,44 @@
+:root {
+    --primary-color: #10b981;
+    --primary-dark: #059669;
+    --primary-light: #d1fae5;
+    --bg-sidebar: #052e16;
+    --bg-sidebar-hover: rgba(255, 255, 255, 0.1);
+    --bg-body: #f8f9fa;
+    --text-color: #333;
+    --text-muted: #6c757d;
+    --card-bg: #fff;
+    --border-color: rgba(0, 0, 0, 0.1);
+    --transition-speed: 0.3s;
+}
+
+.light-mode {
+    --bg-sidebar: #042f2e;
+    --bg-sidebar-hover: rgba(255, 255, 255, 0.1);
+    --bg-body: #f8fafc;
+    --text-color: #334155;
+    --text-muted: #64748b;
+    --card-bg: #ffffff;
+    --border-color: #e2e8f0;
+}
+
+.dark-mode {
+    --bg-sidebar: #0f172a;
+    --bg-sidebar-hover: rgba(255, 255, 255, 0.05);
+    --bg-body: #1e293b;
+    --text-color: #e2e8f0;
+    --text-muted: #94a3b8;
+    --card-bg: #0f172a;
+    --border-color: #334155;
+}
+
 body {
     font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
     margin: 0;
     padding: 0;
-    color: #333;
-    background-color: #f8f9fa;
+    color: var(--text-color);
+    background-color: var(--bg-body);
+    transition: background-color var(--transition-speed), color var(--transition-speed);
 }
 
 /* Navbar styling */
@@ -69,11 +104,13 @@ body {
 
 /* Feature cards */
 .features .card {
-    border: none;
+    border: 1px solid var(--border-color);
     border-radius: 8px;
     box-shadow: 0 5px 15px rgba(0, 0, 0, 0.08);
     transition: all 0.3s ease;
     height: 100%;
+    background-color: var(--card-bg);
+    color: var(--text-color);
 }
 
 .features .card:hover {
@@ -82,7 +119,7 @@ body {
 }
 
 .features .card-title {
-    color: #2c7744;
+    color: var(--primary-color);
     font-size: 1.4rem;
     font-weight: 600;
     margin-bottom: 1rem;
@@ -280,25 +317,37 @@ body {
 
 /* Trend analysis styling */
 .trend-card {
-    border-radius: 8px;
+    border-radius: 12px;
     overflow: hidden;
-    transition: transform 0.3s;
+    transition: all 0.3s;
     margin-bottom: 20px;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+    border: 1px solid var(--border-color);
 }
 
 .trend-card:hover {
     transform: translateY(-5px);
+    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.15);
 }
 
 .trend-header {
-    padding: 15px;
+    padding: 16px 20px;
     color: white;
     font-weight: bold;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+}
+
+.trend-header i {
+    font-size: 1.5rem;
+    opacity: 0.9;
 }
 
 .trend-body {
-    padding: 20px;
-    background-color: white;
+    padding: 24px;
+    background-color: var(--card-bg);
+    color: var(--text-color);
 }
 
 .trend-emissions {
@@ -348,11 +397,21 @@ body {
 
 .keyword-chip {
     display: inline-block;
-    padding: 5px 10px;
-    background-color: #f8f9fa;
+    padding: 6px 12px;
+    background-color: var(--primary-color);
+    color: white;
     border-radius: 20px;
-    margin: 0 5px 5px 0;
+    margin: 0 6px 8px 0;
     font-size: 0.8rem;
+    font-weight: 500;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+    transition: all 0.2s ease;
+}
+
+.keyword-chip:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 3px 6px rgba(0, 0, 0, 0.15);
+    background-color: var(--primary-dark);
 }
 
 .trend-chart {
