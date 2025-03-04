@@ -2459,6 +2459,14 @@ def analyze_sustainability_document(document_id):
         # Add success flag
         analysis_results['success'] = True
         
+        # Extract KPIs for visualization
+        kpis = analysis_results.get('numerical_kpis', [])
+        if kpis:
+            # Generate visualizations for the KPIs
+            viz_results = document_processor.generate_sustainability_visualization(kpis)
+            if viz_results['success']:
+                analysis_results['visualizations'] = viz_results
+        
         # Log success
         logger.info(f"Document analysis successful for document: {document_id}")
         logger.info(f"Found {sum(len(metrics) for metrics in analysis_results['metrics_identified'].values())} metrics, " + 
@@ -2469,6 +2477,83 @@ def analyze_sustainability_document(document_id):
         
     except Exception as e:
         logger.error(f"Error in document analysis endpoint: {str(e)}")
+        logger.error(traceback.format_exc())
+        return jsonify({
+            'success': False,
+            'error': str(e)
+        }), 500
+        
+@app.route('/api/sustainability-document-query', methods=['POST'])
+def sustainability_document_query():
+    """Use RAG to query a sustainability document using natural language"""
+    try:
+        data = request.json
+        
+        if not data:
+            return jsonify({
+                'success': False,
+                'error': 'No request data provided'
+            }), 400
+            
+        document_id = data.get('document_id')
+        query = data.get('query')
+        
+        # Validate inputs
+        if not document_id:
+            return jsonify({
+                'success': False,
+                'error': 'Document ID is required'
+            }), 400
+            
+        if not query:
+            return jsonify({
+                'success': False,
+                'error': 'Query is required'
+            }), 400
+            
+        logger.info(f"Document query requested for document: {document_id}, query: {query}")
+        
+        # Check if document processor is available
+        if not DOCUMENT_PROCESSOR_AVAILABLE:
+            logger.error("Document processor not available")
+            return jsonify({
+                'success': False,
+                'error': 'Document analysis service is currently unavailable'
+            }), 500
+            
+        # Check if document exists
+        filepath = os.path.join(UPLOAD_FOLDER, document_id)
+        if not os.path.exists(filepath):
+            logger.warning(f"Document not found: {document_id}")
+            return jsonify({
+                'success': False,
+                'error': 'Document not found'
+            }), 404
+            
+        # Get document content
+        try:
+            result = document_processor.process_document(filepath, use_ocr=False)
+            if not result['success']:
+                raise Exception(result.get('error', 'Unknown error'))
+                
+            document_text = result['text']
+        except Exception as e:
+            logger.error(f"Error retrieving document content: {str(e)}")
+            return jsonify({
+                'success': False,
+                'error': f'Error retrieving document content: {str(e)}'
+            }), 500
+            
+        # Generate RAG response
+        rag_result = document_processor.generate_rag_response(document_text, query)
+        
+        # Log success
+        logger.info(f"Document query successful for document: {document_id}")
+        
+        return jsonify(rag_result)
+        
+    except Exception as e:
+        logger.error(f"Error in document query endpoint: {str(e)}")
         logger.error(traceback.format_exc())
         return jsonify({
             'success': False,

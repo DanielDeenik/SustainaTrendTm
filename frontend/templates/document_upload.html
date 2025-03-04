@@ -363,6 +363,61 @@
                     </div>
                 </div>
                 
+                <!-- RAG-Powered Document Q&A Section -->
+                <div class="row mt-4">
+                    <div class="col-md-12">
+                        <div class="analysis-card">
+                            <div class="analysis-header">
+                                <i class="bi bi-chat-dots me-2"></i> Ask Questions About This Document
+                            </div>
+                            <div class="analysis-body">
+                                <p class="text-muted mb-3">
+                                    Use our RAG-powered AI to ask questions about the sustainability report and get detailed answers
+                                </p>
+                                
+                                <div class="input-group mb-3">
+                                    <input type="text" class="form-control" id="documentQuery" 
+                                           placeholder="e.g., What are the company's emission reduction targets?">
+                                    <button class="btn btn-primary" id="queryDocumentBtn" disabled>
+                                        <i class="bi bi-search me-1"></i> Ask
+                                    </button>
+                                </div>
+                                
+                                <div id="queryResultsContainer" style="display:none;">
+                                    <div class="p-3 rounded" style="background-color: rgba(16, 185, 129, 0.05); border-left: 3px solid var(--primary-color);">
+                                        <h5 class="mb-3">Response:</h5>
+                                        <div id="queryResults" class="mb-3"></div>
+                                        <small class="text-muted">
+                                            <i class="bi bi-info-circle me-1"></i>
+                                            <span id="chunksAnalyzed">0</span> document chunks analyzed to generate this response
+                                        </small>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Loading Overlay -->
+            <div id="loadingOverlay" style="position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(255,255,255,0.8); display: none; justify-content: center; align-items: center; z-index: 9999;">
+                <div class="text-center">
+                    <div class="spinner-border text-primary mb-3" role="status">
+                        <span class="visually-hidden">Loading...</span>
+                    </div>
+                    <h5 id="loadingText">Processing document...</h5>
+                </div>
+            </div>
+                                
+                                <div class="mt-3" id="visualizationContainer" style="display:none;">
+                                    <h5 class="mb-3">Key Metrics Visualization:</h5>
+                                    <div id="visualizationContent"></div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
                 <div class="text-center mt-4">
                     <button class="btn btn-primary me-2">
                         <i class="bi bi-save me-2"></i> Save Analysis
@@ -379,13 +434,15 @@
     </div>
 </div>
 
-<!-- Loading Overlay -->
-<div class="loading-overlay" id="loadingOverlay">
+<!-- This loading overlay element is a duplicate and has been commented out to avoid conflicts -->
+<!-- 
+<div class="loading-overlay" id="loadingOverlay-duplicate">
     <div>
         <div class="loading-spinner"></div>
-        <div class="loading-text" id="loadingText">Processing document...</div>
+        <div class="loading-text" id="loadingText-duplicate">Processing document...</div>
     </div>
 </div>
+-->
 
 <script>
     document.addEventListener('DOMContentLoaded', function() {
@@ -824,6 +881,192 @@
             
             // Use our display function
             displayAnalysisResults(mockResult);
+        }
+        
+        // Store the currently analyzed document ID for querying
+        let currentDocumentId = null;
+        
+        // Update processDocument to store the document ID
+        function processDocument(documentId, textPreview) {
+            // Store current document ID
+            currentDocumentId = documentId;
+            
+            // Show loading overlay with text
+            loadingText.textContent = 'Processing document...';
+            loadingOverlay.style.display = 'flex';
+            
+            // Show initial document preview if available
+            if (textPreview) {
+                documentPreview.innerHTML = `<p>${textPreview}</p>`;
+                previewContainer.style.display = 'block';
+            }
+            
+            // Update loading text
+            loadingText.textContent = 'Analyzing sustainability metrics...';
+            
+            // Make AJAX request to analyze document
+            const analyzeXhr = new XMLHttpRequest();
+            analyzeXhr.open('GET', `/analyze-sustainability-document/${documentId}`);
+            
+            analyzeXhr.addEventListener('load', function() {
+                if (analyzeXhr.status >= 200 && analyzeXhr.status < 300) {
+                    try {
+                        const response = JSON.parse(analyzeXhr.responseText);
+                        if (response.success) {
+                            // Update loading text
+                            loadingText.textContent = 'Generating insights...';
+                            
+                            // Process the analysis results
+                            setTimeout(() => {
+                                displayAnalysisResults(response);
+                                loadingOverlay.style.display = 'none';
+                                
+                                // Enable the query button
+                                const queryDocumentBtn = document.getElementById('queryDocumentBtn');
+                                queryDocumentBtn.disabled = false;
+                                queryDocumentBtn.dataset.documentId = documentId;
+                                
+                                // Set up document querying
+                                setupDocumentQuerying(documentId);
+                            }, 1000);
+                        } else {
+                            alert('Error: ' + (response.error || 'Unknown error during document analysis'));
+                            loadingOverlay.style.display = 'none';
+                        }
+                    } catch (e) {
+                        console.error('Error parsing response:', e);
+                        alert('Error: Failed to parse server response for analysis');
+                        loadingOverlay.style.display = 'none';
+                    }
+                } else {
+                    alert('Error: ' + analyzeXhr.status + ' ' + analyzeXhr.statusText);
+                    loadingOverlay.style.display = 'none';
+                }
+            });
+            
+            analyzeXhr.addEventListener('error', function() {
+                alert('Error: Network error occurred during analysis');
+                loadingOverlay.style.display = 'none';
+            });
+            
+            analyzeXhr.send();
+        }
+        
+        function setupDocumentQuerying(documentId) {
+            const queryDocumentBtn = document.getElementById('queryDocumentBtn');
+            const documentQuery = document.getElementById('documentQuery');
+            
+            // Remove any existing event listeners (to avoid duplicates)
+            queryDocumentBtn.replaceWith(queryDocumentBtn.cloneNode(true));
+            documentQuery.replaceWith(documentQuery.cloneNode(true));
+            
+            // Get the fresh references
+            const newQueryBtn = document.getElementById('queryDocumentBtn');
+            const newQueryInput = document.getElementById('documentQuery');
+            
+            // Set up query button
+            newQueryBtn.addEventListener('click', function() {
+                queryDocument(documentId, newQueryInput.value);
+            });
+            
+            // Set up enter key for query input
+            newQueryInput.addEventListener('keypress', function(e) {
+                if (e.key === 'Enter' && !newQueryBtn.disabled) {
+                    queryDocument(documentId, newQueryInput.value);
+                }
+            });
+        }
+        
+        function queryDocument(documentId, query) {
+            // Validate inputs
+            if (!documentId) {
+                alert('No document has been analyzed yet. Please upload a document first.');
+                return;
+            }
+            
+            if (!query || query.trim() === '') {
+                alert('Please enter a query to analyze the document');
+                return;
+            }
+            
+            // Show loading
+            loadingText.textContent = 'Analyzing your query...';
+            loadingOverlay.style.display = 'flex';
+            
+            // Prepare request data
+            const requestData = {
+                document_id: documentId,
+                query: query
+            };
+            
+            // Send request to RAG endpoint
+            const xhr = new XMLHttpRequest();
+            xhr.open('POST', '/api/sustainability-document-query');
+            xhr.setRequestHeader('Content-Type', 'application/json');
+            
+            xhr.addEventListener('load', function() {
+                if (xhr.status >= 200 && xhr.status < 300) {
+                    try {
+                        const response = JSON.parse(xhr.responseText);
+                        
+                        if (response.success) {
+                            displayQueryResults(response);
+                        } else {
+                            alert('Error: ' + (response.error || 'Unknown error during document query'));
+                        }
+                    } catch (e) {
+                        console.error('Error parsing response:', e);
+                        alert('Error: Failed to parse server response for query');
+                    }
+                } else {
+                    alert('Error: ' + xhr.status + ' ' + xhr.statusText);
+                }
+                
+                loadingOverlay.style.display = 'none';
+            });
+            
+            xhr.addEventListener('error', function() {
+                alert('Error: Network error occurred during query');
+                loadingOverlay.style.display = 'none';
+            });
+            
+            xhr.send(JSON.stringify(requestData));
+        }
+        
+        function displayQueryResults(result) {
+            const queryResultsContainer = document.getElementById('queryResultsContainer');
+            const queryResults = document.getElementById('queryResults');
+            const chunksAnalyzed = document.getElementById('chunksAnalyzed');
+            
+            // Format the response with markdown-like syntax
+            let formattedResponse = result.response;
+            
+            // Apply basic markdown formatting for better display
+            formattedResponse = formattedResponse
+                // Headers
+                .replace(/## (.*)/g, '<h4>$1</h4>')
+                .replace(/### (.*)/g, '<h5>$1</h5>')
+                // Bold
+                .replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>')
+                // Lists
+                .replace(/^\s*[\-\*]\s+(.*)/gm, '<li>$1</li>')
+                .replace(/(<li>.*<\/li>)\n+(?!<li>)/g, '$1</ul>\n')
+                .replace(/(?<!<\/ul>\n)(<li>)/g, '<ul>$1')
+                // Line breaks
+                .replace(/\n\n/g, '<br><br>')
+                .replace(/\n/g, '<br>');
+            
+            // Insert formatted response
+            queryResults.innerHTML = formattedResponse;
+            
+            // Set chunks analyzed
+            chunksAnalyzed.textContent = result.chunks_analyzed || '0';
+            
+            // Show results container
+            queryResultsContainer.style.display = 'block';
+            
+            // Scroll to results
+            queryResultsContainer.scrollIntoView({ behavior: 'smooth' });
         }
     });
 </script>
