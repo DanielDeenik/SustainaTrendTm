@@ -833,4 +833,4 @@ def register_routes(app):
     """
     configure_routes(app)
     logger.info("Company search routes registered")
-"""
+    return app

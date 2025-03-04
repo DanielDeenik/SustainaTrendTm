@@ -645,7 +645,15 @@
                     marker: {
                         colors: colors
                     },
+                    hole: 0.6, // This turns the pie chart into a doughnut chart
+                    domain: {
+                        x: [0, 1],
+                        y: [0, 1]
+                    }
                 }];
+                
+                // Calculate the total for center text
+                const total = values.reduce((sum, val) => sum + val, 0);
                 
                 const layout = {
                     showlegend: true,
@@ -654,7 +662,30 @@
                         y: -0.1
                     },
                     height: 200,
-                    margin: { t: 0, b: 0, l: 0, r: 0 }
+                    margin: { t: 0, b: 0, l: 0, r: 0 },
+                    annotations: [{
+                        font: {
+                            size: 16,
+                            color: '#333',
+                            family: 'Arial, sans-serif',
+                            weight: 'bold'
+                        },
+                        showarrow: false,
+                        text: `${total}`,
+                        x: 0.5,
+                        y: 0.5
+                    },
+                    {
+                        font: {
+                            size: 12,
+                            color: '#666',
+                            family: 'Arial, sans-serif'
+                        },
+                        showarrow: false,
+                        text: 'Total Posts',
+                        x: 0.5,
+                        y: 0.38
+                    }]
                 };
                 
                 Plotly.newPlot('sentimentDistribution', data, layout, {displayModeBar: false});

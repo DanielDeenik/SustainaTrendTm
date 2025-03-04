@@ -443,4 +443,4 @@ def register_routes(app):
     """
     configure_routes(app)
     logger.info("ESRS Framework routes registered")
-"""
+    return app

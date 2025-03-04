@@ -1,0 +1,1158 @@
+{% extends "base.html" %}
+
+{% block title %}Sustainability Storytelling - SustainaTrend™{% endblock %}
+
+{% block head %}
+{{ super() }}
+<style>
+    .report-section {
+        border-left: 5px solid var(--bs-primary);
+        margin-bottom: 2rem;
+        padding-left: 1.5rem;
+    }
+    
+    .report-section h3 {
+        color: var(--bs-primary);
+        margin-bottom: 1rem;
+    }
+    
+    .insight-card {
+        border-radius: 0.75rem;
+        overflow: hidden;
+        box-shadow: 0 4px 8px rgba(0, 0, 0, 0.05);
+        transition: transform 0.3s ease, box-shadow 0.3s ease;
+        height: 100%;
+    }
+    
+    .insight-card:hover {
+        transform: translateY(-5px);
+        box-shadow: 0 8px 16px rgba(0, 0, 0, 0.1);
+    }
+    
+    .insight-card .card-header {
+        background-color: var(--bs-primary);
+        color: white;
+        font-weight: 600;
+    }
+    
+    .insight-tag {
+        display: inline-block;
+        padding: 0.25rem 0.5rem;
+        border-radius: 1rem;
+        font-size: 0.75rem;
+        margin-right: 0.5rem;
+        margin-bottom: 0.5rem;
+    }
+    
+    .sentiment-positive {
+        background-color: rgba(25, 135, 84, 0.15);
+        color: var(--bs-success);
+    }
+    
+    .sentiment-neutral {
+        background-color: rgba(13, 110, 253, 0.15);
+        color: var(--bs-primary);
+    }
+    
+    .sentiment-negative {
+        background-color: rgba(220, 53, 69, 0.15);
+        color: var(--bs-danger);
+    }
+    
+    .recommendation-item {
+        padding: 1rem;
+        border-radius: 0.5rem;
+        margin-bottom: 1rem;
+        background-color: rgba(13, 110, 253, 0.05);
+        border-left: 4px solid var(--bs-primary);
+    }
+    
+    .metric-value {
+        font-size: 2.5rem;
+        font-weight: 700;
+        margin-bottom: 0;
+        line-height: 1;
+    }
+    
+    .metric-label {
+        font-size: 0.9rem;
+        color: var(--bs-gray-600);
+        margin-bottom: 0;
+    }
+    
+    .metric-trend {
+        font-size: 0.9rem;
+        font-weight: 600;
+    }
+    
+    .trend-up {
+        color: var(--bs-success);
+    }
+    
+    .trend-down {
+        color: var(--bs-danger);
+    }
+    
+    .industry-context {
+        background-color: rgba(248, 249, 250, 0.8);
+        border-radius: 0.75rem;
+        padding: 1.5rem;
+        margin-bottom: 2rem;
+    }
+    
+    .monetization-model {
+        padding: 1rem;
+        border-radius: 0.5rem;
+        border: 1px solid rgba(0, 0, 0, 0.1);
+        margin-bottom: 1.5rem;
+    }
+    
+    .monetization-model h5 {
+        color: var(--bs-primary);
+        border-bottom: 2px solid var(--bs-primary);
+        padding-bottom: 0.5rem;
+        margin-bottom: 1rem;
+    }
+    
+    .roi-chart-container {
+        height: 300px;
+        margin-bottom: 1rem;
+    }
+    
+    @media (prefers-color-scheme: dark) {
+        .insight-card {
+            background-color: var(--bs-dark);
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+        }
+        
+        .insight-card:hover {
+            box-shadow: 0 8px 16px rgba(0, 0, 0, 0.3);
+        }
+        
+        .industry-context {
+            background-color: rgba(33, 37, 41, 0.8);
+        }
+        
+        .monetization-model {
+            border-color: rgba(255, 255, 255, 0.1);
+        }
+        
+        .metric-label {
+            color: var(--bs-gray-400);
+        }
+    }
+    
+    .company-profile {
+        position: relative;
+        border-radius: 0.75rem;
+        overflow: hidden;
+        background: linear-gradient(135deg, var(--bs-primary) 0%, var(--bs-info) 100%);
+        color: white;
+        padding: 2rem;
+        margin-bottom: 2rem;
+    }
+    
+    .company-profile::before {
+        content: '';
+        position: absolute;
+        top: 0;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        background: url('https://via.placeholder.com/1200x800/0d6efd/white?text=') center/cover no-repeat;
+        opacity: 0.1;
+        z-index: 0;
+    }
+    
+    .company-profile > * {
+        position: relative;
+        z-index: 1;
+    }
+    
+    .initiative-card {
+        border-radius: 0.75rem;
+        overflow: hidden;
+        transition: transform 0.3s ease;
+        height: 100%;
+    }
+    
+    .initiative-card:hover {
+        transform: translateY(-5px);
+    }
+    
+    .initiative-card .card-body {
+        padding: 1.5rem;
+    }
+    
+    .initiative-card .initiative-icon {
+        width: 48px;
+        height: 48px;
+        background-color: rgba(13, 110, 253, 0.1);
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        margin-bottom: 1rem;
+    }
+    
+    .initiative-card .initiative-icon i {
+        font-size: 1.5rem;
+        color: var(--bs-primary);
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="container-fluid py-4">
+    <div class="row mb-4">
+        <div class="col-12">
+            <div class="d-flex justify-content-between align-items-center">
+                <h1 class="mb-0">Sustainability Storytelling</h1>
+                <div>
+                    <button type="button" class="btn btn-outline-primary me-2" id="pdfExportBtn">
+                        <i class="bi bi-file-pdf"></i> Export PDF
+                    </button>
+                    <button type="button" class="btn btn-primary">
+                        <i class="bi bi-share"></i> Share Report
+                    </button>
+                </div>
+            </div>
+            <p class="text-muted">AI-Generated Reports & Sustainability Storytelling with strategic recommendations</p>
+        </div>
+    </div>
+    
+    <!-- Company & Industry Selector -->
+    <div class="row mb-4">
+        <div class="col-md-4">
+            <div class="card">
+                <div class="card-body">
+                    <h5 class="card-title">Generate Story</h5>
+                    <form id="storyGenerationForm">
+                        <div class="mb-3">
+                            <label for="companyName" class="form-label">Company Name</label>
+                            <input type="text" class="form-control" id="companyName" name="company_name" value="{{ company_name|default('Tesla, Inc.') }}" required>
+                        </div>
+                        <div class="mb-3">
+                            <label for="industrySelect" class="form-label">Industry</label>
+                            <select class="form-select" id="industrySelect" name="industry" required>
+                                <option value="Automotive" {% if industry == 'Automotive' %}selected{% endif %}>Automotive</option>
+                                <option value="Energy" {% if industry == 'Energy' %}selected{% endif %}>Energy</option>
+                                <option value="Technology" {% if industry == 'Technology' %}selected{% endif %}>Technology</option>
+                                <option value="Finance" {% if industry == 'Finance' %}selected{% endif %}>Finance</option>
+                                <option value="Healthcare" {% if industry == 'Healthcare' %}selected{% endif %}>Healthcare</option>
+                                <option value="Retail" {% if industry == 'Retail' %}selected{% endif %}>Retail</option>
+                                <option value="Manufacturing" {% if industry == 'Manufacturing' %}selected{% endif %}>Manufacturing</option>
+                            </select>
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label">Include Sections</label>
+                            <div class="form-check">
+                                <input class="form-check-input" type="checkbox" value="executive_summary" id="includeExecutiveSummary" name="include_sections" checked>
+                                <label class="form-check-label" for="includeExecutiveSummary">
+                                    Executive Summary
+                                </label>
+                            </div>
+                            <div class="form-check">
+                                <input class="form-check-input" type="checkbox" value="company_profile" id="includeCompanyProfile" name="include_sections" checked>
+                                <label class="form-check-label" for="includeCompanyProfile">
+                                    Company Profile
+                                </label>
+                            </div>
+                            <div class="form-check">
+                                <input class="form-check-input" type="checkbox" value="sentiment_analysis" id="includeSentimentAnalysis" name="include_sections" checked>
+                                <label class="form-check-label" for="includeSentimentAnalysis">
+                                    Sentiment Analysis
+                                </label>
+                            </div>
+                            <div class="form-check">
+                                <input class="form-check-input" type="checkbox" value="trend_analysis" id="includeTrendAnalysis" name="include_sections" checked>
+                                <label class="form-check-label" for="includeTrendAnalysis">
+                                    Trend Analysis
+                                </label>
+                            </div>
+                            <div class="form-check">
+                                <input class="form-check-input" type="checkbox" value="strategic_recommendations" id="includeRecommendations" name="include_sections" checked>
+                                <label class="form-check-label" for="includeRecommendations">
+                                    Strategic Recommendations
+                                </label>
+                            </div>
+                            <div class="form-check">
+                                <input class="form-check-input" type="checkbox" value="monetization_insights" id="includeMonetization" name="include_sections" checked>
+                                <label class="form-check-label" for="includeMonetization">
+                                    Monetization Insights
+                                </label>
+                            </div>
+                            <div class="form-check">
+                                <input class="form-check-input" type="checkbox" value="frameworks" id="includeFrameworks" name="include_sections" checked>
+                                <label class="form-check-label" for="includeFrameworks">
+                                    Management Frameworks
+                                </label>
+                            </div>
+                        </div>
+                        <button type="submit" class="btn btn-primary w-100">Generate Sustainability Story</button>
+                    </form>
+                </div>
+            </div>
+            <div class="card mt-4">
+                <div class="card-body">
+                    <h5 class="card-title">Document Analysis</h5>
+                    <p class="text-muted small">Already have a sustainability document? Upload it for AI-powered analysis and storytelling.</p>
+                    <a href="/document-upload" class="btn btn-outline-primary w-100">
+                        <i class="bi bi-file-earmark-arrow-up"></i> Upload Document
+                    </a>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-8">
+            <div class="company-profile">
+                <h2 class="mb-3">{{ story.Company|default('Tesla, Inc.') }}</h2>
+                <div class="d-flex align-items-center mb-3">
+                    <span class="badge bg-light text-dark me-2">{{ story.Industry|default('Automotive') }}</span>
+                    <span class="badge bg-success me-2">ESG Leader</span>
+                    <span class="badge bg-info">Sustainability Innovator</span>
+                </div>
+                <p class="lead mb-4">{{ story.Sustainability_Strategy|default('Pioneering electric mobility and clean energy solutions to accelerate the world\'s transition to sustainable energy through innovation in battery technology, energy generation, and storage.') }}</p>
+                <div class="row">
+                    <div class="col-md-4">
+                        <div class="d-flex align-items-center">
+                            <div class="me-3">
+                                <i class="bi bi-lightning-charge fs-2"></i>
+                            </div>
+                            <div>
+                                <h5 class="mb-0">Industry Position</h5>
+                                <p class="mb-0">Leader</p>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-4">
+                        <div class="d-flex align-items-center">
+                            <div class="me-3">
+                                <i class="bi bi-graph-up fs-2"></i>
+                            </div>
+                            <div>
+                                <h5 class="mb-0">Sustainability Score</h5>
+                                <p class="mb-0">92/100</p>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-4">
+                        <div class="d-flex align-items-center">
+                            <div class="me-3">
+                                <i class="bi bi-trophy fs-2"></i>
+                            </div>
+                            <div>
+                                <h5 class="mb-0">Strategy Impact</h5>
+                                <p class="mb-0">Transformative</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="industry-context">
+                <h4 class="mb-3">Industry Context</h4>
+                <p>{{ story.Industry_Context|default('The automotive industry is undergoing a significant transition towards electrification and sustainability. Companies are facing increasing regulatory pressure, consumer demand for eco-friendly vehicles, and the need to reduce carbon emissions throughout their supply chains. Industry leaders are innovating in battery technology, sustainable manufacturing, and circular economy principles.') }}</p>
+                <div class="row mt-4">
+                    <div class="col-md-4">
+                        <div class="card border-0 bg-transparent">
+                            <div class="card-body text-center">
+                                <div class="metric-value">62%</div>
+                                <p class="metric-label">Industry Avg. Emissions Reduction</p>
+                                <p class="metric-trend trend-up"><i class="bi bi-arrow-up"></i> 8% YoY</p>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-4">
+                        <div class="card border-0 bg-transparent">
+                            <div class="card-body text-center">
+                                <div class="metric-value">47%</div>
+                                <p class="metric-label">Renewable Energy Adoption</p>
+                                <p class="metric-trend trend-up"><i class="bi bi-arrow-up"></i> 12% YoY</p>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-4">
+                        <div class="card border-0 bg-transparent">
+                            <div class="card-body text-center">
+                                <div class="metric-value">86%</div>
+                                <p class="metric-label">Consumers Value Sustainability</p>
+                                <p class="metric-trend trend-up"><i class="bi bi-arrow-up"></i> 5% YoY</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Sustainability Initiatives -->
+    <div class="row mb-5">
+        <div class="col-12">
+            <h2 class="mb-4">Key Sustainability Initiatives</h2>
+        </div>
+        
+        {% if story.Initiatives is defined %}
+            {% for initiative in story.Initiatives %}
+            <div class="col-md-4 mb-4">
+                <div class="card initiative-card">
+                    <div class="card-body">
+                        <div class="initiative-icon">
+                            <i class="bi {{ initiative.icon }}"></i>
+                        </div>
+                        <h5 class="card-title">{{ initiative.name }}</h5>
+                        <p class="card-text">{{ initiative.description }}</p>
+                        <div class="d-flex justify-content-between align-items-center mt-3">
+                            <span class="badge bg-primary">{{ initiative.focus }}</span>
+                            <span class="text-muted small">Started: {{ initiative.start_date }}</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            {% endfor %}
+        {% else %}
+            <div class="col-md-4 mb-4">
+                <div class="card initiative-card">
+                    <div class="card-body">
+                        <div class="initiative-icon">
+                            <i class="bi bi-lightning-charge"></i>
+                        </div>
+                        <h5 class="card-title">Gigafactory Renewable Energy</h5>
+                        <p class="card-text">Powering manufacturing facilities with 100% renewable energy through solar installations and battery storage systems.</p>
+                        <div class="d-flex justify-content-between align-items-center mt-3">
+                            <span class="badge bg-primary">Energy</span>
+                            <span class="text-muted small">Started: 2019</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-4 mb-4">
+                <div class="card initiative-card">
+                    <div class="card-body">
+                        <div class="initiative-icon">
+                            <i class="bi bi-recycle"></i>
+                        </div>
+                        <h5 class="card-title">Battery Recycling Program</h5>
+                        <p class="card-text">Implementing closed-loop battery recycling to recover critical materials and reduce resource consumption.</p>
+                        <div class="d-flex justify-content-between align-items-center mt-3">
+                            <span class="badge bg-primary">Circular Economy</span>
+                            <span class="text-muted small">Started: 2020</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-4 mb-4">
+                <div class="card initiative-card">
+                    <div class="card-body">
+                        <div class="initiative-icon">
+                            <i class="bi bi-droplet"></i>
+                        </div>
+                        <h5 class="card-title">Water Conservation Initiative</h5>
+                        <p class="card-text">Reducing water usage in manufacturing by 35% through advanced recycling systems and process optimization.</p>
+                        <div class="d-flex justify-content-between align-items-center mt-3">
+                            <span class="badge bg-primary">Water</span>
+                            <span class="text-muted small">Started: 2021</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        {% endif %}
+    </div>
+    
+    <!-- Sentiment & Trend Analysis -->
+    <div class="row mb-5">
+        <div class="col-md-6 mb-4">
+            <div class="card h-100">
+                <div class="card-header bg-primary text-white">
+                    <h4 class="mb-0">Sentiment Analysis</h4>
+                </div>
+                <div class="card-body">
+                    <div class="mb-4">
+                        <canvas id="sentimentChart" height="250"></canvas>
+                    </div>
+                    
+                    <h5 class="mb-3">Key Sentiment Topics</h5>
+                    <div class="mb-3">
+                        {% if story.sentiment_analysis is defined and story.sentiment_analysis.topics is defined %}
+                            {% for topic in story.sentiment_analysis.topics %}
+                                <span class="insight-tag 
+                                    {% if topic.sentiment == 'positive' %}sentiment-positive
+                                    {% elif topic.sentiment == 'negative' %}sentiment-negative
+                                    {% else %}sentiment-neutral{% endif %}">
+                                    {{ topic.name }}
+                                </span>
+                            {% endfor %}
+                        {% else %}
+                            <span class="insight-tag sentiment-positive">Electric Vehicles</span>
+                            <span class="insight-tag sentiment-positive">Renewable Energy</span>
+                            <span class="insight-tag sentiment-positive">Carbon Reduction</span>
+                            <span class="insight-tag sentiment-neutral">Supply Chain</span>
+                            <span class="insight-tag sentiment-neutral">Resource Usage</span>
+                            <span class="insight-tag sentiment-negative">Raw Materials</span>
+                            <span class="insight-tag sentiment-positive">Innovation</span>
+                            <span class="insight-tag sentiment-positive">Energy Storage</span>
+                            <span class="insight-tag sentiment-neutral">Labor Practices</span>
+                        {% endif %}
+                    </div>
+                    
+                    <h5 class="mb-3">Sentiment Insights</h5>
+                    <div class="alert alert-info" role="alert">
+                        <i class="bi bi-info-circle-fill me-2"></i>
+                        {% if story.sentiment_analysis is defined %}
+                    {{ story.sentiment_analysis.summary }}
+                {% else %}
+                    Overall positive sentiment across sustainability topics, with electric vehicles and renewable energy receiving the most favorable coverage. Supply chain transparency and raw material sourcing remain areas of concern with more neutral to negative sentiment.
+                {% endif %}
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <div class="col-md-6 mb-4">
+            <div class="card h-100">
+                <div class="card-header bg-primary text-white">
+                    <h4 class="mb-0">Trend Analysis</h4>
+                </div>
+                <div class="card-body">
+                    <div class="mb-4">
+                        <canvas id="trendChart" height="250"></canvas>
+                    </div>
+                    
+                    <h5 class="mb-3">Key Metrics Trends</h5>
+                    <div class="row">
+                        {% if story.trend_analysis is defined and story.trend_analysis.metrics is defined %}
+                            {% for metric in story.trend_analysis.metrics %}
+                                <div class="col-md-6 mb-3">
+                                    <div class="d-flex align-items-center">
+                                        <div class="me-3 fs-4 
+                                            {% if metric.trend_direction == 'up' %}text-success
+                                            {% elif metric.trend_direction == 'down' %}text-danger
+                                            {% else %}text-primary{% endif %}">
+                                            <i class="bi 
+                                                {% if metric.trend_direction == 'up' %}bi-arrow-up-circle-fill
+                                                {% elif metric.trend_direction == 'down' %}bi-arrow-down-circle-fill
+                                                {% else %}bi-dash-circle-fill{% endif %}"></i>
+                                        </div>
+                                        <div>
+                                            <h6 class="mb-0">{{ metric.name }}</h6>
+                                            <p class="text-muted small mb-0">{{ metric.description }}</p>
+                                        </div>
+                                    </div>
+                                </div>
+                            {% endfor %}
+                        {% else %}
+                            <div class="col-md-6 mb-3">
+                                <div class="d-flex align-items-center">
+                                    <div class="me-3 fs-4 text-success">
+                                        <i class="bi bi-arrow-up-circle-fill"></i>
+                                    </div>
+                                    <div>
+                                        <h6 class="mb-0">Carbon Emissions</h6>
+                                        <p class="text-muted small mb-0">28% reduction YoY</p>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col-md-6 mb-3">
+                                <div class="d-flex align-items-center">
+                                    <div class="me-3 fs-4 text-success">
+                                        <i class="bi bi-arrow-up-circle-fill"></i>
+                                    </div>
+                                    <div>
+                                        <h6 class="mb-0">Renewable Energy</h6>
+                                        <p class="text-muted small mb-0">75% adoption rate (+15%)</p>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col-md-6 mb-3">
+                                <div class="d-flex align-items-center">
+                                    <div class="me-3 fs-4 text-danger">
+                                        <i class="bi bi-arrow-down-circle-fill"></i>
+                                    </div>
+                                    <div>
+                                        <h6 class="mb-0">Water Usage</h6>
+                                        <p class="text-muted small mb-0">35% reduction in manufacturing</p>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col-md-6 mb-3">
+                                <div class="d-flex align-items-center">
+                                    <div class="me-3 fs-4 text-success">
+                                        <i class="bi bi-arrow-up-circle-fill"></i>
+                                    </div>
+                                    <div>
+                                        <h6 class="mb-0">Material Recycling</h6>
+                                        <p class="text-muted small mb-0">52% recycled content (+18%)</p>
+                                    </div>
+                                </div>
+                            </div>
+                        {% endif %}
+                    </div>
+                    
+                    <h5 class="mb-3">Trend Insights</h5>
+                    <div class="alert alert-info" role="alert">
+                        <i class="bi bi-info-circle-fill me-2"></i>
+                        {{ story.trend_analysis.summary|default('Strong positive momentum in emissions reduction and renewable energy adoption, significantly outperforming industry averages. Water usage efficiency showing excellent improvement through manufacturing process innovations. Material recycling initiative exceeding targets.') }}
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Competitive Benchmarking -->
+    <div class="row mb-5">
+        <div class="col-12">
+            <div class="card">
+                <div class="card-header bg-primary text-white">
+                    <h4 class="mb-0">Competitive Benchmarking</h4>
+                </div>
+                <div class="card-body">
+                    <div class="row">
+                        <div class="col-lg-7">
+                            <canvas id="benchmarkingChart" height="300"></canvas>
+                        </div>
+                        <div class="col-lg-5">
+                            <h5 class="mb-3">Benchmark Analysis</h5>
+                            <p>{{ story.Competitor_Benchmarking|default("Tesla's sustainability performance exceeds industry averages across all key metrics, with particularly strong leadership in emissions reduction and renewable energy adoption. The company's battery recycling program shows the highest performance relative to competitors, creating a significant competitive advantage. Supply chain transparency is an area where the company slightly lags behind best-in-class peers.") }}</p>
+                            
+                            <h5 class="mt-4 mb-3">Key Competitors</h5>
+                            <div class="table-responsive">
+                                <table class="table table-sm">
+                                    <thead>
+                                        <tr>
+                                            <th>Company</th>
+                                            <th>Sustainability Score</th>
+                                            <th>Relative Position</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        <tr>
+                                            <td><strong>{{ story.Company|default('Tesla, Inc.') }}</strong></td>
+                                            <td>92/100</td>
+                                            <td><span class="badge bg-success">Leader</span></td>
+                                        </tr>
+                                        <tr>
+                                            <td>Competitor A</td>
+                                            <td>85/100</td>
+                                            <td><span class="badge bg-primary">Strong</span></td>
+                                        </tr>
+                                        <tr>
+                                            <td>Competitor B</td>
+                                            <td>78/100</td>
+                                            <td><span class="badge bg-primary">Strong</span></td>
+                                        </tr>
+                                        <tr>
+                                            <td>Industry Average</td>
+                                            <td>68/100</td>
+                                            <td><span class="badge bg-secondary">Average</span></td>
+                                        </tr>
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Strategic Recommendations -->
+    <div class="row mb-5">
+        <div class="col-12">
+            <div class="card">
+                <div class="card-header bg-primary text-white">
+                    <h4 class="mb-0">Strategic Recommendations</h4>
+                </div>
+                <div class="card-body">
+                    <div class="row mb-4">
+                        <div class="col-md-6">
+                            <h5 class="mb-3">Investment Pathway</h5>
+                            <p>{{ story.Investment_Pathway|default('Focus investments on scaling battery recycling infrastructure and securing sustainable raw material sources, while expanding renewable energy capacity at manufacturing sites to achieve 100% renewable operations.') }}</p>
+                            
+                            <div class="recommendation-item">
+                                <h6>Primary Focus Area</h6>
+                                <p class="mb-0">Battery recycling technology and infrastructure to secure critical materials supply chain and reduce environmental impact.</p>
+                            </div>
+                            
+                            <div class="recommendation-item">
+                                <h6>Secondary Focus Area</h6>
+                                <p class="mb-0">Renewable energy expansion at all manufacturing facilities to reduce operational carbon footprint and energy costs.</p>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <h5 class="mb-3">Actionable Recommendations</h5>
+                            <ol class="list-group list-group-numbered">
+                                {% if story.Actionable_Recommendations is defined %}
+                                    {% for recommendation in story.Actionable_Recommendations %}
+                                        <li class="list-group-item">{{ recommendation }}</li>
+                                    {% endfor %}
+                                {% else %}
+                                    <li class="list-group-item">Increase battery recycling capacity by 200% through strategic partnerships with recycling technology providers.</li>
+                                    <li class="list-group-item">Implement AI-powered energy management systems across all manufacturing facilities to optimize renewable energy usage.</li>
+                                    <li class="list-group-item">Develop comprehensive supplier sustainability rating system to improve supply chain transparency.</li>
+                                    <li class="list-group-item">Establish circular economy targets for all key materials with 5-year implementation roadmap.</li>
+                                    <li class="list-group-item">Create industry-leading sustainability reporting framework that aligns with ESRS standards.</li>
+                                {% endif %}
+                            </ol>
+                        </div>
+                    </div>
+                    
+                    <div class="row">
+                        <div class="col-12">
+                            <h5 class="mb-3">Implementation Roadmap</h5>
+                            <div class="table-responsive">
+                                <table class="table">
+                                    <thead>
+                                        <tr>
+                                            <th style="width: 20%">Timeframe</th>
+                                            <th style="width: 25%">Objective</th>
+                                            <th style="width: 40%">Key Activities</th>
+                                            <th style="width: 15%">Success Metrics</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        <tr>
+                                            <td><span class="badge bg-success">Short-term (0-6 months)</span></td>
+                                            <td>Enhance data collection & reporting</td>
+                                            <td>
+                                                <ul class="mb-0">
+                                                    <li>Implement enhanced sustainability data collection system</li>
+                                                    <li>Conduct comprehensive supply chain assessment</li>
+                                                    <li>Establish baseline metrics for all focus areas</li>
+                                                </ul>
+                                            </td>
+                                            <td>100% data visibility across operations</td>
+                                        </tr>
+                                        <tr>
+                                            <td><span class="badge bg-primary">Medium-term (6-18 months)</span></td>
+                                            <td>Scale battery recycling infrastructure</td>
+                                            <td>
+                                                <ul class="mb-0">
+                                                    <li>Establish recycling technology partnerships</li>
+                                                    <li>Begin construction of expanded recycling facilities</li>
+                                                    <li>Implement closed-loop material recovery processes</li>
+                                                </ul>
+                                            </td>
+                                            <td>50% increase in material recovery rate</td>
+                                        </tr>
+                                        <tr>
+                                            <td><span class="badge bg-info">Long-term (18-36 months)</span></td>
+                                            <td>100% renewable energy operations</td>
+                                            <td>
+                                                <ul class="mb-0">
+                                                    <li>Complete solar and storage installations at all facilities</li>
+                                                    <li>Implement AI-powered energy optimization systems</li>
+                                                    <li>Establish virtual power plant network across facilities</li>
+                                                </ul>
+                                            </td>
+                                            <td>100% renewable energy across operations</td>
+                                        </tr>
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Monetization Insights -->
+    <div class="row mb-5">
+        <div class="col-12">
+            <div class="card">
+                <div class="card-header bg-primary text-white">
+                    <h4 class="mb-0">Monetization Insights</h4>
+                </div>
+                <div class="card-body">
+                    <div class="row mb-4">
+                        <div class="col-md-7">
+                            <h5 class="mb-3">Monetization Strategy</h5>
+                            <p>{{ story.Monetization_Model|default('Leverage sustainability leadership to create new revenue streams through battery recycling services, sustainability consulting, and carbon credit generation, while reducing costs through operational efficiency improvements.') }}</p>
+                            
+                            <div class="row mt-4">
+                                <div class="col-md-6">
+                                    <div class="monetization-model">
+                                        <h5>Revenue Generation</h5>
+                                        <ul class="mb-0">
+                                            <li>Battery-as-a-Service (BaaS) offering</li>
+                                            <li>Recycled materials marketplace</li>
+                                            <li>Carbon credit generation & trading</li>
+                                            <li>Sustainability technology licensing</li>
+                                        </ul>
+                                    </div>
+                                </div>
+                                <div class="col-md-6">
+                                    <div class="monetization-model">
+                                        <h5>Cost Reduction</h5>
+                                        <ul class="mb-0">
+                                            <li>Energy cost savings (25-35%)</li>
+                                            <li>Material cost reduction (15-20%)</li>
+                                            <li>Regulatory compliance cost avoidance</li>
+                                            <li>Supply chain resilience benefits</li>
+                                        </ul>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-5">
+                            <h5 class="mb-3">Estimated Financial Impact</h5>
+                            <div class="roi-chart-container">
+                                <canvas id="roiChart"></canvas>
+                            </div>
+                            <div class="table-responsive">
+                                <table class="table table-sm">
+                                    <thead>
+                                        <tr>
+                                            <th>Scenario</th>
+                                            <th>5-Year ROI</th>
+                                            <th>Payback Period</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        <tr>
+                                            <td>Conservative</td>
+                                            <td>185%</td>
+                                            <td>2.8 years</td>
+                                        </tr>
+                                        <tr>
+                                            <td>Moderate</td>
+                                            <td>250%</td>
+                                            <td>2.2 years</td>
+                                        </tr>
+                                        <tr>
+                                            <td>Optimistic</td>
+                                            <td>320%</td>
+                                            <td>1.7 years</td>
+                                        </tr>
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="row">
+                        <div class="col-12">
+                            <h5 class="mb-3">Performance Metrics</h5>
+                            <div class="table-responsive">
+                                <table class="table">
+                                    <thead>
+                                        <tr>
+                                            <th>Metric</th>
+                                            <th>Current</th>
+                                            <th>Target (1 Year)</th>
+                                            <th>Target (3 Year)</th>
+                                            <th>Impact on Valuation</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        <tr>
+                                            <td>Recycled Material Revenue</td>
+                                            <td>$12M/year</td>
+                                            <td>$25M/year</td>
+                                            <td>$85M/year</td>
+                                            <td><span class="badge bg-success">High</span></td>
+                                        </tr>
+                                        <tr>
+                                            <td>Carbon Credit Generation</td>
+                                            <td>15,000 credits/year</td>
+                                            <td>35,000 credits/year</td>
+                                            <td>80,000 credits/year</td>
+                                            <td><span class="badge bg-success">High</span></td>
+                                        </tr>
+                                        <tr>
+                                            <td>Energy Cost Savings</td>
+                                            <td>$18M/year</td>
+                                            <td>$28M/year</td>
+                                            <td>$45M/year</td>
+                                            <td><span class="badge bg-primary">Medium</span></td>
+                                        </tr>
+                                        <tr>
+                                            <td>Sustainability Premium (Products)</td>
+                                            <td>5-8%</td>
+                                            <td>7-10%</td>
+                                            <td>10-15%</td>
+                                            <td><span class="badge bg-success">High</span></td>
+                                        </tr>
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+{{ super() }}
+<script src="https://cdn.jsdelivr.net/npm/chart.js@3.7.1/dist/chart.min.js"></script>
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        // Sentiment Analysis Chart
+        const sentimentCtx = document.getElementById('sentimentChart');
+        if (sentimentCtx) {
+            const sentimentChart = new Chart(sentimentCtx, {
+                type: 'doughnut',
+                data: {
+                    labels: ['Positive', 'Neutral', 'Negative'],
+                    datasets: [{
+                        data: [65, 25, 10],
+                        backgroundColor: [
+                            'rgba(25, 135, 84, 0.7)',
+                            'rgba(13, 110, 253, 0.7)',
+                            'rgba(220, 53, 69, 0.7)'
+                        ],
+                        borderColor: [
+                            'rgba(25, 135, 84, 1)',
+                            'rgba(13, 110, 253, 1)',
+                            'rgba(220, 53, 69, 1)'
+                        ],
+                        borderWidth: 1
+                    }]
+                },
+                options: {
+                    plugins: {
+                        legend: {
+                            position: 'bottom',
+                        },
+                        title: {
+                            display: true,
+                            text: 'Overall Sentiment Distribution'
+                        }
+                    }
+                }
+            });
+        }
+        
+        // Trend Analysis Chart
+        const trendCtx = document.getElementById('trendChart');
+        if (trendCtx) {
+            const trendChart = new Chart(trendCtx, {
+                type: 'line',
+                data: {
+                    labels: ['2019', '2020', '2021', '2022', '2023', '2024'],
+                    datasets: [
+                        {
+                            label: 'Carbon Emissions (Normalized)',
+                            data: [100, 85, 70, 55, 45, 35],
+                            borderColor: 'rgba(220, 53, 69, 0.8)',
+                            backgroundColor: 'rgba(220, 53, 69, 0.1)',
+                            tension: 0.3,
+                            fill: true
+                        },
+                        {
+                            label: 'Renewable Energy Adoption',
+                            data: [35, 45, 55, 65, 75, 85],
+                            borderColor: 'rgba(25, 135, 84, 0.8)',
+                            backgroundColor: 'rgba(25, 135, 84, 0.1)',
+                            tension: 0.3,
+                            fill: true
+                        },
+                        {
+                            label: 'Water Usage (Normalized)',
+                            data: [100, 90, 75, 65, 55, 50],
+                            borderColor: 'rgba(13, 110, 253, 0.8)',
+                            backgroundColor: 'rgba(13, 110, 253, 0.1)',
+                            tension: 0.3,
+                            fill: true
+                        }
+                    ]
+                },
+                options: {
+                    scales: {
+                        y: {
+                            beginAtZero: true,
+                            title: {
+                                display: true,
+                                text: 'Performance (indexed)'
+                            }
+                        }
+                    },
+                    plugins: {
+                        legend: {
+                            position: 'bottom',
+                        }
+                    }
+                }
+            });
+        }
+        
+        // Benchmarking Chart
+        const benchmarkCtx = document.getElementById('benchmarkingChart');
+        if (benchmarkCtx) {
+            const benchmarkChart = new Chart(benchmarkCtx, {
+                type: 'radar',
+                data: {
+                    labels: ['Emissions', 'Energy', 'Water', 'Waste', 'Social', 'Governance', 'Innovation'],
+                    datasets: [
+                        {
+                            label: 'Your Company',
+                            data: [85, 90, 75, 80, 85, 90, 95],
+                            backgroundColor: 'rgba(13, 110, 253, 0.2)',
+                            borderColor: 'rgba(13, 110, 253, 0.8)',
+                            pointBackgroundColor: 'rgba(13, 110, 253, 0.8)',
+                            pointBorderColor: '#fff',
+                            pointHoverBackgroundColor: '#fff',
+                            pointHoverBorderColor: 'rgba(13, 110, 253, 0.8)'
+                        },
+                        {
+                            label: 'Top Competitor',
+                            data: [80, 85, 85, 75, 80, 85, 80],
+                            backgroundColor: 'rgba(220, 53, 69, 0.2)',
+                            borderColor: 'rgba(220, 53, 69, 0.8)',
+                            pointBackgroundColor: 'rgba(220, 53, 69, 0.8)',
+                            pointBorderColor: '#fff',
+                            pointHoverBackgroundColor: '#fff',
+                            pointHoverBorderColor: 'rgba(220, 53, 69, 0.8)'
+                        },
+                        {
+                            label: 'Industry Average',
+                            data: [60, 65, 60, 55, 65, 70, 60],
+                            backgroundColor: 'rgba(108, 117, 125, 0.2)',
+                            borderColor: 'rgba(108, 117, 125, 0.8)',
+                            pointBackgroundColor: 'rgba(108, 117, 125, 0.8)',
+                            pointBorderColor: '#fff',
+                            pointHoverBackgroundColor: '#fff',
+                            pointHoverBorderColor: 'rgba(108, 117, 125, 0.8)'
+                        }
+                    ]
+                },
+                options: {
+                    elements: {
+                        line: {
+                            borderWidth: 3
+                        }
+                    },
+                    plugins: {
+                        legend: {
+                            position: 'bottom',
+                        }
+                    },
+                    scales: {
+                        r: {
+                            angleLines: {
+                                display: true
+                            },
+                            suggestedMin: 0,
+                            suggestedMax: 100
+                        }
+                    }
+                }
+            });
+        }
+        
+        // ROI Chart
+        const roiCtx = document.getElementById('roiChart');
+        if (roiCtx) {
+            const roiChart = new Chart(roiCtx, {
+                type: 'bar',
+                data: {
+                    labels: ['Year 1', 'Year 2', 'Year 3', 'Year 4', 'Year 5'],
+                    datasets: [
+                        {
+                            label: 'Investment',
+                            data: [25, 20, 15, 10, 5],
+                            backgroundColor: 'rgba(220, 53, 69, 0.7)',
+                            borderColor: 'rgba(220, 53, 69, 1)',
+                            borderWidth: 1
+                        },
+                        {
+                            label: 'Returns',
+                            data: [10, 30, 50, 75, 90],
+                            backgroundColor: 'rgba(25, 135, 84, 0.7)',
+                            borderColor: 'rgba(25, 135, 84, 1)',
+                            borderWidth: 1
+                        }
+                    ]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    scales: {
+                        x: {
+                            stacked: false,
+                        },
+                        y: {
+                            stacked: false,
+                            title: {
+                                display: true,
+                                text: 'Amount ($ Millions)'
+                            }
+                        }
+                    },
+                    plugins: {
+                        legend: {
+                            position: 'bottom',
+                        },
+                        title: {
+                            display: true,
+                            text: 'Projected ROI (Moderate Scenario)'
+                        }
+                    }
+                }
+            });
+        }
+        
+        // Form submission handling
+        const storyGenerationForm = document.getElementById('storyGenerationForm');
+        if (storyGenerationForm) {
+            storyGenerationForm.addEventListener('submit', function(e) {
+                e.preventDefault();
+                
+                const formData = new FormData(storyGenerationForm);
+                const params = new URLSearchParams();
+                
+                // Handle multiple checkbox values
+                const sections = formData.getAll('include_sections');
+                formData.delete('include_sections');
+                
+                // Add other form fields
+                for (const [key, value] of formData.entries()) {
+                    params.append(key, value);
+                }
+                
+                // Add sections as array parameter
+                for (const section of sections) {
+                    params.append('include_sections', section);
+                }
+                
+                window.location.href = `/sustainability-storytelling?${params.toString()}`;
+            });
+        }
+        
+        // PDF Export button handler
+        const pdfExportBtn = document.getElementById('pdfExportBtn');
+        if (pdfExportBtn) {
+            pdfExportBtn.addEventListener('click', function() {
+                // In a real implementation, this would call an API endpoint to generate a PDF
+                alert('PDF export functionality would be implemented in a production environment.');
+                
+                // Show confirmation toast
+                const toastHtml = `
+                    <div class="toast align-items-center text-white bg-success border-0" role="alert" aria-live="assertive" aria-atomic="true">
+                        <div class="d-flex">
+                            <div class="toast-body">
+                                Report export initiated. The PDF will be available shortly.
+                            </div>
+                            <button type="button" class="btn-close btn-close-white me-2 m-auto" data-bs-dismiss="toast" aria-label="Close"></button>
+                        </div>
+                    </div>
+                `;
+                
+                const toastContainer = document.createElement('div');
+                toastContainer.className = 'toast-container position-fixed bottom-0 end-0 p-3';
+                toastContainer.innerHTML = toastHtml;
+                document.body.appendChild(toastContainer);
+                
+                const toast = new bootstrap.Toast(toastContainer.querySelector('.toast'));
+                toast.show();
+                
+                setTimeout(() => {
+                    document.body.removeChild(toastContainer);
+                }, 5000);
+            });
+        }
+    });
+</script>
+{% endblock %}

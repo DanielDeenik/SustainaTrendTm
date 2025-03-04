@@ -85,6 +85,42 @@ except ImportError as e:
     DOCUMENT_PROCESSOR_AVAILABLE = False
     logger.warning(f"Document processor not available: {e}")
 
+# Import ESRS Framework Module
+try:
+    from esrs_framework import register_routes as register_esrs_framework_routes
+    ESRS_FRAMEWORK_AVAILABLE = True
+    logger.info("ESRS Framework module loaded successfully")
+except ImportError as e:
+    ESRS_FRAMEWORK_AVAILABLE = False
+    logger.warning(f"ESRS Framework module not available: {e}")
+
+# Import Company Search Module
+try:
+    from company_search import register_routes as register_company_search_routes
+    COMPANY_SEARCH_AVAILABLE = True
+    logger.info("Company Search module loaded successfully")
+except ImportError as e:
+    COMPANY_SEARCH_AVAILABLE = False
+    logger.warning(f"Company Search module not available: {e}")
+
+# Import Trend Virality Benchmarking Module
+try:
+    from trend_virality_benchmarking import register_routes as register_trend_virality_routes
+    TREND_VIRALITY_AVAILABLE = True
+    logger.info("Trend Virality Benchmarking module loaded successfully")
+except ImportError as e:
+    TREND_VIRALITY_AVAILABLE = False
+    logger.warning(f"Trend Virality Benchmarking module not available: {e}")
+
+# Import Sustainability Storytelling Module
+try:
+    from sustainability_storytelling import register_routes as register_storytelling_routes
+    SUSTAINABILITY_STORYTELLING_AVAILABLE = True
+    logger.info("Sustainability Storytelling module loaded successfully")
+except ImportError as e:
+    SUSTAINABILITY_STORYTELLING_AVAILABLE = False
+    logger.warning(f"Sustainability Storytelling module not available: {e}")
+
 # Initialize Flask
 app = Flask(__name__)
 
@@ -102,6 +138,26 @@ if SENTIMENT_ANALYSIS_AVAILABLE:
 if ETHICAL_AI_AVAILABLE:
     register_ethical_ai_routes(app)
     logger.info("Ethical AI Compliance routes registered successfully")
+
+# Register ESRS Framework routes if available
+if ESRS_FRAMEWORK_AVAILABLE:
+    register_esrs_framework_routes(app)
+    logger.info("ESRS Framework routes registered successfully")
+
+# Register Company Search routes if available
+if COMPANY_SEARCH_AVAILABLE:
+    register_company_search_routes(app)
+    logger.info("Company Search routes registered successfully")
+
+# Register Trend Virality routes if available
+if TREND_VIRALITY_AVAILABLE:
+    register_trend_virality_routes(app)
+    logger.info("Trend Virality Benchmarking routes registered successfully")
+
+# Register Sustainability Storytelling routes if available
+if SUSTAINABILITY_STORYTELLING_AVAILABLE:
+    register_storytelling_routes(app)
+    logger.info("Sustainability Storytelling routes registered successfully")
 
 # API Status global middleware
 def get_api_status():
