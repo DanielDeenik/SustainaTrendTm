@@ -513,12 +513,13 @@
                     </ul>
                 </div>
 
-                <!-- Theme Toggle -->
+                <!-- Enhanced Theme Toggle -->
                 <div class="theme-toggle">
                     <span>Dark Mode</span>
-                    <button class="theme-toggle-button">
-                        <i class="bi bi-moon-fill"></i>
-                    </button>
+                    <label class="switch">
+                        <input type="checkbox" id="theme-toggle-input" checked>
+                        <span class="toggle-slider"></span>
+                    </label>
                 </div>
             </nav>
 
@@ -545,7 +546,7 @@
             const mainContent = document.getElementById('mainContent');
             const sidebarToggle = document.querySelector('.sidebar-toggle');
             const mobileToggle = document.querySelector('.mobile-toggle');
-            const themeToggle = document.querySelector('.theme-toggle-button');
+            const themeToggleInput = document.getElementById('theme-toggle-input');
             
             // Check for saved state
             const isSidebarCollapsed = localStorage.getItem('sidebarCollapsed') === 'true';
@@ -563,7 +564,11 @@
             if (darkModeEnabled) {
                 document.documentElement.classList.remove('light-mode');
                 document.documentElement.classList.add('dark-mode');
-                themeToggle.innerHTML = '<i class="bi bi-sun-fill"></i>';
+                themeToggleInput.checked = true;
+            } else {
+                document.documentElement.classList.add('light-mode');
+                document.documentElement.classList.remove('dark-mode');
+                themeToggleInput.checked = false;
             }
             
             // Desktop toggle
@@ -588,20 +593,38 @@
                 });
             }
             
-            // Theme toggle
-            themeToggle.addEventListener('click', function() {
-                const isDarkMode = document.documentElement.classList.contains('dark-mode');
+            // Enhanced Theme toggle with smoother transitions
+            themeToggleInput.addEventListener('change', function() {
+                const html = document.documentElement;
                 
-                if (isDarkMode) {
-                    document.documentElement.classList.remove('dark-mode');
-                    document.documentElement.classList.add('light-mode');
-                    this.innerHTML = '<i class="bi bi-moon-fill"></i>';
-                    localStorage.setItem('darkMode', 'false');
+                if (this.checked) {
+                    // Transition to dark mode with enhanced animation
+                    html.classList.add('theme-transition');
+                    html.classList.remove('light-mode');
+                    
+                    setTimeout(() => {
+                        html.classList.add('dark-mode');
+                        localStorage.setItem('darkMode', 'true');
+                        
+                        // Add a slight delay before removing the transition class
+                        setTimeout(() => {
+                            html.classList.remove('theme-transition');
+                        }, 400);
+                    }, 50);
                 } else {
-                    document.documentElement.classList.remove('light-mode');
-                    document.documentElement.classList.add('dark-mode');
-                    this.innerHTML = '<i class="bi bi-sun-fill"></i>';
-                    localStorage.setItem('darkMode', 'true');
+                    // Transition to light mode with enhanced animation
+                    html.classList.add('theme-transition');
+                    html.classList.remove('dark-mode');
+                    
+                    setTimeout(() => {
+                        html.classList.add('light-mode');
+                        localStorage.setItem('darkMode', 'false');
+                        
+                        // Add a slight delay before removing the transition class
+                        setTimeout(() => {
+                            html.classList.remove('theme-transition');
+                        }, 400);
+                    }, 50);
                 }
             });
         });

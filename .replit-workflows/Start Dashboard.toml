@@ -4,3 +4,4 @@ entrypoint = "frontend/app.py"
 hidden = false
 persistent = true
 wait_for_port = 5000
+onPort = { action = "notify" }

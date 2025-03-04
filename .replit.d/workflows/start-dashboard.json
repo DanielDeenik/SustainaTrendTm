@@ -1,13 +1,17 @@
 {
-  "name": "Start Dashboard",
-  "entrypoint": "cd frontend && python app.py",
-  "run_command": "cd frontend && python app.py",
-  "onStart": "",
-  "restartable": true,
-  "language": "python",
-  "wait_for_port": 5000,
-  "timeout": 30000,
-  "prevent_reboot_loop": true,
-  "display": "Docker terminal",
-  "web_processes": [{"name": "flask", "start": true, "default": true, "port": 5000}]
+  "actions": [
+    {
+      "command": "cd frontend && python app.py",
+      "file_action": {
+        "path": "frontend/app.py"
+      },
+      "id": "main",
+      "web": {
+        "wait_for_port": true,
+        "port": 5000,
+        "ready_message": "Running on all addresses"
+      }
+    }
+  ],
+  "name": "Start Dashboard"
 }
