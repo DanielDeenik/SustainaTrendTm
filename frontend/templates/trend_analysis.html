@@ -3,11 +3,16 @@
 {% block title %}Sustainability Trend Analysis{% endblock %}
 
 {% block extra_css %}
-<!-- This is still needed for the fallback non-React experience -->
+<!-- Enhanced dark mode styling -->
+<link rel="stylesheet" href="{{ url_for('static', filename='css/dark-theme.css') }}">
+<!-- Plotly.js for interactive charts -->
 <script src="https://cdn.plot.ly/plotly-latest.min.js"></script>
 {% endblock %}
 
 {% block content %}
+<!-- Toast notifications container -->
+<div class="toast-container" id="toast-container"></div>
+
 <div class="trend-page-header">
     <h1>Sustainability Trend Analysis</h1>
     <p class="text-muted">AI-driven insights into emerging sustainability trends</p>
@@ -15,12 +20,90 @@
         <button class="btn btn-outline-primary me-2" id="toggle-view">
             <i class="bi bi-grid"></i> Toggle View
         </button>
-        <button class="btn btn-outline-primary me-2" id="filter-trends">
+        <button class="btn btn-outline-primary me-2" id="filter-btn">
             <i class="bi bi-funnel"></i> Filter
         </button>
-        <button class="btn btn-outline-primary" id="export-data">
-            <i class="bi bi-download"></i> Export
-        </button>
+        <div class="dropdown d-inline-block">
+            <button class="btn btn-outline-primary" id="export-btn">
+                <i class="bi bi-download"></i> Export
+            </button>
+            <div id="export-dropdown" class="export-dropdown">
+                <ul class="export-dropdown-menu">
+                    <li><a href="#" data-format="csv"><i class="bi bi-filetype-csv"></i> CSV</a></li>
+                    <li><a href="#" data-format="excel"><i class="bi bi-filetype-xlsx"></i> Excel</a></li>
+                    <li><a href="#" data-format="pdf"><i class="bi bi-filetype-pdf"></i> PDF</a></li>
+                    <li><a href="#" data-format="json"><i class="bi bi-filetype-json"></i> JSON</a></li>
+                </ul>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Filter Modal -->
+<div class="filter-modal" id="filter-modal">
+    <div class="filter-modal-content">
+        <div class="filter-modal-header">
+            <h3>Filter Sustainability Trends</h3>
+            <button class="close-modal" id="close-modal">&times;</button>
+        </div>
+        <div class="filter-modal-body">
+            <div class="filter-group">
+                <label>Time Period</label>
+                <div class="filter-options">
+                    <label class="filter-option">
+                        <input type="radio" name="timeframe" value="all" checked> All Time
+                    </label>
+                    <label class="filter-option">
+                        <input type="radio" name="timeframe" value="year"> Last Year
+                    </label>
+                    <label class="filter-option">
+                        <input type="radio" name="timeframe" value="6month"> Last 6 Months
+                    </label>
+                    <label class="filter-option">
+                        <input type="radio" name="timeframe" value="3month"> Last 3 Months
+                    </label>
+                    <label class="filter-option">
+                        <input type="radio" name="timeframe" value="month"> Last Month
+                    </label>
+                </div>
+            </div>
+            <div class="filter-group">
+                <label>Categories</label>
+                <div class="filter-options">
+                    <label class="filter-option">
+                        <input type="checkbox" name="category" value="emissions" checked> Emissions
+                    </label>
+                    <label class="filter-option">
+                        <input type="checkbox" name="category" value="energy" checked> Energy
+                    </label>
+                    <label class="filter-option">
+                        <input type="checkbox" name="category" value="water" checked> Water
+                    </label>
+                    <label class="filter-option">
+                        <input type="checkbox" name="category" value="waste" checked> Waste
+                    </label>
+                    <label class="filter-option">
+                        <input type="checkbox" name="category" value="social" checked> Social
+                    </label>
+                    <label class="filter-option">
+                        <input type="checkbox" name="category" value="governance" checked> Governance
+                    </label>
+                </div>
+            </div>
+            <div class="filter-group">
+                <label>Minimum Virality Score</label>
+                <input type="range" class="form-range" id="virality-slider" min="0" max="100" value="30">
+                <div class="d-flex justify-content-between">
+                    <span>0</span>
+                    <span id="virality-value">30</span>
+                    <span>100</span>
+                </div>
+            </div>
+        </div>
+        <div class="filter-modal-footer">
+            <button class="btn btn-outline-secondary" id="reset-filters">Reset</button>
+            <button class="btn btn-primary" id="apply-filters">Apply Filters</button>
+        </div>
     </div>
 </div>
 
@@ -92,8 +175,157 @@
     </div>
 </div>
 
+<!-- Main Dashboard Charts -->
+<div class="container mt-5">
+    <div class="row g-4">
+        <!-- Main Trend Chart -->
+        <div class="col-lg-8">
+            <div class="card dashboard-card trend-chart-card">
+                <div class="card-header d-flex align-items-center justify-content-between">
+                    <h5 class="m-0">
+                        <i class="bi bi-graph-up me-2"></i>
+                        Sustainability Trend Analysis
+                    </h5>
+                    <div class="chart-controls">
+                        <select id="chart-time-range" class="form-select form-select-sm">
+                            <option value="3month">Last 3 Months</option>
+                            <option value="6month">Last 6 Months</option>
+                            <option value="year" selected>Last Year</option>
+                            <option value="all">All Time</option>
+                        </select>
+                    </div>
+                </div>
+                <div class="card-body">
+                    <div id="trend-chart" class="trend-chart-container"></div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Category Distribution -->
+        <div class="col-lg-4">
+            <div class="card dashboard-card h-100">
+                <div class="card-header">
+                    <h5 class="m-0">
+                        <i class="bi bi-pie-chart me-2"></i>
+                        Category Distribution
+                    </h5>
+                </div>
+                <div class="card-body">
+                    <div id="category-distribution" class="chart-container"></div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Virality Radar -->
+        <div class="col-lg-6">
+            <div class="card dashboard-card">
+                <div class="card-header">
+                    <h5 class="m-0">
+                        <i class="bi bi-bullseye me-2"></i>
+                        Virality Radar by Category
+                    </h5>
+                </div>
+                <div class="card-body">
+                    <div id="virality-radar" class="chart-container"></div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Sustainability Metrics -->
+        <div class="col-lg-6">
+            <div class="card dashboard-card">
+                <div class="card-header">
+                    <h5 class="m-0">
+                        <i class="bi bi-speedometer2 me-2"></i>
+                        Key Metrics Overview
+                    </h5>
+                </div>
+                <div class="card-body">
+                    <div class="row g-3 text-center">
+                        <div class="col-6">
+                            <div class="metric-circle">
+                                <div class="metric-value" id="total-trends">--</div>
+                                <div class="metric-label">Total Trends</div>
+                            </div>
+                        </div>
+                        <div class="col-6">
+                            <div class="metric-circle">
+                                <div class="metric-value" id="avg-virality">--</div>
+                                <div class="metric-label">Avg. Virality</div>
+                            </div>
+                        </div>
+                        <div class="col-6">
+                            <div class="metric-circle positive">
+                                <div class="metric-value" id="improving-trends">--</div>
+                                <div class="metric-label">Improving</div>
+                                <div class="metric-percent" id="improving-percent">--%</div>
+                            </div>
+                        </div>
+                        <div class="col-6">
+                            <div class="metric-circle negative">
+                                <div class="metric-value" id="worsening-trends">--</div>
+                                <div class="metric-label">Worsening</div>
+                                <div class="metric-percent" id="worsening-percent">--%</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Trend Data Table -->
+<div class="container mt-5">
+    <div class="card dashboard-card">
+        <div class="card-header d-flex align-items-center justify-content-between">
+            <h5 class="m-0">
+                <i class="bi bi-table me-2"></i>
+                Detailed Trend Data
+            </h5>
+            <div class="card-actions">
+                <button class="btn btn-sm btn-outline-primary me-2" id="refresh-table">
+                    <i class="bi bi-arrow-clockwise"></i> Refresh
+                </button>
+                <select id="table-category-filter" class="form-select form-select-sm d-inline-block" style="width: auto;">
+                    <option value="all">All Categories</option>
+                    <option value="emissions">Emissions</option>
+                    <option value="energy">Energy</option>
+                    <option value="water">Water</option>
+                    <option value="waste">Waste</option>
+                    <option value="social">Social</option>
+                </select>
+            </div>
+        </div>
+        <div class="card-body table-responsive">
+            <table class="table table-hover trend-table" id="trend-table">
+                <thead>
+                    <tr>
+                        <th>#</th>
+                        <th>Name</th>
+                        <th>Category</th>
+                        <th>Virality Score</th>
+                        <th>Direction</th>
+                        <th>Duration</th>
+                        <th>Date</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <!-- Will be populated dynamically -->
+                    <tr class="placeholder-glow">
+                        <td colspan="7" class="text-center py-5">
+                            <span class="placeholder col-6"></span>
+                            <p class="small text-muted mt-2">Loading trend data...</p>
+                        </td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+
 <!-- React App Mount Point -->
-<div id="react-trend-dashboard" class="mt-4">
+<div id="react-trend-dashboard" class="mt-5">
     <!-- Loading state that will be replaced by React -->
     <div class="d-flex justify-content-center my-5">
         <div class="spinner-border text-primary" role="status">
@@ -210,7 +442,10 @@
 <!-- React Dashboard Bundle -->
 <script src="{{ url_for('static', filename='js/react/dist/trendDashboard.bundle.js') }}"></script>
 
-<!-- Enhanced UI Interactions -->
+<!-- Dark Mode and UI Interactions -->
+<script src="{{ url_for('static', filename='js/trend-analysis.js') }}"></script>
+
+<!-- Legacy Enhanced UI Interactions -->
 <script>
 document.addEventListener('DOMContentLoaded', function() {
     // Theme toggle enhancement

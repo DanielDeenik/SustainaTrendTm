@@ -4,4 +4,4 @@ entrypoint = "frontend/app.py"
 hidden = false
 persistent = true
 wait_for_port = 5000
-onPort = { action = "notify" }
+onPort = { action = "notify", url = "https://$REPL_SLUG.$REPL_OWNER.repl.co" }

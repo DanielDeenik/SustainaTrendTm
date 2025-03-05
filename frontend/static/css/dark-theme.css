@@ -1,0 +1,709 @@
+/* SustainaTrend™ Premium Dark Theme CSS
+ * Multi-layered gradients and advanced dark mode styling for the sustainability dashboard
+ */
+
+:root {
+  /* Dark mode CSS variables - will be applied when .dark-mode class is added */
+  --dark-bg-primary: #0f172a;
+  --dark-bg-secondary: #1e1e2e;
+  --dark-bg-tertiary: #111827;
+  --dark-text-primary: #f8fafc;
+  --dark-text-secondary: #cbd5e1;
+  --dark-text-muted: #94a3b8;
+  --dark-border-color: #334155;
+  --dark-card-bg: #1e293b;
+  --dark-card-hover: #243656;
+  --dark-shadow-sm: 0 1px 3px rgba(0,0,0,0.3);
+  --dark-shadow-md: 0 4px 6px rgba(0,0,0,0.4);
+  --dark-shadow-lg: 0 10px 15px rgba(0,0,0,0.5);
+  
+  /* Sustainability category colors - brighter in dark mode */
+  --emissions-color-dark: #4ade80;
+  --energy-color-dark: #38bdf8;
+  --water-color-dark: #22d3ee;
+  --waste-color-dark: #94a3b8;
+  --social-color-dark: #a78bfa;
+  
+  /* Chart-specific colors for dark mode */
+  --chart-bg-dark: #111827;
+  --chart-grid-dark: #1f2937;
+  --chart-text-dark: #e2e8f0;
+  --chart-tooltip-bg-dark: rgba(15, 23, 42, 0.9);
+  
+  /* Gradient layers for advanced effects */
+  --gradient-glow: radial-gradient(circle at top right, rgba(16, 185, 129, 0.1), transparent 70%);
+  --gradient-overlay: linear-gradient(to bottom, rgba(15, 23, 42, 0.9), rgba(15, 23, 42, 0.7));
+  --gradient-accent: linear-gradient(135deg, rgba(124, 58, 237, 0.1), rgba(16, 185, 129, 0.1));
+}
+
+/* Main Dark Mode Styling */
+.dark-mode {
+  background-color: var(--dark-bg-primary);
+  color: var(--dark-text-primary);
+  position: relative;
+}
+
+/* Multi-layered background effect */
+.dark-mode:before {
+  content: '';
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-image: var(--gradient-glow), var(--gradient-accent);
+  opacity: 0.5;
+  pointer-events: none;
+  z-index: 0;
+}
+
+/* Enhanced Card Styling */
+.dark-mode .card {
+  background-color: var(--dark-card-bg);
+  border-color: var(--dark-border-color);
+  box-shadow: var(--dark-shadow-md);
+  position: relative;
+  z-index: 1;
+  backdrop-filter: blur(8px);
+  transition: all 0.3s ease;
+}
+
+.dark-mode .card:hover {
+  background-color: var(--dark-card-hover);
+  box-shadow: var(--dark-shadow-lg), 0 0 20px rgba(16, 185, 129, 0.1);
+  transform: translateY(-5px);
+}
+
+/* Card headers with gradient accents */
+.dark-mode .card-header {
+  background-color: rgba(31, 41, 55, 0.7);
+  border-bottom: 1px solid var(--dark-border-color);
+  position: relative;
+}
+
+.dark-mode .card-header:after {
+  content: '';
+  position: absolute;
+  bottom: -1px;
+  left: 0;
+  right: 0;
+  height: 1px;
+  background: linear-gradient(to right, var(--emissions-color-dark), var(--energy-color-dark));
+  opacity: 0.5;
+}
+
+/* Dashboard Metrics with Glow Effects */
+.dark-mode .dashboard-metric-value {
+  color: var(--dark-text-primary);
+  text-shadow: 0 0 10px rgba(255, 255, 255, 0.1);
+}
+
+/* Category Color Classes with Enhanced Visibility */
+.dark-mode .category-emissions {
+  color: var(--emissions-color-dark);
+  text-shadow: 0 0 8px rgba(74, 222, 128, 0.3);
+}
+
+.dark-mode .category-energy {
+  color: var(--energy-color-dark);
+  text-shadow: 0 0 8px rgba(56, 189, 248, 0.3);
+}
+
+.dark-mode .category-water {
+  color: var(--water-color-dark);
+  text-shadow: 0 0 8px rgba(34, 211, 238, 0.3);
+}
+
+.dark-mode .category-waste {
+  color: var(--waste-color-dark);
+  text-shadow: 0 0 8px rgba(148, 163, 184, 0.3);
+}
+
+.dark-mode .category-social {
+  color: var(--social-color-dark);
+  text-shadow: 0 0 8px rgba(167, 139, 250, 0.3);
+}
+
+/* Category Badges with Gradient Effects */
+.dark-mode .category-badge {
+  display: inline-block;
+  padding: 0.25rem 0.75rem;
+  border-radius: 9999px;
+  font-size: 0.75rem;
+  font-weight: 500;
+  position: relative;
+  overflow: hidden;
+}
+
+.dark-mode .category-badge.emissions {
+  background-color: rgba(74, 222, 128, 0.15);
+  color: var(--emissions-color-dark);
+  border: 1px solid rgba(74, 222, 128, 0.3);
+}
+
+.dark-mode .category-badge.energy {
+  background-color: rgba(56, 189, 248, 0.15);
+  color: var(--energy-color-dark);
+  border: 1px solid rgba(56, 189, 248, 0.3);
+}
+
+.dark-mode .category-badge.water {
+  background-color: rgba(34, 211, 238, 0.15);
+  color: var(--water-color-dark);
+  border: 1px solid rgba(34, 211, 238, 0.3);
+}
+
+.dark-mode .category-badge.waste {
+  background-color: rgba(148, 163, 184, 0.15);
+  color: var(--waste-color-dark);
+  border: 1px solid rgba(148, 163, 184, 0.3);
+}
+
+.dark-mode .category-badge.social {
+  background-color: rgba(167, 139, 250, 0.15);
+  color: var(--social-color-dark);
+  border: 1px solid rgba(167, 139, 250, 0.3);
+}
+
+/* Enhanced Badge Hover Effects */
+.dark-mode .category-badge:hover {
+  transform: scale(1.05);
+  box-shadow: 0 0 10px rgba(255, 255, 255, 0.1);
+}
+
+.dark-mode .category-badge:after {
+  content: '';
+  position: absolute;
+  top: -50%;
+  left: -50%;
+  width: 200%;
+  height: 200%;
+  background: linear-gradient(
+    to bottom right,
+    rgba(255, 255, 255, 0) 0%,
+    rgba(255, 255, 255, 0.13) 77%,
+    rgba(255, 255, 255, 0.5) 92%,
+    rgba(255, 255, 255, 0) 100%
+  );
+  opacity: 0;
+  transform: rotate(-45deg);
+  transition: opacity 0.3s;
+}
+
+.dark-mode .category-badge:hover:after {
+  opacity: 1;
+  animation: shine 1.5s ease;
+}
+
+@keyframes shine {
+  0% { transform: rotate(-45deg) translate(-120%, -120%); }
+  100% { transform: rotate(-45deg) translate(120%, 120%); }
+}
+
+/* Table Styling for Dark Mode */
+.dark-mode .table {
+  color: var(--dark-text-primary);
+  border-color: var(--dark-border-color);
+}
+
+.dark-mode .table thead th {
+  background-color: rgba(31, 41, 55, 0.7);
+  color: var(--dark-text-secondary);
+  border-bottom: 1px solid var(--dark-border-color);
+  font-weight: 600;
+}
+
+.dark-mode .table tbody tr {
+  background-color: var(--dark-card-bg);
+  transition: all 0.2s ease;
+}
+
+.dark-mode .table tbody tr:hover {
+  background-color: var(--dark-card-hover);
+}
+
+.dark-mode .table tbody td {
+  border-color: var(--dark-border-color);
+}
+
+/* Dark Mode Modals and Overlays */
+.dark-mode .modal-content {
+  background-color: var(--dark-card-bg);
+  border-color: var(--dark-border-color);
+  box-shadow: var(--dark-shadow-lg);
+}
+
+.dark-mode .modal-header {
+  border-bottom-color: var(--dark-border-color);
+}
+
+.dark-mode .modal-footer {
+  border-top-color: var(--dark-border-color);
+}
+
+.dark-mode .close {
+  color: var(--dark-text-secondary);
+  text-shadow: none;
+}
+
+/* Dark Mode Form Controls */
+.dark-mode .form-control {
+  background-color: rgba(15, 23, 42, 0.8);
+  border-color: var(--dark-border-color);
+  color: var(--dark-text-primary);
+}
+
+.dark-mode .form-control:focus {
+  background-color: rgba(30, 41, 59, 0.8);
+  border-color: rgba(56, 189, 248, 0.5);
+  box-shadow: 0 0 0 0.2rem rgba(56, 189, 248, 0.25);
+}
+
+.dark-mode .form-control::placeholder {
+  color: var(--dark-text-muted);
+}
+
+/* Filter Modal Styling */
+.dark-mode .filter-modal {
+  background-color: rgba(15, 23, 42, 0.9);
+  backdrop-filter: blur(8px);
+}
+
+.dark-mode .filter-modal-content {
+  background-color: var(--dark-card-bg);
+  border-color: var(--dark-border-color);
+  box-shadow: var(--dark-shadow-lg);
+}
+
+.dark-mode .filter-modal-header {
+  border-bottom-color: var(--dark-border-color);
+}
+
+.dark-mode .filter-modal-footer {
+  border-top-color: var(--dark-border-color);
+}
+
+/* Export Dropdown Styling */
+.dark-mode .export-dropdown {
+  background-color: var(--dark-card-bg);
+  border-color: var(--dark-border-color);
+  box-shadow: var(--dark-shadow-lg);
+}
+
+.dark-mode .export-dropdown-menu {
+  background-color: transparent;
+}
+
+.dark-mode .export-dropdown-menu li a {
+  color: var(--dark-text-primary);
+  transition: all 0.2s ease;
+}
+
+.dark-mode .export-dropdown-menu li a:hover {
+  background-color: var(--dark-card-hover);
+  color: var(--energy-color-dark);
+}
+
+/* Notification Styling */
+.dark-mode .notification {
+  background-color: var(--dark-card-bg);
+  border-left: 4px solid var(--emissions-color-dark);
+  box-shadow: var(--dark-shadow-lg);
+}
+
+.dark-mode .notification-content {
+  color: var(--dark-text-primary);
+}
+
+/* Circular Indicators */
+.dark-mode .circular-indicator-track {
+  stroke: rgba(148, 163, 184, 0.2);
+}
+
+.dark-mode .circular-indicator-progress {
+  stroke-linecap: round;
+  filter: drop-shadow(0 0 4px rgba(56, 189, 248, 0.5));
+}
+
+.dark-mode .circular-indicator-text {
+  color: var(--dark-text-primary);
+}
+
+.dark-mode .circular-indicator-value {
+  font-size: 1.5rem;
+  font-weight: 700;
+  margin: 0;
+  line-height: 1;
+}
+
+.dark-mode .circular-indicator-label {
+  font-size: 0.75rem;
+  color: var(--dark-text-muted);
+  margin: 0.25rem 0 0;
+}
+
+/* Chart Container Styling */
+.dark-mode .trend-chart-container,
+.dark-mode .chart-container {
+  position: relative;
+  height: 300px;
+  width: 100%;
+  background-color: rgba(15, 23, 42, 0.6);
+  border-radius: 0.5rem;
+  overflow: hidden;
+  margin-bottom: 1rem;
+}
+
+.dark-mode .trend-chart-container {
+  height: 350px;
+}
+
+/* Chart Loading Indicator */
+.chart-loading-indicator {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  background-color: rgba(15, 23, 42, 0.8);
+  border-radius: 0.5rem;
+  z-index: 10;
+}
+
+.dark-mode .chart-loading-indicator {
+  background-color: rgba(15, 23, 42, 0.85);
+  backdrop-filter: blur(3px);
+}
+
+.dark-mode .chart-loading-indicator p {
+  color: rgba(255, 255, 255, 0.7);
+  font-size: 0.9rem;
+  margin-top: 1rem;
+}
+
+/* Spinner Animation */
+.spin-animation {
+  animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+  0% { transform: rotate(0deg); }
+  100% { transform: rotate(360deg); }
+}
+
+/* Add subtle grid pattern to chart backgrounds */
+.dark-mode .chart-container::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-image: 
+    linear-gradient(to right, rgba(255, 255, 255, 0.05) 1px, transparent 1px),
+    linear-gradient(to bottom, rgba(255, 255, 255, 0.05) 1px, transparent 1px);
+  background-size: 20px 20px;
+  pointer-events: none;
+  opacity: 0.5;
+}
+
+/* Metric Circles */
+.metric-circle {
+  position: relative;
+  width: 120px;
+  height: 120px;
+  border-radius: 50%;
+  margin: 0 auto;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  background-color: rgba(15, 23, 42, 0.7);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+  overflow: hidden;
+  transition: all 0.3s ease;
+}
+
+.dark-mode .metric-circle {
+  background-color: rgba(15, 23, 42, 0.8);
+  box-shadow: 0 8px 16px rgba(0, 0, 0, 0.3), 
+              inset 0 0 0 1px rgba(255, 255, 255, 0.1);
+}
+
+.dark-mode .metric-circle::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  border-radius: 50%;
+  box-shadow: inset 0 0 15px rgba(0, 0, 0, 0.6);
+  z-index: 1;
+  pointer-events: none;
+}
+
+.dark-mode .metric-circle::after {
+  content: '';
+  position: absolute;
+  top: -50%;
+  left: -50%;
+  width: 200%;
+  height: 200%;
+  background: linear-gradient(
+    135deg,
+    rgba(255, 255, 255, 0) 0%,
+    rgba(255, 255, 255, 0.03) 40%, 
+    rgba(255, 255, 255, 0.1) 80%,
+    rgba(255, 255, 255, 0) 100%
+  );
+  transform: rotate(45deg);
+  pointer-events: none;
+  z-index: 0;
+}
+
+.dark-mode .metric-circle:hover {
+  transform: translateY(-3px);
+  box-shadow: 0 12px 24px rgba(0, 0, 0, 0.4),
+              inset 0 0 0 1px rgba(255, 255, 255, 0.15);
+}
+
+.dark-mode .metric-circle.positive {
+  background: linear-gradient(135deg, rgba(22, 163, 74, 0.2), rgba(22, 163, 74, 0.05));
+  box-shadow: 0 8px 16px rgba(0, 0, 0, 0.3),
+              0 0 0 1px rgba(22, 163, 74, 0.3),
+              inset 0 0 15px rgba(22, 163, 74, 0.1);
+}
+
+.dark-mode .metric-circle.negative {
+  background: linear-gradient(135deg, rgba(220, 38, 38, 0.2), rgba(220, 38, 38, 0.05));
+  box-shadow: 0 8px 16px rgba(0, 0, 0, 0.3),
+              0 0 0 1px rgba(220, 38, 38, 0.3),
+              inset 0 0 15px rgba(220, 38, 38, 0.1);
+}
+
+.dark-mode .metric-value {
+  font-size: 2rem;
+  font-weight: 700;
+  color: var(--dark-text-primary);
+  z-index: 2;
+  text-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
+}
+
+.dark-mode .metric-label {
+  font-size: 0.85rem;
+  color: var(--dark-text-muted);
+  margin-top: 0.25rem;
+  z-index: 2;
+}
+
+.dark-mode .metric-percent {
+  font-size: 0.75rem;
+  font-weight: 600;
+  margin-top: 0.25rem;
+  z-index: 2;
+}
+
+.dark-mode .metric-circle.positive .metric-percent {
+  color: rgba(74, 222, 128, 0.9);
+  text-shadow: 0 0 5px rgba(74, 222, 128, 0.5);
+}
+
+.dark-mode .metric-circle.negative .metric-percent {
+  color: rgba(248, 113, 113, 0.9);
+  text-shadow: 0 0 5px rgba(248, 113, 113, 0.5);
+}
+
+/* Card hover effects */
+.dark-mode .dashboard-card {
+  transition: all 0.3s cubic-bezier(0.25, 0.8, 0.25, 1);
+  overflow: hidden;
+}
+
+.dark-mode .dashboard-card:hover {
+  transform: translateY(-5px);
+  box-shadow: 0 15px 30px rgba(0, 0, 0, 0.25), 0 10px 10px rgba(0, 0, 0, 0.2);
+}
+
+.dark-mode .trend-chart-card:hover {
+  box-shadow: 0 15px 30px rgba(0, 0, 0, 0.25), 0 0 15px rgba(56, 189, 248, 0.2);
+}
+
+/* Time range selector styling */
+.dark-mode .chart-controls .form-select {
+  background-color: rgba(31, 41, 55, 0.8);
+  border-color: var(--dark-border-color);
+  color: var(--dark-text-secondary);
+  font-size: 0.85rem;
+  padding: 0.25rem 0.5rem;
+  width: auto;
+  max-width: 150px;
+}
+
+.dark-mode .chart-controls .form-select:focus {
+  box-shadow: 0 0 0 0.2rem rgba(56, 189, 248, 0.25);
+  border-color: rgba(56, 189, 248, 0.5);
+}
+
+/* Trend table styling */
+.dark-mode .trend-table {
+  width: 100%;
+  border-collapse: separate;
+  border-spacing: 0;
+  border-radius: 0.5rem;
+  overflow: hidden;
+}
+
+.dark-mode .trend-table th {
+  background-color: rgba(31, 41, 55, 0.9);
+  color: var(--dark-text-secondary);
+  padding: 0.75rem 1rem;
+  font-weight: 600;
+  text-align: left;
+}
+
+.dark-mode .trend-table td {
+  padding: 0.75rem 1rem;
+  border-top: 1px solid var(--dark-border-color);
+  vertical-align: middle;
+}
+
+.dark-mode .trend-table tbody tr {
+  background-color: rgba(31, 41, 55, 0.5);
+  transition: background-color 0.15s ease;
+}
+
+.dark-mode .trend-table tbody tr:hover {
+  background-color: rgba(31, 41, 55, 0.8);
+}
+
+.dark-mode .trend-table tbody tr:nth-child(odd) {
+  background-color: rgba(31, 41, 55, 0.7);
+}
+
+.dark-mode .trend-table tbody tr:nth-child(odd):hover {
+  background-color: rgba(31, 41, 55, 0.9);
+}
+
+/* Enhanced Scrollbars for Dark Mode */
+.dark-mode::-webkit-scrollbar {
+  width: 12px;
+  height: 12px;
+}
+
+.dark-mode::-webkit-scrollbar-track {
+  background-color: var(--dark-bg-primary);
+}
+
+.dark-mode::-webkit-scrollbar-thumb {
+  background-color: var(--dark-border-color);
+  border-radius: 6px;
+  border: 3px solid var(--dark-bg-primary);
+}
+
+.dark-mode::-webkit-scrollbar-thumb:hover {
+  background-color: var(--dark-text-muted);
+}
+
+/* Smooth Theme Transition */
+.theme-transition {
+  transition: background-color 0.5s ease, color 0.5s ease, border-color 0.5s ease, box-shadow 0.5s ease;
+}
+
+.theme-transition * {
+  transition: background-color 0.5s ease, color 0.5s ease, border-color 0.5s ease, box-shadow 0.5s ease;
+}
+
+/* Toast Notifications */
+.toast-container {
+  position: fixed;
+  top: 1rem;
+  right: 1rem;
+  z-index: 9999;
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  pointer-events: none;
+}
+
+.toast-notification {
+  background-color: rgba(15, 23, 42, 0.95);
+  color: #fff;
+  border-radius: 0.5rem;
+  padding: 0.75rem 1rem;
+  margin-bottom: 0.5rem;
+  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
+  transform: translateX(100%);
+  opacity: 0;
+  transition: transform 0.3s ease, opacity 0.3s ease;
+  max-width: 300px;
+  backdrop-filter: blur(4px);
+  border-left: 3px solid var(--primary-color);
+  display: flex;
+  align-items: center;
+  pointer-events: auto;
+}
+
+.toast-notification.show {
+  transform: translateX(0);
+  opacity: 1;
+}
+
+.toast-notification i {
+  margin-right: 0.75rem;
+  font-size: 1.2rem;
+}
+
+.toast-notification .toast-message {
+  flex: 1;
+  font-size: 0.9rem;
+}
+
+.toast-notification .toast-close {
+  background: none;
+  border: none;
+  color: rgba(255, 255, 255, 0.7);
+  cursor: pointer;
+  padding: 0;
+  margin-left: 0.5rem;
+  font-size: 1.2rem;
+  line-height: 1;
+  transition: color 0.15s ease;
+}
+
+.toast-notification .toast-close:hover {
+  color: #fff;
+}
+
+.dark-mode .toast-notification {
+  background: linear-gradient(135deg, rgba(30, 41, 59, 0.95), rgba(15, 23, 42, 0.98));
+  box-shadow: 0 8px 20px rgba(0, 0, 0, 0.3);
+  border-left: 3px solid rgba(56, 189, 248, 0.8);
+}
+
+.dark-mode .toast-notification.success {
+  border-left-color: rgba(74, 222, 128, 0.8);
+}
+
+.dark-mode .toast-notification.warning {
+  border-left-color: rgba(250, 204, 21, 0.8);
+}
+
+.dark-mode .toast-notification.error {
+  border-left-color: rgba(248, 113, 113, 0.8);
+}
+
+/* Animation for toast notifications */
+@keyframes toast-in {
+  0% { transform: translateX(100%); opacity: 0; }
+  100% { transform: translateX(0); opacity: 1; }
+}
+
+@keyframes toast-out {
+  0% { transform: translateX(0); opacity: 1; }
+  100% { transform: translateX(100%); opacity: 0; }
+}
