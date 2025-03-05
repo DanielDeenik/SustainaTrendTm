@@ -1,0 +1,521 @@
+{% extends "base.html" %}
+
+{% block title %}Real Estate Sustainability Intelligence | SustainaTrend™{% endblock %}
+
+{% block extra_css %}
+<link rel="stylesheet" href="{{ url_for('static', filename='css/common.css') }}">
+<link rel="stylesheet" href="{{ url_for('static', filename='css/dark-theme.css') }}">
+<!-- Plotly.js for interactive charts -->
+<script src="https://cdn.plot.ly/plotly-latest.min.js"></script>
+<style>
+    /* Real estate sustainability specific styling */
+    .property-insights-card {
+        border-left: 4px solid var(--primary-color);
+        transition: all 0.3s ease;
+    }
+    .property-insights-card:hover {
+        transform: translateY(-3px);
+        box-shadow: 0 8px 15px rgba(0, 0, 0, 0.2);
+    }
+    .metric-badge {
+        display: inline-block;
+        padding: 0.25em 0.6em;
+        font-size: 0.75em;
+        font-weight: 700;
+        line-height: 1;
+        text-align: center;
+        white-space: nowrap;
+        vertical-align: baseline;
+        border-radius: 0.25rem;
+        margin-left: 0.5rem;
+    }
+    .metric-badge.energy {
+        background-color: rgba(46, 204, 113, 0.2);
+        color: #2ecc71;
+    }
+    .metric-badge.carbon {
+        background-color: rgba(52, 152, 219, 0.2);
+        color: #3498db;
+    }
+    .metric-badge.financing {
+        background-color: rgba(155, 89, 182, 0.2);
+        color: #9b59b6;
+    }
+    .metric-badge.certification {
+        background-color: rgba(241, 196, 15, 0.2);
+        color: #f1c90f;
+    }
+    .metric-badge.market {
+        background-color: rgba(230, 126, 34, 0.2);
+        color: #e67e22;
+    }
+    .value-chain-selector {
+        display: flex;
+        justify-content: space-between;
+        margin-bottom: 2rem;
+        overflow-x: auto;
+        padding-bottom: 0.5rem;
+    }
+    .value-chain-item {
+        flex: 0 0 auto;
+        padding: 0.75rem 1.5rem;
+        margin: 0 0.5rem;
+        border-radius: 2rem;
+        cursor: pointer;
+        transition: all 0.3s ease;
+        font-weight: 500;
+        background-color: rgba(100, 100, 100, 0.1);
+    }
+    .value-chain-item.active {
+        background-color: var(--primary-color);
+        color: white;
+    }
+    .value-chain-item:hover:not(.active) {
+        background-color: rgba(100, 100, 100, 0.2);
+    }
+    
+    /* Property Sustainability Scorecard Styling */
+    .property-summary {
+        background-color: rgba(50, 50, 50, 0.03);
+        padding: 1rem;
+        border-radius: 0.5rem;
+    }
+    
+    .sustainability-score-circle {
+        width: 120px;
+        height: 120px;
+        border-radius: 50%;
+        margin: 0 auto;
+        display: flex;
+        flex-direction: column;
+        justify-content: center;
+        align-items: center;
+        background: conic-gradient(var(--primary-color) 0% 78%, #e0e0e0 78% 100%);
+        position: relative;
+        box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+    }
+    
+    .sustainability-score-circle::before {
+        content: '';
+        position: absolute;
+        width: 100px;
+        height: 100px;
+        border-radius: 50%;
+        background-color: var(--card-bg);
+        z-index: 1;
+    }
+    
+    .score-value {
+        position: relative;
+        z-index: 2;
+        font-size: 2.2rem;
+        font-weight: 700;
+        color: var(--primary-color);
+    }
+    
+    .score-label {
+        position: relative;
+        z-index: 2;
+        font-size: 0.8rem;
+        color: var(--text-muted);
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<!-- Toast notifications container -->
+<div class="toast-container" id="toast-container"></div>
+
+{% include "partials/page_header.html" with 
+    title="Real Estate Sustainability Intelligence",
+    description="AI-driven insights for sustainable real estate across the value chain",
+    show_actions=true,
+    show_toggle=true,
+    show_filter=true,
+    show_export=true
+%}
+
+<!-- Real Estate Value Chain Selector -->
+<div class="container mt-4">
+    <div class="value-chain-selector">
+        <div class="value-chain-item active" data-chain="all">Entire Value Chain</div>
+        <div class="value-chain-item" data-chain="development">Development</div>
+        <div class="value-chain-item" data-chain="investment">Investment</div>
+        <div class="value-chain-item" data-chain="management">Property Management</div>
+        <div class="value-chain-item" data-chain="renovation">Renovation</div>
+        <div class="value-chain-item" data-chain="sales">Sales & Leasing</div>
+        <div class="value-chain-item" data-chain="financing">Financing</div>
+    </div>
+</div>
+
+<!-- Filter Modal -->
+{% include "partials/filter_modal.html" with
+    filter_title="Filter Real Estate Sustainability Insights",
+    show_timeframe=true,
+    categories=[
+        {"label": "Energy Efficiency", "value": "energy_efficiency"},
+        {"label": "Carbon Footprint", "value": "carbon_footprint"},
+        {"label": "Green Financing", "value": "green_financing"},
+        {"label": "Certifications", "value": "certifications"},
+        {"label": "Market Trends", "value": "market_trends"}
+    ],
+    show_slider=true,
+    slider_label="Minimum Impact Score",
+    slider_id="impact-slider",
+    slider_value_id="impact-value"
+%}
+    {% block additional_filters %}
+    <div class="filter-group">
+        <label>Property Type</label>
+        <div class="filter-options">
+            <label class="filter-option">
+                <input type="checkbox" name="property_type" value="residential" checked> Residential
+            </label>
+            <label class="filter-option">
+                <input type="checkbox" name="property_type" value="commercial" checked> Commercial
+            </label>
+            <label class="filter-option">
+                <input type="checkbox" name="property_type" value="mixed" checked> Mixed-Use
+            </label>
+            <label class="filter-option">
+                <input type="checkbox" name="property_type" value="industrial" checked> Industrial
+            </label>
+        </div>
+    </div>
+    {% endblock %}
+
+<!-- Analytics Summary Cards -->
+<div class="container">
+    <div class="analytics-grid mb-4">
+        {% include "partials/analytics_card.html" with 
+            card_title="Top Sustainability Metric",
+            icon_class="graph-up",
+            important=true,
+            badge={
+                "text": "↑ 12%",
+                "type": "success"
+            }
+        %}
+            {% block card_content %}
+            <h4 class="fs-2 fw-bold text-success mb-1" id="top-metric-name">Green Mortgage Share</h4>
+            <p class="text-muted mb-0" id="top-metric-desc">Highest growth rate across the real estate value chain</p>
+            <div class="mt-3 small"><i class="bi bi-info-circle"></i> <span class="text-muted">Impact Score: <span id="top-metric-score">87</span></span></div>
+            {% endblock %}
+        </div>
+        
+        {% include "partials/analytics_card.html" with 
+            card_title="Emerging Trends",
+            icon_class="activity",
+            badge={
+                "text": "New",
+                "type": "info"
+            }
+        %}
+            {% block card_content %}
+            <ul class="list-group list-group-flush" id="emerging-trends-list">
+                <li class="list-group-item d-flex align-items-center border-0 px-0">
+                    <div class="me-auto">Green Retrofit ROI <span class="metric-badge financing">Financing</span></div>
+                    <span class="badge bg-primary">↑ 18%</span>
+                </li>
+                <li class="list-group-item d-flex align-items-center border-0 px-0">
+                    <div class="me-auto">BREEAM-NL Certified Properties <span class="metric-badge certification">Certification</span></div>
+                    <span class="badge bg-success">↑ 14%</span>
+                </li>
+                <li class="list-group-item d-flex align-items-center border-0 px-0">
+                    <div class="me-auto">Green Building Rental Premium <span class="metric-badge market">Market</span></div>
+                    <span class="badge bg-primary">↑ 12%</span>
+                </li>
+            </ul>
+            {% endblock %}
+        </div>
+        
+        {% include "partials/analytics_card.html" with 
+            card_title="Market Opportunity",
+            icon_class="currency-euro",
+            badge={
+                "text": "€2.3B",
+                "type": "success"
+            }
+        %}
+            {% block card_content %}
+            <div class="d-flex align-items-center justify-content-between mb-2">
+                <span>Green Building Investment</span>
+                <div class="progress w-50" style="height: 8px;">
+                    <div class="progress-bar bg-success" role="progressbar" style="width: 78%"></div>
+                </div>
+            </div>
+            <div class="d-flex align-items-center justify-content-between mb-2">
+                <span>Energy Retrofit Market</span>
+                <div class="progress w-50" style="height: 8px;">
+                    <div class="progress-bar bg-info" role="progressbar" style="width: 65%"></div>
+                </div>
+            </div>
+            <div class="d-flex align-items-center justify-content-between">
+                <span>Green Mortgage Growth</span>
+                <div class="progress w-50" style="height: 8px;">
+                    <div class="progress-bar bg-primary" role="progressbar" style="width: 92%"></div>
+                </div>
+            </div>
+            <p class="small text-muted mt-3"><i class="bi bi-info-circle"></i> Based on market analysis of Dutch real estate sector</p>
+            {% endblock %}
+        </div>
+    </div>
+</div>
+
+<!-- Main Dashboard Charts -->
+<div class="container mt-5">
+    <div class="row g-4">
+        <!-- Main Trend Chart -->
+        <div class="col-lg-8">
+            {% include "partials/dashboard_card.html" with
+                card_title="Real Estate Sustainability Trends",
+                icon_class="graph-up",
+                card_class="trend-chart-card",
+                show_controls=true
+            %}
+                {% block card_controls %}
+                <select id="chart-time-range" class="form-select form-select-sm">
+                    <option value="3month">Last 3 Months</option>
+                    <option value="6month">Last 6 Months</option>
+                    <option value="year" selected>Last Year</option>
+                    <option value="all">All Time</option>
+                </select>
+                {% endblock %}
+                
+                {% block card_content %}
+                <div id="trend-chart" class="trend-chart-container"></div>
+                {% endblock %}
+            </div>
+        </div>
+        
+        <!-- Category Distribution -->
+        <div class="col-lg-4">
+            {% include "partials/dashboard_card.html" with
+                card_title="Category Distribution",
+                icon_class="pie-chart",
+                card_class="h-100"
+            %}
+                {% block card_content %}
+                <div id="category-distribution" class="chart-container"></div>
+                {% endblock %}
+            </div>
+        </div>
+        
+        <!-- Impact Radar -->
+        <div class="col-lg-6">
+            {% include "partials/dashboard_card.html" with
+                card_title="Impact Radar by Category",
+                icon_class="bullseye"
+            %}
+                {% block card_content %}
+                <div id="impact-radar" class="chart-container"></div>
+                {% endblock %}
+            </div>
+        </div>
+        
+        <!-- Property Sustainability Scorecard -->
+        <div class="col-lg-6">
+            {% include "partials/dashboard_card.html" with
+                card_title="Property Sustainability Scorecard",
+                icon_class="building",
+                show_controls=true
+            %}
+                {% block card_controls %}
+                <select id="property-type-selector" class="form-select form-select-sm">
+                    <option value="residential">Residential</option>
+                    <option value="commercial" selected>Commercial</option>
+                    <option value="mixed">Mixed-Use</option>
+                    <option value="industrial">Industrial</option>
+                </select>
+                {% endblock %}
+                
+                {% block card_content %}
+                <div class="row align-items-center">
+                    <div class="col-md-4">
+                        <div class="property-summary text-center">
+                            <div class="sustainability-score-circle">
+                                <div class="score-value">78</div>
+                                <div class="score-label">Score</div>
+                            </div>
+                            <div class="score-comparison mt-3 small">
+                                <i class="bi bi-arrow-up-short text-success"></i> 12% above sector average
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-8">
+                        <div class="row g-3" id="property-metrics">
+                            <div class="col-md-6">
+                                <div class="sustainability-metric-card">
+                                    <div class="metric-header">Energy Rating</div>
+                                    <div class="metric-body">
+                                        <div class="d-flex justify-content-between align-items-center">
+                                            <span class="energy-label label-a">A+</span>
+                                            <span class="small text-muted">Top 5%</span>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="sustainability-metric-card">
+                                    <div class="metric-header">Carbon Footprint</div>
+                                    <div class="metric-body">
+                                        <div class="d-flex justify-content-between align-items-center">
+                                            <span class="carbon-value">12.4</span>
+                                            <span class="small text-muted">kg CO₂/m²</span>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="sustainability-metric-card">
+                                    <div class="metric-header">Green Financing</div>
+                                    <div class="metric-body">
+                                        <div class="d-flex justify-content-between align-items-center">
+                                            <span class="finance-value">Yes</span>
+                                            <span class="small text-muted">Eligible</span>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="sustainability-metric-card">
+                                    <div class="metric-header">ROI Potential</div>
+                                    <div class="metric-body">
+                                        <div class="d-flex justify-content-between align-items-center">
+                                            <span class="roi-value">18%</span>
+                                            <span class="small text-muted">5-year</span>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <h6 class="mt-4">Recommended Sustainable Upgrades</h6>
+                <div class="row g-3" id="upgrade-recommendations">
+                    <div class="col-md-3">
+                        <div class="upgrade-item">
+                            <i class="bi bi-sun"></i>
+                            <span>Solar Panels</span>
+                            <div class="upgrade-roi">ROI: 15%</div>
+                        </div>
+                    </div>
+                    <div class="col-md-3">
+                        <div class="upgrade-item">
+                            <i class="bi bi-thermometer-half"></i>
+                            <span>HVAC Upgrade</span>
+                            <div class="upgrade-roi">ROI: 12%</div>
+                        </div>
+                    </div>
+                    <div class="col-md-3">
+                        <div class="upgrade-item">
+                            <i class="bi bi-droplet"></i>
+                            <span>Water Systems</span>
+                            <div class="upgrade-roi">ROI: 8%</div>
+                        </div>
+                    </div>
+                    <div class="col-md-3">
+                        <div class="upgrade-item">
+                            <i class="bi bi-lightbulb"></i>
+                            <span>LED Lighting</span>
+                            <div class="upgrade-roi">ROI: 22%</div>
+                        </div>
+                    </div>
+                </div>
+                {% endblock %}
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Metrics Table -->
+<div class="container mt-5">
+    {% include "partials/dashboard_card.html" with
+        card_title="Real Estate Sustainability Metrics",
+        icon_class="table",
+        show_controls=true
+    %}
+        {% block card_controls %}
+        <button class="btn btn-sm btn-outline-primary me-2" id="refresh-table">
+            <i class="bi bi-arrow-clockwise"></i> Refresh
+        </button>
+        <select id="table-category-filter" class="form-select form-select-sm d-inline-block" style="width: auto;">
+            <option value="all">All Categories</option>
+            <option value="energy_efficiency">Energy Efficiency</option>
+            <option value="carbon_footprint">Carbon Footprint</option>
+            <option value="green_financing">Green Financing</option>
+            <option value="certifications">Certifications</option>
+            <option value="market_trends">Market Trends</option>
+        </select>
+        {% endblock %}
+        
+        {% block card_content %}
+        <div class="table-responsive">
+            <table class="table table-hover trend-table" id="metrics-table">
+                <thead>
+                    <tr>
+                        <th>#</th>
+                        <th>Metric</th>
+                        <th>Category</th>
+                        <th>Impact Score</th>
+                        <th>Trend</th>
+                        <th>Value</th>
+                        <th>Date</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <!-- Will be populated dynamically -->
+                    <tr class="placeholder-glow">
+                        <td colspan="7" class="text-center py-5">
+                            <span class="placeholder col-6"></span>
+                            <p class="small text-muted mt-2">Loading metrics data...</p>
+                        </td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+        {% endblock %}
+    </div>
+</div>
+
+<!-- RAG Insights System -->
+<div class="container mt-5 mb-5">
+    {% include "partials/dashboard_card.html" with
+        card_title="Real Estate Sustainability RAG Insights",
+        icon_class="robot",
+        card_id="rag-insights-card"
+    %}
+        {% block card_content %}
+        <div class="rag-query-box">
+            <input type="text" class="rag-query-input" id="rag-query-input" placeholder="Ask a question about real estate sustainability trends...">
+            <button class="rag-query-button" id="rag-query-btn">Ask AI</button>
+        </div>
+        
+        <div class="rag-answer" id="rag-answer">
+            <p>Welcome to the Real Estate Sustainability RAG Query System. You can ask questions such as:</p>
+            <ul>
+                <li>What are the top sustainable property investment opportunities?</li>
+                <li>How does energy efficiency impact commercial property values?</li>
+                <li>What is the ROI of BREEAM certification for office buildings?</li>
+                <li>Which sustainable features have the highest impact on rental yields?</li>
+            </ul>
+        </div>
+        
+        <div class="rag-sources" id="rag-sources">
+            <strong>Sources & Citations</strong>
+            <ul class="rag-sources-list">
+                <li>Dutch Green Building Council (2024): BREEAM-NL Certification Impact Report</li>
+                <li>European Commission (2023): EU Taxonomy for Sustainable Real Estate</li>
+                <li>ABN AMRO (2024): Green Buildings Market Analysis Q1 2024</li>
+            </ul>
+        </div>
+        {% endblock %}
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script src="{{ url_for('static', filename='js/common.js') }}"></script>
+<script src="{{ url_for('static', filename='js/realestate-trend-analysis.js') }}"></script>
+{% endblock %}

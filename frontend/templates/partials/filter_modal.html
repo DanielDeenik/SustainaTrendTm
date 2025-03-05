@@ -1,0 +1,68 @@
+<!-- Filter Modal Component -->
+<div class="filter-modal" id="filter-modal">
+    <div class="filter-modal-content">
+        <div class="filter-modal-header">
+            <h3>{{ filter_title|default('Filter Data') }}</h3>
+            <button class="close-modal" id="close-modal">&times;</button>
+        </div>
+        <div class="filter-modal-body">
+            <!-- Time Period Filter -->
+            {% if show_timeframe %}
+            <div class="filter-group">
+                <label>Time Period</label>
+                <div class="filter-options">
+                    <label class="filter-option">
+                        <input type="radio" name="timeframe" value="all" checked> All Time
+                    </label>
+                    <label class="filter-option">
+                        <input type="radio" name="timeframe" value="year"> Last Year
+                    </label>
+                    <label class="filter-option">
+                        <input type="radio" name="timeframe" value="6month"> Last 6 Months
+                    </label>
+                    <label class="filter-option">
+                        <input type="radio" name="timeframe" value="3month"> Last 3 Months
+                    </label>
+                    <label class="filter-option">
+                        <input type="radio" name="timeframe" value="month"> Last Month
+                    </label>
+                </div>
+            </div>
+            {% endif %}
+            
+            <!-- Categories Filter -->
+            {% if categories %}
+            <div class="filter-group">
+                <label>Categories</label>
+                <div class="filter-options">
+                    {% for category in categories %}
+                    <label class="filter-option">
+                        <input type="checkbox" name="category" value="{{ category.value }}" checked> {{ category.label }}
+                    </label>
+                    {% endfor %}
+                </div>
+            </div>
+            {% endif %}
+            
+            <!-- Slider Filter -->
+            {% if show_slider %}
+            <div class="filter-group">
+                <label>{{ slider_label|default('Minimum Score') }}</label>
+                <input type="range" class="form-range" id="{{ slider_id|default('score-slider') }}" min="0" max="100" value="30">
+                <div class="d-flex justify-content-between">
+                    <span>0</span>
+                    <span id="{{ slider_value_id|default('score-value') }}">30</span>
+                    <span>100</span>
+                </div>
+            </div>
+            {% endif %}
+            
+            <!-- Additional Filter Content -->
+            {% block additional_filters %}{% endblock %}
+        </div>
+        <div class="filter-modal-footer">
+            <button class="btn btn-outline-secondary" id="reset-filters">Reset</button>
+            <button class="btn btn-primary" id="apply-filters">Apply Filters</button>
+        </div>
+    </div>
+</div>

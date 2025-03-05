@@ -385,6 +385,7 @@
             transition: background-color var(--transition-speed), color var(--transition-speed);
         }
     </style>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/common.css') }}">
     {% block extra_css %}{% endblock %}
 </head>
 <body>
@@ -539,96 +540,7 @@
     </div>
 
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
-    <script>
-        // Sidebar toggling
-        document.addEventListener('DOMContentLoaded', function() {
-            const sidebar = document.getElementById('sidebar');
-            const mainContent = document.getElementById('mainContent');
-            const sidebarToggle = document.querySelector('.sidebar-toggle');
-            const mobileToggle = document.querySelector('.mobile-toggle');
-            const themeToggleInput = document.getElementById('theme-toggle-input');
-            
-            // Check for saved state
-            const isSidebarCollapsed = localStorage.getItem('sidebarCollapsed') === 'true';
-            // Default to dark mode if no preference is set
-            const darkModeEnabled = localStorage.getItem('darkMode') !== 'false';
-            
-            // Initialize sidebar state
-            if (isSidebarCollapsed) {
-                sidebar.classList.add('collapsed');
-                mainContent.classList.add('expanded');
-                sidebarToggle.innerHTML = '<i class="bi bi-chevron-right"></i>';
-            }
-            
-            // Initialize theme
-            if (darkModeEnabled) {
-                document.documentElement.classList.remove('light-mode');
-                document.documentElement.classList.add('dark-mode');
-                themeToggleInput.checked = true;
-            } else {
-                document.documentElement.classList.add('light-mode');
-                document.documentElement.classList.remove('dark-mode');
-                themeToggleInput.checked = false;
-            }
-            
-            // Desktop toggle
-            sidebarToggle.addEventListener('click', function() {
-                sidebar.classList.toggle('collapsed');
-                mainContent.classList.toggle('expanded');
-                
-                // Update icon and save state
-                if (sidebar.classList.contains('collapsed')) {
-                    this.innerHTML = '<i class="bi bi-chevron-right"></i>';
-                    localStorage.setItem('sidebarCollapsed', 'true');
-                } else {
-                    this.innerHTML = '<i class="bi bi-chevron-left"></i>';
-                    localStorage.setItem('sidebarCollapsed', 'false');
-                }
-            });
-            
-            // Mobile toggle
-            if (mobileToggle) {
-                mobileToggle.addEventListener('click', function() {
-                    sidebar.classList.toggle('mobile-expanded');
-                });
-            }
-            
-            // Enhanced Theme toggle with smoother transitions
-            themeToggleInput.addEventListener('change', function() {
-                const html = document.documentElement;
-                
-                if (this.checked) {
-                    // Transition to dark mode with enhanced animation
-                    html.classList.add('theme-transition');
-                    html.classList.remove('light-mode');
-                    
-                    setTimeout(() => {
-                        html.classList.add('dark-mode');
-                        localStorage.setItem('darkMode', 'true');
-                        
-                        // Add a slight delay before removing the transition class
-                        setTimeout(() => {
-                            html.classList.remove('theme-transition');
-                        }, 400);
-                    }, 50);
-                } else {
-                    // Transition to light mode with enhanced animation
-                    html.classList.add('theme-transition');
-                    html.classList.remove('dark-mode');
-                    
-                    setTimeout(() => {
-                        html.classList.add('light-mode');
-                        localStorage.setItem('darkMode', 'false');
-                        
-                        // Add a slight delay before removing the transition class
-                        setTimeout(() => {
-                            html.classList.remove('theme-transition');
-                        }, 400);
-                    }, 50);
-                }
-            });
-        });
-    </script>
-    {% block scripts %}{% endblock %}
+    <script src="{{ url_for('static', filename='js/common.js') }}"></script>
+    {% block extra_js %}{% endblock %}
 </body>
 </html>

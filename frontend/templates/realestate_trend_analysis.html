@@ -1,0 +1,1529 @@
+{% extends "base.html" %}
+
+{% block title %}Real Estate Sustainability Intelligence | SustainaTrend™{% endblock %}
+
+{% block extra_css %}
+<!-- Enhanced dark mode styling -->
+<link rel="stylesheet" href="{{ url_for('static', filename='css/dark-theme.css') }}">
+<!-- Plotly.js for interactive charts -->
+<script src="https://cdn.plot.ly/plotly-latest.min.js"></script>
+<style>
+    /* Real estate sustainability specific styling */
+    .property-insights-card {
+        border-left: 4px solid var(--primary-color);
+        transition: all 0.3s ease;
+    }
+    .property-insights-card:hover {
+        transform: translateY(-3px);
+        box-shadow: 0 8px 15px rgba(0, 0, 0, 0.2);
+    }
+    .metric-badge {
+        display: inline-block;
+        padding: 0.25em 0.6em;
+        font-size: 0.75em;
+        font-weight: 700;
+        line-height: 1;
+        text-align: center;
+        white-space: nowrap;
+        vertical-align: baseline;
+        border-radius: 0.25rem;
+        margin-left: 0.5rem;
+    }
+    .metric-badge.energy {
+        background-color: rgba(46, 204, 113, 0.2);
+        color: #2ecc71;
+    }
+    .metric-badge.carbon {
+        background-color: rgba(52, 152, 219, 0.2);
+        color: #3498db;
+    }
+    .metric-badge.financing {
+        background-color: rgba(155, 89, 182, 0.2);
+        color: #9b59b6;
+    }
+    .metric-badge.certification {
+        background-color: rgba(241, 196, 15, 0.2);
+        color: #f1c90f;
+    }
+    .metric-badge.market {
+        background-color: rgba(230, 126, 34, 0.2);
+        color: #e67e22;
+    }
+    .value-chain-selector {
+        display: flex;
+        justify-content: space-between;
+        margin-bottom: 2rem;
+        overflow-x: auto;
+        padding-bottom: 0.5rem;
+    }
+    .value-chain-item {
+        flex: 0 0 auto;
+        padding: 0.75rem 1.5rem;
+        margin: 0 0.5rem;
+        border-radius: 2rem;
+        cursor: pointer;
+        transition: all 0.3s ease;
+        font-weight: 500;
+        background-color: rgba(100, 100, 100, 0.1);
+    }
+    .value-chain-item.active {
+        background-color: var(--primary-color);
+        color: white;
+    }
+    .value-chain-item:hover:not(.active) {
+        background-color: rgba(100, 100, 100, 0.2);
+    }
+    .rag-insights-container {
+        position: relative;
+        margin-top: 2rem;
+        border-radius: 0.5rem;
+        padding: 1.5rem;
+        background-color: rgba(50, 50, 50, 0.05);
+    }
+    .rag-insights-header {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        margin-bottom: 1rem;
+    }
+    .rag-query-box {
+        display: flex;
+        margin-bottom: 1rem;
+    }
+    .rag-query-input {
+        flex: 1;
+        padding: 0.75rem 1rem;
+        border-radius: 0.5rem 0 0 0.5rem;
+        border: 1px solid rgba(100, 100, 100, 0.2);
+        background-color: rgba(255, 255, 255, 0.05);
+    }
+    .rag-query-button {
+        padding: 0.75rem 1.5rem;
+        border-radius: 0 0.5rem 0.5rem 0;
+        background-color: var(--primary-color);
+        color: white;
+        font-weight: 500;
+        cursor: pointer;
+        border: none;
+    }
+    .rag-answer {
+        padding: 1.5rem;
+        border-radius: 0.5rem;
+        background-color: rgba(255, 255, 255, 0.05);
+        margin-bottom: 1rem;
+    }
+    .rag-sources {
+        font-size: 0.85rem;
+        padding: 1rem;
+        border-radius: 0.5rem;
+        background-color: rgba(0, 0, 0, 0.05);
+    }
+    .rag-sources-list {
+        margin-top: 0.5rem;
+        padding-left: 1.5rem;
+    }
+    .monetization-card {
+        border-top: 4px solid #9b59b6;
+        transition: all 0.3s ease;
+    }
+    .monetization-card:hover {
+        transform: translateY(-3px);
+        box-shadow: 0 8px 15px rgba(0, 0, 0, 0.2);
+    }
+    .monetization-opportunity {
+        padding: 1rem;
+        margin-bottom: 1rem;
+        border-radius: 0.5rem;
+        background-color: rgba(155, 89, 182, 0.1);
+    }
+    .monetization-value {
+        font-weight: bold;
+        color: #9b59b6;
+    }
+    
+    /* Property Sustainability Scorecard Styling */
+    .property-summary {
+        background-color: rgba(50, 50, 50, 0.03);
+        padding: 1rem;
+        border-radius: 0.5rem;
+    }
+    
+    .sustainability-score-circle {
+        width: 120px;
+        height: 120px;
+        border-radius: 50%;
+        margin: 0 auto;
+        display: flex;
+        flex-direction: column;
+        justify-content: center;
+        align-items: center;
+        background: conic-gradient(var(--primary-color) 0% 78%, #e0e0e0 78% 100%);
+        position: relative;
+        box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+    }
+    
+    .sustainability-score-circle::before {
+        content: '';
+        position: absolute;
+        width: 100px;
+        height: 100px;
+        border-radius: 50%;
+        background-color: var(--card-bg);
+        z-index: 1;
+    }
+    
+    .score-value {
+        position: relative;
+        z-index: 2;
+        font-size: 2.2rem;
+        font-weight: 700;
+        color: var(--primary-color);
+    }
+    
+    .score-label {
+        position: relative;
+        z-index: 2;
+        font-size: 0.8rem;
+        color: var(--text-muted);
+    }
+    
+    .score-comparison {
+        background-color: rgba(50, 50, 50, 0.03);
+        padding: 0.75rem;
+        border-radius: 0.5rem;
+        font-size: 0.85rem;
+    }
+    
+    .sustainability-metric-card {
+        padding: 1rem;
+        border-radius: 0.5rem;
+        background-color: rgba(50, 50, 50, 0.03);
+        transition: all 0.3s ease;
+    }
+    
+    .sustainability-metric-card:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+    }
+    
+    .metric-header {
+        border-bottom: 1px solid rgba(100, 100, 100, 0.1);
+        padding-bottom: 0.5rem;
+        margin-bottom: 0.5rem;
+        font-weight: 600;
+    }
+    
+    .metric-body {
+        font-size: 0.85rem;
+    }
+    
+    .energy-label {
+        font-weight: 700;
+        padding: 0.15rem 0.5rem;
+        border-radius: 0.25rem;
+    }
+    
+    .label-a {
+        background-color: rgba(46, 204, 113, 0.2);
+        color: #27ae60;
+    }
+    
+    .label-b {
+        background-color: rgba(52, 152, 219, 0.2);
+        color: #2980b9;
+    }
+    
+    .carbon-value {
+        font-weight: 700;
+        color: #3498db;
+    }
+    
+    .finance-value {
+        font-weight: 700;
+        color: #9b59b6;
+    }
+    
+    .roi-value {
+        font-weight: 700;
+        color: #f39c12;
+    }
+    
+    .upgrade-recommendations {
+        padding: 1rem;
+        border-radius: 0.5rem;
+        background-color: rgba(50, 50, 50, 0.03);
+    }
+    
+    .upgrade-item {
+        padding: 0.75rem;
+        border-radius: 0.5rem;
+        background-color: rgba(255, 255, 255, 0.5);
+        text-align: center;
+        font-size: 0.85rem;
+        transition: all 0.3s ease;
+        height: 100%;
+        display: flex;
+        flex-direction: column;
+        justify-content: center;
+        align-items: center;
+    }
+    
+    .upgrade-item:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+    }
+    
+    .upgrade-item i {
+        font-size: 1.5rem;
+        margin-bottom: 0.5rem;
+        color: var(--primary-color);
+    }
+    
+    .upgrade-roi {
+        margin-top: 0.5rem;
+        font-weight: 600;
+        font-size: 0.75rem;
+        color: #e67e22;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<!-- Toast notifications container -->
+<div class="toast-container" id="toast-container"></div>
+
+<div class="trend-page-header">
+    <h1>Real Estate Sustainability Intelligence</h1>
+    <p class="text-muted">AI-driven insights for sustainable real estate across the value chain</p>
+    <div class="trend-actions mt-4">
+        <button class="btn btn-outline-primary me-2" id="toggle-view">
+            <i class="bi bi-grid"></i> Toggle View
+        </button>
+        <button class="btn btn-outline-primary me-2" id="filter-btn">
+            <i class="bi bi-funnel"></i> Filter
+        </button>
+        <div class="dropdown d-inline-block">
+            <button class="btn btn-outline-primary" id="export-btn">
+                <i class="bi bi-download"></i> Export Insights
+            </button>
+            <div id="export-dropdown" class="export-dropdown">
+                <ul class="export-dropdown-menu">
+                    <li><a href="#" data-format="csv"><i class="bi bi-filetype-csv"></i> CSV</a></li>
+                    <li><a href="#" data-format="excel"><i class="bi bi-filetype-xlsx"></i> Excel</a></li>
+                    <li><a href="#" data-format="pdf"><i class="bi bi-filetype-pdf"></i> PDF Report</a></li>
+                    <li><a href="#" data-format="json"><i class="bi bi-filetype-json"></i> JSON</a></li>
+                </ul>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Real Estate Value Chain Selector -->
+<div class="container mt-4">
+    <div class="value-chain-selector">
+        <div class="value-chain-item active" data-chain="all">Entire Value Chain</div>
+        <div class="value-chain-item" data-chain="development">Development</div>
+        <div class="value-chain-item" data-chain="investment">Investment</div>
+        <div class="value-chain-item" data-chain="management">Property Management</div>
+        <div class="value-chain-item" data-chain="renovation">Renovation</div>
+        <div class="value-chain-item" data-chain="sales">Sales & Leasing</div>
+        <div class="value-chain-item" data-chain="financing">Financing</div>
+    </div>
+</div>
+
+<!-- Filter Modal -->
+<div class="filter-modal" id="filter-modal">
+    <div class="filter-modal-content">
+        <div class="filter-modal-header">
+            <h3>Filter Real Estate Sustainability Insights</h3>
+            <button class="close-modal" id="close-modal">&times;</button>
+        </div>
+        <div class="filter-modal-body">
+            <div class="filter-group">
+                <label>Time Period</label>
+                <div class="filter-options">
+                    <label class="filter-option">
+                        <input type="radio" name="timeframe" value="all" checked> All Time
+                    </label>
+                    <label class="filter-option">
+                        <input type="radio" name="timeframe" value="year"> Last Year
+                    </label>
+                    <label class="filter-option">
+                        <input type="radio" name="timeframe" value="6month"> Last 6 Months
+                    </label>
+                    <label class="filter-option">
+                        <input type="radio" name="timeframe" value="3month"> Last 3 Months
+                    </label>
+                    <label class="filter-option">
+                        <input type="radio" name="timeframe" value="month"> Last Month
+                    </label>
+                </div>
+            </div>
+            <div class="filter-group">
+                <label>Categories</label>
+                <div class="filter-options">
+                    <label class="filter-option">
+                        <input type="checkbox" name="category" value="energy_efficiency" checked> Energy Efficiency
+                    </label>
+                    <label class="filter-option">
+                        <input type="checkbox" name="category" value="carbon_footprint" checked> Carbon Footprint
+                    </label>
+                    <label class="filter-option">
+                        <input type="checkbox" name="category" value="green_financing" checked> Green Financing
+                    </label>
+                    <label class="filter-option">
+                        <input type="checkbox" name="category" value="certifications" checked> Certifications
+                    </label>
+                    <label class="filter-option">
+                        <input type="checkbox" name="category" value="market_trends" checked> Market Trends
+                    </label>
+                </div>
+            </div>
+            <div class="filter-group">
+                <label>Property Type</label>
+                <div class="filter-options">
+                    <label class="filter-option">
+                        <input type="checkbox" name="property_type" value="residential" checked> Residential
+                    </label>
+                    <label class="filter-option">
+                        <input type="checkbox" name="property_type" value="commercial" checked> Commercial
+                    </label>
+                    <label class="filter-option">
+                        <input type="checkbox" name="property_type" value="mixed" checked> Mixed-Use
+                    </label>
+                    <label class="filter-option">
+                        <input type="checkbox" name="property_type" value="industrial" checked> Industrial
+                    </label>
+                </div>
+            </div>
+            <div class="filter-group">
+                <label>Minimum Impact Score</label>
+                <input type="range" class="form-range" id="impact-slider" min="0" max="100" value="30">
+                <div class="d-flex justify-content-between">
+                    <span>0</span>
+                    <span id="impact-value">30</span>
+                    <span>100</span>
+                </div>
+            </div>
+        </div>
+        <div class="filter-modal-footer">
+            <button class="btn btn-outline-secondary" id="reset-filters">Reset</button>
+            <button class="btn btn-primary" id="apply-filters">Apply Filters</button>
+        </div>
+    </div>
+</div>
+
+<!-- Analytics Summary Cards -->
+<div class="container">
+    <div class="analytics-grid mb-4">
+        <div class="analytics-card important-widget">
+            <div class="analytics-card-header">
+                <h3 class="analytics-card-title">
+                    <div class="analytics-card-icon"><i class="bi bi-graph-up"></i></div>
+                    Top Sustainability Metric
+                </h3>
+                <span class="badge bg-success">↑ 12%</span>
+            </div>
+            <div class="analytics-card-body">
+                <h4 class="fs-2 fw-bold text-success mb-1" id="top-metric-name">Green Mortgage Share</h4>
+                <p class="text-muted mb-0" id="top-metric-desc">Highest growth rate across the real estate value chain</p>
+                <div class="mt-3 small"><i class="bi bi-info-circle"></i> <span class="text-muted">Impact Score: <span id="top-metric-score">87</span></span></div>
+            </div>
+        </div>
+        
+        <div class="analytics-card">
+            <div class="analytics-card-header">
+                <h3 class="analytics-card-title">
+                    <div class="analytics-card-icon"><i class="bi bi-activity"></i></div>
+                    Emerging Trends
+                </h3>
+                <span class="badge bg-info">New</span>
+            </div>
+            <div class="analytics-card-body">
+                <ul class="list-group list-group-flush" id="emerging-trends-list">
+                    <li class="list-group-item d-flex align-items-center border-0 px-0">
+                        <div class="me-auto">Green Retrofit ROI <span class="metric-badge financing">Financing</span></div>
+                        <span class="badge bg-primary">↑ 18%</span>
+                    </li>
+                    <li class="list-group-item d-flex align-items-center border-0 px-0">
+                        <div class="me-auto">BREEAM-NL Certified Properties <span class="metric-badge certification">Certification</span></div>
+                        <span class="badge bg-success">↑ 14%</span>
+                    </li>
+                    <li class="list-group-item d-flex align-items-center border-0 px-0">
+                        <div class="me-auto">Green Building Rental Premium <span class="metric-badge market">Market</span></div>
+                        <span class="badge bg-primary">↑ 12%</span>
+                    </li>
+                </ul>
+            </div>
+        </div>
+        
+        <div class="analytics-card">
+            <div class="analytics-card-header">
+                <h3 class="analytics-card-title">
+                    <div class="analytics-card-icon"><i class="bi bi-flag"></i></div>
+                    Focus Areas
+                </h3>
+                <span class="badge bg-warning">Attention</span>
+            </div>
+            <div class="analytics-card-body">
+                <ul class="list-group list-group-flush" id="focus-areas-list">
+                    <li class="list-group-item d-flex align-items-center border-0 px-0">
+                        <div class="me-auto">Portfolio Carbon Intensity <span class="metric-badge carbon">Carbon</span></div>
+                        <span class="badge bg-danger">↑ 7%</span>
+                    </li>
+                    <li class="list-group-item d-flex align-items-center border-0 px-0">
+                        <div class="me-auto">Average EPC Rating <span class="metric-badge energy">Energy</span></div>
+                        <span class="badge bg-warning">↓ 3%</span>
+                    </li>
+                </ul>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- RAG-Powered Insights Section -->
+<div class="container mt-4">
+    <div class="rag-insights-container">
+        <div class="rag-insights-header">
+            <h5><i class="bi bi-lightning-charge me-2"></i>RAG-Powered Sustainability Insights</h5>
+            <button class="btn btn-sm btn-outline-primary" id="refresh-insights">
+                <i class="bi bi-arrow-clockwise me-1"></i> Refresh
+            </button>
+        </div>
+        
+        <div class="rag-query-box">
+            <input type="text" class="rag-query-input" id="rag-query-input" placeholder="Ask about real estate sustainability trends or specific metrics...">
+            <button class="rag-query-button" id="rag-query-button">
+                <i class="bi bi-search me-1"></i> Ask
+            </button>
+        </div>
+        
+        <div class="rag-answer" id="rag-answer">
+            <p><strong>Real Estate Sustainability Insight:</strong> 
+            Based on the latest data, properties with high energy efficiency (EPC A/B) are commanding a 5.8% premium in rental values and a 4.2% premium in sales prices compared to equivalent properties with lower ratings. This trend is most pronounced in urban areas and for commercial buildings, with the premium expected to increase further as regulatory requirements tighten.
+            </p>
+            <p>
+            The data shows an acceleration in green mortgage adoption, with a 18% increase in the last quarter, as financial institutions integrate sustainability into lending criteria. Housing corporations focusing on portfolio-wide energy improvements are seeing an average reduction of 32 kg CO₂/m² across their holdings.
+            </p>
+        </div>
+        
+        <div class="rag-sources">
+            <strong><i class="bi bi-journal-text me-1"></i>Sources:</strong>
+            <ul class="rag-sources-list">
+                <li>Dutch Green Building Council Market Report 2024</li>
+                <li>European Mortgage Federation Sustainability Data (Q1 2025)</li>
+                <li>SustainaTrend™ Private Market Database (78 housing corporations)</li>
+                <li>Central Bureau of Statistics - Netherlands Energy Transition Monitor</li>
+            </ul>
+        </div>
+    </div>
+</div>
+
+<!-- Main Dashboard Charts -->
+<div class="container mt-5">
+    <div class="row g-4">
+        <!-- Main Trend Chart -->
+        <div class="col-lg-8">
+            <div class="card dashboard-card trend-chart-card">
+                <div class="card-header d-flex align-items-center justify-content-between">
+                    <h5 class="m-0">
+                        <i class="bi bi-graph-up me-2"></i>
+                        Real Estate Sustainability Trend Analysis
+                    </h5>
+                    <div class="chart-controls">
+                        <select id="chart-time-range" class="form-select form-select-sm">
+                            <option value="3month">Last 3 Months</option>
+                            <option value="6month">Last 6 Months</option>
+                            <option value="year" selected>Last Year</option>
+                            <option value="all">All Time</option>
+                        </select>
+                    </div>
+                </div>
+                <div class="card-body">
+                    <div id="trend-chart" class="trend-chart-container"></div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Category Distribution -->
+        <div class="col-lg-4">
+            <div class="card dashboard-card h-100">
+                <div class="card-header">
+                    <h5 class="m-0">
+                        <i class="bi bi-pie-chart me-2"></i>
+                        Sustainability Category Distribution
+                    </h5>
+                </div>
+                <div class="card-body">
+                    <div id="category-distribution" class="chart-container"></div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Market Impact Radar -->
+        <div class="col-lg-6">
+            <div class="card dashboard-card">
+                <div class="card-header">
+                    <h5 class="m-0">
+                        <i class="bi bi-bullseye me-2"></i>
+                        Market Impact by Sustainability Category
+                    </h5>
+                </div>
+                <div class="card-body">
+                    <div id="impact-radar" class="chart-container"></div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Key Metrics Overview -->
+        <div class="col-lg-6">
+            <div class="card dashboard-card">
+                <div class="card-header">
+                    <h5 class="m-0">
+                        <i class="bi bi-speedometer2 me-2"></i>
+                        Key Metrics Overview
+                    </h5>
+                </div>
+                <div class="card-body">
+                    <div class="row g-3 text-center">
+                        <div class="col-6">
+                            <div class="metric-circle">
+                                <div class="metric-value" id="total-metrics">--</div>
+                                <div class="metric-label">Tracked Metrics</div>
+                            </div>
+                        </div>
+                        <div class="col-6">
+                            <div class="metric-circle">
+                                <div class="metric-value" id="avg-impact">--</div>
+                                <div class="metric-label">Avg. Impact</div>
+                            </div>
+                        </div>
+                        <div class="col-6">
+                            <div class="metric-circle positive">
+                                <div class="metric-value" id="improving-metrics">--</div>
+                                <div class="metric-label">Improving</div>
+                                <div class="metric-percent" id="improving-percent">--%</div>
+                            </div>
+                        </div>
+                        <div class="col-6">
+                            <div class="metric-circle negative">
+                                <div class="metric-value" id="worsening-metrics">--</div>
+                                <div class="metric-label">Need Focus</div>
+                                <div class="metric-percent" id="worsening-percent">--%</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Monetization Opportunities -->
+<div class="container mt-5">
+    <div class="card dashboard-card monetization-card">
+        <div class="card-header">
+            <h5 class="m-0">
+                <i class="bi bi-currency-euro me-2"></i>
+                Data Monetization Opportunities
+            </h5>
+        </div>
+        <div class="card-body">
+            <div class="row g-4">
+                <div class="col-md-4">
+                    <div class="monetization-opportunity">
+                        <h6><i class="bi bi-bank me-2"></i>Financial Institutions</h6>
+                        <p>Providing energy efficiency data to support green mortgage products and ESG-compliant investment portfolios.</p>
+                        <div class="mt-2">Potential Value: <span class="monetization-value">€240K-€450K annually</span></div>
+                    </div>
+                </div>
+                <div class="col-md-4">
+                    <div class="monetization-opportunity">
+                        <h6><i class="bi bi-building me-2"></i>Housing Corporations</h6>
+                        <p>Benchmark reports and predictive analytics for optimizing renovation planning and energy upgrades.</p>
+                        <div class="mt-2">Potential Value: <span class="monetization-value">€160K-€320K annually</span></div>
+                    </div>
+                </div>
+                <div class="col-md-4">
+                    <div class="monetization-opportunity">
+                        <h6><i class="bi bi-graph-up-arrow me-2"></i>Investors & Developers</h6>
+                        <p>Sustainability premium analysis and regulatory compliance forecasting for investment decisions.</p>
+                        <div class="mt-2">Potential Value: <span class="monetization-value">€190K-€380K annually</span></div>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="mt-4 text-center">
+                <button class="btn btn-primary">
+                    <i class="bi bi-file-earmark-text me-2"></i>Generate Detailed Monetization Report
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Property Sustainability Scorecard -->
+<div class="container mt-5">
+    <div class="card dashboard-card property-insights-card">
+        <div class="card-header d-flex align-items-center justify-content-between">
+            <h5 class="m-0">
+                <i class="bi bi-building me-2"></i>
+                Property Sustainability Scorecard
+            </h5>
+            <div class="card-actions">
+                <select id="property-type-selector" class="form-select form-select-sm d-inline-block me-2" style="width: auto;">
+                    <option value="residential">Residential</option>
+                    <option value="commercial">Commercial</option>
+                    <option value="mixed">Mixed-Use</option>
+                    <option value="industrial">Industrial</option>
+                </select>
+                <button class="btn btn-sm btn-primary" id="analyze-property">
+                    <i class="bi bi-graph-up"></i> Analyze
+                </button>
+            </div>
+        </div>
+        <div class="card-body">
+            <div class="row">
+                <div class="col-md-4">
+                    <div class="property-summary mb-4">
+                        <h6 class="text-muted mb-3">Property Summary</h6>
+                        <div class="d-flex justify-content-between mb-2">
+                            <span>Address:</span>
+                            <strong>Amstel 100, Amsterdam</strong>
+                        </div>
+                        <div class="d-flex justify-content-between mb-2">
+                            <span>Construction Year:</span>
+                            <strong>1998</strong>
+                        </div>
+                        <div class="d-flex justify-content-between mb-2">
+                            <span>Floor Area:</span>
+                            <strong>420 m²</strong>
+                        </div>
+                        <div class="d-flex justify-content-between mb-2">
+                            <span>Last Renovation:</span>
+                            <strong>2019</strong>
+                        </div>
+                        <div class="d-flex justify-content-between mb-2">
+                            <span>Property Type:</span>
+                            <strong>Mixed-Use</strong>
+                        </div>
+                    </div>
+                    
+                    <div class="property-sustainability-score mb-4">
+                        <h6 class="text-muted mb-3">Sustainability Score</h6>
+                        <div class="sustainability-score-circle">
+                            <div class="score-value">78</div>
+                            <div class="score-label">Overall</div>
+                        </div>
+                        <div class="score-comparison mt-2">
+                            <div class="d-flex justify-content-between">
+                                <span>Neighborhood Avg:</span>
+                                <strong>65</strong>
+                            </div>
+                            <div class="d-flex justify-content-between">
+                                <span>Market Leading:</span>
+                                <strong>85+</strong>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="col-md-8">
+                    <div class="row">
+                        <div class="col-md-6">
+                            <div class="sustainability-metric-card mb-3">
+                                <div class="metric-header d-flex justify-content-between">
+                                    <span>Energy Label</span>
+                                    <span class="energy-label label-b">B</span>
+                                </div>
+                                <div class="metric-body">
+                                    <div class="d-flex justify-content-between mb-1">
+                                        <span>Energy Index:</span>
+                                        <strong>1.14</strong>
+                                    </div>
+                                    <div class="d-flex justify-content-between mb-1">
+                                        <span>Potential Improvement:</span>
+                                        <strong>Label A (0.85)</strong>
+                                    </div>
+                                    <div class="mt-2">
+                                        <div class="progress">
+                                            <div class="progress-bar bg-success" role="progressbar" style="width: 75%"></div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            <div class="sustainability-metric-card mb-3">
+                                <div class="metric-header d-flex justify-content-between">
+                                    <span>Carbon Footprint</span>
+                                    <span class="carbon-value">28 kg/m²</span>
+                                </div>
+                                <div class="metric-body">
+                                    <div class="d-flex justify-content-between mb-1">
+                                        <span>Benchmark:</span>
+                                        <strong>35 kg/m²</strong>
+                                    </div>
+                                    <div class="d-flex justify-content-between mb-1">
+                                        <span>Reduction Target:</span>
+                                        <strong>20 kg/m²</strong>
+                                    </div>
+                                    <div class="mt-2">
+                                        <div class="progress">
+                                            <div class="progress-bar bg-info" role="progressbar" style="width: 65%"></div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="col-md-6">
+                            <div class="sustainability-metric-card mb-3">
+                                <div class="metric-header d-flex justify-content-between">
+                                    <span>Green Financing</span>
+                                    <span class="finance-value">Eligible</span>
+                                </div>
+                                <div class="metric-body">
+                                    <div class="d-flex justify-content-between mb-1">
+                                        <span>Mortgage Rate Discount:</span>
+                                        <strong>0.38%</strong>
+                                    </div>
+                                    <div class="d-flex justify-content-between mb-1">
+                                        <span>Subsidy Potential:</span>
+                                        <strong>€8,500</strong>
+                                    </div>
+                                    <div class="mt-2">
+                                        <div class="progress">
+                                            <div class="progress-bar bg-primary" role="progressbar" style="width: 82%"></div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            <div class="sustainability-metric-card mb-3">
+                                <div class="metric-header d-flex justify-content-between">
+                                    <span>Renovation ROI</span>
+                                    <span class="roi-value">7.8%</span>
+                                </div>
+                                <div class="metric-body">
+                                    <div class="d-flex justify-content-between mb-1">
+                                        <span>Upgrade Costs:</span>
+                                        <strong>€25,000</strong>
+                                    </div>
+                                    <div class="d-flex justify-content-between mb-1">
+                                        <span>Value Increase:</span>
+                                        <strong>€42,000</strong>
+                                    </div>
+                                    <div class="mt-2">
+                                        <div class="progress">
+                                            <div class="progress-bar bg-warning" role="progressbar" style="width: 78%"></div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="upgrade-recommendations mt-2">
+                        <h6 class="text-muted mb-2">Recommended Upgrades</h6>
+                        <div class="row">
+                            <div class="col-md-4">
+                                <div class="upgrade-item">
+                                    <i class="bi bi-sun"></i>
+                                    <span>Solar Panels (20m²)</span>
+                                    <div class="upgrade-roi">ROI: 11.2%</div>
+                                </div>
+                            </div>
+                            <div class="col-md-4">
+                                <div class="upgrade-item">
+                                    <i class="bi bi-thermometer-half"></i>
+                                    <span>Heat Pump Installation</span>
+                                    <div class="upgrade-roi">ROI: 8.7%</div>
+                                </div>
+                            </div>
+                            <div class="col-md-4">
+                                <div class="upgrade-item">
+                                    <i class="bi bi-layers"></i>
+                                    <span>Window Insulation</span>
+                                    <div class="upgrade-roi">ROI: 9.3%</div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="mt-3 text-center">
+                <button class="btn btn-outline-primary">
+                    <i class="bi bi-file-earmark-text me-2"></i>Generate Full Property Sustainability Report
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Property Insights Table -->
+<div class="container mt-5">
+    <div class="card dashboard-card">
+        <div class="card-header d-flex align-items-center justify-content-between">
+            <h5 class="m-0">
+                <i class="bi bi-table me-2"></i>
+                Detailed Property Sustainability Metrics
+            </h5>
+            <div class="card-actions">
+                <button class="btn btn-sm btn-outline-primary me-2" id="refresh-table">
+                    <i class="bi bi-arrow-clockwise"></i> Refresh
+                </button>
+                <select id="table-category-filter" class="form-select form-select-sm d-inline-block" style="width: auto;">
+                    <option value="all">All Categories</option>
+                    <option value="energy_efficiency">Energy Efficiency</option>
+                    <option value="carbon_footprint">Carbon Footprint</option>
+                    <option value="green_financing">Green Financing</option>
+                    <option value="certifications">Certifications</option>
+                    <option value="market_trends">Market Trends</option>
+                </select>
+            </div>
+        </div>
+        <div class="card-body table-responsive">
+            <table class="table table-hover trend-table" id="trend-table">
+                <thead>
+                    <tr>
+                        <th>#</th>
+                        <th>Metric</th>
+                        <th>Category</th>
+                        <th>Impact Score</th>
+                        <th>Direction</th>
+                        <th>Duration</th>
+                        <th>Date</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <!-- Will be populated dynamically -->
+                    <tr class="placeholder-glow">
+                        <td colspan="7" class="text-center py-5">
+                            <span class="placeholder col-6"></span>
+                            <p class="small text-muted mt-2">Loading metric data...</p>
+                        </td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+
+<!-- React App Mount Point -->
+<div id="react-property-dashboard" class="mt-5">
+    <!-- Loading state that will be replaced by React -->
+    <div class="d-flex justify-content-center my-5">
+        <div class="spinner-border text-primary" role="status">
+            <span class="visually-hidden">Loading advanced property dashboard...</span>
+        </div>
+    </div>
+</div>
+
+<!-- Data Storytelling Section -->
+<div class="container mt-5 mb-5">
+    <div class="card dashboard-card">
+        <div class="card-header">
+            <h5 class="m-0">
+                <i class="bi bi-book me-2"></i>
+                Data-Driven Sustainability Story
+            </h5>
+        </div>
+        <div class="card-body">
+            <div class="story-content" id="story-content">
+                <h4 class="story-title mb-4">The Green Premium: How Sustainability is Reshaping Real Estate Value</h4>
+                
+                <p class="story-paragraph">
+                    Our analysis of <strong>1,240 residential properties</strong> and <strong>340 commercial buildings</strong> 
+                    reveals a clear pattern: sustainability is no longer just a compliance requirement—it's becoming a 
+                    significant driver of real estate value across the Netherlands.
+                </p>
+                
+                <div class="row mt-4 mb-4">
+                    <div class="col-md-6">
+                        <div class="story-chart-container" id="story-chart-1"></div>
+                    </div>
+                    <div class="col-md-6">
+                        <div class="story-chart-container" id="story-chart-2"></div>
+                    </div>
+                </div>
+                
+                <p class="story-paragraph">
+                    The data shows properties with top-tier energy performance (EPC labels A and B) command a 
+                    <strong>4.2% price premium</strong> in the sales market and up to a <strong>5.8% premium</strong> 
+                    in rental values compared to otherwise equivalent properties with lower energy ratings.
+                </p>
+                
+                <p class="story-paragraph">
+                    This "green premium" is accelerating. Our trend analysis indicates it has increased by approximately 
+                    <strong>1.2 percentage points annually</strong> over the past three years, with the strongest growth 
+                    observed in urban areas where sustainability awareness is highest.
+                </p>
+                
+                <h5 class="mt-4 mb-3">Green Financing: The Catalyst</h5>
+                
+                <p class="story-paragraph">
+                    Perhaps most notably, financial institutions are increasingly serving as catalysts for this transition. 
+                    The share of <strong>green mortgages</strong> has risen by <strong>18%</strong> in the last quarter alone, 
+                    with preferential rates for energy-efficient properties creating a compelling financial incentive for buyers.
+                </p>
+                
+                <p class="story-paragraph">
+                    For housing corporations managing large portfolios, our data reveals that strategic investments in 
+                    energy efficiency upgrades are yielding an average <strong>ROI of 7.2%</strong> when accounting for 
+                    both operational savings and asset value appreciation.
+                </p>
+                
+                <div class="mt-4 text-center">
+                    <button class="btn btn-primary">
+                        <i class="bi bi-share me-2"></i>Share This Story
+                    </button>
+                    <button class="btn btn-outline-primary ms-2">
+                        <i class="bi bi-download me-2"></i>Download Full Report
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        // Initialize charts with real estate sustainability data
+        initCharts();
+        
+        // Fetch real estate trend data on page load
+        fetchRealEstateTrendData();
+        
+        // Set up event listeners for filter controls
+        setupFilterControls();
+        
+        // Set up the RAG query functionality
+        setupRagQuerySystem();
+        
+        // Set up value chain selector
+        setupValueChainSelector();
+        
+        // Initialize storytelling visualizations
+        initStoryCharts();
+    });
+    
+    function initCharts() {
+        // Initialize trend chart
+        initTrendChart(document.getElementById('trend-chart'));
+        
+        // Initialize category distribution chart
+        initCategoryDistribution(document.getElementById('category-distribution'));
+        
+        // Initialize impact radar chart
+        initImpactRadar(document.getElementById('impact-radar'));
+    }
+    
+    function initTrendChart(element) {
+        // Placeholder for trend chart initialization
+        if (!element) return;
+        
+        // Will be populated with actual real estate data
+        const mockData = {
+            x: ['2024-10', '2024-11', '2024-12', '2025-01', '2025-02', '2025-03'],
+            datasets: [
+                {
+                    name: 'Energy Efficiency',
+                    values: [45, 47, 52, 58, 63, 68]
+                },
+                {
+                    name: 'Carbon Footprint',
+                    values: [30, 32, 35, 38, 42, 46]
+                },
+                {
+                    name: 'Green Financing',
+                    values: [12, 15, 18, 22, 28, 35]
+                },
+                {
+                    name: 'Certifications',
+                    values: [25, 28, 30, 32, 34, 37]
+                },
+                {
+                    name: 'Market Trends',
+                    values: [40, 42, 45, 48, 52, 55]
+                }
+            ]
+        };
+        
+        // This will be replaced with actual chart initialization when data is available
+        element.innerHTML = '<div class="chart-placeholder">Chart will be initialized with real data</div>';
+    }
+    
+    function initCategoryDistribution(element) {
+        // Placeholder for category distribution chart
+        if (!element) return;
+        element.innerHTML = '<div class="chart-placeholder">Category distribution chart will be initialized with real data</div>';
+    }
+    
+    function initImpactRadar(element) {
+        // Placeholder for impact radar chart
+        if (!element) return;
+        element.innerHTML = '<div class="chart-placeholder">Impact radar chart will be initialized with real data</div>';
+    }
+    
+    function fetchRealEstateTrendData(category = null, timeframe = null) {
+        console.log('Fetching real estate trend data', 
+                    category ? `for category: ${category}` : 'for all categories',
+                    timeframe ? `with timeframe: ${timeframe}` : '');
+        
+        // Show loading states
+        showLoadingStates();
+        
+        // Prepare API URL with query parameters
+        let apiUrl = '/api/realestate-trends';
+        const params = new URLSearchParams();
+        
+        if (category && category !== 'all') {
+            params.append('category', category);
+        }
+        
+        if (timeframe && timeframe !== 'all') {
+            params.append('timeframe', timeframe);
+        }
+        
+        // Add params to URL if any exist
+        if (params.toString()) {
+            apiUrl += `?${params.toString()}`;
+        }
+        
+        // Fetch data
+        fetch(apiUrl)
+            .then(response => {
+                if (!response.ok) {
+                    throw new Error(`HTTP error ${response.status}`);
+                }
+                return response.json();
+            })
+            .then(data => {
+                if (data.success) {
+                    updateDashboard(data);
+                    // Show success notification
+                    showNotification('Real estate sustainability data updated successfully', 'bi-check-circle-fill', 'success');
+                } else {
+                    throw new Error('Data fetch failed');
+                }
+            })
+            .catch(error => {
+                console.error('Error fetching real estate trend data:', error);
+                // Show error notification
+                showNotification('Failed to update real estate data. Please try again.', 'bi-exclamation-triangle-fill', 'error');
+                // Remove loading states
+                removeLoadingStates();
+            });
+    }
+    
+    function showLoadingStates() {
+        // Show loading state for all relevant containers
+        const containers = [
+            document.getElementById('trend-chart'),
+            document.getElementById('category-distribution'),
+            document.getElementById('impact-radar')
+        ];
+        
+        containers.forEach(container => {
+            if (container) {
+                container.classList.add('loading');
+                
+                // Add loading indicator if it's a chart container
+                if (container.classList.contains('chart-container') || 
+                    container.classList.contains('trend-chart-container')) {
+                    const loadingEl = document.createElement('div');
+                    loadingEl.className = 'chart-loading-indicator';
+                    loadingEl.innerHTML = `
+                        <div class="spinner-border text-primary" role="status">
+                            <span class="visually-hidden">Loading...</span>
+                        </div>
+                        <p class="mt-2 text-muted">Loading real estate data...</p>
+                    `;
+                    
+                    // Only add if not already present
+                    if (!container.querySelector('.chart-loading-indicator')) {
+                        container.appendChild(loadingEl);
+                    }
+                }
+            }
+        });
+        
+        // Show loading placeholder in table
+        const tableBody = document.querySelector('#trend-table tbody');
+        if (tableBody) {
+            tableBody.innerHTML = `
+                <tr class="placeholder-glow">
+                    <td colspan="7" class="text-center py-5">
+                        <div class="d-flex justify-content-center">
+                            <div class="spinner-border text-primary" role="status">
+                                <span class="visually-hidden">Loading metric data...</span>
+                            </div>
+                        </div>
+                        <p class="text-muted mt-3">Loading real estate sustainability metrics...</p>
+                    </td>
+                </tr>
+            `;
+        }
+    }
+    
+    function removeLoadingStates() {
+        // Remove loading state from all relevant containers
+        const containers = [
+            document.getElementById('trend-chart'),
+            document.getElementById('category-distribution'),
+            document.getElementById('impact-radar')
+        ];
+        
+        containers.forEach(container => {
+            if (container) {
+                container.classList.remove('loading');
+                
+                // Remove loading indicator
+                const loadingEl = container.querySelector('.chart-loading-indicator');
+                if (loadingEl) {
+                    loadingEl.remove();
+                }
+            }
+        });
+    }
+    
+    function updateDashboard(data) {
+        // Update all dashboard components with real estate data
+        updateSummaryCards(data);
+        updateCharts(data);
+        updateMetricTable(data);
+        
+        // Remove all loading states
+        removeLoadingStates();
+    }
+    
+    function updateSummaryCards(data) {
+        // Update summary cards with real estate metrics data
+        // This is a placeholder function that will be implemented when connected to real data
+        console.log('Updating summary cards with data', data);
+    }
+    
+    function updateCharts(data) {
+        // Update all charts with real estate metrics data
+        // This is a placeholder function that will be implemented when connected to real data
+        console.log('Updating charts with data', data);
+    }
+    
+    function updateMetricTable(data) {
+        // Update metrics table with real estate data
+        // This is a placeholder function that will be implemented when connected to real data
+        console.log('Updating metric table with data', data);
+    }
+    
+    function setupFilterControls() {
+        // Setup event listeners for filter controls
+        const filterBtn = document.getElementById('filter-btn');
+        const closeModalBtn = document.getElementById('close-modal');
+        const applyFiltersBtn = document.getElementById('apply-filters');
+        const resetFiltersBtn = document.getElementById('reset-filters');
+        const filterModal = document.getElementById('filter-modal');
+        
+        if (filterBtn) {
+            filterBtn.addEventListener('click', function() {
+                filterModal.classList.add('show');
+            });
+        }
+        
+        if (closeModalBtn) {
+            closeModalBtn.addEventListener('click', function() {
+                filterModal.classList.remove('show');
+            });
+        }
+        
+        if (applyFiltersBtn) {
+            applyFiltersBtn.addEventListener('click', function() {
+                // Get selected filter values
+                const timeframe = document.querySelector('input[name="timeframe"]:checked')?.value || 'all';
+                
+                const categoryCheckboxes = document.querySelectorAll('input[name="category"]:checked');
+                const categories = Array.from(categoryCheckboxes).map(cb => cb.value);
+                
+                const propertyTypeCheckboxes = document.querySelectorAll('input[name="property_type"]:checked');
+                const propertyTypes = Array.from(propertyTypeCheckboxes).map(cb => cb.value);
+                
+                const impactValue = document.getElementById('impact-slider').value;
+                
+                // Apply filters
+                applyDataFilters(timeframe, categories, propertyTypes, impactValue);
+                
+                // Close modal
+                filterModal.classList.remove('show');
+                
+                // Show notification
+                showNotification('Filters applied successfully', 'bi-funnel-fill', 'info');
+            });
+        }
+        
+        if (resetFiltersBtn) {
+            resetFiltersBtn.addEventListener('click', function() {
+                // Reset all filter controls to defaults
+                document.querySelector('input[name="timeframe"][value="all"]').checked = true;
+                
+                document.querySelectorAll('input[name="category"]').forEach(cb => {
+                    cb.checked = true;
+                });
+                
+                document.querySelectorAll('input[name="property_type"]').forEach(cb => {
+                    cb.checked = true;
+                });
+                
+                document.getElementById('impact-slider').value = 30;
+                document.getElementById('impact-value').textContent = 30;
+                
+                // Show notification
+                showNotification('Filters reset to defaults', 'bi-arrow-counterclockwise', 'info');
+            });
+        }
+        
+        // Update impact slider value display
+        const impactSlider = document.getElementById('impact-slider');
+        const impactValue = document.getElementById('impact-value');
+        
+        if (impactSlider && impactValue) {
+            impactSlider.addEventListener('input', function() {
+                impactValue.textContent = this.value;
+            });
+        }
+    }
+    
+    function applyDataFilters(timeframe, categories, propertyTypes, impactValue) {
+        // Apply filters to the data and update visualizations
+        console.log('Applying filters:', { timeframe, categories, propertyTypes, impactValue });
+        
+        // Fetch filtered data
+        fetchRealEstateTrendData(categories.length === 1 ? categories[0] : null, timeframe);
+    }
+    
+    function setupRagQuerySystem() {
+        // Set up the RAG-powered query system
+        const queryButton = document.getElementById('rag-query-button');
+        const queryInput = document.getElementById('rag-query-input');
+        const answerContainer = document.getElementById('rag-answer');
+        
+        if (queryButton && queryInput) {
+            queryButton.addEventListener('click', function() {
+                const query = queryInput.value.trim();
+                
+                if (query) {
+                    // Show loading state
+                    answerContainer.innerHTML = `
+                        <div class="d-flex justify-content-center my-4">
+                            <div class="spinner-border text-primary" role="status">
+                                <span class="visually-hidden">Processing query...</span>
+                            </div>
+                        </div>
+                        <p class="text-center text-muted">Analyzing real estate sustainability data...</p>
+                    `;
+                    
+                    // In a real implementation, this would call the RAG API
+                    // For now, we'll simulate a response after a delay
+                    setTimeout(() => {
+                        // Mock RAG response for demonstration
+                        const mockResponse = getMockRagResponse(query);
+                        
+                        // Update the answer container
+                        answerContainer.innerHTML = mockResponse;
+                        
+                        // Show notification
+                        showNotification('AI analysis complete', 'bi-robot', 'success');
+                    }, 2000);
+                } else {
+                    showNotification('Please enter a question to analyze', 'bi-exclamation-circle-fill', 'warning');
+                }
+            });
+        }
+    }
+    
+    function getMockRagResponse(query) {
+        // Generate a mock RAG response based on the query
+        // In a real implementation, this would come from the RAG API
+        
+        query = query.toLowerCase();
+        
+        if (query.includes('epc') || query.includes('energy') || query.includes('rating')) {
+            return `
+                <p><strong>Real Estate Energy Efficiency Analysis:</strong> 
+                Based on data from 843 properties across the Netherlands, the average EPC rating has improved from 3.2 to 2.1 
+                over the past 18 months. Properties with A and B ratings now represent 28% of the market, up from 18% in 2023.
+                </p>
+                <p>
+                Housing corporations have been leading this transition, with 37% of their portfolios now at B rating or better, 
+                compared to 22% for private rental properties. The average cost of upgrading from an E to a B rating ranges from 
+                €15,000 to €24,000, with ROI periods of 7-12 years when accounting for both operational savings and value appreciation.
+                </p>
+            `;
+        } else if (query.includes('carbon') || query.includes('footprint') || query.includes('emission')) {
+            return `
+                <p><strong>Property Carbon Footprint Analysis:</strong> 
+                The average carbon intensity across the analyzed property portfolio is 32 kg CO₂/m² annually, with 
+                high-performing buildings achieving under 15 kg CO₂/m². New construction projects implementing 
+                circular material usage principles (now at 23% adoption) are showing 40-55% lower embodied carbon 
+                compared to conventional construction.
+                </p>
+                <p>
+                The data indicates that operational carbon emissions are decreasing at approximately 7% annually 
+                across the surveyed properties, primarily driven by heating system upgrades and improved insulation. 
+                Properties implementing full electrification achieve an additional 12-18% reduction in their carbon footprint.
+                </p>
+            `;
+        } else if (query.includes('financing') || query.includes('mortgage') || query.includes('loan')) {
+            return `
+                <p><strong>Green Financing & Mortgage Analysis:</strong> 
+                Green mortgages now represent 18% of new mortgage originations in the Netherlands, up from 10% in 2023. 
+                These mortgages offer interest rate discounts averaging 0.3-0.5% for properties meeting specific energy 
+                efficiency thresholds (typically EPC A/B ratings).
+                </p>
+                <p>
+                The data shows that buy-to-let investors are increasingly targeting energy-efficient properties, with 42% 
+                citing favorable financing terms as a primary motivator. For housing corporations, green bonds and 
+                sustainability-linked loans are providing €85-€130 million in annual financing for energy renovation projects, 
+                with an average Green Retrofit ROI of 7.2%.
+                </p>
+            `;
+        } else if (query.includes('value') || query.includes('premium') || query.includes('price')) {
+            return `
+                <p><strong>Sustainability Value Premium Analysis:</strong> 
+                Properties with top-tier energy ratings (EPC A/A+) command a market premium of 4.2% in sales prices 
+                and 5.8% in rental values compared to equivalent properties with average energy performance (EPC C/D). 
+                This "green premium" has been growing at approximately 1.2 percentage points annually.
+                </p>
+                <p>
+                The most significant premiums are observed in urban markets and for commercial properties, where energy 
+                costs represent a higher proportion of occupancy expenses. Properties with additional certifications beyond 
+                energy ratings (such as WELL or BREEAM) demonstrate an additional premium of 2.3-3.5%, particularly in the 
+                high-end commercial and luxury residential segments.
+                </p>
+            `;
+        } else {
+            return `
+                <p><strong>Real Estate Sustainability Overview:</strong> 
+                Analysis of our property database shows accelerating adoption of sustainability features across the Dutch 
+                real estate market. Top-performing sustainable properties show clear financial advantages: 4.2% higher 
+                sales values, 5.8% rental premiums, and 18% lower vacancy rates compared to conventional properties.
+                </p>
+                <p>
+                Green financing adoption is up 18% year-over-year, with preferential rates for energy-efficient properties 
+                creating a compelling financial incentive. Housing corporations implementing portfolio-wide sustainability 
+                improvements are seeing operational cost reductions of €3.20-€4.80 per square meter annually, alongside 
+                significant reductions in carbon footprint (32 kg CO₂/m² on average).
+                </p>
+            `;
+        }
+    }
+    
+    function setupValueChainSelector() {
+        // Set up the real estate value chain selector
+        const valueChainItems = document.querySelectorAll('.value-chain-item');
+        
+        valueChainItems.forEach(item => {
+            item.addEventListener('click', function() {
+                // Remove active class from all items
+                valueChainItems.forEach(i => i.classList.remove('active'));
+                
+                // Add active class to clicked item
+                this.classList.add('active');
+                
+                // Get selected value chain segment
+                const segment = this.getAttribute('data-chain');
+                
+                // Apply value chain segment filter
+                applyValueChainFilter(segment);
+                
+                // Show notification
+                showNotification(`Now showing ${segment === 'all' ? 'entire value chain' : segment} data`, 'bi-filter', 'info');
+            });
+        });
+    }
+    
+    function applyValueChainFilter(segment) {
+        // Apply filter based on selected value chain segment
+        console.log('Applying value chain filter:', segment);
+        
+        // In a real implementation, this would filter data by value chain segment
+        // For now, we'll just simulate the filter effect
+        
+        // Show filtering effect
+        showLoadingStates();
+        
+        // Simulate loading delay
+        setTimeout(() => {
+            // Remove loading states
+            removeLoadingStates();
+            
+            // Update visuals to reflect filtered data
+            // This would be replaced with actual filtered data in a real implementation
+            
+        }, 1500);
+    }
+    
+    function initStoryCharts() {
+        // Initialize charts for data storytelling section
+        const storyChart1 = document.getElementById('story-chart-1');
+        const storyChart2 = document.getElementById('story-chart-2');
+        
+        if (storyChart1 && storyChart2) {
+            // Placeholder for story chart initialization
+            // These would be initialized with actual charts in a real implementation
+            storyChart1.innerHTML = '<div class="chart-placeholder">Price Premium by EPC Rating chart will be displayed here</div>';
+            storyChart2.innerHTML = '<div class="chart-placeholder">Green Mortgage Growth chart will be displayed here</div>';
+        }
+    }
+    
+    function showNotification(message, iconClass, type = 'info') {
+        // Create notification element
+        const toast = document.createElement('div');
+        toast.className = `toast-notification ${type}`;
+        
+        // Set inner HTML with icon and message
+        toast.innerHTML = `
+            <div class="toast-icon">
+                <i class="bi ${iconClass}"></i>
+            </div>
+            <div class="toast-message">${message}</div>
+            <button class="toast-close">&times;</button>
+        `;
+        
+        // Add to container
+        const container = document.getElementById('toast-container');
+        if (container) {
+            container.appendChild(toast);
+            
+            // Add visible class after a short delay (for animation)
+            setTimeout(() => {
+                toast.classList.add('visible');
+            }, 10);
+            
+            // Close button functionality
+            const closeBtn = toast.querySelector('.toast-close');
+            if (closeBtn) {
+                closeBtn.addEventListener('click', function() {
+                    closeToast(toast);
+                });
+            }
+            
+            // Auto close after duration
+            setTimeout(() => {
+                closeToast(toast);
+            }, 6000);
+        }
+    }
+    
+    function closeToast(toast) {
+        // Remove visible class first (for animation)
+        toast.classList.remove('visible');
+        
+        // Remove element after animation completes
+        setTimeout(() => {
+            toast.remove();
+        }, 300);
+    }
+</script>
+{% endblock %}

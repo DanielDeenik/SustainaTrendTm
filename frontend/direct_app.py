@@ -16,6 +16,7 @@ from dotenv import load_dotenv
 from flask import Flask, render_template, jsonify, request, redirect, url_for, abort
 import requests
 from flask_caching import Cache
+import jinja2.exceptions
 import logging
 from datetime import datetime, timedelta
 import random  # For generating mock AI search and trend data
@@ -121,6 +122,23 @@ except ImportError as e:
     SUSTAINABILITY_STORYTELLING_AVAILABLE = False
     logger.warning(f"Sustainability Storytelling module not available: {e}")
 
+# Import Real Estate Sustainability Module
+try:
+    from realestate_sustainability import register_routes as register_realestate_routes
+    REALESTATE_SUSTAINABILITY_AVAILABLE = True
+    logger.info("Real Estate Sustainability module loaded successfully")
+except ImportError as e:
+    REALESTATE_SUSTAINABILITY_AVAILABLE = False
+
+# Import Strategy Simulation Module
+try:
+    from strategy_simulation import register_routes as register_strategy_simulation_routes
+    STRATEGY_SIMULATION_AVAILABLE = True
+    logger.info("Strategy Simulation module loaded successfully")
+except ImportError as e:
+    STRATEGY_SIMULATION_AVAILABLE = False
+    logger.warning(f"Real Estate Sustainability module not available: {e}")
+
 # Initialize Flask
 app = Flask(__name__)
 
@@ -158,6 +176,16 @@ if TREND_VIRALITY_AVAILABLE:
 if SUSTAINABILITY_STORYTELLING_AVAILABLE:
     register_storytelling_routes(app)
     logger.info("Sustainability Storytelling routes registered successfully")
+
+# Register Real Estate Sustainability routes if available
+if REALESTATE_SUSTAINABILITY_AVAILABLE:
+    register_realestate_routes(app)
+    logger.info("Real Estate Sustainability routes registered successfully")
+
+# Register Strategy Simulation routes if available
+if STRATEGY_SIMULATION_AVAILABLE:
+    register_strategy_simulation_routes(app)
+    logger.info("Strategy Simulation routes registered successfully")
 
 # API Status global middleware
 def get_api_status():
@@ -1113,9 +1141,16 @@ def trend_analysis():
         categories = list(set(metric["category"] for metric in metrics))
         logger.info(f"Available categories for trend analysis: {categories}")
 
-        return render_template("trend_analysis.html", 
-                              metrics=metrics, 
-                              categories=categories)
+        # Check if the new standardized template exists, otherwise fall back to the original
+        try:
+            return render_template("trend_analysis_new.html", 
+                                metrics=metrics, 
+                                categories=categories)
+        except jinja2.exceptions.TemplateNotFound:
+            logger.warning("New standardized template not found, using original template")
+            return render_template("trend_analysis.html", 
+                                metrics=metrics, 
+                                categories=categories)
     except Exception as e:
         logger.error(f"Error in trend analysis route: {str(e)}")
         return f"Error loading trend analysis: {str(e)}", 500

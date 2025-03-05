@@ -1,0 +1,45 @@
+<!-- Page Header Component -->
+<div class="page-header mb-4">
+    <h1>{{ title }}</h1>
+    <p class="text-muted">{{ description }}</p>
+
+    {% if show_actions %}
+    <div class="page-actions mt-3">
+        {% if show_toggle %}
+        <button class="btn btn-outline-primary me-2" id="toggle-view">
+            <i class="bi bi-grid"></i> Toggle View
+        </button>
+        {% endif %}
+        
+        {% if show_filter %}
+        <button class="btn btn-outline-primary me-2" id="filter-btn">
+            <i class="bi bi-funnel"></i> Filter
+        </button>
+        {% endif %}
+        
+        {% if show_export %}
+        <div class="dropdown d-inline-block">
+            <button class="btn btn-outline-primary" id="export-btn">
+                <i class="bi bi-download"></i> Export
+            </button>
+            <div id="export-dropdown" class="export-dropdown">
+                <ul class="export-dropdown-menu">
+                    <li><a href="#" data-format="csv"><i class="bi bi-filetype-csv"></i> CSV</a></li>
+                    <li><a href="#" data-format="excel"><i class="bi bi-filetype-xlsx"></i> Excel</a></li>
+                    <li><a href="#" data-format="pdf"><i class="bi bi-filetype-pdf"></i> PDF Report</a></li>
+                    <li><a href="#" data-format="json"><i class="bi bi-filetype-json"></i> JSON</a></li>
+                </ul>
+            </div>
+        </div>
+        {% endif %}
+        
+        {% if show_run %}
+        <button id="runAnalysisBtn" class="btn btn-primary">
+            <i class="bi bi-play-fill"></i> Run Analysis
+        </button>
+        {% endif %}
+        
+        {% block additional_actions %}{% endblock %}
+    </div>
+    {% endif %}
+</div>

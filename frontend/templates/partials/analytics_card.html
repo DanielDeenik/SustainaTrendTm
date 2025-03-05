@@ -1,0 +1,17 @@
+<!-- Analytics Summary Card Component -->
+<div class="analytics-card {% if important %}important-widget{% endif %} {% if card_class %}{{ card_class }}{% endif %}">
+    <div class="analytics-card-header">
+        <h3 class="analytics-card-title">
+            <div class="analytics-card-icon"><i class="bi bi-{{ icon_class|default('graph-up') }}"></i></div>
+            {{ card_title }}
+        </h3>
+        {% if badge %}
+        <span class="badge bg-{{ badge.type|default('info') }}">{{ badge.text }}</span>
+        {% endif %}
+    </div>
+    <div class="analytics-card-body">
+        {% block card_content %}
+        {{ card_content|safe }}
+        {% endblock %}
+    </div>
+</div>

@@ -1,0 +1,985 @@
+{% extends "base.html" %}
+
+{% block title %}Strategy Simulation & McKinsey-Style Reporting | SustainaTrend™{% endblock %}
+
+{% block extra_css %}
+<link rel="stylesheet" href="{{ url_for('static', filename='css/common.css') }}">
+<link rel="stylesheet" href="{{ url_for('static', filename='css/dark-theme.css') }}">
+<style>
+    /* Strategy Simulation specific styles */
+    .framework-card {
+        border-radius: 1rem;
+        overflow: hidden;
+        transition: all 0.3s ease;
+        border: 1px solid var(--border-color);
+    }
+    
+    .framework-card:hover {
+        transform: translateY(-5px);
+        box-shadow: 0 10px 20px rgba(0, 0, 0, 0.1);
+    }
+    
+    .framework-header {
+        padding: 1rem;
+        background-color: var(--card-bg);
+        border-bottom: 1px solid var(--border-color);
+    }
+    
+    .framework-content {
+        padding: 1.5rem;
+    }
+    
+    .framework-badge {
+        font-size: 0.75rem;
+        padding: 0.25rem 0.5rem;
+        border-radius: 2rem;
+        display: inline-block;
+        margin-bottom: 0.5rem;
+    }
+    
+    .framework-badge.strategic {
+        background-color: rgba(var(--primary-rgb), 0.2);
+        color: var(--primary-color);
+    }
+    
+    .framework-badge.analytical {
+        background-color: rgba(52, 152, 219, 0.2);
+        color: #3498db;
+    }
+    
+    .framework-badge.competitive {
+        background-color: rgba(231, 76, 60, 0.2);
+        color: #e74c3c;
+    }
+    
+    .framework-badge.growth {
+        background-color: rgba(46, 204, 113, 0.2);
+        color: #2ecc71;
+    }
+    
+    .framework-actions {
+        display: flex;
+        justify-content: flex-end;
+        margin-top: 1rem;
+    }
+    
+    .framework-select-btn {
+        background-color: var(--primary-color);
+        color: white;
+        border: none;
+        padding: 0.5rem 1.25rem;
+        border-radius: 2rem;
+        cursor: pointer;
+        font-weight: 500;
+        transition: all 0.2s ease;
+    }
+    
+    .framework-select-btn:hover {
+        background-color: var(--primary-dark);
+        transform: translateY(-2px);
+    }
+    
+    .analysis-stage {
+        padding: 1.5rem;
+        margin-bottom: 2rem;
+        border-radius: 0.5rem;
+        background-color: rgba(100, 100, 100, 0.05);
+    }
+    
+    .stage-header {
+        display: flex;
+        align-items: center;
+        margin-bottom: 1rem;
+    }
+    
+    .stage-number {
+        width: 2.5rem;
+        height: 2.5rem;
+        border-radius: 50%;
+        background-color: var(--primary-color);
+        color: white;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-weight: bold;
+        margin-right: 1rem;
+    }
+    
+    .stage-content {
+        margin-left: 3.5rem;
+    }
+    
+    .input-group-text {
+        background-color: rgba(100, 100, 100, 0.05);
+        border-color: var(--border-color);
+    }
+    
+    .form-control, .form-select {
+        border-color: var(--border-color);
+        background-color: var(--input-bg);
+        color: var(--text-color);
+    }
+    
+    /* BCG Matrix Visualization Styles */
+    .bcg-matrix-visualization {
+        position: relative;
+        width: 100%;
+        height: 480px;
+        margin-top: 2rem;
+    }
+    
+    .bcg-quadrant {
+        position: absolute;
+        width: 50%;
+        height: 50%;
+        padding: 1rem;
+        box-sizing: border-box;
+        border: 1px solid var(--border-color);
+        display: flex;
+        flex-direction: column;
+        justify-content: center;
+        align-items: center;
+    }
+    
+    .bcg-stars {
+        top: 0;
+        right: 0;
+        background-color: rgba(46, 204, 113, 0.2);
+    }
+    
+    .bcg-cash-cows {
+        bottom: 0;
+        right: 0;
+        background-color: rgba(241, 196, 15, 0.2);
+    }
+    
+    .bcg-question-marks {
+        top: 0;
+        left: 0;
+        background-color: rgba(52, 152, 219, 0.2);
+    }
+    
+    .bcg-dogs {
+        bottom: 0;
+        left: 0;
+        background-color: rgba(231, 76, 60, 0.2);
+    }
+    
+    .bcg-title {
+        font-weight: 600;
+        margin-bottom: 0.5rem;
+        text-align: center;
+    }
+    
+    .bcg-description {
+        font-size: 0.8rem;
+        text-align: center;
+        margin-bottom: 1rem;
+    }
+    
+    .bcg-axis-x {
+        position: absolute;
+        bottom: 0;
+        left: 0;
+        width: 100%;
+        text-align: center;
+        padding: 0.5rem;
+    }
+    
+    .bcg-axis-y {
+        position: absolute;
+        top: 0;
+        left: 0;
+        height: 100%;
+        display: flex;
+        align-items: center;
+        transform: rotate(90deg);
+        transform-origin: top left;
+        padding: 0.5rem;
+    }
+    
+    /* SWOT Analysis Styles */
+    .swot-grid {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        grid-template-rows: 1fr 1fr;
+        gap: 1.5rem;
+        margin-top: 2rem;
+    }
+    
+    .swot-quadrant {
+        padding: 1.5rem;
+        border-radius: 0.5rem;
+        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+    }
+    
+    .swot-title {
+        font-weight: 600;
+        display: flex;
+        align-items: center;
+        margin-bottom: 1rem;
+    }
+    
+    .swot-title i {
+        margin-right: 0.5rem;
+    }
+    
+    .swot-strengths {
+        background-color: rgba(46, 204, 113, 0.1);
+        border-left: 4px solid #2ecc71;
+    }
+    
+    .swot-weaknesses {
+        background-color: rgba(231, 76, 60, 0.1);
+        border-left: 4px solid #e74c3c;
+    }
+    
+    .swot-opportunities {
+        background-color: rgba(52, 152, 219, 0.1);
+        border-left: 4px solid #3498db;
+    }
+    
+    .swot-threats {
+        background-color: rgba(241, 196, 15, 0.1);
+        border-left: 4px solid #f1c40f;
+    }
+    
+    .swot-list {
+        list-style-type: none;
+        padding-left: 0;
+        margin-bottom: 0;
+    }
+    
+    .swot-list li {
+        margin-bottom: 0.5rem;
+        padding-left: 1.25rem;
+        position: relative;
+    }
+    
+    .swot-list li:before {
+        content: "•";
+        position: absolute;
+        left: 0;
+        top: 0;
+    }
+    
+    /* Porter's Five Forces Visualization */
+    .forces-visualization {
+        position: relative;
+        width: 100%;
+        height: 500px;
+        margin-top: 2rem;
+    }
+    
+    .force-item {
+        position: absolute;
+        width: 180px;
+        padding: 1rem;
+        border-radius: 0.5rem;
+        background-color: rgba(var(--primary-rgb), 0.1);
+        border: 1px solid var(--primary-color);
+        text-align: center;
+        transition: all 0.3s ease;
+    }
+    
+    .force-item:hover {
+        transform: scale(1.05);
+        box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
+    }
+    
+    .force-center {
+        position: absolute;
+        top: 50%;
+        left: 50%;
+        transform: translate(-50%, -50%);
+        width: 200px;
+        height: 200px;
+        border-radius: 50%;
+        background-color: var(--primary-color);
+        color: white;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        text-align: center;
+        padding: 1.5rem;
+        box-shadow: 0 5px 20px rgba(0, 0, 0, 0.2);
+    }
+    
+    .force-north {
+        top: 0;
+        left: 50%;
+        transform: translateX(-50%);
+    }
+    
+    .force-south {
+        bottom: 0;
+        left: 50%;
+        transform: translateX(-50%);
+    }
+    
+    .force-east {
+        top: 50%;
+        right: 0;
+        transform: translateY(-50%);
+    }
+    
+    .force-west {
+        top: 50%;
+        left: 0;
+        transform: translateY(-50%);
+    }
+    
+    .force-score {
+        font-weight: bold;
+        font-size: 1.25rem;
+        margin-top: 0.5rem;
+    }
+    
+    /* Strategy Pyramid Styles */
+    .strategy-pyramid {
+        margin-top: 2rem;
+        padding-bottom: 2rem;
+    }
+    
+    .pyramid-level {
+        margin-bottom: 1.5rem;
+        padding: 1.25rem;
+        border-radius: 0.5rem;
+        background-color: rgba(100, 100, 100, 0.05);
+        transition: all 0.3s ease;
+    }
+    
+    .pyramid-level:hover {
+        transform: translateX(5px);
+        box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
+    }
+    
+    .pyramid-title {
+        font-weight: 600;
+        margin-bottom: 0.75rem;
+        display: flex;
+        align-items: center;
+    }
+    
+    .pyramid-title i {
+        margin-right: 0.75rem;
+    }
+    
+    .kpi-table th {
+        font-weight: 600;
+        color: var(--text-color);
+    }
+    
+    /* Blue Ocean Strategy Styles */
+    .ocean-chart {
+        margin-top: 2rem;
+    }
+    
+    .ocean-factors {
+        margin-top: 2rem;
+    }
+    
+    .factor-item {
+        padding: 1rem;
+        margin-bottom: 1rem;
+        border-radius: 0.5rem;
+        background-color: rgba(100, 100, 100, 0.05);
+        display: flex;
+        align-items: center;
+    }
+    
+    .factor-label {
+        flex: 1;
+        font-weight: 500;
+    }
+    
+    .factor-comparison {
+        flex: 2;
+        display: flex;
+        align-items: center;
+    }
+    
+    .compare-bar {
+        height: 10px;
+        flex: 1;
+        position: relative;
+    }
+    
+    .compare-us {
+        position: absolute;
+        height: 10px;
+        background-color: var(--primary-color);
+        left: 0;
+    }
+    
+    .compare-industry {
+        position: absolute;
+        height: 10px;
+        background-color: rgba(100, 100, 100, 0.3);
+        left: 0;
+    }
+    
+    .factor-value {
+        width: 50px;
+        text-align: center;
+        font-weight: 600;
+    }
+    
+    .factor-action {
+        width: 120px;
+        text-align: center;
+    }
+    
+    .action-badge {
+        font-size: 0.7rem;
+        padding: 0.25rem 0.5rem;
+        border-radius: 2rem;
+        display: inline-block;
+    }
+    
+    .action-create {
+        background-color: rgba(46, 204, 113, 0.2);
+        color: #2ecc71;
+    }
+    
+    .action-raise {
+        background-color: rgba(52, 152, 219, 0.2);
+        color: #3498db;
+    }
+    
+    .action-reduce {
+        background-color: rgba(241, 196, 15, 0.2);
+        color: #f1c40f;
+    }
+    
+    .action-eliminate {
+        background-color: rgba(231, 76, 60, 0.2);
+        color: #e74c3c;
+    }
+    
+    /* McKinsey 9-Box Matrix Styles */
+    .mckinsey-matrix {
+        display: grid;
+        grid-template-columns: repeat(3, 1fr);
+        grid-template-rows: repeat(3, 1fr);
+        gap: 1rem;
+        margin-top: 2rem;
+        height: 450px;
+    }
+    
+    .mckinsey-cell {
+        border-radius: 0.5rem;
+        padding: 1rem;
+        display: flex;
+        flex-direction: column;
+        justify-content: center;
+        align-items: center;
+        text-align: center;
+        transition: all 0.3s ease;
+    }
+    
+    .mckinsey-cell:hover {
+        transform: scale(1.05);
+    }
+    
+    .mckinsey-title {
+        font-weight: 600;
+        margin-bottom: 0.5rem;
+    }
+    
+    .mckinsey-desc {
+        font-size: 0.8rem;
+        margin-bottom: 0;
+    }
+    
+    .mckinsey-high-high {
+        background-color: rgba(46, 204, 113, 0.2);
+        border: 1px solid #2ecc71;
+    }
+    
+    .mckinsey-high-medium {
+        background-color: rgba(46, 204, 113, 0.1);
+        border: 1px solid #2ecc71;
+    }
+    
+    .mckinsey-high-low {
+        background-color: rgba(241, 196, 15, 0.1);
+        border: 1px solid #f1c40f;
+    }
+    
+    .mckinsey-medium-high {
+        background-color: rgba(46, 204, 113, 0.1);
+        border: 1px solid #2ecc71;
+    }
+    
+    .mckinsey-medium-medium {
+        background-color: rgba(241, 196, 15, 0.1);
+        border: 1px solid #f1c40f;
+    }
+    
+    .mckinsey-medium-low {
+        background-color: rgba(231, 76, 60, 0.1);
+        border: 1px solid #e74c3c;
+    }
+    
+    .mckinsey-low-high {
+        background-color: rgba(241, 196, 15, 0.1);
+        border: 1px solid #f1c40f;
+    }
+    
+    .mckinsey-low-medium {
+        background-color: rgba(231, 76, 60, 0.1);
+        border: 1px solid #e74c3c;
+    }
+    
+    .mckinsey-low-low {
+        background-color: rgba(231, 76, 60, 0.2);
+        border: 1px solid #e74c3c;
+    }
+    
+    .mckinsey-axis-x {
+        grid-column: 1 / span 3;
+        text-align: center;
+        font-weight: 500;
+        color: var(--text-muted);
+    }
+    
+    .mckinsey-axis-y {
+        grid-row: 1 / span 3;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        transform: rotate(-90deg);
+        font-weight: 500;
+        color: var(--text-muted);
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<!-- Toast notifications container -->
+<div class="toast-container" id="toast-container"></div>
+
+{% include "partials/page_header.html" with 
+    title="Strategy Simulation & McKinsey-Style Reporting",
+    description="Transform sustainability metrics into actionable business strategies through advanced strategic frameworks",
+    show_actions=true,
+    show_toggle=true
+%}
+
+<!-- Framework Selection -->
+<div class="container mt-4">
+    {% include "partials/dashboard_card.html" with
+        card_title="Select Strategic Framework",
+        icon_class="diagram-3",
+        card_id="framework-selection-card"
+    %}
+        {% block card_content %}
+        <div class="row g-4" id="framework-cards">
+            <div class="col-lg-4 col-md-6">
+                <div class="framework-card" data-framework="porters">
+                    <div class="framework-header">
+                        <span class="framework-badge competitive">Competitive Analysis</span>
+                        <h5>Porter's Five Forces</h5>
+                    </div>
+                    <div class="framework-content">
+                        <p>Analyze competitive forces shaping sustainability positioning in your industry, including supplier power, buyer power, competitive rivalry, threat of substitution, and new entrants.</p>
+                        <div class="framework-actions">
+                            <button class="framework-select-btn" data-framework="porters">Select</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="col-lg-4 col-md-6">
+                <div class="framework-card" data-framework="swot">
+                    <div class="framework-header">
+                        <span class="framework-badge strategic">Strategic Planning</span>
+                        <h5>SWOT Analysis</h5>
+                    </div>
+                    <div class="framework-content">
+                        <p>Evaluate Strengths, Weaknesses, Opportunities, and Threats related to your sustainability strategy, with AI-powered cross-strategies for actionable insights.</p>
+                        <div class="framework-actions">
+                            <button class="framework-select-btn" data-framework="swot">Select</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="col-lg-4 col-md-6">
+                <div class="framework-card" data-framework="bcg">
+                    <div class="framework-header">
+                        <span class="framework-badge growth">Portfolio Strategy</span>
+                        <h5>BCG Matrix</h5>
+                    </div>
+                    <div class="framework-content">
+                        <p>Apply the Boston Consulting Group Growth-Share Matrix to your sustainability initiatives portfolio to identify Stars, Cash Cows, Question Marks, and Dogs.</p>
+                        <div class="framework-actions">
+                            <button class="framework-select-btn" data-framework="bcg">Select</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="col-lg-4 col-md-6">
+                <div class="framework-card" data-framework="mckinsey">
+                    <div class="framework-header">
+                        <span class="framework-badge analytical">Investment Analysis</span>
+                        <h5>McKinsey 9-Box Matrix</h5>
+                    </div>
+                    <div class="framework-content">
+                        <p>Evaluate your sustainability initiatives based on market attractiveness and competitive strength to determine optimal resource allocation strategy.</p>
+                        <div class="framework-actions">
+                            <button class="framework-select-btn" data-framework="mckinsey">Select</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="col-lg-4 col-md-6">
+                <div class="framework-card" data-framework="pyramid">
+                    <div class="framework-header">
+                        <span class="framework-badge strategic">Implementation</span>
+                        <h5>Strategy Pyramid</h5>
+                    </div>
+                    <div class="framework-content">
+                        <p>Develop a comprehensive implementation plan for your sustainability strategy, from mission and objectives to tactics and action plans, with KPIs.</p>
+                        <div class="framework-actions">
+                            <button class="framework-select-btn" data-framework="pyramid">Select</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="col-lg-4 col-md-6">
+                <div class="framework-card" data-framework="blueocean">
+                    <div class="framework-header">
+                        <span class="framework-badge growth">Differentiation</span>
+                        <h5>Blue Ocean Strategy</h5>
+                    </div>
+                    <div class="framework-content">
+                        <p>Create new market space in sustainability by identifying factors to create, raise, reduce, and eliminate, creating a unique value curve distinct from competitors.</p>
+                        <div class="framework-actions">
+                            <button class="framework-select-btn" data-framework="blueocean">Select</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        {% endblock %}
+    </div>
+</div>
+
+<!-- Analysis Configuration -->
+<div class="container mt-5" id="analysis-config" style="display: none;">
+    {% include "partials/dashboard_card.html" with
+        card_title="Configure Analysis",
+        icon_class="gear",
+        card_id="analysis-config-card"
+    %}
+        {% block card_content %}
+        <div class="analysis-stage">
+            <div class="stage-header">
+                <div class="stage-number">1</div>
+                <h5>Select Data Source</h5>
+            </div>
+            <div class="stage-content">
+                <div class="row g-3">
+                    <div class="col-lg-6">
+                        <label class="form-label">Data Source Type</label>
+                        <select class="form-select" id="data-source-type">
+                            <option value="default">Default Sustainability Metrics</option>
+                            <option value="custom">Custom Data Upload</option>
+                            <option value="api">External API Connection</option>
+                        </select>
+                        <div class="form-text">Choose where to source your sustainability data from.</div>
+                    </div>
+                    
+                    <div class="col-lg-6">
+                        <label class="form-label">Timeframe</label>
+                        <select class="form-select" id="data-timeframe">
+                            <option value="3month">Last 3 Months</option>
+                            <option value="6month">Last 6 Months</option>
+                            <option value="year" selected>Last Year</option>
+                            <option value="2year">Last 2 Years</option>
+                        </select>
+                        <div class="form-text">Select the time period for analysis.</div>
+                    </div>
+                    
+                    <div class="col-lg-12" id="custom-upload-container" style="display: none;">
+                        <label class="form-label">Upload Custom Data</label>
+                        <div class="input-group">
+                            <input type="file" class="form-control" id="custom-data-upload" accept=".csv, .xlsx">
+                            <button class="btn btn-outline-primary" type="button" id="upload-custom-btn">Upload</button>
+                        </div>
+                        <div class="form-text">Accepted formats: CSV, Excel (XLSX). <a href="#" id="download-template">Download template</a></div>
+                    </div>
+                    
+                    <div class="col-lg-12" id="api-connection-container" style="display: none;">
+                        <label class="form-label">API Connection URL</label>
+                        <div class="input-group">
+                            <input type="text" class="form-control" id="api-url" placeholder="https://api.example.com/sustainability-data">
+                            <button class="btn btn-outline-primary" type="button" id="test-api-btn">Test Connection</button>
+                        </div>
+                        <div class="form-text">Enter the URL of your sustainability data API.</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <div class="analysis-stage">
+            <div class="stage-header">
+                <div class="stage-number">2</div>
+                <h5>Define Context</h5>
+            </div>
+            <div class="stage-content">
+                <div class="row g-3">
+                    <div class="col-lg-6">
+                        <label class="form-label">Company/Organization Name</label>
+                        <input type="text" class="form-control" id="company-name" placeholder="Your organization name">
+                    </div>
+                    
+                    <div class="col-lg-6">
+                        <label class="form-label">Industry Sector</label>
+                        <select class="form-select" id="industry-sector">
+                            <option value="">Select industry</option>
+                            <option value="real_estate">Real Estate & Construction</option>
+                            <option value="energy">Energy & Utilities</option>
+                            <option value="manufacturing">Manufacturing</option>
+                            <option value="retail">Retail & Consumer Goods</option>
+                            <option value="financial">Financial Services</option>
+                            <option value="technology">Technology</option>
+                            <option value="healthcare">Healthcare</option>
+                            <option value="agriculture">Agriculture & Food</option>
+                            <option value="transportation">Transportation & Logistics</option>
+                        </select>
+                    </div>
+                    
+                    <div class="col-lg-12">
+                        <label class="form-label">Analysis Objective</label>
+                        <textarea class="form-control" id="analysis-objective" rows="3" placeholder="Describe what you'd like to learn from this strategic analysis..."></textarea>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <div class="analysis-stage">
+            <div class="stage-header">
+                <div class="stage-number">3</div>
+                <h5>Additional Options</h5>
+            </div>
+            <div class="stage-content">
+                <div class="row g-3">
+                    <div class="col-lg-6">
+                        <label class="form-label">Include Benchmark Data</label>
+                        <select class="form-select" id="include-benchmark">
+                            <option value="yes" selected>Yes</option>
+                            <option value="no">No</option>
+                        </select>
+                        <div class="form-text">Compare your performance against industry benchmarks.</div>
+                    </div>
+                    
+                    <div class="col-lg-6">
+                        <label class="form-label">Analysis Depth</label>
+                        <select class="form-select" id="analysis-depth">
+                            <option value="standard">Standard</option>
+                            <option value="detailed" selected>Detailed</option>
+                            <option value="comprehensive">Comprehensive</option>
+                        </select>
+                        <div class="form-text">Level of detail in the analysis.</div>
+                    </div>
+                    
+                    <div class="col-lg-12">
+                        <div class="form-check form-switch">
+                            <input class="form-check-input" type="checkbox" id="include-recommendations" checked>
+                            <label class="form-check-label" for="include-recommendations">Include strategic recommendations</label>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <div class="d-flex justify-content-between mt-4">
+            <button class="btn btn-outline-secondary" id="back-to-frameworks-btn"><i class="bi bi-arrow-left"></i> Back to Frameworks</button>
+            <button class="btn btn-primary" id="run-analysis-btn">Run Analysis <i class="bi bi-play-fill"></i></button>
+        </div>
+        {% endblock %}
+    </div>
+</div>
+
+<!-- Analysis Results -->
+<div class="container mt-5" id="analysis-results" style="display: none;">
+    {% include "partials/dashboard_card.html" with
+        card_title="Strategic Analysis Results",
+        icon_class="graph-up",
+        card_id="analysis-results-card",
+        show_controls=true
+    %}
+        {% block card_controls %}
+        <div class="dropdown">
+            <button class="btn btn-sm btn-outline-primary dropdown-toggle" type="button" id="export-dropdown" data-bs-toggle="dropdown" aria-expanded="false">
+                <i class="bi bi-download"></i> Export
+            </button>
+            <ul class="dropdown-menu" aria-labelledby="export-dropdown">
+                <li><a class="dropdown-item" href="#" id="export-pdf"><i class="bi bi-file-pdf"></i> Export as PDF</a></li>
+                <li><a class="dropdown-item" href="#" id="export-excel"><i class="bi bi-file-excel"></i> Export as Excel</a></li>
+                <li><a class="dropdown-item" href="#" id="export-ppt"><i class="bi bi-file-earmark-slides"></i> Export as PowerPoint</a></li>
+                <li><a class="dropdown-item" href="#" id="export-json"><i class="bi bi-filetype-json"></i> Export as JSON</a></li>
+            </ul>
+        </div>
+        {% endblock %}
+        
+        {% block card_content %}
+        <!-- Results will be dynamically populated based on framework -->
+        <div id="loading-results" class="text-center py-5">
+            <div class="spinner-border text-primary" role="status">
+                <span class="visually-hidden">Loading...</span>
+            </div>
+            <p class="mt-3">Generating strategic analysis...</p>
+        </div>
+        
+        <!-- Framework-specific result containers -->
+        <div id="porters-results" style="display: none;">
+            <h4 class="mb-3">Porter's Five Forces Analysis</h4>
+            <p class="mb-4">This analysis examines the competitive landscape for sustainability in your industry through five key forces.</p>
+            
+            <div class="forces-visualization" id="porters-visualization">
+                <!-- Will be populated by JavaScript -->
+            </div>
+            
+            <div class="mt-5">
+                <h5>Key Insights</h5>
+                <div id="porters-insights"></div>
+                
+                <h5 class="mt-4">Strategic Recommendations</h5>
+                <div id="porters-recommendations"></div>
+            </div>
+        </div>
+        
+        <div id="swot-results" style="display: none;">
+            <h4 class="mb-3">SWOT Analysis</h4>
+            <p class="mb-4">This analysis identifies your organization's Strengths, Weaknesses, Opportunities, and Threats related to sustainability.</p>
+            
+            <div class="swot-grid" id="swot-grid">
+                <!-- Will be populated by JavaScript -->
+            </div>
+            
+            <div class="mt-5">
+                <h5>Cross-Strategy Recommendations</h5>
+                <div id="swot-strategies" class="row">
+                    <!-- Will be populated by JavaScript -->
+                </div>
+            </div>
+        </div>
+        
+        <div id="bcg-results" style="display: none;">
+            <h4 class="mb-3">BCG Growth-Share Matrix</h4>
+            <p class="mb-4">This analysis helps categorize your sustainability initiatives based on market growth rate and relative market share.</p>
+            
+            <div class="bcg-matrix-visualization" id="bcg-visualization">
+                <!-- Will be populated by JavaScript -->
+            </div>
+            
+            <div class="mt-5">
+                <h5>Property Categories</h5>
+                <div class="table-responsive">
+                    <table class="table" id="bcg-property-table">
+                        <thead>
+                            <tr>
+                                <th>Property Type</th>
+                                <th>Quadrant</th>
+                                <th>Market Growth Rate</th>
+                                <th>Relative Market Share</th>
+                                <th>Recommendation</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <!-- Will be populated by JavaScript -->
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+        
+        <div id="mckinsey-results" style="display: none;">
+            <h4 class="mb-3">McKinsey 9-Box Matrix</h4>
+            <p class="mb-4">This analysis evaluates your sustainability initiatives based on market attractiveness and competitive strength.</p>
+            
+            <div class="mckinsey-matrix" id="mckinsey-visualization">
+                <!-- Will be populated by JavaScript -->
+            </div>
+            
+            <div class="mt-5">
+                <h5>Key Insights</h5>
+                <div id="mckinsey-insights"></div>
+                
+                <h5 class="mt-4">Investment Recommendations</h5>
+                <div id="mckinsey-recommendations"></div>
+            </div>
+        </div>
+        
+        <div id="pyramid-results" style="display: none;">
+            <h4 class="mb-3">Strategy Pyramid Analysis</h4>
+            <p class="mb-4">This framework breaks down your sustainability strategy into a hierarchical structure from mission to action plans.</p>
+            
+            <div class="strategy-pyramid" id="pyramid-visualization">
+                <!-- Will be populated by JavaScript -->
+            </div>
+            
+            <div class="mt-4">
+                <h5>Key Performance Indicators</h5>
+                <div class="table-responsive">
+                    <table class="table" id="kpi-table">
+                        <thead>
+                            <tr>
+                                <th>KPI</th>
+                                <th>Current Value</th>
+                                <th>Target</th>
+                                <th>Timeline</th>
+                                <th>Status</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <!-- Will be populated by JavaScript -->
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+        
+        <div id="blueocean-results" style="display: none;">
+            <h4 class="mb-3">Blue Ocean Strategy Analysis</h4>
+            <p class="mb-4">This analysis helps identify opportunities to create uncontested market space in sustainability.</p>
+            
+            <div class="ocean-chart" id="ocean-visualization">
+                <!-- Will be populated by JavaScript -->
+            </div>
+            
+            <div class="ocean-factors" id="ocean-factors">
+                <h5>Value Innovation Factors</h5>
+                <!-- Will be populated by JavaScript -->
+            </div>
+            
+            <div class="mt-5">
+                <h5>Key Insights</h5>
+                <div id="blueocean-insights"></div>
+                
+                <h5 class="mt-4">Implementation Pathway</h5>
+                <div id="blueocean-pathway"></div>
+            </div>
+        </div>
+        
+        <div class="d-flex justify-content-between mt-5">
+            <button class="btn btn-outline-secondary" id="back-to-config-btn"><i class="bi bi-arrow-left"></i> Back to Configuration</button>
+            <button class="btn btn-primary" id="new-analysis-btn">New Analysis <i class="bi bi-plus-lg"></i></button>
+        </div>
+        {% endblock %}
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script src="{{ url_for('static', filename='js/common.js') }}"></script>
+<script src="{{ url_for('static', filename='js/strategy-simulation.js') }}"></script>
+{% endblock %}

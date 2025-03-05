@@ -1,0 +1,25 @@
+<!-- Dashboard Card Component -->
+<div class="card dashboard-card {% if card_class %}{{ card_class }}{% endif %}" id="{{ card_id|default('') }}">
+    <div class="card-header d-flex align-items-center justify-content-between">
+        <h5 class="m-0">
+            {% if icon_class %}<i class="bi bi-{{ icon_class }} me-2"></i>{% endif %}
+            {{ card_title }}
+        </h5>
+        
+        {% if show_controls %}
+        <div class="card-actions">
+            {% block card_controls %}{% endblock %}
+        </div>
+        {% endif %}
+    </div>
+    <div class="card-body">
+        {% block card_content %}
+        {{ card_content|safe }}
+        {% endblock %}
+    </div>
+    {% if show_footer %}
+    <div class="card-footer">
+        {% block card_footer %}{% endblock %}
+    </div>
+    {% endif %}
+</div>
