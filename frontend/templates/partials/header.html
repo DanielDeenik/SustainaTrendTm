@@ -1,0 +1,44 @@
+<header class="navbar navbar-dark sticky-top bg-dark flex-md-nowrap p-0 shadow">
+  <a class="navbar-brand col-md-3 col-lg-2 me-0 px-3 fs-6" href="/">
+    <img src="/static/img/logo-icon.png" alt="SustainaTrend™" height="24" class="d-inline-block align-text-top me-2">
+    SustainaTrend™
+  </a>
+  <button class="navbar-toggler position-absolute d-md-none collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#sidebarMenu" aria-controls="sidebarMenu" aria-expanded="false" aria-label="Toggle navigation">
+    <span class="navbar-toggler-icon"></span>
+  </button>
+  <div class="form-control form-control-dark w-100 rounded-0 border-0 d-none d-md-block">
+    <div class="d-flex align-items-center">
+      <form class="w-100" action="/search" method="get" id="searchForm">
+        <div class="input-group">
+          <input type="text" class="form-control bg-dark border-0 text-white" id="globalSearch" name="q" placeholder="Search sustainability data..." aria-label="Search" autocomplete="off">
+          <button class="btn btn-outline-light" type="submit">
+            <i class="bi bi-search"></i>
+          </button>
+        </div>
+      </form>
+    </div>
+  </div>
+  
+  <div class="navbar-nav">
+    <div class="nav-item text-nowrap">
+      <a class="nav-link px-3" href="#" id="darkModeToggle">
+        <i class="bi bi-moon"></i>
+      </a>
+    </div>
+    <div class="nav-item text-nowrap">
+      <a class="nav-link px-3" href="/api-status">
+        <i class="bi bi-activity"></i>
+      </a>
+    </div>
+    <div class="nav-item text-nowrap">
+      <a class="nav-link px-3" href="#">
+        <i class="bi bi-bell"></i>
+      </a>
+    </div>
+    <div class="nav-item text-nowrap">
+      <a class="nav-link px-3" href="#">
+        <i class="bi bi-person-circle"></i>
+      </a>
+    </div>
+  </div>
+</header>

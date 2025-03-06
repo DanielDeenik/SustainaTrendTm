@@ -1,0 +1,130 @@
+{% macro get_category_color(category) %}
+  {%- if category == 'energy' -%}
+    primary
+  {%- elif category == 'emissions' -%}
+    success
+  {%- elif category == 'water' -%}
+    info
+  {%- elif category == 'waste' -%}
+    warning
+  {%- elif category == 'social' -%}
+    secondary
+  {%- elif category == 'governance' -%}
+    dark
+  {%- else -%}
+    primary
+  {%- endif -%}
+{% endmacro %}
+
+{% macro metric_table(metrics, categories=None, sort="virality", include_actions=True) %}
+<div class="card shadow-sm">
+  <div class="card-header bg-transparent d-flex justify-content-between align-items-center">
+    <h5 class="card-title mb-0">Sustainability Metrics</h5>
+    <div class="d-flex">
+      {% if categories %}
+      <div class="dropdown me-2 filter-dropdown" data-filter-type="category">
+        <button class="btn btn-sm btn-outline-secondary dropdown-toggle" type="button" id="categoryDropdown" data-bs-toggle="dropdown" aria-expanded="false">
+          All Categories
+        </button>
+        <ul class="dropdown-menu" aria-labelledby="categoryDropdown">
+          <li><a class="dropdown-item active" href="#" data-value="all">All Categories</a></li>
+          {% for category in categories %}
+          <li><a class="dropdown-item" href="#" data-value="{{ category }}">{{ category|title }}</a></li>
+          {% endfor %}
+        </ul>
+      </div>
+      {% endif %}
+      <div class="dropdown filter-dropdown" data-filter-type="sort">
+        <button class="btn btn-sm btn-outline-secondary dropdown-toggle" type="button" id="sortDropdown" data-bs-toggle="dropdown" aria-expanded="false">
+          Sort by {{ sort|title }}
+        </button>
+        <ul class="dropdown-menu dropdown-menu-end" aria-labelledby="sortDropdown">
+          <li><a class="dropdown-item {% if sort == 'virality' %}active{% endif %}" href="#" data-value="virality">Virality</a></li>
+          <li><a class="dropdown-item {% if sort == 'name' %}active{% endif %}" href="#" data-value="name">Name</a></li>
+          <li><a class="dropdown-item {% if sort == 'value' %}active{% endif %}" href="#" data-value="value">Value</a></li>
+          <li><a class="dropdown-item {% if sort == 'change' %}active{% endif %}" href="#" data-value="change">% Change</a></li>
+        </ul>
+      </div>
+    </div>
+  </div>
+  <div class="card-body p-0">
+    <div class="table-responsive">
+      <table class="table table-hover align-middle mb-0">
+        <thead>
+          <tr>
+            <th>Metric</th>
+            <th>Category</th>
+            <th>Value</th>
+            <th>Change</th>
+            <th>Trend</th>
+            <th>Virality</th>
+            {% if include_actions %}
+            <th>Actions</th>
+            {% endif %}
+          </tr>
+        </thead>
+        <tbody>
+          {% for metric in metrics %}
+          <tr data-category="{{ metric.category }}" class="metric-row">
+            <td>
+              <div class="d-flex align-items-center">
+                <div class="metric-icon bg-{{ get_category_color(metric.category) }} bg-opacity-10 me-2">
+                  <i class="bi bi-{{ metric.icon if metric.icon else 'graph-up' }}"></i>
+                </div>
+                <div>
+                  <h6 class="mb-0">{{ metric.name }}</h6>
+                  {% if metric.subtitle %}
+                  <small class="text-muted">{{ metric.subtitle }}</small>
+                  {% endif %}
+                </div>
+              </div>
+            </td>
+            <td>
+              <span class="badge bg-{{ get_category_color(metric.category) }} bg-opacity-75">{{ metric.category|title }}</span>
+            </td>
+            <td>
+              <div class="fw-bold">{{ metric.value }}</div>
+              <small class="text-muted">{{ metric.unit }}</small>
+            </td>
+            <td>
+              <div class="d-flex align-items-center {{ 'text-success' if metric.percent_change > 0 else 'text-danger' if metric.percent_change < 0 else 'text-muted' }}">
+                <i class="bi bi-{{ 'arrow-up' if metric.percent_change > 0 else 'arrow-down' if metric.percent_change < 0 else 'dash' }} me-1"></i>
+                <span>{{ metric.percent_change|abs }}%</span>
+              </div>
+            </td>
+            <td>
+              <div class="sparkline" data-values="{{ metric.trend_data|join(',') }}"></div>
+            </td>
+            <td>
+              <div class="d-flex align-items-center">
+                <div class="progress flex-grow-1" style="height: 6px;">
+                  <div class="progress-bar bg-{{ 'danger' if metric.virality >= 75 else 'warning' if metric.virality >= 50 else 'success' }}" 
+                       role="progressbar" 
+                       style="width: {{ metric.virality }}%" 
+                       aria-valuenow="{{ metric.virality }}" 
+                       aria-valuemin="0" 
+                       aria-valuemax="100"></div>
+                </div>
+                <span class="ms-2 small">{{ metric.virality }}</span>
+              </div>
+            </td>
+            {% if include_actions %}
+            <td>
+              <div class="btn-group btn-group-sm">
+                <button type="button" class="btn btn-sm btn-outline-primary" data-bs-toggle="tooltip" title="View Details">
+                  <i class="bi bi-eye"></i>
+                </button>
+                <button type="button" class="btn btn-sm btn-outline-success" data-bs-toggle="tooltip" title="Set Goal">
+                  <i class="bi bi-trophy"></i>
+                </button>
+              </div>
+            </td>
+            {% endif %}
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  </div>
+</div>
+{% endmacro %}

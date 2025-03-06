@@ -8,18 +8,19 @@
         
         {% if show_controls %}
         <div class="card-actions">
-            {% block card_controls %}{% endblock %}
+            <!-- Card controls will be added after include -->
         </div>
         {% endif %}
     </div>
     <div class="card-body">
-        {% block card_content %}
+        {% if card_content %}
         {{ card_content|safe }}
-        {% endblock %}
+        {% endif %}
+        <!-- Card content will be added after include -->
     </div>
     {% if show_footer %}
     <div class="card-footer">
-        {% block card_footer %}{% endblock %}
+        <!-- Card footer will be added after include -->
     </div>
     {% endif %}
 </div>

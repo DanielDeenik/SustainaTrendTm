@@ -1,0 +1,96 @@
+<nav id="sidebarMenu" class="col-md-3 col-lg-2 d-md-block bg-light sidebar collapse">
+  <div class="position-sticky pt-3 sidebar-sticky">
+    <ul class="nav flex-column">
+      <li class="nav-item">
+        <a class="nav-link {{ 'active' if active_page == 'home' else '' }}" href="/">
+          <i class="bi bi-house me-2"></i>
+          Home
+        </a>
+      </li>
+      <li class="nav-item">
+        <a class="nav-link {{ 'active' if active_page == 'dashboard' else '' }}" href="/dashboard">
+          <i class="bi bi-speedometer2 me-2"></i>
+          Dashboard
+        </a>
+      </li>
+      <li class="nav-item">
+        <a class="nav-link {{ 'active' if active_page == 'trend-analysis' else '' }}" href="/trend-analysis">
+          <i class="bi bi-graph-up me-2"></i>
+          Trend Analysis
+        </a>
+      </li>
+      <li class="nav-item">
+        <a class="nav-link {{ 'active' if active_page == 'search' else '' }}" href="/search">
+          <i class="bi bi-search me-2"></i>
+          AI Search
+        </a>
+      </li>
+      <li class="nav-item">
+        <a class="nav-link {{ 'active' if active_page == 'document-upload' else '' }}" href="/document-upload">
+          <i class="bi bi-file-earmark-text me-2"></i>
+          Document Analysis
+        </a>
+      </li>
+    </ul>
+
+    <h6 class="sidebar-heading d-flex justify-content-between align-items-center px-3 mt-4 mb-1 text-muted text-uppercase">
+      <span>Sustainability Intelligence</span>
+    </h6>
+    <ul class="nav flex-column mb-2">
+      <li class="nav-item">
+        <a class="nav-link {{ 'active' if active_page == 'realestate-trends' else '' }}" href="/realestate-trends">
+          <i class="bi bi-building me-2"></i>
+          Real Estate Trends
+        </a>
+      </li>
+      <li class="nav-item">
+        <a class="nav-link {{ 'active' if active_page == 'strategy-simulation' else '' }}" href="/strategy-simulation/">
+          <i class="bi bi-kanban me-2"></i>
+          Strategy Simulation
+        </a>
+      </li>
+      <li class="nav-item">
+        <a class="nav-link {{ 'active' if active_page == 'company-search' else '' }}" href="/company-search">
+          <i class="bi bi-building-check me-2"></i>
+          Company Research
+        </a>
+      </li>
+      <li class="nav-item">
+        <a class="nav-link {{ 'active' if active_page == 'esrs-framework' else '' }}" href="/esrs-framework">
+          <i class="bi bi-clipboard-check me-2"></i>
+          ESRS Framework
+        </a>
+      </li>
+    </ul>
+
+    <h6 class="sidebar-heading d-flex justify-content-between align-items-center px-3 mt-4 mb-1 text-muted text-uppercase">
+      <span>Advanced Analytics</span>
+    </h6>
+    <ul class="nav flex-column mb-2">
+      <li class="nav-item">
+        <a class="nav-link {{ 'active' if active_page == 'sentiment-analysis' else '' }}" href="/sentiment-analysis">
+          <i class="bi bi-emoji-smile me-2"></i>
+          Sentiment Analysis
+        </a>
+      </li>
+      <li class="nav-item">
+        <a class="nav-link {{ 'active' if active_page == 'trend-virality-dashboard' else '' }}" href="/trend-virality-dashboard">
+          <i class="bi bi-lightning me-2"></i>
+          Trend Virality
+        </a>
+      </li>
+      <li class="nav-item">
+        <a class="nav-link {{ 'active' if active_page == 'sustainability-storytelling' else '' }}" href="/sustainability-storytelling">
+          <i class="bi bi-book me-2"></i>
+          AI Storytelling
+        </a>
+      </li>
+      <li class="nav-item">
+        <a class="nav-link {{ 'active' if active_page == 'ethical-ai' else '' }}" href="/ethical-ai">
+          <i class="bi bi-shield-check me-2"></i>
+          Ethical AI
+        </a>
+      </li>
+    </ul>
+  </div>
+</nav>

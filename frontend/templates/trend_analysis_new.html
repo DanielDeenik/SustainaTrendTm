@@ -13,7 +13,7 @@
 <!-- Toast notifications container -->
 <div class="toast-container" id="toast-container"></div>
 
-{% include "partials/page_header.html" with 
+{% with 
     title="Sustainability Trend Analysis",
     description="AI-driven insights into emerging sustainability trends",
     show_actions=true,
@@ -21,6 +21,8 @@
     show_filter=true,
     show_export=true
 %}
+    {% include "partials/page_header.html" %}
+{% endwith %}
 
 <!-- Filter Modal -->
 <div class="filter-modal" id="filter-modal">
@@ -93,7 +95,7 @@
 <!-- Analytics Summary Cards -->
 <div class="container">
     <div class="analytics-grid mb-4">
-        {% include "partials/analytics_card.html" with 
+        {% with 
             card_title="Top Trending Metric",
             icon_class="graph-up",
             important=true,
@@ -102,14 +104,15 @@
                 "type": "success"
             }
         %}
-            {% block card_content %}
-            <h4 class="fs-2 fw-bold text-success mb-1">Renewable Energy Usage</h4>
-            <p class="text-muted mb-0">Highest growth rate across all metrics</p>
-            <div class="mt-3 small"><i class="bi bi-info-circle"></i> <span class="text-muted">Virality Score: 92</span></div>
-            {% endblock %}
-        </div>
+            {% include "partials/analytics_card.html" %}
+            <div class="card-content">
+                <h4 class="fs-2 fw-bold text-success mb-1">Renewable Energy Usage</h4>
+                <p class="text-muted mb-0">Highest growth rate across all metrics</p>
+                <div class="mt-3 small"><i class="bi bi-info-circle"></i> <span class="text-muted">Virality Score: 92</span></div>
+            </div>
+        {% endwith %}
         
-        {% include "partials/analytics_card.html" with 
+        {% with 
             card_title="Emerging Trends",
             icon_class="activity",
             badge={
@@ -117,25 +120,26 @@
                 "type": "info"
             }
         %}
-            {% block card_content %}
-            <ul class="list-group list-group-flush">
-                <li class="list-group-item d-flex align-items-center border-0 px-0">
-                    <div class="me-auto">Carbon Capture Implementation</div>
-                    <span class="badge bg-primary">↑ 18%</span>
-                </li>
-                <li class="list-group-item d-flex align-items-center border-0 px-0">
-                    <div class="me-auto">Water Recycling Programs</div>
-                    <span class="badge bg-success">↑ 14%</span>
-                </li>
-                <li class="list-group-item d-flex align-items-center border-0 px-0">
-                    <div class="me-auto">Diversity Initiatives</div>
-                    <span class="badge bg-primary">↑ 12%</span>
-                </li>
-            </ul>
-            {% endblock %}
-        </div>
+            {% include "partials/analytics_card.html" %}
+            <div class="card-content">
+                <ul class="list-group list-group-flush">
+                    <li class="list-group-item d-flex align-items-center border-0 px-0">
+                        <div class="me-auto">Carbon Capture Implementation</div>
+                        <span class="badge bg-primary">↑ 18%</span>
+                    </li>
+                    <li class="list-group-item d-flex align-items-center border-0 px-0">
+                        <div class="me-auto">Water Recycling Programs</div>
+                        <span class="badge bg-success">↑ 14%</span>
+                    </li>
+                    <li class="list-group-item d-flex align-items-center border-0 px-0">
+                        <div class="me-auto">Diversity Initiatives</div>
+                        <span class="badge bg-primary">↑ 12%</span>
+                    </li>
+                </ul>
+            </div>
+        {% endwith %}
         
-        {% include "partials/analytics_card.html" with 
+        {% with 
             card_title="Improvement Areas",
             icon_class="flag",
             badge={
@@ -143,19 +147,20 @@
                 "type": "warning"
             }
         %}
-            {% block card_content %}
-            <ul class="list-group list-group-flush">
-                <li class="list-group-item d-flex align-items-center border-0 px-0">
-                    <div class="me-auto">Scope 3 Emissions</div>
-                    <span class="badge bg-danger">↑ 7%</span>
-                </li>
-                <li class="list-group-item d-flex align-items-center border-0 px-0">
-                    <div class="me-auto">Waste Management</div>
-                    <span class="badge bg-warning">↓ 3%</span>
-                </li>
-            </ul>
-            {% endblock %}
-        </div>
+            {% include "partials/analytics_card.html" %}
+            <div class="card-content">
+                <ul class="list-group list-group-flush">
+                    <li class="list-group-item d-flex align-items-center border-0 px-0">
+                        <div class="me-auto">Scope 3 Emissions</div>
+                        <span class="badge bg-danger">↑ 7%</span>
+                    </li>
+                    <li class="list-group-item d-flex align-items-center border-0 px-0">
+                        <div class="me-auto">Waste Management</div>
+                        <span class="badge bg-warning">↓ 3%</span>
+                    </li>
+                </ul>
+            </div>
+        {% endwith %}
     </div>
 </div>
 
@@ -164,141 +169,146 @@
     <div class="row g-4">
         <!-- Main Trend Chart -->
         <div class="col-lg-8">
-            {% include "partials/dashboard_card.html" with
+            {% with
                 card_title="Sustainability Trend Analysis",
                 icon_class="graph-up",
                 card_class="trend-chart-card",
                 show_controls=true
             %}
-                {% block card_controls %}
-                <select id="chart-time-range" class="form-select form-select-sm">
-                    <option value="3month">Last 3 Months</option>
-                    <option value="6month">Last 6 Months</option>
-                    <option value="year" selected>Last Year</option>
-                    <option value="all">All Time</option>
-                </select>
-                {% endblock %}
+                {% include "partials/dashboard_card.html" %}
+                <div class="card-controls">
+                    <select id="chart-time-range" class="form-select form-select-sm">
+                        <option value="3month">Last 3 Months</option>
+                        <option value="6month">Last 6 Months</option>
+                        <option value="year" selected>Last Year</option>
+                        <option value="all">All Time</option>
+                    </select>
+                </div>
                 
-                {% block card_content %}
-                <div id="trend-chart" class="trend-chart-container"></div>
-                {% endblock %}
-            </div>
+                <div class="card-content">
+                    <div id="trend-chart" class="trend-chart-container"></div>
+                </div>
+            {% endwith %}
         </div>
         
         <!-- Category Distribution -->
         <div class="col-lg-4">
-            {% include "partials/dashboard_card.html" with
+            {% with
                 card_title="Category Distribution",
                 icon_class="pie-chart",
                 card_class="h-100"
             %}
-                {% block card_content %}
-                <div id="category-distribution" class="chart-container"></div>
-                {% endblock %}
-            </div>
+                {% include "partials/dashboard_card.html" %}
+                <div class="card-content">
+                    <div id="category-distribution" class="chart-container"></div>
+                </div>
+            {% endwith %}
         </div>
         
         <!-- Virality Radar -->
         <div class="col-lg-6">
-            {% include "partials/dashboard_card.html" with
+            {% with
                 card_title="Virality Radar by Category",
                 icon_class="bullseye"
             %}
-                {% block card_content %}
-                <div id="virality-radar" class="chart-container"></div>
-                {% endblock %}
-            </div>
+                {% include "partials/dashboard_card.html" %}
+                <div class="card-content">
+                    <div id="virality-radar" class="chart-container"></div>
+                </div>
+            {% endwith %}
         </div>
         
         <!-- Sustainability Metrics -->
         <div class="col-lg-6">
-            {% include "partials/dashboard_card.html" with
+            {% with
                 card_title="Key Metrics Overview",
                 icon_class="speedometer2"
             %}
-                {% block card_content %}
-                <div class="row g-3 text-center">
-                    <div class="col-6">
-                        <div class="metric-circle">
-                            <div class="metric-value" id="total-trends">--</div>
-                            <div class="metric-label">Total Trends</div>
+                {% include "partials/dashboard_card.html" %}
+                <div class="card-content">
+                    <div class="row g-3 text-center">
+                        <div class="col-6">
+                            <div class="metric-circle">
+                                <div class="metric-value" id="total-trends">--</div>
+                                <div class="metric-label">Total Trends</div>
+                            </div>
                         </div>
-                    </div>
-                    <div class="col-6">
-                        <div class="metric-circle">
-                            <div class="metric-value" id="avg-virality">--</div>
-                            <div class="metric-label">Avg. Virality</div>
+                        <div class="col-6">
+                            <div class="metric-circle">
+                                <div class="metric-value" id="avg-virality">--</div>
+                                <div class="metric-label">Avg. Virality</div>
+                            </div>
                         </div>
-                    </div>
-                    <div class="col-6">
-                        <div class="metric-circle positive">
-                            <div class="metric-value" id="improving-trends">--</div>
-                            <div class="metric-label">Improving</div>
-                            <div class="metric-percent" id="improving-percent">--%</div>
+                        <div class="col-6">
+                            <div class="metric-circle positive">
+                                <div class="metric-value" id="improving-trends">--</div>
+                                <div class="metric-label">Improving</div>
+                                <div class="metric-percent" id="improving-percent">--%</div>
+                            </div>
                         </div>
-                    </div>
-                    <div class="col-6">
-                        <div class="metric-circle negative">
-                            <div class="metric-value" id="worsening-trends">--</div>
-                            <div class="metric-label">Worsening</div>
-                            <div class="metric-percent" id="worsening-percent">--%</div>
+                        <div class="col-6">
+                            <div class="metric-circle negative">
+                                <div class="metric-value" id="worsening-trends">--</div>
+                                <div class="metric-label">Worsening</div>
+                                <div class="metric-percent" id="worsening-percent">--%</div>
+                            </div>
                         </div>
                     </div>
                 </div>
-                {% endblock %}
-            </div>
+            {% endwith %}
         </div>
     </div>
 </div>
 
 <!-- Trend Data Table -->
 <div class="container mt-5">
-    {% include "partials/dashboard_card.html" with
+    {% with
         card_title="Detailed Trend Data",
         icon_class="table",
         show_controls=true
     %}
-        {% block card_controls %}
-        <button class="btn btn-sm btn-outline-primary me-2" id="refresh-table">
-            <i class="bi bi-arrow-clockwise"></i> Refresh
-        </button>
-        <select id="table-category-filter" class="form-select form-select-sm d-inline-block" style="width: auto;">
-            <option value="all">All Categories</option>
-            <option value="emissions">Emissions</option>
-            <option value="energy">Energy</option>
-            <option value="water">Water</option>
-            <option value="waste">Waste</option>
-            <option value="social">Social</option>
-        </select>
-        {% endblock %}
-        
-        {% block card_content %}
-        <div class="table-responsive">
-            <table class="table table-hover trend-table" id="trend-table">
-                <thead>
-                    <tr>
-                        <th>#</th>
-                        <th>Name</th>
-                        <th>Category</th>
-                        <th>Virality Score</th>
-                        <th>Direction</th>
-                        <th>Duration</th>
-                        <th>Date</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    <!-- Will be populated dynamically -->
-                    <tr class="placeholder-glow">
-                        <td colspan="7" class="text-center py-5">
-                            <span class="placeholder col-6"></span>
-                            <p class="small text-muted mt-2">Loading trend data...</p>
-                        </td>
-                    </tr>
-                </tbody>
-            </table>
+        {% include "partials/dashboard_card.html" %}
+        <div class="card-controls">
+            <button class="btn btn-sm btn-outline-primary me-2" id="refresh-table">
+                <i class="bi bi-arrow-clockwise"></i> Refresh
+            </button>
+            <select id="table-category-filter" class="form-select form-select-sm d-inline-block" style="width: auto;">
+                <option value="all">All Categories</option>
+                <option value="emissions">Emissions</option>
+                <option value="energy">Energy</option>
+                <option value="water">Water</option>
+                <option value="waste">Waste</option>
+                <option value="social">Social</option>
+            </select>
         </div>
-        {% endblock %}
-    </div>
+        
+        <div class="card-content">
+            <div class="table-responsive">
+                <table class="table table-hover trend-table" id="trend-table">
+                    <thead>
+                        <tr>
+                            <th>#</th>
+                            <th>Name</th>
+                            <th>Category</th>
+                            <th>Virality Score</th>
+                            <th>Direction</th>
+                            <th>Duration</th>
+                            <th>Date</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <!-- Will be populated dynamically -->
+                        <tr class="placeholder-glow">
+                            <td colspan="7" class="text-center py-5">
+                                <span class="placeholder col-6"></span>
+                                <p class="small text-muted mt-2">Loading trend data...</p>
+                            </td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    {% endwith %}
 </div>
 
 <!-- React App Mount Point -->

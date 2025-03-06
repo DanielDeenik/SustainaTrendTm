@@ -1,1462 +1,1041 @@
 /**
- * Real Estate Sustainability Intelligence Dashboard
- * SustainaTrend™ Platform - JavaScript for Real Estate Sustainability Visualizations
+ * Real Estate Sustainability Trend Analysis JavaScript Module
  */
 
-// Set dark mode as default theme
-let isDarkMode = true;
+// Chart objects
+let trendChart, categoryDistributionChart, impactRadarChart;
+let miniCharts = {};
 
-document.addEventListener('DOMContentLoaded', function() {
-    // Initialize charts
-    initCharts();
-    
-    // Fetch real estate trend data on load
-    fetchRealEstateTrendData();
-    
-    // Set up event listeners for filter controls
-    document.getElementById('filter-btn')?.addEventListener('click', function() {
-        document.getElementById('filter-modal')?.classList.add('show');
-    });
-    
-    document.getElementById('close-modal')?.addEventListener('click', function() {
-        document.getElementById('filter-modal')?.classList.remove('show');
-    });
-    
-    document.getElementById('apply-filters')?.addEventListener('click', function() {
-        // Get selected filter values
-        const timeframe = document.querySelector('input[name="timeframe"]:checked')?.value || 'all';
-        
-        const categoryCheckboxes = document.querySelectorAll('input[name="category"]:checked');
-        const categories = Array.from(categoryCheckboxes).map(cb => cb.value);
-        
-        const propertyTypeCheckboxes = document.querySelectorAll('input[name="property_type"]:checked');
-        const propertyTypes = Array.from(propertyTypeCheckboxes).map(cb => cb.value);
-        
-        const impactValue = document.getElementById('impact-slider')?.value || 30;
-        
-        // Apply filters
-        applyDataFilters(timeframe, categories, propertyTypes, impactValue);
-        
-        // Close modal
-        document.getElementById('filter-modal')?.classList.remove('show');
-        
-        // Show notification
-        showNotification('Filters applied successfully', 'bi-funnel-fill', 'info');
-    });
-    
-    // Set up value chain selector
-    setupValueChainSelector();
-    
-    // Set up RAG query system
-    setupRagQuerySystem();
-    
-    // Set up property sustainability scorecard
-    setupPropertyScorecard();
-    
-    // Set up chart time range selector
-    document.getElementById('chart-time-range')?.addEventListener('change', function() {
-        fetchRealEstateTrendData(null, this.value);
-    });
-    
-    // Set up table category filter
-    document.getElementById('table-category-filter')?.addEventListener('change', function() {
-        const category = this.value;
-        filterTableByCategory(category);
-    });
-    
-    // Set up export dropdown
-    document.getElementById('export-btn')?.addEventListener('click', function() {
-        document.getElementById('export-dropdown')?.classList.toggle('show');
-    });
-    
-    // Set up export actions
-    document.querySelectorAll('#export-dropdown a[data-format]').forEach(link => {
-        link.addEventListener('click', function(e) {
-            e.preventDefault();
-            
-            const format = this.getAttribute('data-format');
-            exportData(format);
-        });
-    });
-    
-    // Close export dropdown when clicking outside
-    document.addEventListener('click', function(e) {
-        const exportBtn = document.getElementById('export-btn');
-        const exportDropdown = document.getElementById('export-dropdown');
-        
-        if (exportBtn && exportDropdown && !exportBtn.contains(e.target)) {
-            exportDropdown.classList.remove('show');
-        }
-    });
-    
-    // Set up impact slider value display
-    const impactSlider = document.getElementById('impact-slider');
-    const impactValue = document.getElementById('impact-value');
-    
-    if (impactSlider && impactValue) {
-        impactSlider.addEventListener('input', function() {
-            impactValue.textContent = this.value;
-        });
-    }
-});
-
+/**
+ * Update chart theme based on dark mode
+ */
 function updateChartTheme(isDarkMode) {
-    // Apply chart theme based on dark/light mode
-    const chartTheme = isDarkMode ? 'dark' : 'light';
+  const theme = {
+    backgroundColor: isDarkMode ? '#1e1e1e' : '#ffffff',
+    textColor: isDarkMode ? '#e0e0e0' : '#666666',
+    gridColor: isDarkMode ? 'rgba(255, 255, 255, 0.1)' : 'rgba(0, 0, 0, 0.1)',
+    borderColor: isDarkMode ? '#444' : '#e0e0e0',
+    tooltipBackgroundColor: isDarkMode ? 'rgba(0, 0, 0, 0.8)' : 'rgba(255, 255, 255, 0.8)',
+    tooltipTextColor: isDarkMode ? '#fff' : '#333'
+  };
+  
+  // Apply theme to all charts
+  [trendChart, categoryDistributionChart, impactRadarChart, ...Object.values(miniCharts)].forEach(chart => {
+    if (!chart) return;
     
-    // Update theme for all charts
-    // This would be implemented based on the charting library used
-    console.log(`Updated chart theme to ${chartTheme}`);
+    // Update chart options
+    chart.options.scales = chart.options.scales || {};
+    
+    Object.values(chart.options.scales).forEach(scale => {
+      scale.grid = scale.grid || {};
+      scale.grid.color = theme.gridColor;
+      scale.ticks = scale.ticks || {};
+      scale.ticks.color = theme.textColor;
+    });
+    
+    if (chart.options.plugins && chart.options.plugins.legend) {
+      chart.options.plugins.legend.labels = chart.options.plugins.legend.labels || {};
+      chart.options.plugins.legend.labels.color = theme.textColor;
+    }
+    
+    if (chart.options.plugins && chart.options.plugins.tooltip) {
+      chart.options.plugins.tooltip.backgroundColor = theme.tooltipBackgroundColor;
+      chart.options.plugins.tooltip.titleColor = theme.tooltipTextColor;
+      chart.options.plugins.tooltip.bodyColor = theme.tooltipTextColor;
+    }
+    
+    chart.update();
+  });
 }
 
+/**
+ * Initialize all charts
+ */
 function initCharts() {
-    // Initialize trend chart
-    initTrendChart(document.getElementById('trend-chart'));
-    
-    // Initialize category distribution
-    initCategoryDistribution(document.getElementById('category-distribution'));
-    
-    // Initialize impact radar
-    initImpactRadar(document.getElementById('impact-radar'));
-    
-    // Initialize story charts
-    initStoryCharts();
+  // Initialize trend chart
+  initTrendChart(document.getElementById('trendChart'));
+  
+  // Initialize category distribution chart
+  initCategoryDistribution(document.getElementById('categoryDistribution'));
+  
+  // Initialize impact radar chart
+  initImpactRadar(document.getElementById('impactRadar'));
+  
+  // Initialize mini charts in cards
+  initMiniCharts();
+  
+  // Apply initial theme
+  const isDarkMode = document.body.classList.contains('dark-mode');
+  updateChartTheme(isDarkMode);
+  
+  // Subscribe to dark mode changes
+  document.addEventListener('dark-mode-toggled', (e) => {
+    updateChartTheme(e.detail.isDarkMode);
+  });
 }
 
+/**
+ * Initialize trend chart
+ */
 function initTrendChart(element) {
-    if (!element) return;
-    
-    // Create a placeholder trend chart (will be populated with real data later)
-    const data = [{
-        type: 'scatter',
-        mode: 'lines',
-        name: 'Energy Efficiency',
-        x: ['Oct 2024', 'Nov 2024', 'Dec 2024', 'Jan 2025', 'Feb 2025', 'Mar 2025'],
-        y: [45, 47, 52, 58, 63, 68],
-        line: {
-            color: '#2ecc71'
-        }
-    }, {
-        type: 'scatter',
-        mode: 'lines',
-        name: 'Carbon Footprint',
-        x: ['Oct 2024', 'Nov 2024', 'Dec 2024', 'Jan 2025', 'Feb 2025', 'Mar 2025'],
-        y: [30, 32, 35, 38, 42, 46],
-        line: {
-            color: '#3498db'
-        }
-    }, {
-        type: 'scatter',
-        mode: 'lines',
-        name: 'Green Financing',
-        x: ['Oct 2024', 'Nov 2024', 'Dec 2024', 'Jan 2025', 'Feb 2025', 'Mar 2025'],
-        y: [12, 15, 18, 22, 28, 35],
-        line: {
-            color: '#9b59b6'
-        }
-    }, {
-        type: 'scatter',
-        mode: 'lines',
-        name: 'Certifications',
-        x: ['Oct 2024', 'Nov 2024', 'Dec 2024', 'Jan 2025', 'Feb 2025', 'Mar 2025'],
-        y: [25, 28, 30, 32, 34, 37],
-        line: {
-            color: '#f1c40f'
-        }
-    }, {
-        type: 'scatter',
-        mode: 'lines',
-        name: 'Market Trends',
-        x: ['Oct 2024', 'Nov 2024', 'Dec 2024', 'Jan 2025', 'Feb 2025', 'Mar 2025'],
-        y: [40, 42, 45, 48, 52, 55],
-        line: {
-            color: '#e67e22'
-        }
-    }];
-    
-    const layout = {
-        title: '',
-        height: 400,
-        margin: {
-            l: 50,
-            r: 30,
-            b: 50,
-            t: 10,
-            pad: 4
-        },
-        xaxis: {
-            title: '',
-            showgrid: false
-        },
-        yaxis: {
-            title: 'Score',
-            range: [0, 100]
-        },
+  if (!element) return;
+  
+  // Sample data - will be replaced with real API data
+  const labels = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+  const data = {
+    labels: labels,
+    datasets: [
+      {
+        label: 'Energy Efficiency',
+        data: [75, 76, 78, 80, 82, 83, 85, 86, 88, 90, 91, 92],
+        borderColor: '#2E7D32',
+        backgroundColor: 'rgba(46, 125, 50, 0.1)',
+        tension: 0.4,
+        pointRadius: 3
+      },
+      {
+        label: 'Emissions Reduction',
+        data: [60, 62, 65, 68, 72, 76, 80, 84, 87, 89, 90, 92],
+        borderColor: '#4CAF50',
+        backgroundColor: 'rgba(76, 175, 80, 0.1)',
+        tension: 0.4,
+        pointRadius: 3
+      },
+      {
+        label: 'Water Conservation',
+        data: [50, 52, 55, 58, 62, 65, 68, 72, 75, 78, 80, 82],
+        borderColor: '#0288D1',
+        backgroundColor: 'rgba(2, 136, 209, 0.1)',
+        tension: 0.4,
+        pointRadius: 3
+      },
+      {
+        label: 'Waste Reduction',
+        data: [40, 45, 49, 52, 58, 64, 70, 74, 78, 82, 85, 88],
+        borderColor: '#FFA000',
+        backgroundColor: 'rgba(255, 160, 0, 0.1)',
+        tension: 0.4,
+        pointRadius: 3
+      }
+    ]
+  };
+  
+  const config = {
+    type: 'line',
+    data: data,
+    options: {
+      responsive: true,
+      maintainAspectRatio: false,
+      plugins: {
         legend: {
-            orientation: 'h',
-            yanchor: 'bottom',
-            y: -0.3,
-            xanchor: 'center',
-            x: 0.5
+          position: 'top',
         },
-        plot_bgcolor: 'rgba(0,0,0,0)',
-        paper_bgcolor: 'rgba(0,0,0,0)',
-        font: {
-            color: isDarkMode ? '#e0e0e0' : '#333333'
+        tooltip: {
+          mode: 'index',
+          intersect: false,
+          callbacks: {
+            label: function(context) {
+              return context.dataset.label + ': ' + context.raw;
+            }
+          }
         }
-    };
-    
-    const config = {
-        responsive: true,
-        displayModeBar: false
-    };
-    
-    try {
-        Plotly.newPlot(element, data, layout, config);
-    } catch (e) {
-        console.error('Error initializing trend chart:', e);
-        element.innerHTML = '<div class="alert alert-danger">Error initializing chart</div>';
+      },
+      scales: {
+        x: {
+          title: {
+            display: true,
+            text: 'Month'
+          }
+        },
+        y: {
+          title: {
+            display: true,
+            text: 'Score'
+          },
+          suggestedMin: 0,
+          suggestedMax: 100
+        }
+      },
+      interaction: {
+        mode: 'nearest',
+        axis: 'x',
+        intersect: false
+      }
     }
+  };
+  
+  trendChart = new Chart(element, config);
 }
 
+/**
+ * Initialize category distribution chart
+ */
 function initCategoryDistribution(element) {
-    if (!element) return;
-    
-    // Create a placeholder category distribution chart
-    const data = [{
-        type: 'pie',
-        values: [30, 25, 15, 20, 10],
-        labels: ['Energy Efficiency', 'Carbon Footprint', 'Green Financing', 'Certifications', 'Market Trends'],
-        textinfo: 'label+percent',
-        textposition: 'outside',
-        automargin: true,
-        marker: {
-            colors: ['#2ecc71', '#3498db', '#9b59b6', '#f1c40f', '#e67e22']
-        }
-    }];
-    
-    const layout = {
-        height: 400,
-        margin: {
-            l: 10,
-            r: 10,
-            b: 10,
-            t: 10,
-            pad: 4
+  if (!element) return;
+  
+  // Sample data - will be replaced with real API data
+  const data = {
+    labels: ['Energy', 'Emissions', 'Water', 'Waste', 'Social', 'Governance'],
+    datasets: [{
+      data: [82, 75, 65, 70, 60, 55],
+      backgroundColor: [
+        '#2E7D32', // Energy - Primary
+        '#4CAF50', // Emissions - Success
+        '#0288D1', // Water - Info
+        '#FFA000', // Waste - Warning
+        '#78909C', // Social - Secondary
+        '#455A64'  // Governance - Dark
+      ],
+      borderWidth: 0,
+      borderRadius: 4
+    }]
+  };
+  
+  const config = {
+    type: 'bar',
+    data: data,
+    options: {
+      responsive: true,
+      maintainAspectRatio: false,
+      indexAxis: 'y',
+      plugins: {
+        legend: {
+          display: false
         },
-        showlegend: false,
-        plot_bgcolor: 'rgba(0,0,0,0)',
-        paper_bgcolor: 'rgba(0,0,0,0)',
-        font: {
-            color: isDarkMode ? '#e0e0e0' : '#333333'
+        tooltip: {
+          callbacks: {
+            label: function(context) {
+              return context.raw + ' / 100';
+            }
+          }
         }
-    };
-    
-    const config = {
-        responsive: true,
-        displayModeBar: false
-    };
-    
-    try {
-        Plotly.newPlot(element, data, layout, config);
-    } catch (e) {
-        console.error('Error initializing category distribution chart:', e);
-        element.innerHTML = '<div class="alert alert-danger">Error initializing chart</div>';
+      },
+      scales: {
+        x: {
+          max: 100,
+          grid: {
+            display: true
+          }
+        },
+        y: {
+          grid: {
+            display: false
+          }
+        }
+      }
     }
+  };
+  
+  categoryDistributionChart = new Chart(element, config);
 }
 
+/**
+ * Initialize impact radar chart
+ */
 function initImpactRadar(element) {
-    if (!element) return;
-    
-    // Create a placeholder impact radar chart with improved accessibility
-    const data = [{
-        type: 'scatterpolar',
-        r: [85, 60, 70, 45, 90],
-        theta: ['Energy Efficiency', 'Carbon Footprint', 'Green Financing', 'Certifications', 'Market Trends'],
-        fill: 'toself',
-        name: 'Impact Score',
-        marker: {
-            color: 'rgba(46, 204, 113, 0.7)'
+  if (!element) return;
+  
+  // Sample data - will be replaced with real API data
+  const data = {
+    labels: [
+      'Carbon Reduction',
+      'Energy Efficiency',
+      'Water Conservation',
+      'Waste Management',
+      'Renewable Energy',
+      'Sustainable Materials'
+    ],
+    datasets: [
+      {
+        label: 'Current Performance',
+        data: [75, 82, 65, 70, 58, 62],
+        fill: true,
+        backgroundColor: 'rgba(46, 125, 50, 0.2)',
+        borderColor: '#2E7D32',
+        pointBackgroundColor: '#2E7D32',
+        pointBorderColor: '#fff',
+        pointHoverBackgroundColor: '#fff',
+        pointHoverBorderColor: '#2E7D32'
+      },
+      {
+        label: 'Industry Benchmark',
+        data: [65, 70, 60, 55, 50, 58],
+        fill: true,
+        backgroundColor: 'rgba(66, 165, 245, 0.2)',
+        borderColor: '#42A5F5',
+        pointBackgroundColor: '#42A5F5',
+        pointBorderColor: '#fff',
+        pointHoverBackgroundColor: '#fff',
+        pointHoverBorderColor: '#42A5F5'
+      }
+    ]
+  };
+  
+  const config = {
+    type: 'radar',
+    data: data,
+    options: {
+      responsive: true,
+      maintainAspectRatio: false,
+      elements: {
+        line: {
+          borderWidth: 2
         }
-    }];
+      },
+      scales: {
+        r: {
+          angleLines: {
+            display: true
+          },
+          suggestedMin: 0,
+          suggestedMax: 100
+        }
+      }
+    }
+  };
+  
+  impactRadarChart = new Chart(element, config);
+}
+
+/**
+ * Initialize mini charts in analytics cards
+ */
+function initMiniCharts() {
+  const miniChartElements = document.querySelectorAll('.mini-chart canvas');
+  
+  miniChartElements.forEach(element => {
+    const chartId = element.id;
+    const cardType = chartId.replace('TrendMini', '').toLowerCase();
     
-    const layout = {
-        height: 400,
-        margin: {
-            l: 50,
-            r: 50,
-            b: 30,
-            t: 10,
-            pad: 4
-        },
-        polar: {
-            radialaxis: {
-                visible: true,
-                range: [0, 100],
-                tickfont: {
-                    size: 10,
-                    color: isDarkMode ? '#e0e0e0' : '#333333'
-                },
-                ticksuffix: '%'
-            },
-            angularaxis: {
-                tickfont: {
-                    size: 12,
-                    color: isDarkMode ? '#e0e0e0' : '#333333'
-                }
-            }
-        },
-        showlegend: false,
-        plot_bgcolor: 'rgba(0,0,0,0)',
-        paper_bgcolor: 'rgba(0,0,0,0)',
-        font: {
-            color: isDarkMode ? '#e0e0e0' : '#333333'
-        },
-        annotations: [
-            {
-                x: 0.5,
-                y: 1.05,
-                xref: 'paper',
-                yref: 'paper',
-                text: 'Impact Score By Category',
-                showarrow: false,
-                font: {
-                    size: 15,
-                    color: isDarkMode ? '#e0e0e0' : '#333333'
-                }
-            }
-        ]
-    };
+    // Generate random data based on card type
+    let data, color;
+    
+    switch (cardType) {
+      case 'energy':
+        data = [70, 72, 75, 78, 80, 82];
+        color = '#2E7D32'; // primary
+        break;
+      case 'carbon':
+        data = [65, 70, 78, 82, 85, 88];
+        color = '#4CAF50'; // success
+        break;
+      case 'water':
+        data = [140, 138, 136, 135, 134, 134];
+        color = '#0288D1'; // info
+        break;
+      case 'roi':
+        data = [12.5, 13.0, 13.8, 14.5, 15.0, 15.2];
+        color = '#FFA000'; // warning
+        break;
+      default:
+        data = [50, 55, 60, 65, 70, 75];
+        color = '#2E7D32'; // primary
+    }
     
     const config = {
+      type: 'line',
+      data: {
+        labels: ['', '', '', '', '', ''], // Empty labels for cleaner look
+        datasets: [{
+          data: data,
+          borderColor: color,
+          backgroundColor: 'rgba(0, 0, 0, 0)', // Transparent
+          tension: 0.4,
+          pointRadius: 0,
+          borderWidth: 2
+        }]
+      },
+      options: {
         responsive: true,
-        displayModeBar: false,
-        toImageButtonOptions: {
-            format: 'png',
-            filename: 'real_estate_impact_radar',
-            scale: 2
+        maintainAspectRatio: false,
+        plugins: {
+          legend: {
+            display: false
+          },
+          tooltip: {
+            enabled: false
+          }
+        },
+        scales: {
+          x: {
+            display: false
+          },
+          y: {
+            display: false
+          }
+        },
+        elements: {
+          line: {
+            tension: 0.4
+          }
         }
+      }
     };
     
-    try {
-        Plotly.newPlot(element, data, layout, config);
-        
-        // Add accessibility description
-        const descriptionEl = document.createElement('div');
-        descriptionEl.className = 'sr-only';
-        descriptionEl.setAttribute('role', 'complementary');
-        descriptionEl.innerHTML = `
-            <p>This radar chart shows impact scores across different sustainability categories:
-            Energy Efficiency: 85%, Carbon Footprint: 60%, Green Financing: 70%, 
-            Certifications: 45%, and Market Trends: 90%.</p>
-        `;
-        element.appendChild(descriptionEl);
-    } catch (e) {
-        console.error('Error initializing impact radar chart:', e);
-        element.innerHTML = '<div class="alert alert-danger">Error initializing chart</div>';
-    }
+    miniCharts[chartId] = new Chart(element, config);
+  });
 }
 
-function initStoryCharts() {
-    // Initialize story charts for data storytelling section
-    const storyChart1 = document.getElementById('story-chart-1');
-    const storyChart2 = document.getElementById('story-chart-2');
-    
-    if (storyChart1) {
-        // Create price premium by EPC rating chart
-        const data = [{
-            type: 'bar',
-            x: ['G', 'F', 'E', 'D', 'C', 'B', 'A', 'A+'],
-            y: [-3.5, -2.1, -0.8, 0, 1.2, 2.5, 4.2, 5.8],
-            marker: {
-                color: ['#e74c3c', '#e67e22', '#f39c12', '#f1c40f', '#2ecc71', '#27ae60', '#1abc9c', '#16a085']
-            }
-        }];
-        
-        const layout = {
-            title: 'Price Premium by EPC Rating (%)',
-            height: 300,
-            margin: {
-                l: 50,
-                r: 30,
-                b: 50,
-                t: 50,
-                pad: 4
-            },
-            plot_bgcolor: 'rgba(0,0,0,0)',
-            paper_bgcolor: 'rgba(0,0,0,0)',
-            font: {
-                color: isDarkMode ? '#e0e0e0' : '#333333'
-            }
-        };
-        
-        const config = {
-            responsive: true,
-            displayModeBar: false
-        };
-        
-        try {
-            Plotly.newPlot(storyChart1, data, layout, config);
-        } catch (e) {
-            console.error('Error initializing story chart 1:', e);
-            storyChart1.innerHTML = '<div class="alert alert-danger">Error initializing chart</div>';
-        }
-    }
-    
-    if (storyChart2) {
-        // Create green mortgage growth chart
-        const data = [{
-            type: 'scatter',
-            mode: 'lines+markers',
-            x: ['Q1 2024', 'Q2 2024', 'Q3 2024', 'Q4 2024', 'Q1 2025'],
-            y: [8, 10, 13, 15, 18],
-            name: 'Green Mortgage Share (%)',
-            line: {
-                color: '#9b59b6',
-                width: 3
-            },
-            marker: {
-                size: 8
-            }
-        }];
-        
-        const layout = {
-            title: 'Green Mortgage Market Share Growth',
-            height: 300,
-            margin: {
-                l: 50,
-                r: 30,
-                b: 50,
-                t: 50,
-                pad: 4
-            },
-            yaxis: {
-                range: [0, 25]
-            },
-            plot_bgcolor: 'rgba(0,0,0,0)',
-            paper_bgcolor: 'rgba(0,0,0,0)',
-            font: {
-                color: isDarkMode ? '#e0e0e0' : '#333333'
-            }
-        };
-        
-        const config = {
-            responsive: true,
-            displayModeBar: false
-        };
-        
-        try {
-            Plotly.newPlot(storyChart2, data, layout, config);
-        } catch (e) {
-            console.error('Error initializing story chart 2:', e);
-            storyChart2.innerHTML = '<div class="alert alert-danger">Error initializing chart</div>';
-        }
-    }
-}
-
+/**
+ * Fetch real estate trend data from the API
+ */
 function fetchRealEstateTrendData(category = null, timeframe = null) {
-    console.log('Fetching real estate trend data', 
-                category ? `for category: ${category}` : 'for all categories',
-                timeframe ? `with timeframe: ${timeframe}` : '');
-    
-    // Show loading states
-    showLoadingStates();
-    
-    // Prepare API URL with query parameters
-    let apiUrl = '/api/realestate-trends';
-    const params = new URLSearchParams();
-    
-    if (category && category !== 'all') {
-        params.append('category', category);
-    }
-    
-    if (timeframe && timeframe !== 'all') {
-        params.append('timeframe', timeframe);
-    }
-    
-    // Add params to URL if any exist
-    if (params.toString()) {
-        apiUrl += `?${params.toString()}`;
-    }
-    
-    // Fetch data
-    fetch(apiUrl)
-        .then(response => {
-            if (!response.ok) {
-                throw new Error(`HTTP error ${response.status}`);
-            }
-            return response.json();
-        })
-        .then(data => {
-            if (data.success) {
-                updateDashboard(data);
-                // Show success notification
-                showNotification('Real estate sustainability data updated successfully', 'bi-check-circle-fill', 'success');
-            } else {
-                throw new Error('Data fetch failed');
-            }
-        })
-        .catch(error => {
-            console.error('Error fetching real estate trend data:', error);
-            // Show error notification
-            showNotification('Failed to update real estate data. Please try again.', 'bi-exclamation-triangle-fill', 'error');
-            // Remove loading states
-            removeLoadingStates();
-        });
+  // Show loading state while fetching data
+  showLoadingStates();
+  
+  // Build URL with parameters
+  let url = '/api/realestate-trends';
+  const params = [];
+  if (category) params.push(`category=${category}`);
+  if (timeframe) params.push(`timeframe=${timeframe}`);
+  if (params.length > 0) url += '?' + params.join('&');
+  
+  // Fetch data from API
+  fetch(url)
+    .then(response => {
+      if (!response.ok) {
+        throw new Error(`API request failed: ${response.status}`);
+      }
+      return response.json();
+    })
+    .then(data => {
+      updateDashboard(data);
+      removeLoadingStates();
+    })
+    .catch(error => {
+      console.error('Error fetching real estate trend data:', error);
+      // Use mock data as fallback
+      const mockData = generateMockData();
+      updateDashboard(mockData);
+      removeLoadingStates();
+      
+      // Show error notification
+      if (window.showNotification) {
+        window.showNotification(
+          'Could not fetch data from API. Using sample data instead.',
+          'bi-exclamation-triangle',
+          'warning'
+        );
+      }
+    });
 }
 
+/**
+ * Show loading states for components while data is being fetched
+ */
 function showLoadingStates() {
-    // Show loading state for all relevant containers
-    const containers = [
-        document.getElementById('trend-chart'),
-        document.getElementById('category-distribution'),
-        document.getElementById('impact-radar')
-    ];
-    
-    containers.forEach(container => {
-        if (container) {
-            container.classList.add('loading');
-            
-            // Add loading indicator if it's a chart container
-            if (container.classList.contains('chart-container') || 
-                container.classList.contains('trend-chart-container')) {
-                
-                // Only add if not already present
-                if (!container.querySelector('.chart-loading-indicator')) {
-                    const loadingEl = document.createElement('div');
-                    loadingEl.className = 'chart-loading-indicator';
-                    loadingEl.innerHTML = `
-                        <div class="spinner-border text-primary" role="status">
-                            <span class="visually-hidden">Loading...</span>
-                        </div>
-                        <p class="mt-2 text-muted">Loading real estate data...</p>
-                    `;
-                    container.appendChild(loadingEl);
-                }
-            }
-        }
-    });
-    
-    // Show loading placeholder in table
-    const tableBody = document.querySelector('#trend-table tbody');
-    if (tableBody) {
-        tableBody.innerHTML = `
-            <tr class="placeholder-glow">
-                <td colspan="7" class="text-center py-5">
-                    <div class="d-flex justify-content-center">
-                        <div class="spinner-border text-primary" role="status">
-                            <span class="visually-hidden">Loading metric data...</span>
-                        </div>
-                    </div>
-                    <p class="text-muted mt-3">Loading real estate sustainability metrics...</p>
-                </td>
-            </tr>
-        `;
-    }
+  document.querySelectorAll('.card-body').forEach(el => {
+    el.classList.add('loading');
+  });
 }
 
+/**
+ * Remove loading states after data has been loaded
+ */
 function removeLoadingStates() {
-    // Remove loading state from all relevant containers
-    const containers = [
-        document.getElementById('trend-chart'),
-        document.getElementById('category-distribution'),
-        document.getElementById('impact-radar')
-    ];
-    
-    containers.forEach(container => {
-        if (container) {
-            container.classList.remove('loading');
-            
-            // Remove loading indicator
-            const loadingEl = container.querySelector('.chart-loading-indicator');
-            if (loadingEl) {
-                loadingEl.remove();
-            }
-        }
-    });
+  document.querySelectorAll('.card-body').forEach(el => {
+    el.classList.remove('loading');
+  });
 }
 
+/**
+ * Update dashboard with fetched data
+ */
 function updateDashboard(data) {
-    // Update all dashboard components with real estate data
-    updateSummaryCards(data);
-    updateCharts(data);
-    updateMetricTable(data.trends);
-    
-    // Remove all loading states
-    removeLoadingStates();
+  // Update summary cards
+  updateSummaryCards(data);
+  
+  // Update charts
+  updateCharts(data);
+  
+  // Update metric table
+  updateMetricTable(data.metrics || []);
 }
 
+/**
+ * Update summary cards with data
+ */
 function updateSummaryCards(data) {
-    if (!data || !data.trends || data.trends.length === 0) return;
-    
-    // Get trends sorted by impact score (should already be sorted)
-    const sortedTrends = [...data.trends];
-    
-    // Top metric
-    const topMetric = sortedTrends[0];
-    if (topMetric) {
-        const topMetricName = document.getElementById('top-metric-name');
-        const topMetricDesc = document.getElementById('top-metric-desc');
-        const topMetricScore = document.getElementById('top-metric-score');
-        
-        if (topMetricName) topMetricName.textContent = topMetric.name;
-        if (topMetricDesc) {
-            const categoryDisplay = getCategoryDisplayName(topMetric.category);
-            topMetricDesc.textContent = `Highest impact across ${categoryDisplay} metrics`;
-        }
-        if (topMetricScore) topMetricScore.textContent = topMetric.virality_score;
-    }
-    
-    // Emerging trends (top 3 improving trends)
-    const improvingTrends = sortedTrends.filter(t => t.trend_direction === 'improving');
-    const emergingTrendsList = document.getElementById('emerging-trends-list');
-    
-    if (emergingTrendsList && improvingTrends.length > 0) {
-        let emergingTrendsHtml = '';
-        
-        // Take top 3 improving trends
-        improvingTrends.slice(0, 3).forEach(trend => {
-            const categoryClass = getCategoryClass(trend.category);
-            const categoryDisplay = getCategoryDisplayName(trend.category);
-            
-            emergingTrendsHtml += `
-                <li class="list-group-item d-flex align-items-center border-0 px-0">
-                    <div class="me-auto">${trend.name} <span class="metric-badge ${categoryClass}">${categoryDisplay}</span></div>
-                    <span class="badge bg-primary">↑ ${trend.percent_change}%</span>
-                </li>
-            `;
-        });
-        
-        emergingTrendsList.innerHTML = emergingTrendsHtml;
-    }
-    
-    // Focus areas (top worsening trends)
-    const worseningTrends = sortedTrends.filter(t => t.trend_direction === 'worsening');
-    const focusAreasList = document.getElementById('focus-areas-list');
-    
-    if (focusAreasList) {
-        let focusAreasHtml = '';
-        
-        if (worseningTrends.length > 0) {
-            // Take top 2 worsening trends
-            worseningTrends.slice(0, 2).forEach(trend => {
-                const categoryClass = getCategoryClass(trend.category);
-                const categoryDisplay = getCategoryDisplayName(trend.category);
-                
-                focusAreasHtml += `
-                    <li class="list-group-item d-flex align-items-center border-0 px-0">
-                        <div class="me-auto">${trend.name} <span class="metric-badge ${categoryClass}">${categoryDisplay}</span></div>
-                        <span class="badge bg-danger">↑ ${trend.percent_change}%</span>
-                    </li>
-                `;
-            });
-        } else {
-            // If no worsening trends, show the lowest performing trends
-            sortedTrends.slice(-2).forEach(trend => {
-                const categoryClass = getCategoryClass(trend.category);
-                const categoryDisplay = getCategoryDisplayName(trend.category);
-                
-                focusAreasHtml += `
-                    <li class="list-group-item d-flex align-items-center border-0 px-0">
-                        <div class="me-auto">${trend.name} <span class="metric-badge ${categoryClass}">${categoryDisplay}</span></div>
-                        <span class="badge bg-warning">↓ Low Impact</span>
-                    </li>
-                `;
-            });
-        }
-        
-        focusAreasList.innerHTML = focusAreasHtml;
-    }
-    
-    // Key metrics overview
-    const totalMetrics = document.getElementById('total-metrics');
-    const avgImpact = document.getElementById('avg-impact');
-    const improvingMetrics = document.getElementById('improving-metrics');
-    const improvingPercent = document.getElementById('improving-percent');
-    const worseningMetrics = document.getElementById('worsening-metrics');
-    const worseningPercent = document.getElementById('worsening-percent');
-    
-    if (totalMetrics) totalMetrics.textContent = data.trends.length;
-    
-    if (avgImpact) {
-        const avgScore = data.trends.reduce((sum, trend) => sum + trend.virality_score, 0) / data.trends.length;
-        avgImpact.textContent = avgScore.toFixed(1);
-    }
-    
-    const improvingCount = improvingTrends.length;
-    const worseningCount = worseningTrends.length;
-    
-    if (improvingMetrics) improvingMetrics.textContent = improvingCount;
-    if (improvingPercent) {
-        const improvingPercentValue = (improvingCount / data.trends.length * 100).toFixed(0);
-        improvingPercent.textContent = `${improvingPercentValue}%`;
-    }
-    
-    if (worseningMetrics) worseningMetrics.textContent = worseningCount;
-    if (worseningPercent) {
-        const worseningPercentValue = (worseningCount / data.trends.length * 100).toFixed(0);
-        worseningPercent.textContent = `${worseningPercentValue}%`;
-    }
+  // This would be implemented with real data in production
+  // For now, we'll keep the static content in the HTML
 }
 
+/**
+ * Update charts with real data
+ */
 function updateCharts(data) {
-    if (!data) return;
-    
-    // Update trend chart
-    updateTrendChart(data.chart_data);
-    
-    // Update category distribution
-    updateCategoryDistribution(data.category_counts);
-    
-    // Update impact radar
-    updateImpactRadar(data.trends);
+  if (data.trendChartData) {
+    updateTrendChart(data.trendChartData);
+  }
+  
+  if (data.categoryDistribution) {
+    updateCategoryDistribution(data.categoryDistribution);
+  }
+  
+  if (data.impactData) {
+    updateImpactRadar(data.impactData);
+  }
 }
 
+/**
+ * Update trend chart with real data
+ */
 function updateTrendChart(chartData) {
-    const trendChart = document.getElementById('trend-chart');
-    if (!trendChart || !chartData || chartData.length === 0) return;
-    
-    try {
-        // Extract timestamps for x-axis
-        const timestamps = chartData.map(d => d.timestamp);
-        
-        // Prepare series data
-        const seriesData = [
-            {
-                type: 'scatter',
-                mode: 'lines',
-                name: 'Energy Efficiency',
-                x: timestamps,
-                y: chartData.map(d => d.energy_efficiency || 0),
-                line: { color: '#2ecc71' }
-            },
-            {
-                type: 'scatter',
-                mode: 'lines',
-                name: 'Carbon Footprint',
-                x: timestamps,
-                y: chartData.map(d => d.carbon_footprint || 0),
-                line: { color: '#3498db' }
-            },
-            {
-                type: 'scatter',
-                mode: 'lines',
-                name: 'Green Financing',
-                x: timestamps,
-                y: chartData.map(d => d.green_financing || 0),
-                line: { color: '#9b59b6' }
-            },
-            {
-                type: 'scatter',
-                mode: 'lines',
-                name: 'Certifications',
-                x: timestamps,
-                y: chartData.map(d => d.certifications || 0),
-                line: { color: '#f1c40f' }
-            },
-            {
-                type: 'scatter',
-                mode: 'lines',
-                name: 'Market Trends',
-                x: timestamps,
-                y: chartData.map(d => d.market_trends || 0),
-                line: { color: '#e67e22' }
-            }
-        ];
-        
-        // Update chart
-        Plotly.react(trendChart, seriesData);
-        
-    } catch (e) {
-        console.error('Error updating trend chart:', e);
-    }
+  if (!trendChart || !chartData || !chartData.datasets) return;
+  
+  trendChart.data.labels = chartData.labels || trendChart.data.labels;
+  trendChart.data.datasets = chartData.datasets || trendChart.data.datasets;
+  trendChart.update();
 }
 
-function updateCategoryDistribution(categoryCounts) {
-    const chartElement = document.getElementById('category-distribution');
-    if (!chartElement || !categoryCounts) return;
-    
-    try {
-        // Prepare data
-        const categories = Object.keys(categoryCounts);
-        const counts = categories.map(c => categoryCounts[c]);
-        const labels = categories.map(getCategoryDisplayName);
-        
-        const data = [{
-            type: 'pie',
-            values: counts,
-            labels: labels,
-            textinfo: 'label+percent',
-            textposition: 'outside',
-            automargin: true,
-            marker: {
-                colors: getCategoryColors(categories)
-            }
-        }];
-        
-        // Update chart
-        Plotly.react(chartElement, data);
-        
-    } catch (e) {
-        console.error('Error updating category distribution chart:', e);
-    }
+/**
+ * Update category distribution chart with real data
+ */
+function updateCategoryDistribution(categoryData) {
+  if (!categoryDistributionChart || !categoryData) return;
+  
+  categoryDistributionChart.data.labels = categoryData.labels || categoryDistributionChart.data.labels;
+  categoryDistributionChart.data.datasets[0].data = categoryData.data || categoryDistributionChart.data.datasets[0].data;
+  categoryDistributionChart.update();
+  
+  // Update category insights
+  if (categoryData.insights) {
+    document.getElementById('topPerformingCategory').textContent = categoryData.insights.topPerforming || 'Energy Efficiency';
+    document.getElementById('attentionCategory').textContent = categoryData.insights.needsAttention || 'Water Management';
+    document.getElementById('improvedCategory').textContent = categoryData.insights.mostImproved || 'Waste Reduction';
+  }
 }
 
-function updateImpactRadar(trends) {
-    const chartElement = document.getElementById('impact-radar');
-    if (!chartElement || !trends || trends.length === 0) return;
-    
-    try {
-        // Calculate average impact score by category
-        const categoryScores = {};
-        const categoryCounts = {};
-        const highestTrends = {};  // Track highest impact trend per category
-        
-        trends.forEach(trend => {
-            const category = trend.category;
-            
-            if (!categoryScores[category]) {
-                categoryScores[category] = 0;
-                categoryCounts[category] = 0;
-                highestTrends[category] = { score: 0, name: '' };
-            }
-            
-            categoryScores[category] += trend.virality_score;
-            categoryCounts[category]++;
-            
-            // Track highest impact trend in each category
-            if (trend.virality_score > highestTrends[category].score) {
-                highestTrends[category] = { 
-                    score: trend.virality_score, 
-                    name: trend.name,
-                    trend_direction: trend.trend_direction,
-                    percent_change: trend.percent_change
-                };
-            }
-        });
-        
-        // Calculate averages
-        const categories = Object.keys(categoryScores);
-        const avgScores = categories.map(c => Math.round(categoryScores[c] / categoryCounts[c]));
-        const labels = categories.map(getCategoryDisplayName);
-        
-        // Get color scheme based on theme
-        const colorScheme = isDarkMode ? 
-            'rgba(46, 204, 113, 0.7)' : 
-            'rgba(39, 174, 96, 0.7)';
-        
-        // Prepare data
-        const data = [{
-            type: 'scatterpolar',
-            r: avgScores,
-            theta: labels,
-            fill: 'toself',
-            name: 'Impact Score',
-            marker: {
-                color: colorScheme
-            },
-            hoverinfo: 'text',
-            hovertext: categories.map((cat, idx) => {
-                const highestTrend = highestTrends[cat];
-                const directionIcon = highestTrend.trend_direction === 'improving' ? '↑' : '↓';
-                return `<b>${labels[idx]}</b><br>
-                        Average Impact: <b>${avgScores[idx]}</b><br>
-                        Top Metric: ${highestTrend.name}<br>
-                        Change: ${directionIcon} ${highestTrend.percent_change}%`;
-            })
-        }];
-        
-        // Enhanced layout
-        const layout = {
-            polar: {
-                radialaxis: {
-                    visible: true,
-                    range: [0, 100],
-                    tickfont: {
-                        size: 10,
-                        color: isDarkMode ? '#e0e0e0' : '#333333'
-                    },
-                    ticksuffix: '%'
-                },
-                angularaxis: {
-                    tickfont: {
-                        size: 12,
-                        color: isDarkMode ? '#e0e0e0' : '#333333'
-                    }
-                }
-            },
-            showlegend: false,
-            margin: {
-                l: 50,
-                r: 50,
-                b: 30,
-                t: 50,
-                pad: 4
-            },
-            annotations: [
-                {
-                    x: 0.5,
-                    y: 1.05,
-                    xref: 'paper',
-                    yref: 'paper',
-                    text: 'Sustainability Impact By Category',
-                    showarrow: false,
-                    font: {
-                        size: 15,
-                        color: isDarkMode ? '#e0e0e0' : '#333333'
-                    }
-                }
-            ]
-        };
-        
-        // Update chart with improved layout
-        Plotly.react(chartElement, data, layout);
-        
-        // Update accessibility description
-        const descriptionEl = chartElement.querySelector('.sr-only');
-        if (descriptionEl) {
-            const description = `<p>This radar chart shows average impact scores across different sustainability categories: 
-                ${categories.map((cat, idx) => `${labels[idx]}: ${avgScores[idx]}%`).join(', ')}.</p>`;
-            descriptionEl.innerHTML = description;
-        } else {
-            const newDescriptionEl = document.createElement('div');
-            newDescriptionEl.className = 'sr-only';
-            newDescriptionEl.setAttribute('role', 'complementary');
-            newDescriptionEl.innerHTML = `<p>This radar chart shows average impact scores across different sustainability categories: 
-                ${categories.map((cat, idx) => `${labels[idx]}: ${avgScores[idx]}%`).join(', ')}.</p>`;
-            chartElement.appendChild(newDescriptionEl);
-        }
-        
-    } catch (e) {
-        console.error('Error updating impact radar chart:', e);
-    }
+/**
+ * Update impact radar chart with real data
+ */
+function updateImpactRadar(impactData) {
+  if (!impactRadarChart || !impactData) return;
+  
+  impactRadarChart.data.labels = impactData.labels || impactRadarChart.data.labels;
+  
+  if (impactData.datasets && impactData.datasets.length > 0) {
+    impactRadarChart.data.datasets = impactData.datasets;
+  }
+  
+  impactRadarChart.update();
 }
 
-function updateMetricTable(trends) {
-    const tableBody = document.querySelector('#trend-table tbody');
-    if (!tableBody || !trends || trends.length === 0) return;
-    
-    let tableHtml = '';
-    
-    trends.forEach((trend, index) => {
-        const categoryClass = getCategoryClass(trend.category);
-        const categoryDisplay = getCategoryDisplayName(trend.category);
-        
-        const trendDirectionClass = trend.trend_direction === 'improving' ? 'text-success' : 'text-danger';
-        const trendDirectionIcon = trend.trend_direction === 'improving' ? '↑' : '↓';
-        
-        const dateObj = new Date(trend.timestamp);
-        const formattedDate = dateObj.toLocaleDateString();
-        
-        tableHtml += `
-            <tr data-category="${trend.category}">
-                <td>${index + 1}</td>
-                <td>${trend.name}</td>
-                <td><span class="metric-badge ${categoryClass}">${categoryDisplay}</span></td>
-                <td>${trend.virality_score.toFixed(1)}</td>
-                <td class="${trendDirectionClass}">${trendDirectionIcon} ${trend.percent_change}%</td>
-                <td>${trend.trend_duration}</td>
-                <td>${formattedDate}</td>
-            </tr>
-        `;
-    });
-    
-    tableBody.innerHTML = tableHtml;
+/**
+ * Update metric table with real data
+ */
+function updateMetricTable(metrics) {
+  // This function would be implemented with real data in production
+  // For now, we'll use the static content in the HTML
 }
 
+/**
+ * Filter table by category
+ */
 function filterTableByCategory(category) {
-    const tableRows = document.querySelectorAll('#trend-table tbody tr');
-    
-    tableRows.forEach(row => {
-        const rowCategory = row.getAttribute('data-category');
-        
-        if (category === 'all' || rowCategory === category) {
-            row.style.display = '';
-        } else {
-            row.style.display = 'none';
-        }
-    });
-    
-    // Show notification
-    showNotification(`Table filtered by ${category === 'all' ? 'all categories' : getCategoryDisplayName(category)}`, 'bi-filter', 'info');
-}
-
-function setupValueChainSelector() {
-    // Set up the real estate value chain selector
-    const valueChainItems = document.querySelectorAll('.value-chain-item');
-    
-    valueChainItems.forEach(item => {
-        item.addEventListener('click', function() {
-            // Remove active class from all items
-            valueChainItems.forEach(i => i.classList.remove('active'));
-            
-            // Add active class to clicked item
-            this.classList.add('active');
-            
-            // Get selected value chain segment
-            const segment = this.getAttribute('data-chain');
-            
-            // Apply value chain segment filter
-            applyValueChainFilter(segment);
-            
-            // Show notification
-            showNotification(`Now showing ${segment === 'all' ? 'entire value chain' : segment} data`, 'bi-filter', 'info');
-        });
-    });
-}
-
-function applyValueChainFilter(segment) {
-    // Apply filter based on selected value chain segment
-    console.log('Applying value chain filter:', segment);
-    
-    // In a real implementation, this would filter data by value chain segment
-    // For now, we'll just simulate the filter effect
-    
-    // Show filtering effect
-    showLoadingStates();
-    
-    // Simulate loading delay
-    setTimeout(() => {
-        // Remove loading states
-        removeLoadingStates();
-        
-        // Update visuals to reflect filtered data
-        // This would be replaced with actual filtered data in a real implementation
-        
-    }, 1500);
-}
-
-function setupRagQuerySystem() {
-    // Set up the RAG-powered query system
-    const queryButton = document.getElementById('rag-query-button');
-    const queryInput = document.getElementById('rag-query-input');
-    const answerContainer = document.getElementById('rag-answer');
-    
-    if (queryButton && queryInput) {
-        queryButton.addEventListener('click', function() {
-            const query = queryInput.value.trim();
-            
-            if (query) {
-                // Show loading state
-                answerContainer.innerHTML = `
-                    <div class="d-flex justify-content-center my-4">
-                        <div class="spinner-border text-primary" role="status">
-                            <span class="visually-hidden">Processing query...</span>
-                        </div>
-                    </div>
-                    <p class="text-center text-muted">Analyzing real estate sustainability data...</p>
-                `;
-                
-                // In a real implementation, this would call the RAG API
-                // For now, we'll just simulate a response after a delay
-                setTimeout(() => {
-                    // Mock RAG response for demonstration
-                    const mockResponse = getMockRagResponse(query);
-                    
-                    // Update the answer container
-                    answerContainer.innerHTML = mockResponse;
-                    
-                    // Show notification
-                    showNotification('AI analysis complete', 'bi-robot', 'success');
-                }, 2000);
-            } else {
-                showNotification('Please enter a question to analyze', 'bi-exclamation-circle-fill', 'warning');
-            }
-        });
-    }
-}
-
-function setupPropertyScorecard() {
-    // Set up the property sustainability scorecard interactions
-    const propertyTypeSelector = document.getElementById('property-type-selector');
-    const analyzeButton = document.getElementById('analyze-property');
-    
-    if (analyzeButton && propertyTypeSelector) {
-        analyzeButton.addEventListener('click', function() {
-            const propertyType = propertyTypeSelector.value;
-            
-            // Show loading notification
-            showNotification('Analyzing property sustainability profile...', 'bi-building-gear', 'info');
-            
-            // Simulate API call with loading delay
-            setTimeout(() => {
-                updatePropertyScorecard(propertyType);
-                
-                // Show success notification
-                showNotification('Property sustainability analysis complete', 'bi-building-check', 'success');
-            }, 1500);
-        });
-    }
-}
-
-function updatePropertyScorecard(propertyType) {
-    // Update property scorecard based on selected property type
-    
-    // Example data for different property types
-    const propertyData = {
-        'residential': {
-            address: 'Herengracht 258, Amsterdam',
-            constructionYear: 1984,
-            floorArea: 125,
-            lastRenovation: 2021,
-            sustainabilityScore: 85,
-            neighborhoodAvg: 72,
-            energyLabel: 'A',
-            energyIndex: 0.87,
-            potentialImprovement: 'Label A+ (0.65)',
-            energyProgress: 88,
-            carbonFootprint: 18,
-            carbonBenchmark: 27,
-            carbonTarget: 12,
-            carbonProgress: 75,
-            greenFinancing: 'Eligible',
-            mortgageRateDiscount: 0.42,
-            subsidyPotential: '€12,500',
-            financingProgress: 92,
-            roiValue: 9.2,
-            upgradeCosts: '€18,000',
-            valueIncrease: '€37,800',
-            roiProgress: 85
-        },
-        'commercial': {
-            address: 'Zuidas 45, Amsterdam',
-            constructionYear: 2008,
-            floorArea: 850,
-            lastRenovation: 2019,
-            sustainabilityScore: 77,
-            neighborhoodAvg: 68,
-            energyLabel: 'B',
-            energyIndex: 1.14,
-            potentialImprovement: 'Label A (0.85)',
-            energyProgress: 75,
-            carbonFootprint: 28,
-            carbonBenchmark: 35,
-            carbonTarget: 20,
-            carbonProgress: 65,
-            greenFinancing: 'Eligible',
-            mortgageRateDiscount: 0.38,
-            subsidyPotential: '€8,500',
-            financingProgress: 82,
-            roiValue: 7.8,
-            upgradeCosts: '€42,000',
-            valueIncrease: '€68,000',
-            roiProgress: 78
-        },
-        'mixed': {
-            address: 'Amstel 100, Amsterdam',
-            constructionYear: 1998,
-            floorArea: 420,
-            lastRenovation: 2019,
-            sustainabilityScore: 78,
-            neighborhoodAvg: 65,
-            energyLabel: 'B',
-            energyIndex: 1.14,
-            potentialImprovement: 'Label A (0.85)',
-            energyProgress: 75,
-            carbonFootprint: 28,
-            carbonBenchmark: 35,
-            carbonTarget: 20,
-            carbonProgress: 65,
-            greenFinancing: 'Eligible',
-            mortgageRateDiscount: 0.38,
-            subsidyPotential: '€8,500',
-            financingProgress: 82,
-            roiValue: 7.8,
-            upgradeCosts: '€25,000',
-            valueIncrease: '€42,000',
-            roiProgress: 78
-        },
-        'industrial': {
-            address: 'Industrieweg 78, Rotterdam',
-            constructionYear: 2002,
-            floorArea: 1250,
-            lastRenovation: 2017,
-            sustainabilityScore: 62,
-            neighborhoodAvg: 58,
-            energyLabel: 'C',
-            energyIndex: 1.45,
-            potentialImprovement: 'Label B (1.10)',
-            energyProgress: 55,
-            carbonFootprint: 42,
-            carbonBenchmark: 45,
-            carbonTarget: 25,
-            carbonProgress: 40,
-            greenFinancing: 'Partially Eligible',
-            mortgageRateDiscount: 0.18,
-            subsidyPotential: '€15,200',
-            financingProgress: 58,
-            roiValue: 6.3,
-            upgradeCosts: '€68,000',
-            valueIncrease: '€92,000',
-            roiProgress: 65
-        }
-    };
-    
-    // Get data for selected property type
-    const data = propertyData[propertyType];
-    
-    // Update property summary
-    document.querySelector('.property-summary .d-flex:nth-child(2) strong').textContent = data.address;
-    document.querySelector('.property-summary .d-flex:nth-child(3) strong').textContent = data.constructionYear;
-    document.querySelector('.property-summary .d-flex:nth-child(4) strong').textContent = `${data.floorArea} m²`;
-    document.querySelector('.property-summary .d-flex:nth-child(5) strong').textContent = data.lastRenovation;
-    document.querySelector('.property-summary .d-flex:nth-child(6) strong').textContent = propertyType.charAt(0).toUpperCase() + propertyType.slice(1);
-    
-    // Update sustainability score
-    const scoreCircle = document.querySelector('.sustainability-score-circle');
-    scoreCircle.style.background = `conic-gradient(var(--primary-color) 0% ${data.sustainabilityScore}%, #e0e0e0 ${data.sustainabilityScore}% 100%)`;
-    document.querySelector('.score-value').textContent = data.sustainabilityScore;
-    document.querySelector('.score-comparison .d-flex:nth-child(1) strong').textContent = data.neighborhoodAvg;
-    
-    // Update energy label
-    const energyLabel = document.querySelector('.energy-label');
-    energyLabel.textContent = data.energyLabel;
-    energyLabel.className = 'energy-label label-' + data.energyLabel.toLowerCase();
-    document.querySelector('.sustainability-metric-card:nth-child(1) .d-flex:nth-child(1) strong').textContent = data.energyIndex;
-    document.querySelector('.sustainability-metric-card:nth-child(1) .d-flex:nth-child(2) strong').textContent = data.potentialImprovement;
-    document.querySelector('.sustainability-metric-card:nth-child(1) .progress-bar').style.width = `${data.energyProgress}%`;
-    
-    // Update carbon footprint
-    document.querySelector('.carbon-value').textContent = `${data.carbonFootprint} kg/m²`;
-    document.querySelector('.sustainability-metric-card:nth-child(2) .d-flex:nth-child(1) strong').textContent = `${data.carbonBenchmark} kg/m²`;
-    document.querySelector('.sustainability-metric-card:nth-child(2) .d-flex:nth-child(2) strong').textContent = `${data.carbonTarget} kg/m²`;
-    document.querySelector('.sustainability-metric-card:nth-child(2) .progress-bar').style.width = `${data.carbonProgress}%`;
-    
-    // Update green financing
-    document.querySelector('.finance-value').textContent = data.greenFinancing;
-    document.querySelector('.sustainability-metric-card:nth-child(3) .d-flex:nth-child(1) strong').textContent = `${data.mortgageRateDiscount}%`;
-    document.querySelector('.sustainability-metric-card:nth-child(3) .d-flex:nth-child(2) strong').textContent = data.subsidyPotential;
-    document.querySelector('.sustainability-metric-card:nth-child(3) .progress-bar').style.width = `${data.financingProgress}%`;
-    
-    // Update renovation ROI
-    document.querySelector('.roi-value').textContent = `${data.roiValue}%`;
-    document.querySelector('.sustainability-metric-card:nth-child(4) .d-flex:nth-child(1) strong').textContent = data.upgradeCosts;
-    document.querySelector('.sustainability-metric-card:nth-child(4) .d-flex:nth-child(2) strong').textContent = data.valueIncrease;
-    document.querySelector('.sustainability-metric-card:nth-child(4) .progress-bar').style.width = `${data.roiProgress}%`;
-    
-    // Generate recommended upgrades based on property type
-    updateRecommendedUpgrades(propertyType);
-}
-
-function updateRecommendedUpgrades(propertyType) {
-    // Update recommended upgrades based on property type
-    const recommendationsContainer = document.querySelector('.upgrade-recommendations .row');
-    
-    // Example recommendations for different property types
-    const recommendations = {
-        'residential': [
-            { icon: 'bi-sun', name: 'Solar Panels (15m²)', roi: 12.5 },
-            { icon: 'bi-thermometer-half', name: 'Heat Pump Installation', roi: 9.3 },
-            { icon: 'bi-droplet', name: 'Water Recycling System', roi: 7.8 }
-        ],
-        'commercial': [
-            { icon: 'bi-lightning', name: 'Smart Energy Management', roi: 14.2 },
-            { icon: 'bi-sun', name: 'Solar Panels (120m²)', roi: 11.8 },
-            { icon: 'bi-thermometer-half', name: 'HVAC Efficiency Upgrade', roi: 9.6 }
-        ],
-        'mixed': [
-            { icon: 'bi-sun', name: 'Solar Panels (20m²)', roi: 11.2 },
-            { icon: 'bi-thermometer-half', name: 'Heat Pump Installation', roi: 8.7 },
-            { icon: 'bi-layers', name: 'Window Insulation', roi: 9.3 }
-        ],
-        'industrial': [
-            { icon: 'bi-lightning', name: 'Industrial Energy Recovery', roi: 15.7 },
-            { icon: 'bi-sun', name: 'Solar Roof (450m²)', roi: 13.2 },
-            { icon: 'bi-moisture', name: 'Rainwater Harvesting', roi: 8.4 }
-        ]
-    };
-    
-    // Get recommendations for selected property type
-    const propertyRecommendations = recommendations[propertyType];
-    
-    // Update recommendation items
-    let recommendationsHTML = '';
-    propertyRecommendations.forEach(rec => {
-        recommendationsHTML += `
-            <div class="col-md-4">
-                <div class="upgrade-item">
-                    <i class="${rec.icon}"></i>
-                    <span>${rec.name}</span>
-                    <div class="upgrade-roi">ROI: ${rec.roi}%</div>
-                </div>
-            </div>
-        `;
-    });
-    
-    recommendationsContainer.innerHTML = recommendationsHTML;
-}
-
-function getMockRagResponse(query) {
-    // Generate a mock RAG response based on the query
-    // In a real implementation, this would come from the RAG API
-    
-    query = query.toLowerCase();
-    
-    if (query.includes('epc') || query.includes('energy') || query.includes('rating')) {
-        return `
-            <p><strong>Real Estate Energy Efficiency Analysis:</strong> 
-            Based on data from 843 properties across the Netherlands, the average EPC rating has improved from 3.2 to 2.1 
-            over the past 18 months. Properties with A and B ratings now represent 28% of the market, up from 18% in 2023.
-            </p>
-            <p>
-            Housing corporations have been leading this transition, with 37% of their portfolios now at B rating or better, 
-            compared to 22% for private rental properties. The average cost of upgrading from an E to a B rating ranges from 
-            €15,000 to €24,000, with ROI periods of 7-12 years when accounting for both operational savings and value appreciation.
-            </p>
-        `;
-    } else if (query.includes('carbon') || query.includes('footprint') || query.includes('emission')) {
-        return `
-            <p><strong>Property Carbon Footprint Analysis:</strong> 
-            The average carbon intensity across the analyzed property portfolio is 32 kg CO₂/m² annually, with 
-            high-performing buildings achieving under 15 kg CO₂/m². New construction projects implementing 
-            circular material usage principles (now at 23% adoption) are showing 40-55% lower embodied carbon 
-            compared to conventional construction.
-            </p>
-            <p>
-            The data indicates that operational carbon emissions are decreasing at approximately 7% annually 
-            across the surveyed properties, primarily driven by heating system upgrades and improved insulation. 
-            Properties implementing full electrification achieve an additional 12-18% reduction in their carbon footprint.
-            </p>
-        `;
-    } else if (query.includes('financing') || query.includes('mortgage') || query.includes('loan')) {
-        return `
-            <p><strong>Green Financing & Mortgage Analysis:</strong> 
-            Green mortgages now represent 18% of new mortgage originations in the Netherlands, up from 10% in 2023. 
-            These mortgages offer interest rate discounts averaging 0.3-0.5% for properties meeting specific energy 
-            efficiency thresholds (typically EPC A/B ratings).
-            </p>
-            <p>
-            The data shows that buy-to-let investors are increasingly targeting energy-efficient properties, with 42% 
-            citing favorable financing terms as a primary motivator. For housing corporations, green bonds and 
-            sustainability-linked loans are providing €85-€130 million in annual financing for energy renovation projects, 
-            with an average Green Retrofit ROI of 7.2%.
-            </p>
-        `;
-    } else if (query.includes('value') || query.includes('premium') || query.includes('price')) {
-        return `
-            <p><strong>Sustainability Value Premium Analysis:</strong> 
-            Properties with top-tier energy ratings (EPC A/A+) command a market premium of 4.2% in sales prices 
-            and 5.8% in rental values compared to equivalent properties with average energy performance (EPC C/D). 
-            This "green premium" has been growing at approximately 1.2 percentage points annually.
-            </p>
-            <p>
-            The most significant premiums are observed in urban markets and for commercial properties, where energy 
-            costs represent a higher proportion of occupancy expenses. Properties with additional certifications beyond 
-            energy ratings (such as WELL or BREEAM) demonstrate an additional premium of 2.3-3.5%, particularly in the 
-            high-end commercial and luxury residential segments.
-            </p>
-        `;
+  const rows = document.querySelectorAll('.metric-row');
+  
+  rows.forEach(row => {
+    if (category === 'all' || row.dataset.category === category) {
+      row.style.display = '';
     } else {
-        return `
-            <p><strong>Real Estate Sustainability Overview:</strong> 
-            Analysis of our property database shows accelerating adoption of sustainability features across the Dutch 
-            real estate market. Top-performing sustainable properties show clear financial advantages: 4.2% higher 
-            sales values, 5.8% rental premiums, and 18% lower vacancy rates compared to conventional properties.
-            </p>
-            <p>
-            Green financing adoption is up 18% year-over-year, with preferential rates for energy-efficient properties 
-            creating a compelling financial incentive. Housing corporations implementing portfolio-wide sustainability 
-            improvements are seeing operational cost reductions of €3.20-€4.80 per square meter annually, alongside 
-            significant reductions in carbon footprint (32 kg CO₂/m² on average).
-            </p>
-        `;
+      row.style.display = 'none';
     }
+  });
 }
 
+/**
+ * Setup value chain selector
+ */
+function setupValueChainSelector() {
+  const valueChainLinks = document.querySelectorAll('[data-value-chain]');
+  
+  valueChainLinks.forEach(link => {
+    link.addEventListener('click', function(e) {
+      e.preventDefault();
+      
+      // Update active state
+      valueChainLinks.forEach(l => l.classList.remove('active'));
+      this.classList.add('active');
+      
+      // Update dropdown button text
+      const dropdown = document.getElementById('valueChainDropdown');
+      if (dropdown) {
+        dropdown.textContent = this.textContent.trim();
+      }
+      
+      // Apply filter
+      const segment = this.dataset.valueChain;
+      applyValueChainFilter(segment);
+    });
+  });
+}
+
+/**
+ * Apply value chain filter
+ */
+function applyValueChainFilter(segment) {
+  // In a real implementation, this would filter the data
+  // For demo purposes, we'll just show a notification
+  
+  if (window.showNotification) {
+    window.showNotification(
+      `Value chain filter applied: ${segment === 'all' ? 'All Segments' : segment.charAt(0).toUpperCase() + segment.slice(1)}`,
+      'bi-filter',
+      'info'
+    );
+  }
+}
+
+/**
+ * Setup RAG query system
+ */
+function setupRagQuerySystem() {
+  const queryForm = document.getElementById('ragQueryForm');
+  
+  if (queryForm) {
+    queryForm.addEventListener('submit', function(e) {
+      e.preventDefault();
+      
+      const query = document.getElementById('ragQueryInput').value.trim();
+      if (!query) return;
+      
+      // Show loading state
+      const button = document.getElementById('ragQueryButton');
+      const originalButtonContent = button.innerHTML;
+      button.innerHTML = '<span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span> Processing...';
+      button.disabled = true;
+      
+      // Show response container
+      const responseContainer = document.getElementById('ragResponseContainer');
+      responseContainer.style.display = 'block';
+      
+      // Simulate API call (would be real in production)
+      setTimeout(() => {
+        const responseContent = document.getElementById('ragResponseContent');
+        const mockResponse = getMockRagResponse(query);
+        responseContent.innerHTML = mockResponse;
+        
+        // Reset button state
+        button.innerHTML = originalButtonContent;
+        button.disabled = false;
+      }, 1500);
+    });
+  }
+}
+
+/**
+ * Setup property scorecard filtering
+ */
+function setupPropertyScorecard() {
+  const propertyTypeLinks = document.querySelectorAll('[data-property-type]');
+  
+  propertyTypeLinks.forEach(link => {
+    link.addEventListener('click', function(e) {
+      e.preventDefault();
+      
+      // Update active state
+      propertyTypeLinks.forEach(l => l.classList.remove('active'));
+      this.classList.add('active');
+      
+      // Update dropdown button text
+      const dropdown = document.getElementById('propertyTypeDropdown');
+      if (dropdown) {
+        dropdown.textContent = this.textContent.trim();
+      }
+      
+      // Update property scorecard
+      const propertyType = this.dataset.propertyType;
+      updatePropertyScorecard(propertyType);
+      
+      // Update recommended upgrades
+      updateRecommendedUpgrades(propertyType);
+    });
+  });
+}
+
+/**
+ * Update property scorecard based on selected property type
+ */
+function updatePropertyScorecard(propertyType) {
+  // In a real implementation, this would filter the data
+  // For demo purposes, we'll just show a notification
+  
+  if (window.showNotification) {
+    window.showNotification(
+      `Property scorecard updated for: ${propertyType === 'all' ? 'All Properties' : propertyType.charAt(0).toUpperCase() + propertyType.slice(1)}`,
+      'bi-building',
+      'info'
+    );
+  }
+}
+
+/**
+ * Update recommended upgrades based on selected property type
+ */
+function updateRecommendedUpgrades(propertyType) {
+  // In a real implementation, this would update the recommendations
+  // For now, we'll just use the existing HTML content
+}
+
+/**
+ * Get mock RAG response based on query
+ */
+function getMockRagResponse(query) {
+  const responses = {
+    "energy efficiency": `
+      <p>Based on your portfolio data, there are several ways to improve energy efficiency in your office properties:</p>
+      <ul>
+        <li><strong>Building Management Systems:</strong> Implementing smart BMS could reduce energy consumption by 25-35%.</li>
+        <li><strong>LED Lighting Upgrades:</strong> Converting to LED lighting with motion sensors can cut lighting energy use by 70-80%.</li>
+        <li><strong>HVAC Optimization:</strong> Advanced HVAC controls with AI-driven optimization could save 15-30% on heating and cooling.</li>
+      </ul>
+      <p>Your office properties currently average 45 kgCO₂e/m², which is 15% better than industry average but still presents improvement opportunities.</p>
+    `,
+    "solar panels": `
+      <p>Based on the portfolio data, solar panel installation shows promising ROI:</p>
+      <ul>
+        <li><strong>Potential ROI:</strong> 8-12% annually for your property portfolio</li>
+        <li><strong>Payback Period:</strong> 6-8 years with current incentives</li>
+        <li><strong>Carbon Impact:</strong> Could reduce overall portfolio emissions by approximately 28%</li>
+      </ul>
+      <p>Your flat-roof office and industrial properties offer the highest potential, with approximately 65% of roof area suitable for solar installation.</p>
+    `,
+    "water conservation": `
+      <p>Your portfolio water usage (134 L/m²/year) presents significant optimization opportunities:</p>
+      <ul>
+        <li><strong>Rainwater Harvesting:</strong> Could reduce potable water consumption by 40-50% with a 4-5 year payback period</li>
+        <li><strong>Smart Irrigation:</strong> Sensor-based systems can reduce landscape water usage by 30-60%</li>
+        <li><strong>Low-Flow Fixtures:</strong> Modern fixtures could reduce indoor water usage by 30-35% with minimal investment</li>
+      </ul>
+      <p>Industrial properties show the highest water usage (210 L/m²/year) and present the greatest savings opportunity.</p>
+    `,
+    "default": `
+      <p>Based on your portfolio data analysis, I can provide insights on several sustainability aspects:</p>
+      <ul>
+        <li><strong>Energy Performance:</strong> Your properties average 82 EPC score, which is 12% above market benchmark</li>
+        <li><strong>Carbon Intensity:</strong> Average of 45 kgCO₂e/m² across portfolio, with office and retail properties performing best</li>
+        <li><strong>Improvement Potential:</strong> Implementing the recommended upgrades could improve overall sustainability score by 15-20% within 18 months</li>
+      </ul>
+      <p>I can provide more specific insights if you ask about particular property types or sustainability aspects.</p>
+    `
+  };
+  
+  // Determine which response to use based on query keywords
+  const lowerQuery = query.toLowerCase();
+  
+  if (lowerQuery.includes("energy efficiency") || lowerQuery.includes("energy") || lowerQuery.includes("efficiency")) {
+    return responses["energy efficiency"];
+  } else if (lowerQuery.includes("solar") || lowerQuery.includes("solar panel") || lowerQuery.includes("panels") || lowerQuery.includes("roi")) {
+    return responses["solar panels"];
+  } else if (lowerQuery.includes("water") || lowerQuery.includes("water usage") || lowerQuery.includes("conservation")) {
+    return responses["water conservation"];
+  } else {
+    return responses["default"];
+  }
+}
+
+/**
+ * Export data in various formats
+ */
 function exportData(format) {
-    console.log(`Exporting data in ${format} format`);
-    
-    // Show processing notification
-    showNotification(`Preparing ${format.toUpperCase()} export...`, 'bi-hourglass-split', 'info');
-    
-    // Simulate export process
-    setTimeout(() => {
-        // Show success notification
-        showNotification(`Real estate data exported successfully as ${format.toUpperCase()}`, 'bi-download', 'success');
-    }, 1500);
-}
-
-function getCategoryDisplayName(category) {
-    const displayNames = {
-        'energy_efficiency': 'Energy Efficiency',
-        'carbon_footprint': 'Carbon Footprint',
-        'green_financing': 'Green Financing',
-        'certifications': 'Certifications',
-        'market_trends': 'Market Trends'
-    };
-    
-    return displayNames[category] || category;
-}
-
-function getCategoryClass(category) {
-    const classMap = {
-        'energy_efficiency': 'energy',
-        'carbon_footprint': 'carbon',
-        'green_financing': 'financing',
-        'certifications': 'certification',
-        'market_trends': 'market'
-    };
-    
-    return classMap[category] || '';
-}
-
-function getCategoryColors(categories) {
-    const colorMap = {
-        'energy_efficiency': '#2ecc71',
-        'carbon_footprint': '#3498db',
-        'green_financing': '#9b59b6',
-        'certifications': '#f1c40f',
-        'market_trends': '#e67e22'
-    };
-    
-    return categories.map(c => colorMap[c] || '#95a5a6');
-}
-
-function showNotification(message, iconClass, type = 'info') {
-    // Create notification element
-    const toast = document.createElement('div');
-    toast.className = `toast-notification ${type}`;
-    
-    // Set inner HTML with icon and message
-    toast.innerHTML = `
-        <div class="toast-icon">
-            <i class="bi ${iconClass}"></i>
-        </div>
-        <div class="toast-message">${message}</div>
-        <button class="toast-close">&times;</button>
-    `;
-    
-    // Add to container
-    const container = document.getElementById('toast-container');
-    if (container) {
-        container.appendChild(toast);
-        
-        // Add visible class after a short delay (for animation)
-        setTimeout(() => {
-            toast.classList.add('visible');
-        }, 10);
-        
-        // Close button functionality
-        const closeBtn = toast.querySelector('.toast-close');
-        if (closeBtn) {
-            closeBtn.addEventListener('click', function() {
-                closeToast(toast);
-            });
-        }
-        
-        // Auto close after duration
-        setTimeout(() => {
-            closeToast(toast);
-        }, 6000);
+  // In a real implementation, this would export actual data
+  // For demo purposes, we'll just show a notification
+  
+  let message = '';
+  let icon = 'bi-download';
+  
+  switch(format) {
+    case 'pdf':
+      message = 'Generating PDF report...';
+      icon = 'bi-file-earmark-pdf';
+      break;
+    case 'excel':
+      message = 'Exporting data to Excel...';
+      icon = 'bi-file-earmark-excel';
+      break;
+    case 'csv':
+      message = 'Exporting data to CSV...';
+      icon = 'bi-filetype-csv';
+      break;
+    case 'png':
+      message = 'Saving charts as images...';
+      icon = 'bi-file-earmark-image';
+      break;
+    default:
+      message = 'Exporting data...';
+  }
+  
+  if (window.showNotification) {
+    window.showNotification(message, icon, 'info');
+  }
+  
+  // Simulate export delay
+  setTimeout(() => {
+    if (window.showNotification) {
+      window.showNotification(
+        `Data successfully exported in ${format.toUpperCase()} format`,
+        'bi-check-circle',
+        'success'
+      );
     }
+  }, 2000);
 }
 
-function closeToast(toast) {
-    // Remove visible class first (for animation)
-    toast.classList.remove('visible');
-    
-    // Remove element after animation completes
-    setTimeout(() => {
-        toast.remove();
-    }, 300);
+/**
+ * Get category display name
+ */
+function getCategoryDisplayName(category) {
+  switch(category.toLowerCase()) {
+    case 'energy':
+      return 'Energy Efficiency';
+    case 'emissions':
+      return 'Carbon Emissions';
+    case 'water':
+      return 'Water Management';
+    case 'waste':
+      return 'Waste Reduction';
+    case 'social':
+      return 'Social Impact';
+    case 'governance':
+      return 'Governance';
+    default:
+      return category.charAt(0).toUpperCase() + category.slice(1);
+  }
+}
+
+/**
+ * Get category class for styling
+ */
+function getCategoryClass(category) {
+  switch(category.toLowerCase()) {
+    case 'energy':
+      return 'primary';
+    case 'emissions':
+      return 'success';
+    case 'water':
+      return 'info';
+    case 'waste':
+      return 'warning';
+    case 'social':
+      return 'secondary';
+    case 'governance':
+      return 'dark';
+    default:
+      return 'primary';
+  }
+}
+
+/**
+ * Get category colors for charts
+ */
+function getCategoryColors(categories) {
+  const colors = [];
+  
+  categories.forEach(category => {
+    switch(category.toLowerCase()) {
+      case 'energy':
+        colors.push('#2E7D32'); // primary
+        break;
+      case 'emissions':
+        colors.push('#4CAF50'); // success
+        break;
+      case 'water':
+        colors.push('#0288D1'); // info
+        break;
+      case 'waste':
+        colors.push('#FFA000'); // warning
+        break;
+      case 'social':
+        colors.push('#78909C'); // secondary
+        break;
+      case 'governance':
+        colors.push('#455A64'); // dark
+        break;
+      default:
+        colors.push('#2E7D32'); // primary
+    }
+  });
+  
+  return colors;
+}
+
+/**
+ * Generate mock data for development
+ */
+function generateMockData() {
+  // Generate labels for 12 months
+  const now = new Date();
+  const labels = [];
+  for (let i = 11; i >= 0; i--) {
+    const d = new Date(now.getFullYear(), now.getMonth() - i, 1);
+    labels.push(d.toLocaleDateString('en-US', { month: 'short', year: '2-digit' }));
+  }
+  
+  // Generate mock metrics data
+  const metrics = [
+    {
+      name: 'Energy Efficiency',
+      category: 'energy',
+      value: 82,
+      unit: 'EPC score',
+      percent_change: 8,
+      trend_data: [75, 76, 78, 80, 82, 83, 85, 86, 88, 90, 91, 92],
+      virality: 85,
+      icon: 'lightning'
+    },
+    {
+      name: 'Carbon Reduction',
+      category: 'emissions',
+      value: 28.5,
+      unit: '%',
+      percent_change: 12,
+      trend_data: [16, 18, 20, 22, 23, 24, 25, 26, 27, 28, 28.5, 29],
+      virality: 92,
+      icon: 'cloud'
+    },
+    {
+      name: 'Water Conservation',
+      category: 'water',
+      value: 134,
+      unit: 'L/m²/year',
+      percent_change: -5,
+      trend_data: [145, 143, 140, 138, 137, 136, 135, 135, 134, 134, 134, 134],
+      virality: 65,
+      icon: 'droplet'
+    },
+    {
+      name: 'Waste Diversion',
+      category: 'waste',
+      value: 75,
+      unit: '%',
+      percent_change: 15,
+      trend_data: [60, 62, 64, 66, 68, 70, 71, 72, 73, 74, 75, 75],
+      virality: 72,
+      icon: 'trash'
+    },
+    {
+      name: 'Renewable Energy',
+      category: 'energy',
+      value: 35,
+      unit: '%',
+      percent_change: 22,
+      trend_data: [15, 17, 19, 22, 25, 27, 29, 30, 32, 33, 34, 35],
+      virality: 88,
+      icon: 'sun'
+    },
+    {
+      name: 'Tenant Satisfaction',
+      category: 'social',
+      value: 4.2,
+      unit: '/ 5',
+      percent_change: 5,
+      trend_data: [3.8, 3.9, 3.9, 4.0, 4.0, 4.1, 4.1, 4.2, 4.2, 4.2, 4.2, 4.2],
+      virality: 60,
+      icon: 'people'
+    },
+    {
+      name: 'ESG Reporting Score',
+      category: 'governance',
+      value: 78,
+      unit: '/ 100',
+      percent_change: 10,
+      trend_data: [62, 64, 66, 68, 70, 72, 74, 75, 76, 77, 78, 78],
+      virality: 70,
+      icon: 'clipboard-check'
+    }
+  ];
+  
+  // Generate trend chart data
+  const trendChartData = {
+    labels: labels,
+    datasets: [
+      {
+        label: 'Energy Efficiency',
+        data: [75, 76, 78, 80, 82, 83, 85, 86, 88, 90, 91, 92],
+        borderColor: '#2E7D32',
+        backgroundColor: 'rgba(46, 125, 50, 0.1)',
+        tension: 0.4,
+        pointRadius: 3
+      },
+      {
+        label: 'Carbon Reduction',
+        data: [60, 62, 65, 68, 72, 76, 80, 84, 87, 89, 90, 92],
+        borderColor: '#4CAF50',
+        backgroundColor: 'rgba(76, 175, 80, 0.1)',
+        tension: 0.4,
+        pointRadius: 3
+      },
+      {
+        label: 'Water Conservation',
+        data: [50, 52, 55, 58, 62, 65, 68, 72, 75, 78, 80, 82],
+        borderColor: '#0288D1',
+        backgroundColor: 'rgba(2, 136, 209, 0.1)',
+        tension: 0.4,
+        pointRadius: 3
+      },
+      {
+        label: 'Waste Reduction',
+        data: [40, 45, 49, 52, 58, 64, 70, 74, 78, 82, 85, 88],
+        borderColor: '#FFA000',
+        backgroundColor: 'rgba(255, 160, 0, 0.1)',
+        tension: 0.4,
+        pointRadius: 3
+      }
+    ]
+  };
+  
+  // Generate category distribution data
+  const categoryDistribution = {
+    labels: ['Energy', 'Emissions', 'Water', 'Waste', 'Social', 'Governance'],
+    data: [82, 75, 65, 70, 60, 55],
+    insights: {
+      topPerforming: 'Energy Efficiency',
+      needsAttention: 'Water Management',
+      mostImproved: 'Waste Reduction'
+    }
+  };
+  
+  // Generate impact radar data
+  const impactData = {
+    labels: [
+      'Carbon Reduction',
+      'Energy Efficiency',
+      'Water Conservation',
+      'Waste Management',
+      'Renewable Energy',
+      'Sustainable Materials'
+    ],
+    datasets: [
+      {
+        label: 'Current Performance',
+        data: [75, 82, 65, 70, 58, 62],
+        fill: true,
+        backgroundColor: 'rgba(46, 125, 50, 0.2)',
+        borderColor: '#2E7D32',
+        pointBackgroundColor: '#2E7D32',
+        pointBorderColor: '#fff',
+        pointHoverBackgroundColor: '#fff',
+        pointHoverBorderColor: '#2E7D32'
+      },
+      {
+        label: 'Industry Benchmark',
+        data: [65, 70, 60, 55, 50, 58],
+        fill: true,
+        backgroundColor: 'rgba(66, 165, 245, 0.2)',
+        borderColor: '#42A5F5',
+        pointBackgroundColor: '#42A5F5',
+        pointBorderColor: '#fff',
+        pointHoverBackgroundColor: '#fff',
+        pointHoverBorderColor: '#42A5F5'
+      }
+    ]
+  };
+  
+  return {
+    metrics: metrics,
+    trendChartData: trendChartData,
+    categoryDistribution: categoryDistribution,
+    impactData: impactData
+  };
 }

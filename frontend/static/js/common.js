@@ -1,286 +1,344 @@
 /**
- * SustainaTrend™ Common UI JavaScript
- * Provides shared functionality across all dashboard pages
+ * SustainaTrend™ Common JavaScript Functions
+ * This file contains shared functionality used across the platform
  */
-
-// Toggle sidebar collapse
-document.addEventListener('DOMContentLoaded', function() {
-    // Sidebar toggle functionality
-    const sidebar = document.getElementById('sidebar');
-    const mainContent = document.querySelector('.main-content');
-    const sidebarToggle = document.querySelector('.sidebar-toggle');
-    const mobileToggle = document.querySelector('.mobile-toggle');
-    
-    if (sidebarToggle) {
-        sidebarToggle.addEventListener('click', function() {
-            sidebar.classList.toggle('collapsed');
-            mainContent.classList.toggle('expanded');
-            
-            // Update icon
-            const icon = sidebarToggle.querySelector('i');
-            if (sidebar.classList.contains('collapsed')) {
-                icon.classList.remove('bi-chevron-left');
-                icon.classList.add('bi-chevron-right');
-            } else {
-                icon.classList.remove('bi-chevron-right');
-                icon.classList.add('bi-chevron-left');
-            }
-        });
-    }
-    
-    // Mobile toggle functionality
-    if (mobileToggle) {
-        mobileToggle.addEventListener('click', function() {
-            sidebar.classList.toggle('mobile-expanded');
-        });
-    }
-    
-    // Theme toggle functionality
-    const themeToggleBtn = document.querySelector('.theme-toggle-button');
-    const htmlElement = document.documentElement;
-    
-    if (themeToggleBtn) {
-        themeToggleBtn.addEventListener('click', function() {
-            if (htmlElement.classList.contains('light-mode')) {
-                htmlElement.classList.remove('light-mode');
-                htmlElement.classList.add('dark-mode');
-                themeToggleBtn.innerHTML = '<i class="bi bi-sun"></i>';
-                localStorage.setItem('theme', 'dark');
-            } else {
-                htmlElement.classList.remove('dark-mode');
-                htmlElement.classList.add('light-mode');
-                themeToggleBtn.innerHTML = '<i class="bi bi-moon"></i>';
-                localStorage.setItem('theme', 'light');
-            }
-            
-            // Trigger theme update in charts if function exists
-            if (typeof updateChartTheme === 'function') {
-                updateChartTheme(htmlElement.classList.contains('dark-mode'));
-            }
-        });
-    }
-    
-    // Load saved theme preference
-    const savedTheme = localStorage.getItem('theme');
-    if (savedTheme) {
-        if (savedTheme === 'light') {
-            htmlElement.classList.remove('dark-mode');
-            htmlElement.classList.add('light-mode');
-            if (themeToggleBtn) themeToggleBtn.innerHTML = '<i class="bi bi-moon"></i>';
-        } else {
-            htmlElement.classList.remove('light-mode');
-            htmlElement.classList.add('dark-mode');
-            if (themeToggleBtn) themeToggleBtn.innerHTML = '<i class="bi bi-sun"></i>';
-        }
-    }
-});
 
 /**
- * Filter modal functionality
+ * Initialize dark mode toggle functionality
  */
-function initFilterModal() {
-    const filterBtn = document.getElementById('filter-btn');
-    const filterModal = document.getElementById('filter-modal');
-    const closeModal = document.getElementById('close-modal');
-    const applyFilters = document.getElementById('apply-filters');
-    const resetFilters = document.getElementById('reset-filters');
+function initDarkMode() {
+  const darkModeToggle = document.getElementById('darkModeToggle');
+  const htmlElement = document.documentElement;
+  const darkModeIcon = darkModeToggle.querySelector('i');
+  
+  // Check for saved dark mode preference or system preference
+  const savedDarkMode = localStorage.getItem('darkMode');
+  const prefersDarkMode = window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches;
+  
+  // Apply dark mode based on saved preference or system preference
+  if (savedDarkMode === 'enabled' || (savedDarkMode === null && prefersDarkMode)) {
+    document.body.classList.add('dark-mode');
+    darkModeIcon.classList.remove('bi-moon');
+    darkModeIcon.classList.add('bi-sun');
+    updateChartsTheme(true);
+  }
+  
+  // Add event listener for dark mode toggle
+  if (darkModeToggle) {
+    darkModeToggle.addEventListener('click', (e) => {
+      e.preventDefault();
+      
+      // Toggle dark mode class on body
+      document.body.classList.toggle('dark-mode');
+      
+      // Toggle icon between moon and sun
+      if (document.body.classList.contains('dark-mode')) {
+        darkModeIcon.classList.remove('bi-moon');
+        darkModeIcon.classList.add('bi-sun');
+        localStorage.setItem('darkMode', 'enabled');
+        updateChartsTheme(true);
+      } else {
+        darkModeIcon.classList.remove('bi-sun');
+        darkModeIcon.classList.add('bi-moon');
+        localStorage.setItem('darkMode', 'disabled');
+        updateChartsTheme(false);
+      }
+    });
+  }
+}
+
+/**
+ * Update charts theme based on dark mode
+ */
+function updateChartsTheme(isDarkMode) {
+  // Set Chart.js defaults based on dark mode
+  if (window.Chart) {
+    Chart.defaults.color = isDarkMode ? '#e0e0e0' : '#666';
+    Chart.defaults.borderColor = isDarkMode ? '#444' : '#e0e0e0';
     
-    if (!filterBtn || !filterModal) return;
-    
-    filterBtn.addEventListener('click', function() {
-        filterModal.style.display = 'flex';
+    // Find and update all active charts
+    Object.values(Chart.instances || {}).forEach(chart => {
+      if (chart.options.plugins && chart.options.plugins.legend) {
+        chart.options.plugins.legend.labels.color = isDarkMode ? '#e0e0e0' : '#666';
+      }
+      
+      if (chart.options.scales) {
+        Object.values(chart.options.scales).forEach(scale => {
+          scale.grid = scale.grid || {};
+          scale.grid.color = isDarkMode ? 'rgba(255, 255, 255, 0.1)' : 'rgba(0, 0, 0, 0.1)';
+          scale.ticks = scale.ticks || {};
+          scale.ticks.color = isDarkMode ? '#adb5bd' : '#666';
+        });
+      }
+      
+      chart.update();
+    });
+  }
+}
+
+/**
+ * Initialize Bootstrap tooltips
+ */
+function initTooltips() {
+  const tooltipTriggerList = [].slice.call(document.querySelectorAll('[data-bs-toggle="tooltip"]'));
+  tooltipTriggerList.map(function (tooltipTriggerEl) {
+    return new bootstrap.Tooltip(tooltipTriggerEl);
+  });
+}
+
+/**
+ * Initialize mobile sidebar behavior
+ */
+function initSidebar() {
+  const sidebarToggle = document.querySelector('.navbar-toggler');
+  if (sidebarToggle) {
+    sidebarToggle.addEventListener('click', function () {
+      const sidebar = document.getElementById('sidebarMenu');
+      if (sidebar) {
+        sidebar.classList.toggle('show');
+      }
     });
     
-    if (closeModal) {
-        closeModal.addEventListener('click', function() {
-            filterModal.style.display = 'none';
-        });
-    }
-    
-    // Close modal when clicking outside
-    window.addEventListener('click', function(event) {
-        if (event.target === filterModal) {
-            filterModal.style.display = 'none';
-        }
+    // Close sidebar when clicking outside of it on mobile
+    document.addEventListener('click', function (event) {
+      const sidebar = document.getElementById('sidebarMenu');
+      if (sidebar && sidebar.classList.contains('show') && 
+          !sidebar.contains(event.target) && 
+          !sidebarToggle.contains(event.target)) {
+        sidebar.classList.remove('show');
+      }
     });
+  }
+}
+
+/**
+ * Initialize filter dropdowns
+ */
+function initFilterDropdowns() {
+  const filterDropdowns = document.querySelectorAll('.filter-dropdown');
+  
+  filterDropdowns.forEach(dropdown => {
+    const dropdownItems = dropdown.querySelectorAll('.dropdown-item');
+    const dropdownButton = dropdown.querySelector('.dropdown-toggle');
+    const filterType = dropdown.dataset.filterType;
     
-    // Apply filters
-    if (applyFilters) {
-        applyFilters.addEventListener('click', function() {
-            // Get filter values
-            const timeframe = document.querySelector('input[name="timeframe"]:checked')?.value || 'all';
-            
-            const categories = [];
-            document.querySelectorAll('input[name="category"]:checked').forEach(function(checkbox) {
-                categories.push(checkbox.value);
-            });
-            
-            // Get slider value if exists
-            let sliderValue = null;
-            const viralitySlider = document.getElementById('virality-slider');
-            const impactSlider = document.getElementById('impact-slider');
-            const scoreSlider = document.getElementById('score-slider');
-            
-            if (viralitySlider) sliderValue = viralitySlider.value;
-            else if (impactSlider) sliderValue = impactSlider.value;
-            else if (scoreSlider) sliderValue = scoreSlider.value;
-            
-            // Collect and apply filters
-            const filters = {
-                timeframe: timeframe,
-                categories: categories,
-                minScore: sliderValue
-            };
-            
-            // Call page-specific filter function if available
-            if (typeof applyDataFilters === 'function') {
-                applyDataFilters(filters);
-            }
-            
-            filterModal.style.display = 'none';
-            
-            // Show notification
-            showNotification('Filters applied successfully', 'bi-funnel-fill', 'info');
-        });
-    }
-    
-    // Reset filters
-    if (resetFilters) {
-        resetFilters.addEventListener('click', function() {
-            // Reset radio buttons
-            const allTimeRadio = document.querySelector('input[name="timeframe"][value="all"]');
-            if (allTimeRadio) allTimeRadio.checked = true;
-            
-            // Reset checkboxes
-            document.querySelectorAll('input[name="category"]').forEach(function(checkbox) {
-                checkbox.checked = true;
-            });
-            
-            // Reset sliders
-            const viralitySlider = document.getElementById('virality-slider');
-            const impactSlider = document.getElementById('impact-slider');
-            const scoreSlider = document.getElementById('score-slider');
-            
-            if (viralitySlider) {
-                viralitySlider.value = 30;
-                document.getElementById('virality-value').textContent = '30';
-            }
-            
-            if (impactSlider) {
-                impactSlider.value = 30;
-                document.getElementById('impact-value').textContent = '30';
-            }
-            
-            if (scoreSlider) {
-                scoreSlider.value = 30;
-                document.getElementById('score-value').textContent = '30';
-            }
-            
-            showNotification('Filters reset to default', 'bi-arrow-counterclockwise', 'info');
-        });
-    }
-    
-    // Update slider value display
-    const sliders = [
-        { slider: 'virality-slider', value: 'virality-value' },
-        { slider: 'impact-slider', value: 'impact-value' },
-        { slider: 'score-slider', value: 'score-value' }
-    ];
-    
-    sliders.forEach(function(item) {
-        const slider = document.getElementById(item.slider);
-        const valueDisplay = document.getElementById(item.value);
+    dropdownItems.forEach(item => {
+      item.addEventListener('click', function(e) {
+        e.preventDefault();
         
-        if (slider && valueDisplay) {
-            slider.addEventListener('input', function() {
-                valueDisplay.textContent = slider.value;
-            });
-        }
-    });
-}
-
-/**
- * Export dropdown functionality
- */
-function initExportDropdown() {
-    const exportBtn = document.getElementById('export-btn');
-    const exportDropdown = document.getElementById('export-dropdown');
-    
-    if (!exportBtn || !exportDropdown) return;
-    
-    exportBtn.addEventListener('click', function(event) {
-        event.stopPropagation();
-        exportDropdown.style.display = exportDropdown.style.display === 'block' ? 'none' : 'block';
-    });
-    
-    // Handle export format selection
-    const exportLinks = exportDropdown.querySelectorAll('a');
-    exportLinks.forEach(function(link) {
-        link.addEventListener('click', function(event) {
-            event.preventDefault();
-            const format = this.getAttribute('data-format');
-            
-            // Call page-specific export function if available
-            if (typeof exportData === 'function') {
-                exportData(format);
-            } else {
-                showNotification('Export functionality not implemented', 'bi-exclamation-triangle-fill', 'warning');
-            }
-            
-            exportDropdown.style.display = 'none';
+        // Update active state in dropdown
+        dropdownItems.forEach(i => i.classList.remove('active'));
+        this.classList.add('active');
+        
+        // Update button text
+        dropdownButton.textContent = this.textContent.trim();
+        
+        // Trigger filter event
+        const filterValue = this.dataset.value;
+        const filterEvent = new CustomEvent('filter-changed', {
+          detail: {
+            type: filterType,
+            value: filterValue
+          }
         });
+        document.dispatchEvent(filterEvent);
+      });
     });
-    
-    // Close dropdown when clicking elsewhere
-    document.addEventListener('click', function() {
-        exportDropdown.style.display = 'none';
-    });
+  });
 }
 
 /**
- * Toast notification system
- * @param {string} message - Message to display
- * @param {string} iconClass - Bootstrap icon class
- * @param {string} type - Type of notification: 'info', 'success', 'warning', 'error'
+ * Initialize export menu
  */
-function showNotification(message, iconClass, type = 'info') {
-    const container = document.getElementById('toast-container');
-    if (!container) return;
+function initExportMenu() {
+  const exportLinks = document.querySelectorAll('[data-export-format]');
+  
+  exportLinks.forEach(link => {
+    link.addEventListener('click', function(e) {
+      e.preventDefault();
+      
+      const format = this.dataset.exportFormat;
+      
+      // Trigger export event
+      const exportEvent = new CustomEvent('export-requested', {
+        detail: {
+          format: format
+        }
+      });
+      document.dispatchEvent(exportEvent);
+    });
+  });
+}
+
+/**
+ * Initialize notification system
+ */
+function initNotifications() {
+  // Create a reusable function to show notifications
+  window.showNotification = function(message, icon = 'bi-info-circle', type = 'info') {
+    const toastContainer = document.querySelector('.toast-container');
     
-    const toast = document.createElement('div');
-    toast.className = `toast ${type}`;
+    if (!toastContainer) return;
     
-    toast.innerHTML = `
-        <div class="toast-icon">
-            <i class="bi ${iconClass}"></i>
+    // Create toast element
+    const toastEl = document.createElement('div');
+    toastEl.className = `toast toast-${type} align-items-center text-white bg-${type} border-0`;
+    toastEl.setAttribute('role', 'alert');
+    toastEl.setAttribute('aria-live', 'assertive');
+    toastEl.setAttribute('aria-atomic', 'true');
+    
+    // Generate unique ID for the toast
+    const toastId = 'toast-' + Date.now();
+    toastEl.id = toastId;
+    
+    // Create toast content
+    toastEl.innerHTML = `
+      <div class="d-flex">
+        <div class="toast-body">
+          <i class="bi ${icon} me-2"></i>
+          ${message}
         </div>
-        <div class="toast-content">${message}</div>
-        <button class="toast-close">&times;</button>
+        <button type="button" class="btn-close btn-close-white me-2 m-auto" data-bs-dismiss="toast" aria-label="Close"></button>
+      </div>
     `;
     
-    container.appendChild(toast);
+    // Append toast to container
+    toastContainer.appendChild(toastEl);
     
-    // Add close button functionality
-    const closeBtn = toast.querySelector('.toast-close');
-    closeBtn.addEventListener('click', function() {
-        container.removeChild(toast);
+    // Initialize and show toast
+    const toast = new bootstrap.Toast(toastEl, {
+      delay: 5000,
+      autohide: true
     });
     
-    // Auto-close after 5 seconds
-    setTimeout(function() {
-        if (container.contains(toast)) {
-            container.removeChild(toast);
-        }
-    }, 5000);
+    toast.show();
+    
+    // Remove toast element after it's hidden
+    toastEl.addEventListener('hidden.bs.toast', function () {
+      this.remove();
+    });
+    
+    return toast;
+  };
 }
 
 /**
- * Initialize common UI components
+ * Initialize card animations
  */
-function initCommonUI() {
-    initFilterModal();
-    initExportDropdown();
+function initCardAnimation() {
+  const cards = document.querySelectorAll('.card');
+  
+  cards.forEach(card => {
+    card.addEventListener('mouseenter', function() {
+      if (!this.classList.contains('no-hover-effect')) {
+        this.style.transform = 'translateY(-5px)';
+        this.style.boxShadow = '0 8px 16px rgba(0, 0, 0, 0.1)';
+      }
+    });
+    
+    card.addEventListener('mouseleave', function() {
+      if (!this.classList.contains('no-hover-effect')) {
+        this.style.transform = '';
+        this.style.boxShadow = '';
+      }
+    });
+  });
 }
 
-// Initialize common UI when document is ready
-document.addEventListener('DOMContentLoaded', initCommonUI);
+/**
+ * Format number with appropriate unit prefixes (K, M, B)
+ * @param {number} value - Number to format
+ * @param {number} decimals - Decimal places to show
+ * @return {string} Formatted number
+ */
+function formatNumber(value, decimals = 1) {
+  if (value === null || value === undefined) return '-';
+  
+  if (value === 0) return '0';
+  
+  const absValue = Math.abs(value);
+  const sign = value < 0 ? '-' : '';
+  
+  if (absValue >= 1000000000) {
+    return sign + (absValue / 1000000000).toFixed(decimals) + 'B';
+  } else if (absValue >= 1000000) {
+    return sign + (absValue / 1000000).toFixed(decimals) + 'M';
+  } else if (absValue >= 1000) {
+    return sign + (absValue / 1000).toFixed(decimals) + 'K';
+  } else {
+    return sign + absValue.toFixed(decimals);
+  }
+}
+
+/**
+ * Format date for display
+ * @param {string} dateStr - Date string
+ * @param {string} format - Output format ('short', 'medium', 'long')
+ * @return {string} Formatted date
+ */
+function formatDate(dateStr, format = 'medium') {
+  if (!dateStr) return '';
+  
+  const date = new Date(dateStr);
+  
+  if (isNaN(date.getTime())) return dateStr;
+  
+  if (format === 'short') {
+    return date.toLocaleDateString();
+  } else if (format === 'long') {
+    return date.toLocaleDateString(undefined, { 
+      weekday: 'long',
+      year: 'numeric', 
+      month: 'long', 
+      day: 'numeric' 
+    });
+  } else {
+    return date.toLocaleDateString(undefined, { 
+      year: 'numeric', 
+      month: 'short', 
+      day: 'numeric' 
+    });
+  }
+}
+
+/**
+ * Helper function to create a debounced function
+ * @param {Function} func - Function to debounce
+ * @param {number} delay - Delay in milliseconds
+ * @return {Function} Debounced function
+ */
+function debounce(func, delay = 300) {
+  let timeoutId;
+  
+  return function(...args) {
+    clearTimeout(timeoutId);
+    
+    timeoutId = setTimeout(() => {
+      func.apply(this, args);
+    }, delay);
+  };
+}
+
+/**
+ * Get appropriate icon for a category
+ * @param {string} category - Category name
+ * @return {string} Icon class
+ */
+function getCategoryIcon(category) {
+  switch (category.toLowerCase()) {
+    case 'energy':
+      return 'bi-lightning';
+    case 'emissions':
+      return 'bi-cloud';
+    case 'water':
+      return 'bi-droplet';
+    case 'waste':
+      return 'bi-trash';
+    case 'social':
+      return 'bi-people';
+    case 'governance':
+      return 'bi-clipboard-check';
+    default:
+      return 'bi-graph-up';
+  }
+}
