@@ -262,6 +262,7 @@
 {% endblock %}
 
 {% block scripts %}
+<script src="/static/js/visualization-utils.js"></script>
 <script>
   // Pass metrics data to JavaScript
   window.metricsData = {{ metrics_json|safe }};

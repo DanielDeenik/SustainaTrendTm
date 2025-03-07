@@ -28,6 +28,11 @@ function initCharts(metricsData) {
             this.classList.add('active');
         });
     });
+    
+    // Set up theme change listener to update charts
+    document.addEventListener('themeChanged', (e) => {
+        updateChartTheme(e.detail.theme === 'dark');
+    });
 }
 
 /**
@@ -233,8 +238,15 @@ function processMetricsForChart(metricsData, months = 12) {
     // Limit to the last X months
     const limitedLabels = sortedLabels.slice(-months);
     
-    // Create datasets
-    const categoryColors = {
+    // Create datasets - use trendViz colors if available
+    const categoryColors = trendViz && trendViz.categoryColors ? {
+        'Emissions': trendViz.categoryColors.emissions.replace('rgb', 'rgba').replace(')', ', 0.7)'),
+        'Water': trendViz.categoryColors.water.replace('rgb', 'rgba').replace(')', ', 0.7)'),
+        'Energy': trendViz.categoryColors.energy.replace('rgb', 'rgba').replace(')', ', 0.7)'),
+        'Waste': trendViz.categoryColors.waste.replace('rgb', 'rgba').replace(')', ', 0.7)'),
+        'Social': trendViz.categoryColors.social.replace('rgb', 'rgba').replace(')', ', 0.7)'),
+        'Governance': trendViz.categoryColors.governance.replace('rgb', 'rgba').replace(')', ', 0.7)')
+    } : {
         'Emissions': 'rgba(220, 53, 69, 0.7)', // Red
         'Water': 'rgba(13, 202, 240, 0.7)',    // Light blue
         'Energy': 'rgba(255, 193, 7, 0.7)',    // Yellow
@@ -308,8 +320,15 @@ function processCategoryDistribution(metricsData) {
     const labels = Object.keys(categoryCounts);
     const data = Object.values(categoryCounts);
     
-    // Define colors for categories
-    const categoryColors = {
+    // Define colors for categories - use trendViz colors if available
+    const categoryColors = trendViz && trendViz.categoryColors ? {
+        'Emissions': trendViz.categoryColors.emissions.replace('rgb', 'rgba').replace(')', ', 0.7)'),
+        'Water': trendViz.categoryColors.water.replace('rgb', 'rgba').replace(')', ', 0.7)'),
+        'Energy': trendViz.categoryColors.energy.replace('rgb', 'rgba').replace(')', ', 0.7)'),
+        'Waste': trendViz.categoryColors.waste.replace('rgb', 'rgba').replace(')', ', 0.7)'),
+        'Social': trendViz.categoryColors.social.replace('rgb', 'rgba').replace(')', ', 0.7)'),
+        'Governance': trendViz.categoryColors.governance.replace('rgb', 'rgba').replace(')', ', 0.7)')
+    } : {
         'Emissions': 'rgba(220, 53, 69, 0.7)', // Red
         'Water': 'rgba(13, 202, 240, 0.7)',    // Light blue
         'Energy': 'rgba(255, 193, 7, 0.7)',    // Yellow

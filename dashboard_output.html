@@ -1,0 +1,1723 @@
+<!doctype html>
+<html lang="en" class="h-100">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="description" content="SustainaTrend™ - AI-Powered Sustainability Intelligence Platform">
+  <meta name="author" content="SustainaTrend Team">
+  <title>Dashboard | SustainaTrend™</title>
+  
+  <!-- Favicon -->
+  <link rel="icon" href="/static/img/favicon.svg" type="image/svg+xml">
+  
+  <!-- Bootstrap CSS and Icons -->
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css">
+  
+  <!-- Google Fonts -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+  
+  <!-- jQuery (needed for various interactive components) -->
+  <script src="https://code.jquery.com/jquery-3.7.1.min.js" integrity="sha256-/JqT3SQfawRcv/BIHPThkBvs0OEvtFFmqPF/lYI/Cxo=" crossorigin="anonymous"></script>
+  
+  <!-- Chart.js -->
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+  
+  <!-- SustainaTrend Theme System -->
+  <link href="/static/css/theme.css" rel="stylesheet">
+  
+  <!-- Common CSS -->
+  <link href="/static/css/common.css" rel="stylesheet">
+  
+  <!-- Page-specific styles -->
+  
+<link href="/static/css/dashboard.css" rel="stylesheet">
+
+  
+  <style>
+    body {
+      font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+      min-height: 100vh;
+      padding-top: 0;
+    }
+    
+    /* Make charts responsive */
+    .chart-container {
+      position: relative;
+      height: 100%;
+      width: 100%;
+      min-height: 250px;
+    }
+    
+    /* Main content padding adjustments */
+    main {
+      padding-bottom: 3rem;
+      transition: all 0.3s ease;
+    }
+    
+    /* Animations */
+    .fade-in {
+      animation: fadeIn 0.5s ease-in-out;
+    }
+    
+    @keyframes fadeIn {
+      from { opacity: 0; transform: translateY(10px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+    
+    /* Add smooth transitions to all elements */
+    * {
+      transition: color 0.2s ease-in-out, background-color 0.2s ease-in-out, border-color 0.2s ease-in-out;
+    }
+  </style>
+</head>
+<body class="d-flex flex-column h-100">
+  
+  <!-- Header (navigation) -->
+  <header class="navbar navbar-expand-md navbar-dark sticky-top p-0 shadow header-theme">
+  <!-- Mobile sidebar toggle -->
+  <button class="navbar-toggler d-md-none border-0 ms-2" type="button" data-bs-toggle="collapse" data-bs-target="#sidebarMenu" aria-controls="sidebarMenu" aria-expanded="false" aria-label="Toggle navigation">
+    <span class="navbar-toggler-icon"></span>
+  </button>
+  
+  <!-- Brand logo -->
+  <a class="navbar-brand col-md-3 col-lg-2 me-0 px-3 py-2 d-flex align-items-center" href="/">
+    <img src="/static/img/logo-horizontal.svg" alt="SustainaTrend™" height="32" class="d-none d-md-inline-block">
+    <img src="/static/img/logo-icon.svg" alt="SustainaTrend™" height="32" class="d-inline-block d-md-none">
+  </a>
+  
+  <!-- Global search bar (desktop only) -->
+  <div class="search-container d-none d-md-flex flex-grow-1 mx-3">
+    <form class="w-100" action="/search" method="get" id="searchForm">
+      <div class="search-wrapper position-relative">
+        <input type="text" class="form-control search-input" id="globalSearch" name="q" placeholder="Search sustainability data..." aria-label="Search" autocomplete="off">
+        <div class="search-icon-wrapper">
+          <i class="bi bi-search"></i>
+        </div>
+        <button type="submit" class="btn btn-primary search-button">
+          Search
+        </button>
+      </div>
+    </form>
+  </div>
+  
+  <!-- Header navigation (right side) -->
+  <div class="navbar-nav flex-row">
+    <!-- Dark mode toggle -->
+    <div class="nav-item">
+      <a class="nav-link header-icon-link px-3" href="#" id="darkModeToggle" data-bs-toggle="tooltip" data-bs-placement="bottom" title="Toggle dark mode">
+        <i class="bi bi-moon-stars"></i>
+      </a>
+    </div>
+    
+    <!-- System status link -->
+    <div class="nav-item">
+      <a class="nav-link header-icon-link px-3" href="/api-status" data-bs-toggle="tooltip" data-bs-placement="bottom" title="System status">
+        <i class="bi bi-activity"></i>
+      </a>
+    </div>
+    
+    <!-- Notifications dropdown -->
+    <div class="nav-item dropdown">
+      <a class="nav-link header-icon-link px-3 dropdown-toggle" href="#" id="notificationsDropdown" role="button" data-bs-toggle="dropdown" aria-expanded="false" data-bs-auto-close="outside" title="Notifications">
+        <i class="bi bi-bell"></i>
+        <span class="position-absolute top-25 start-75 translate-middle pulse-badge rounded-circle">
+          <span class="visually-hidden">New notifications</span>
+        </span>
+      </a>
+      <div class="dropdown-menu dropdown-menu-end dropdown-menu-lg notifications-dropdown p-0" aria-labelledby="notificationsDropdown">
+        <div class="notifications-header p-3 d-flex justify-content-between align-items-center">
+          <h6 class="m-0">Notifications</h6>
+          <span class="badge bg-primary rounded-pill">3 New</span>
+        </div>
+        <div class="notifications-body p-0">
+          <a href="#" class="dropdown-item notification-item p-3 border-bottom">
+            <div class="d-flex align-items-center">
+              <div class="notification-icon bg-success-subtle rounded-circle p-2 me-3">
+                <i class="bi bi-graph-up-arrow text-success"></i>
+              </div>
+              <div class="notification-content flex-grow-1">
+                <p class="notification-title mb-1">New Trend Detected</p>
+                <p class="notification-text text-muted small mb-0">Renewable energy trend showing 28% growth</p>
+                <span class="notification-time text-muted smallest">2 hours ago</span>
+              </div>
+            </div>
+          </a>
+          <a href="#" class="dropdown-item notification-item p-3 border-bottom">
+            <div class="d-flex align-items-center">
+              <div class="notification-icon bg-primary-subtle rounded-circle p-2 me-3">
+                <i class="bi bi-file-earmark-text text-primary"></i>
+              </div>
+              <div class="notification-content flex-grow-1">
+                <p class="notification-title mb-1">Report Analysis Complete</p>
+                <p class="notification-text text-muted small mb-0">Your ESRS compliance report is ready to view</p>
+                <span class="notification-time text-muted smallest">Yesterday</span>
+              </div>
+            </div>
+          </a>
+          <a href="#" class="dropdown-item notification-item p-3">
+            <div class="d-flex align-items-center">
+              <div class="notification-icon bg-warning-subtle rounded-circle p-2 me-3">
+                <i class="bi bi-exclamation-triangle text-warning"></i>
+              </div>
+              <div class="notification-content flex-grow-1">
+                <p class="notification-title mb-1">Data Update Required</p>
+                <p class="notification-text text-muted small mb-0">Please update your sustainability metrics</p>
+                <span class="notification-time text-muted smallest">3 days ago</span>
+              </div>
+            </div>
+          </a>
+        </div>
+        <div class="notifications-footer p-2 text-center border-top">
+          <a href="#" class="small">View all notifications</a>
+        </div>
+      </div>
+    </div>
+    
+    <!-- User profile dropdown -->
+    <div class="nav-item dropdown">
+      <a class="nav-link header-icon-link px-3 dropdown-toggle d-flex align-items-center" href="#" id="userDropdown" role="button" data-bs-toggle="dropdown" aria-expanded="false" title="User menu">
+        <i class="bi bi-person-circle"></i>
+      </a>
+      <div class="dropdown-menu dropdown-menu-end" aria-labelledby="userDropdown">
+        <div class="dropdown-header d-flex align-items-center">
+          <div class="user-avatar bg-primary text-white rounded-circle d-flex align-items-center justify-content-center me-2">
+            <span>JS</span>
+          </div>
+          <div>
+            <div class="fw-semibold">John Smith</div>
+            <div class="small text-muted">Organization Admin</div>
+          </div>
+        </div>
+        <div class="dropdown-divider"></div>
+        <a class="dropdown-item" href="#">
+          <i class="bi bi-person me-2"></i> My Profile
+        </a>
+        <a class="dropdown-item" href="#">
+          <i class="bi bi-gear me-2"></i> Settings
+        </a>
+        <a class="dropdown-item" href="#">
+          <i class="bi bi-card-list me-2"></i> Activity Log
+        </a>
+        <a class="dropdown-item" href="#">
+          <i class="bi bi-question-circle me-2"></i> Help Center
+        </a>
+        <div class="dropdown-divider"></div>
+        <a class="dropdown-item" href="#">
+          <i class="bi bi-box-arrow-right me-2"></i> Sign Out
+        </a>
+      </div>
+    </div>
+  </div>
+</header>
+
+<style>
+.header-theme {
+  background: linear-gradient(90deg, var(--primary-dark) 0%, var(--primary-color) 100%);
+  height: var(--header-height);
+  z-index: 1030;
+}
+
+/* Search styling */
+.search-container {
+  max-width: 700px;
+}
+
+.search-wrapper {
+  display: flex;
+  align-items: center;
+}
+
+.search-input {
+  height: 40px;
+  background-color: rgba(255, 255, 255, 0.15);
+  border: none;
+  border-radius: 20px;
+  padding-left: 40px;
+  padding-right: 100px;
+  color: white;
+  transition: all 0.3s ease;
+}
+
+.search-input::placeholder {
+  color: rgba(255, 255, 255, 0.7);
+}
+
+.search-input:focus {
+  background-color: rgba(255, 255, 255, 0.25);
+  box-shadow: 0 0 0 0.25rem rgba(255, 255, 255, 0.15);
+  color: white;
+}
+
+.search-icon-wrapper {
+  position: absolute;
+  left: 15px;
+  top: 50%;
+  transform: translateY(-50%);
+  color: rgba(255, 255, 255, 0.7);
+  pointer-events: none;
+}
+
+.search-button {
+  position: absolute;
+  right: 5px;
+  top: 50%;
+  transform: translateY(-50%);
+  border-radius: 17px;
+  padding: 0.25rem 0.75rem;
+  background-color: rgba(255, 255, 255, 0.9);
+  color: var(--primary-color);
+  border: none;
+  font-size: 0.875rem;
+  font-weight: 500;
+  transition: all 0.2s ease;
+}
+
+.search-button:hover {
+  background-color: white;
+  color: var(--primary-dark);
+}
+
+/* Icon styling */
+.header-icon-link {
+  color: rgba(255, 255, 255, 0.85);
+  position: relative;
+  width: 40px;
+  height: 40px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 50%;
+  transition: all 0.2s ease;
+}
+
+.header-icon-link:hover {
+  background-color: rgba(255, 255, 255, 0.15);
+  color: white;
+}
+
+.header-icon-link i {
+  font-size: 1.25rem;
+}
+
+/* Notification badge pulse */
+.pulse-badge {
+  width: 8px;
+  height: 8px;
+  background-color: #dc3545;
+  animation: pulse-animation 2s infinite;
+}
+
+@keyframes pulse-animation {
+  0% { box-shadow: 0 0 0 0 rgba(220, 53, 69, 0.7); }
+  70% { box-shadow: 0 0 0 6px rgba(220, 53, 69, 0); }
+  100% { box-shadow: 0 0 0 0 rgba(220, 53, 69, 0); }
+}
+
+/* Notifications dropdown */
+.notifications-dropdown {
+  width: 320px;
+  max-height: 400px;
+  overflow-y: auto;
+}
+
+.notifications-header {
+  background-color: var(--card-bg);
+  border-bottom: 1px solid var(--border-color);
+}
+
+.notification-item {
+  transition: background-color 0.2s ease;
+}
+
+.notification-item:hover, .notification-item:focus {
+  background-color: rgba(var(--bs-primary-rgb), 0.05);
+}
+
+.notification-icon {
+  width: 36px;
+  height: 36px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.notification-title {
+  font-weight: 500;
+  font-size: 0.875rem;
+}
+
+.notification-time {
+  font-size: 0.75rem;
+}
+
+.smallest {
+  font-size: 0.7rem;
+}
+
+/* User dropdown */
+.user-avatar {
+  width: 32px;
+  height: 32px;
+  font-weight: 600;
+  font-size: 0.875rem;
+}
+
+/* Media queries */
+@media (max-width: 767.98px) {
+  .navbar-brand {
+    margin-left: 1rem;
+  }
+  
+  .navbar-toggler {
+    margin-left: 0;
+  }
+}
+</style>
+
+  <!-- Content container -->
+  <div class="container-fluid">
+    <div class="row">
+      <!-- Sidebar navigation -->
+      
+        <nav id="sidebarMenu" class="col-md-3 col-lg-2 d-md-block sidebar-theme sidebar collapse">
+  <div class="position-sticky pt-3 sidebar-sticky">
+    <!-- Brand logo in sidebar -->
+    <div class="sidebar-brand d-flex align-items-center justify-content-center mb-4">
+      <img src="/static/img/logo-icon.svg" alt="SustainaTrend™" height="36" class="me-2">
+      <span class="sidebar-brand-text">SustainaTrend™</span>
+    </div>
+    
+    <div class="px-3 mb-3">
+      <div class="sidebar-search position-relative">
+        <input type="text" class="form-control rounded-pill" placeholder="Quick search...">
+        <i class="bi bi-search position-absolute top-50 end-0 translate-middle-y me-3"></i>
+      </div>
+    </div>
+    
+    <div class="sidebar-section">
+      <div class="sidebar-section-header">
+        <span>Core Platform</span>
+      </div>
+      <ul class="nav flex-column">
+        <li class="nav-item">
+          <a class="sidebar-link " href="/">
+            <i class="bi bi-house"></i>
+            <span>Home</span>
+          </a>
+        </li>
+        <li class="nav-item">
+          <a class="sidebar-link " href="/dashboard">
+            <i class="bi bi-speedometer2"></i>
+            <span>Dashboard</span>
+          </a>
+        </li>
+        <li class="nav-item">
+          <a class="sidebar-link " href="/trend-analysis">
+            <i class="bi bi-graph-up"></i>
+            <span>Trend Analysis</span>
+            <span class="sidebar-badge-success">New</span>
+          </a>
+        </li>
+        <li class="nav-item">
+          <a class="sidebar-link " href="/search">
+            <i class="bi bi-search"></i>
+            <span>AI Search</span>
+          </a>
+        </li>
+        <li class="nav-item">
+          <a class="sidebar-link " href="/document-upload">
+            <i class="bi bi-file-earmark-text"></i>
+            <span>Document Analysis</span>
+          </a>
+        </li>
+      </ul>
+    </div>
+
+    <div class="sidebar-section">
+      <div class="sidebar-section-header">
+        <span>Sustainability Intelligence</span>
+      </div>
+      <ul class="nav flex-column">
+        <li class="nav-item">
+          <a class="sidebar-link " href="/realestate-trends">
+            <i class="bi bi-building"></i>
+            <span>Real Estate Trends</span>
+          </a>
+        </li>
+        <li class="nav-item">
+          <a class="sidebar-link " href="/strategy-simulation/">
+            <i class="bi bi-kanban"></i>
+            <span>Strategy Simulation</span>
+          </a>
+        </li>
+        <li class="nav-item">
+          <a class="sidebar-link " href="/company-search">
+            <i class="bi bi-building-check"></i>
+            <span>Company Research</span>
+          </a>
+        </li>
+        <li class="nav-item">
+          <a class="sidebar-link " href="/esrs-framework">
+            <i class="bi bi-clipboard-check"></i>
+            <span>ESRS Framework</span>
+          </a>
+        </li>
+      </ul>
+    </div>
+
+    <div class="sidebar-section">
+      <div class="sidebar-section-header">
+        <span>Advanced Analytics</span>
+      </div>
+      <ul class="nav flex-column">
+        <li class="nav-item">
+          <a class="sidebar-link " href="/sentiment-analysis">
+            <i class="bi bi-emoji-smile"></i>
+            <span>Sentiment Analysis</span>
+          </a>
+        </li>
+        <li class="nav-item">
+          <a class="sidebar-link " href="/trend-virality-dashboard">
+            <i class="bi bi-lightning"></i>
+            <span>Trend Virality</span>
+            <span class="sidebar-badge-primary">Beta</span>
+          </a>
+        </li>
+        <li class="nav-item">
+          <a class="sidebar-link " href="/sustainability-storytelling">
+            <i class="bi bi-book"></i>
+            <span>AI Storytelling</span>
+          </a>
+        </li>
+        <li class="nav-item">
+          <a class="sidebar-link " href="/ethical-ai">
+            <i class="bi bi-shield-check"></i>
+            <span>Ethical AI</span>
+          </a>
+        </li>
+      </ul>
+    </div>
+    
+    <!-- Sidebar footer with version and status -->
+    <div class="sidebar-footer">
+      <div class="d-flex align-items-center justify-content-between">
+        <div class="small">
+          <i class="bi bi-circle-fill text-success me-1" style="font-size: 8px;"></i>
+          <span class="text-muted">v2.1.0</span>
+        </div>
+        <a href="/api-status" class="sidebar-footer-link" title="System Status">
+          <i class="bi bi-info-circle"></i>
+        </a>
+      </div>
+    </div>
+  </div>
+</nav>
+
+<style>
+.sidebar-theme {
+  background-color: var(--card-bg);
+  border-right: 1px solid var(--border-color);
+  transition: background-color 0.3s ease, border-color 0.3s ease;
+  overflow-y: auto;
+  z-index: 100;
+}
+
+.sidebar-brand {
+  padding: 0.75rem 1rem;
+}
+
+.sidebar-brand-text {
+  font-weight: 700;
+  font-size: 1.2rem;
+  color: var(--primary-color);
+}
+
+.sidebar-search input {
+  background-color: rgba(var(--bs-primary-rgb), 0.05);
+  border-color: rgba(var(--bs-primary-rgb), 0.1);
+  font-size: 0.875rem;
+  padding-right: 2.5rem;
+  color: var(--text-color);
+}
+
+.sidebar-search input:focus {
+  box-shadow: 0 0 0 0.2rem rgba(var(--bs-primary-rgb), 0.1);
+  border-color: rgba(var(--bs-primary-rgb), 0.2);
+  background-color: var(--card-bg);
+}
+
+.sidebar-search i {
+  color: rgba(var(--bs-primary-rgb), 0.7);
+  pointer-events: none;
+}
+
+.sidebar-section {
+  margin-bottom: 1.5rem;
+}
+
+.sidebar-section-header {
+  text-transform: uppercase;
+  font-size: 0.75rem;
+  font-weight: 600;
+  color: var(--text-muted);
+  padding: 0 1.25rem;
+  margin-bottom: 0.5rem;
+}
+
+.sidebar-link {
+  display: flex;
+  align-items: center;
+  padding: 0.625rem 1.25rem;
+  color: var(--text-color);
+  text-decoration: none;
+  border-radius: 0.375rem;
+  margin: 0.125rem 0.75rem;
+  transition: all 0.2s ease;
+  font-size: 0.9375rem;
+  position: relative;
+}
+
+.sidebar-link i {
+  margin-right: 0.875rem;
+  font-size: 1.125rem;
+  color: var(--text-muted);
+  width: 1.25rem;
+  display: flex;
+  justify-content: center;
+  transition: color 0.2s ease;
+}
+
+.sidebar-link:hover {
+  background-color: rgba(var(--bs-primary-rgb), 0.08);
+  color: var(--primary-color);
+}
+
+.sidebar-link:hover i {
+  color: var(--primary-color);
+}
+
+.sidebar-link.active {
+  background-color: rgba(var(--bs-primary-rgb), 0.1);
+  color: var(--primary-color);
+  font-weight: 500;
+}
+
+.sidebar-link.active i {
+  color: var(--primary-color);
+}
+
+.sidebar-link.active::before {
+  content: '';
+  position: absolute;
+  left: -0.75rem;
+  top: 50%;
+  height: 50%;
+  width: 3px;
+  background-color: var(--primary-color);
+  transform: translateY(-50%);
+  border-radius: 0 3px 3px 0;
+}
+
+.sidebar-badge-success,
+.sidebar-badge-primary {
+  font-size: 0.625rem;
+  padding: 0.125rem 0.375rem;
+  border-radius: 0.25rem;
+  margin-left: auto;
+  font-weight: 600;
+}
+
+.sidebar-badge-success {
+  background-color: rgba(var(--bs-success-rgb), 0.1);
+  color: var(--success-color);
+}
+
+.sidebar-badge-primary {
+  background-color: rgba(var(--bs-primary-rgb), 0.1);
+  color: var(--primary-color);
+}
+
+.sidebar-footer {
+  padding: 0.75rem 1.25rem;
+  margin-top: 2rem;
+  border-top: 1px solid var(--border-color);
+}
+
+.sidebar-footer-link {
+  color: var(--text-muted);
+  transition: color 0.2s ease;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 1.5rem;
+  height: 1.5rem;
+  border-radius: 50%;
+}
+
+.sidebar-footer-link:hover {
+  color: var(--primary-color);
+}
+
+@media (max-width: 767.98px) {
+  .sidebar-theme {
+    position: fixed;
+    top: 0;
+    bottom: 0;
+    left: 0;
+    width: 280px;
+    max-width: 100%;
+    z-index: 1100;
+    transform: translateX(-100%);
+    transition: transform 0.3s ease;
+  }
+  
+  .sidebar-theme.show {
+    transform: translateX(0);
+    box-shadow: 5px 0 15px rgba(0, 0, 0, 0.1);
+  }
+}
+</style>
+      
+      
+      <!-- Main content area -->
+      <main class="col-md-9 ms-sm-auto col-lg-10 px-md-4 pt-3 pb-5">
+        
+  <!-- Page Header -->
+  <!-- Page Header Component -->
+<div class="page-header mb-4">
+    <h1>Sustainability Dashboard</h1>
+    <p class="text-muted">Monitor and analyze key sustainability metrics</p>
+
+    
+    <div class="page-actions mt-3">
+        
+        
+        
+        <button class="btn btn-outline-primary me-2" id="filter-btn">
+            <i class="bi bi-funnel"></i> Filter
+        </button>
+        
+        
+        
+        <div class="dropdown d-inline-block">
+            <button class="btn btn-outline-primary" id="export-btn">
+                <i class="bi bi-download"></i> Export
+            </button>
+            <div id="export-dropdown" class="export-dropdown">
+                <ul class="export-dropdown-menu">
+                    <li><a href="#" data-format="csv"><i class="bi bi-filetype-csv"></i> CSV</a></li>
+                    <li><a href="#" data-format="excel"><i class="bi bi-filetype-xlsx"></i> Excel</a></li>
+                    <li><a href="#" data-format="pdf"><i class="bi bi-filetype-pdf"></i> PDF Report</a></li>
+                    <li><a href="#" data-format="json"><i class="bi bi-filetype-json"></i> JSON</a></li>
+                </ul>
+            </div>
+        </div>
+        
+        
+        
+        
+        
+    </div>
+    
+</div>
+  
+  <!-- Dashboard Content -->
+  <div class="container-fluid px-0">
+    <!-- Summary Metrics -->
+    <div class="row metrics-summary mb-4">
+      <div class="col-md-3 col-sm-6 mb-3">
+        <div class="summary-box">
+          <div class="summary-icon">
+            <i class="bi bi-graph-up"></i>
+          </div>
+          <div class="summary-number">30</div>
+          <div class="summary-label">Total Metrics</div>
+        </div>
+      </div>
+      <div class="col-md-3 col-sm-6 mb-3">
+        <div class="summary-box">
+          <div class="summary-icon">
+            <i class="bi bi-tags"></i>
+          </div>
+          <div class="summary-number">5</div>
+          <div class="summary-label">Categories</div>
+        </div>
+      </div>
+      <div class="col-md-3 col-sm-6 mb-3">
+        <div class="summary-box">
+          <div class="summary-icon">
+            <i class="bi bi-calendar-check"></i>
+          </div>
+          <div class="summary-number">6</div>
+          <div class="summary-label">Months of Data</div>
+        </div>
+      </div>
+      <div class="col-md-3 col-sm-6 mb-3">
+        <div class="summary-box">
+          <div class="summary-icon">
+            <i class="bi bi-arrow-up-right"></i>
+          </div>
+          <div class="summary-number">0</div>
+          <div class="summary-label">Improving Trends</div>
+        </div>
+      </div>
+    </div>
+    
+    <!-- Time Period Selector -->
+    <div class="d-flex justify-content-between align-items-center mb-3">
+      <div class="time-period-selector">
+        <input type="radio" class="btn-check" name="time-period" id="time-1m" autocomplete="off">
+        <label class="btn btn-outline-secondary" for="time-1m">1M</label>
+        
+        <input type="radio" class="btn-check" name="time-period" id="time-3m" autocomplete="off">
+        <label class="btn btn-outline-secondary" for="time-3m">3M</label>
+        
+        <input type="radio" class="btn-check" name="time-period" id="time-6m" autocomplete="off">
+        <label class="btn btn-outline-secondary" for="time-6m">6M</label>
+        
+        <input type="radio" class="btn-check" name="time-period" id="time-1y" autocomplete="off" checked>
+        <label class="btn btn-outline-secondary" for="time-1y">1Y</label>
+        
+        <input type="radio" class="btn-check" name="time-period" id="time-all" autocomplete="off">
+        <label class="btn btn-outline-secondary" for="time-all">All</label>
+      </div>
+      
+      <div class="btn-group" role="group">
+        <button type="button" class="btn btn-outline-secondary active" data-chart-type="line">
+          <i class="bi bi-graph-up"></i>
+        </button>
+        <button type="button" class="btn btn-outline-secondary" data-chart-type="bar">
+          <i class="bi bi-bar-chart"></i>
+        </button>
+        <button type="button" class="btn btn-outline-secondary" data-chart-type="area">
+          <i class="bi bi-area-chart"></i>
+        </button>
+      </div>
+    </div>
+    
+    <!-- Chart Row -->
+    <div class="row mb-4">
+      <div class="col-lg-8 mb-4">
+        <div class="card h-100">
+          <div class="card-header d-flex justify-content-between align-items-center">
+            <h5 class="card-title mb-0">Sustainability Metrics Trends</h5>
+            <div class="card-actions">
+              <button class="btn btn-sm btn-outline-secondary" id="download-chart">
+                <i class="bi bi-download"></i>
+              </button>
+              <button class="btn btn-sm btn-outline-secondary" id="refresh-chart">
+                <i class="bi bi-arrow-repeat"></i>
+              </button>
+            </div>
+          </div>
+          <div class="card-body">
+            <div id="metrics-chart-container">
+              <canvas id="metrics-chart"></canvas>
+              <div class="chart-overlay">
+                <div class="spinner-border text-primary" role="status">
+                  <span class="visually-hidden">Loading...</span>
+                </div>
+              </div>
+            </div>
+            <div id="custom-legend" class="custom-legend mt-3"></div>
+          </div>
+        </div>
+      </div>
+      
+      <div class="col-lg-4 mb-4">
+        <div class="card h-100">
+          <div class="card-header">
+            <h5 class="card-title mb-0">Category Distribution</h5>
+          </div>
+          <div class="card-body">
+            <canvas id="category-chart"></canvas>
+          </div>
+        </div>
+      </div>
+    </div>
+    
+    <!-- Metrics Table -->
+    <div class="card mb-4">
+      <div class="card-header d-flex justify-content-between align-items-center">
+        <h5 class="card-title mb-0">Sustainability Metrics Details</h5>
+        <div class="card-actions">
+          <button class="btn btn-sm btn-outline-secondary filter-button" id="filter-table-btn">
+            <i class="bi bi-funnel"></i>
+            <span class="filter-badge">0</span>
+          </button>
+        </div>
+      </div>
+      <div class="card-body p-0">
+        <div class="metrics-table-responsive custom-scrollbar">
+          <table class="table table-hover metrics-table mb-0">
+            <thead>
+              <tr>
+                <th scope="col">Name</th>
+                <th scope="col">Category</th>
+                <th scope="col">Value</th>
+                <th scope="col">Unit</th>
+                <th scope="col">Timestamp</th>
+                <th scope="col">Trend</th>
+              </tr>
+            </thead>
+            <tbody>
+              
+              <tr>
+                <td>Carbon Emissions</td>
+                <td>
+                  <span class="badge bg-emissions">emissions</span>
+                </td>
+                <td>45</td>
+                <td>tons CO2e</td>
+                <td>
+                  
+                    2024-10-08T12:57:20.900411
+                  
+                </td>
+                <td>
+                  
+                    <span class="trend-stable" title="Stable"><i class="bi bi-dash"></i></span>
+                  
+                </td>
+              </tr>
+              
+              <tr>
+                <td>Carbon Emissions</td>
+                <td>
+                  <span class="badge bg-emissions">emissions</span>
+                </td>
+                <td>42</td>
+                <td>tons CO2e</td>
+                <td>
+                  
+                    2024-11-07T12:57:20.900422
+                  
+                </td>
+                <td>
+                  
+                    <span class="trend-stable" title="Stable"><i class="bi bi-dash"></i></span>
+                  
+                </td>
+              </tr>
+              
+              <tr>
+                <td>Carbon Emissions</td>
+                <td>
+                  <span class="badge bg-emissions">emissions</span>
+                </td>
+                <td>38</td>
+                <td>tons CO2e</td>
+                <td>
+                  
+                    2024-12-07T12:57:20.900425
+                  
+                </td>
+                <td>
+                  
+                    <span class="trend-stable" title="Stable"><i class="bi bi-dash"></i></span>
+                  
+                </td>
+              </tr>
+              
+              <tr>
+                <td>Carbon Emissions</td>
+                <td>
+                  <span class="badge bg-emissions">emissions</span>
+                </td>
+                <td>35</td>
+                <td>tons CO2e</td>
+                <td>
+                  
+                    2025-01-06T12:57:20.900427
+                  
+                </td>
+                <td>
+                  
+                    <span class="trend-stable" title="Stable"><i class="bi bi-dash"></i></span>
+                  
+                </td>
+              </tr>
+              
+              <tr>
+                <td>Carbon Emissions</td>
+                <td>
+                  <span class="badge bg-emissions">emissions</span>
+                </td>
+                <td>32</td>
+                <td>tons CO2e</td>
+                <td>
+                  
+                    2025-02-05T12:57:20.900429
+                  
+                </td>
+                <td>
+                  
+                    <span class="trend-stable" title="Stable"><i class="bi bi-dash"></i></span>
+                  
+                </td>
+              </tr>
+              
+              <tr>
+                <td>Carbon Emissions</td>
+                <td>
+                  <span class="badge bg-emissions">emissions</span>
+                </td>
+                <td>30</td>
+                <td>tons CO2e</td>
+                <td>
+                  
+                    2025-03-07T12:57:20.900431
+                  
+                </td>
+                <td>
+                  
+                    <span class="trend-stable" title="Stable"><i class="bi bi-dash"></i></span>
+                  
+                </td>
+              </tr>
+              
+              <tr>
+                <td>Energy Consumption</td>
+                <td>
+                  <span class="badge bg-energy">energy</span>
+                </td>
+                <td>1250</td>
+                <td>MWh</td>
+                <td>
+                  
+                    2024-10-08T12:57:20.900411
+                  
+                </td>
+                <td>
+                  
+                    <span class="trend-stable" title="Stable"><i class="bi bi-dash"></i></span>
+                  
+                </td>
+              </tr>
+              
+              <tr>
+                <td>Energy Consumption</td>
+                <td>
+                  <span class="badge bg-energy">energy</span>
+                </td>
+                <td>1200</td>
+                <td>MWh</td>
+                <td>
+                  
+                    2024-11-07T12:57:20.900422
+                  
+                </td>
+                <td>
+                  
+                    <span class="trend-stable" title="Stable"><i class="bi bi-dash"></i></span>
+                  
+                </td>
+              </tr>
+              
+              <tr>
+                <td>Energy Consumption</td>
+                <td>
+                  <span class="badge bg-energy">energy</span>
+                </td>
+                <td>1150</td>
+                <td>MWh</td>
+                <td>
+                  
+                    2024-12-07T12:57:20.900425
+                  
+                </td>
+                <td>
+                  
+                    <span class="trend-stable" title="Stable"><i class="bi bi-dash"></i></span>
+                  
+                </td>
+              </tr>
+              
+              <tr>
+                <td>Energy Consumption</td>
+                <td>
+                  <span class="badge bg-energy">energy</span>
+                </td>
+                <td>1100</td>
+                <td>MWh</td>
+                <td>
+                  
+                    2025-01-06T12:57:20.900427
+                  
+                </td>
+                <td>
+                  
+                    <span class="trend-stable" title="Stable"><i class="bi bi-dash"></i></span>
+                  
+                </td>
+              </tr>
+              
+              <tr>
+                <td>Energy Consumption</td>
+                <td>
+                  <span class="badge bg-energy">energy</span>
+                </td>
+                <td>1075</td>
+                <td>MWh</td>
+                <td>
+                  
+                    2025-02-05T12:57:20.900429
+                  
+                </td>
+                <td>
+                  
+                    <span class="trend-stable" title="Stable"><i class="bi bi-dash"></i></span>
+                  
+                </td>
+              </tr>
+              
+              <tr>
+                <td>Energy Consumption</td>
+                <td>
+                  <span class="badge bg-energy">energy</span>
+                </td>
+                <td>1050</td>
+                <td>MWh</td>
+                <td>
+                  
+                    2025-03-07T12:57:20.900431
+                  
+                </td>
+                <td>
+                  
+                    <span class="trend-stable" title="Stable"><i class="bi bi-dash"></i></span>
+                  
+                </td>
+              </tr>
+              
+              <tr>
+                <td>Water Usage</td>
+                <td>
+                  <span class="badge bg-water">water</span>
+                </td>
+                <td>350</td>
+                <td>kiloliters</td>
+                <td>
+                  
+                    2024-10-08T12:57:20.900411
+                  
+                </td>
+                <td>
+                  
+                    <span class="trend-stable" title="Stable"><i class="bi bi-dash"></i></span>
+                  
+                </td>
+              </tr>
+              
+              <tr>
+                <td>Water Usage</td>
+                <td>
+                  <span class="badge bg-water">water</span>
+                </td>
+                <td>340</td>
+                <td>kiloliters</td>
+                <td>
+                  
+                    2024-11-07T12:57:20.900422
+                  
+                </td>
+                <td>
+                  
+                    <span class="trend-stable" title="Stable"><i class="bi bi-dash"></i></span>
+                  
+                </td>
+              </tr>
+              
+              <tr>
+                <td>Water Usage</td>
+                <td>
+                  <span class="badge bg-water">water</span>
+                </td>
+                <td>330</td>
+                <td>kiloliters</td>
+                <td>
+                  
+                    2024-12-07T12:57:20.900425
+                  
+                </td>
+                <td>
+                  
+                    <span class="trend-stable" title="Stable"><i class="bi bi-dash"></i></span>
+                  
+                </td>
+              </tr>
+              
+              <tr>
+                <td>Water Usage</td>
+                <td>
+                  <span class="badge bg-water">water</span>
+                </td>
+                <td>320</td>
+                <td>kiloliters</td>
+                <td>
+                  
+                    2025-01-06T12:57:20.900427
+                  
+                </td>
+                <td>
+                  
+                    <span class="trend-stable" title="Stable"><i class="bi bi-dash"></i></span>
+                  
+                </td>
+              </tr>
+              
+              <tr>
+                <td>Water Usage</td>
+                <td>
+                  <span class="badge bg-water">water</span>
+                </td>
+                <td>310</td>
+                <td>kiloliters</td>
+                <td>
+                  
+                    2025-02-05T12:57:20.900429
+                  
+                </td>
+                <td>
+                  
+                    <span class="trend-stable" title="Stable"><i class="bi bi-dash"></i></span>
+                  
+                </td>
+              </tr>
+              
+              <tr>
+                <td>Water Usage</td>
+                <td>
+                  <span class="badge bg-water">water</span>
+                </td>
+                <td>300</td>
+                <td>kiloliters</td>
+                <td>
+                  
+                    2025-03-07T12:57:20.900431
+                  
+                </td>
+                <td>
+                  
+                    <span class="trend-stable" title="Stable"><i class="bi bi-dash"></i></span>
+                  
+                </td>
+              </tr>
+              
+              <tr>
+                <td>Waste Recycled</td>
+                <td>
+                  <span class="badge bg-waste">waste</span>
+                </td>
+                <td>65</td>
+                <td>percent</td>
+                <td>
+                  
+                    2024-10-08T12:57:20.900411
+                  
+                </td>
+                <td>
+                  
+                    <span class="trend-stable" title="Stable"><i class="bi bi-dash"></i></span>
+                  
+                </td>
+              </tr>
+              
+              <tr>
+                <td>Waste Recycled</td>
+                <td>
+                  <span class="badge bg-waste">waste</span>
+                </td>
+                <td>68</td>
+                <td>percent</td>
+                <td>
+                  
+                    2024-11-07T12:57:20.900422
+                  
+                </td>
+                <td>
+                  
+                    <span class="trend-stable" title="Stable"><i class="bi bi-dash"></i></span>
+                  
+                </td>
+              </tr>
+              
+              <tr>
+                <td>Waste Recycled</td>
+                <td>
+                  <span class="badge bg-waste">waste</span>
+                </td>
+                <td>72</td>
+                <td>percent</td>
+                <td>
+                  
+                    2024-12-07T12:57:20.900425
+                  
+                </td>
+                <td>
+                  
+                    <span class="trend-stable" title="Stable"><i class="bi bi-dash"></i></span>
+                  
+                </td>
+              </tr>
+              
+              <tr>
+                <td>Waste Recycled</td>
+                <td>
+                  <span class="badge bg-waste">waste</span>
+                </td>
+                <td>76</td>
+                <td>percent</td>
+                <td>
+                  
+                    2025-01-06T12:57:20.900427
+                  
+                </td>
+                <td>
+                  
+                    <span class="trend-stable" title="Stable"><i class="bi bi-dash"></i></span>
+                  
+                </td>
+              </tr>
+              
+              <tr>
+                <td>Waste Recycled</td>
+                <td>
+                  <span class="badge bg-waste">waste</span>
+                </td>
+                <td>80</td>
+                <td>percent</td>
+                <td>
+                  
+                    2025-02-05T12:57:20.900429
+                  
+                </td>
+                <td>
+                  
+                    <span class="trend-stable" title="Stable"><i class="bi bi-dash"></i></span>
+                  
+                </td>
+              </tr>
+              
+              <tr>
+                <td>Waste Recycled</td>
+                <td>
+                  <span class="badge bg-waste">waste</span>
+                </td>
+                <td>82</td>
+                <td>percent</td>
+                <td>
+                  
+                    2025-03-07T12:57:20.900431
+                  
+                </td>
+                <td>
+                  
+                    <span class="trend-stable" title="Stable"><i class="bi bi-dash"></i></span>
+                  
+                </td>
+              </tr>
+              
+              <tr>
+                <td>ESG Score</td>
+                <td>
+                  <span class="badge bg-social">social</span>
+                </td>
+                <td>72</td>
+                <td>score</td>
+                <td>
+                  
+                    2024-10-08T12:57:20.900411
+                  
+                </td>
+                <td>
+                  
+                    <span class="trend-stable" title="Stable"><i class="bi bi-dash"></i></span>
+                  
+                </td>
+              </tr>
+              
+              <tr>
+                <td>ESG Score</td>
+                <td>
+                  <span class="badge bg-social">social</span>
+                </td>
+                <td>74</td>
+                <td>score</td>
+                <td>
+                  
+                    2024-11-07T12:57:20.900422
+                  
+                </td>
+                <td>
+                  
+                    <span class="trend-stable" title="Stable"><i class="bi bi-dash"></i></span>
+                  
+                </td>
+              </tr>
+              
+              <tr>
+                <td>ESG Score</td>
+                <td>
+                  <span class="badge bg-social">social</span>
+                </td>
+                <td>76</td>
+                <td>score</td>
+                <td>
+                  
+                    2024-12-07T12:57:20.900425
+                  
+                </td>
+                <td>
+                  
+                    <span class="trend-stable" title="Stable"><i class="bi bi-dash"></i></span>
+                  
+                </td>
+              </tr>
+              
+              <tr>
+                <td>ESG Score</td>
+                <td>
+                  <span class="badge bg-social">social</span>
+                </td>
+                <td>78</td>
+                <td>score</td>
+                <td>
+                  
+                    2025-01-06T12:57:20.900427
+                  
+                </td>
+                <td>
+                  
+                    <span class="trend-stable" title="Stable"><i class="bi bi-dash"></i></span>
+                  
+                </td>
+              </tr>
+              
+              <tr>
+                <td>ESG Score</td>
+                <td>
+                  <span class="badge bg-social">social</span>
+                </td>
+                <td>80</td>
+                <td>score</td>
+                <td>
+                  
+                    2025-02-05T12:57:20.900429
+                  
+                </td>
+                <td>
+                  
+                    <span class="trend-stable" title="Stable"><i class="bi bi-dash"></i></span>
+                  
+                </td>
+              </tr>
+              
+              <tr>
+                <td>ESG Score</td>
+                <td>
+                  <span class="badge bg-social">social</span>
+                </td>
+                <td>82</td>
+                <td>score</td>
+                <td>
+                  
+                    2025-03-07T12:57:20.900431
+                  
+                </td>
+                <td>
+                  
+                    <span class="trend-stable" title="Stable"><i class="bi bi-dash"></i></span>
+                  
+                </td>
+              </tr>
+              
+            </tbody>
+          </table>
+        </div>
+      </div>
+      <div class="card-footer d-flex justify-content-between align-items-center">
+        <div>
+          <span class="text-muted">Showing 30 metrics</span>
+        </div>
+        <nav aria-label="Page navigation">
+          <ul class="pagination pagination-sm mb-0">
+            <li class="page-item disabled">
+              <a class="page-link" href="#" tabindex="-1" aria-disabled="true">Previous</a>
+            </li>
+            <li class="page-item active"><a class="page-link" href="#">1</a></li>
+            <li class="page-item"><a class="page-link" href="#">2</a></li>
+            <li class="page-item"><a class="page-link" href="#">3</a></li>
+            <li class="page-item">
+              <a class="page-link" href="#">Next</a>
+            </li>
+          </ul>
+        </nav>
+      </div>
+    </div>
+    
+    <!-- Filter Modal -->
+    <div class="filter-modal" id="filter-modal">
+      <div class="filter-modal-content">
+        <div class="filter-modal-header">
+          <h3>Filter Metrics</h3>
+          <button class="close-modal" id="close-filter-modal">&times;</button>
+        </div>
+        <div class="filter-modal-body">
+          <div class="filter-group">
+            <label>Categories</label>
+            <div class="filter-options">
+              
+              <div class="filter-option">
+                <input type="checkbox" id="category-emissions" name="category" value="emissions" checked>
+                <label for="category-emissions">emissions</label>
+              </div>
+              
+              <div class="filter-option">
+                <input type="checkbox" id="category-energy" name="category" value="energy" checked>
+                <label for="category-energy">energy</label>
+              </div>
+              
+              <div class="filter-option">
+                <input type="checkbox" id="category-social" name="category" value="social" checked>
+                <label for="category-social">social</label>
+              </div>
+              
+              <div class="filter-option">
+                <input type="checkbox" id="category-waste" name="category" value="waste" checked>
+                <label for="category-waste">waste</label>
+              </div>
+              
+              <div class="filter-option">
+                <input type="checkbox" id="category-water" name="category" value="water" checked>
+                <label for="category-water">water</label>
+              </div>
+              
+            </div>
+          </div>
+          
+          <div class="filter-group">
+            <label>Trend</label>
+            <div class="filter-options">
+              <div class="filter-option">
+                <input type="checkbox" id="trend-improving" name="trend" value="improving" checked>
+                <label for="trend-improving">Improving</label>
+              </div>
+              <div class="filter-option">
+                <input type="checkbox" id="trend-worsening" name="trend" value="worsening" checked>
+                <label for="trend-worsening">Worsening</label>
+              </div>
+              <div class="filter-option">
+                <input type="checkbox" id="trend-stable" name="trend" value="stable" checked>
+                <label for="trend-stable">Stable</label>
+              </div>
+            </div>
+          </div>
+          
+          <div class="filter-group">
+            <label>Date Range</label>
+            <div class="row">
+              <div class="col-md-6 mb-2">
+                <input type="date" class="form-control" id="date-from">
+              </div>
+              <div class="col-md-6 mb-2">
+                <input type="date" class="form-control" id="date-to">
+              </div>
+            </div>
+          </div>
+        </div>
+        <div class="filter-modal-footer">
+          <button class="btn btn-outline-secondary" id="reset-filters">Reset</button>
+          <button class="btn btn-primary" id="apply-filters">Apply Filters</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+      </main>
+    </div>
+  </div>
+  
+  <!-- Footer -->
+  <footer class="footer mt-auto py-3 footer-theme">
+  <div class="container-fluid">
+    <div class="row align-items-center">
+      <div class="col-lg-3 mb-3 mb-lg-0 text-center text-lg-start">
+        <img src="/static/img/logo-horizontal.svg" alt="SustainaTrend™" height="28" class="d-none d-lg-inline-block mb-2">
+        <div class="footer-brand d-lg-none d-inline-block">SustainaTrend™</div>
+      </div>
+      
+      <div class="col-lg-6 mb-3 mb-lg-0">
+        <div class="row">
+          <div class="col-6 col-md-3 mb-2">
+            <h6 class="footer-heading">Platform</h6>
+            <ul class="nav flex-column">
+              <li class="nav-item"><a href="/dashboard" class="nav-link footer-link px-0">Dashboard</a></li>
+              <li class="nav-item"><a href="/trend-analysis" class="nav-link footer-link px-0">Trend Analysis</a></li>
+              <li class="nav-item"><a href="/sustainability-stories" class="nav-link footer-link px-0">Stories</a></li>
+              <li class="nav-item"><a href="/search" class="nav-link footer-link px-0">Search</a></li>
+            </ul>
+          </div>
+          <div class="col-6 col-md-3 mb-2">
+            <h6 class="footer-heading">Analytics</h6>
+            <ul class="nav flex-column">
+              <li class="nav-item"><a href="/analytics-dashboard" class="nav-link footer-link px-0">Dashboard</a></li>
+              <li class="nav-item"><a href="/realestate-trends" class="nav-link footer-link px-0">Real Estate</a></li>
+              <li class="nav-item"><a href="/strategy-simulation" class="nav-link footer-link px-0">Strategy</a></li>
+              <li class="nav-item"><a href="/esrs-framework" class="nav-link footer-link px-0">ESRS Framework</a></li>
+            </ul>
+          </div>
+          <div class="col-6 col-md-3 mb-2">
+            <h6 class="footer-heading">Resources</h6>
+            <ul class="nav flex-column">
+              <li class="nav-item"><a href="#" class="nav-link footer-link px-0">Documentation</a></li>
+              <li class="nav-item"><a href="#" class="nav-link footer-link px-0">API</a></li>
+              <li class="nav-item"><a href="#" class="nav-link footer-link px-0">Community</a></li>
+              <li class="nav-item"><a href="#" class="nav-link footer-link px-0">Support</a></li>
+            </ul>
+          </div>
+          <div class="col-6 col-md-3 mb-2">
+            <h6 class="footer-heading">Company</h6>
+            <ul class="nav flex-column">
+              <li class="nav-item"><a href="#" class="nav-link footer-link px-0">About</a></li>
+              <li class="nav-item"><a href="#" class="nav-link footer-link px-0">Blog</a></li>
+              <li class="nav-item"><a href="#" class="nav-link footer-link px-0">Careers</a></li>
+              <li class="nav-item"><a href="#" class="nav-link footer-link px-0">Contact</a></li>
+            </ul>
+          </div>
+        </div>
+      </div>
+      
+      <div class="col-lg-3 text-center text-lg-end">
+        <div class="d-flex gap-3 justify-content-center justify-content-lg-end mb-3">
+          <a href="#" class="footer-social-link" aria-label="LinkedIn">
+            <i class="bi bi-linkedin"></i>
+          </a>
+          <a href="#" class="footer-social-link" aria-label="Twitter">
+            <i class="bi bi-twitter-x"></i>
+          </a>
+          <a href="#" class="footer-social-link" aria-label="GitHub">
+            <i class="bi bi-github"></i>
+          </a>
+          <a href="#" class="footer-social-link" aria-label="YouTube">
+            <i class="bi bi-youtube"></i>
+          </a>
+        </div>
+        <div class="text-muted small">
+          <span>© 2025 SustainaTrend™</span>
+          <span class="mx-2">|</span>
+          <a href="#" class="footer-link-sm">Terms</a>
+          <span class="mx-1">·</span>
+          <a href="#" class="footer-link-sm">Privacy</a>
+        </div>
+      </div>
+    </div>
+  </div>
+</footer>
+
+<style>
+.footer-theme {
+  background-color: var(--card-bg);
+  border-top: 1px solid var(--border-color);
+  transition: background-color 0.3s ease, border-color 0.3s ease;
+}
+
+.footer-brand {
+  font-weight: 700;
+  color: var(--primary-color);
+  font-size: 1.25rem;
+}
+
+.footer-heading {
+  font-weight: 600;
+  font-size: 0.875rem;
+  margin-bottom: 0.75rem;
+  color: var(--primary-color);
+}
+
+.footer-link {
+  color: var(--text-color);
+  font-size: 0.875rem;
+  padding: 0.25rem 0;
+  opacity: 0.8;
+  transition: opacity 0.2s ease, color 0.2s ease;
+}
+
+.footer-link:hover {
+  opacity: 1;
+  color: var(--primary-color);
+}
+
+.footer-link-sm {
+  color: var(--text-muted);
+  text-decoration: none;
+  transition: color 0.2s ease;
+}
+
+.footer-link-sm:hover {
+  color: var(--primary-color);
+}
+
+.footer-social-link {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  background-color: rgba(var(--bs-primary-rgb), 0.1);
+  color: var(--primary-color);
+  transition: all 0.2s ease;
+}
+
+.footer-social-link:hover {
+  background-color: var(--primary-color);
+  color: white;
+  transform: translateY(-2px);
+}
+
+/* Hide full footer on very small screens */
+@media (max-width: 575.98px) {
+  .footer-theme .container-fluid {
+    padding: 0;
+  }
+  
+  .footer-theme .row > div:not(:last-child) {
+    display: none;
+  }
+  
+  .footer-theme .col-lg-3:last-child {
+    margin-bottom: 0;
+  }
+}
+</style>
+
+  <!-- Toast container for notifications -->
+  <div id="toastContainer" class="toast-container position-fixed bottom-0 end-0 p-3">
+    <!-- Toasts will be dynamically added here -->
+  </div>
+  
+  <!-- Bootstrap JS -->
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+  
+  <!-- SustainaTrend Theme Manager -->
+  <script src="/static/js/theme-manager.js"></script>
+  
+  <!-- Common JS -->
+  <script src="/static/js/common.js"></script>
+  
+  <!-- Page-specific scripts -->
+  
+<script src="/static/js/visualization-utils.js"></script>
+<script>
+  // Pass metrics data to JavaScript
+  window.metricsData = [{"id": 1, "name": "Carbon Emissions", "category": "emissions", "value": 45, "unit": "tons CO2e", "timestamp": "2024-10-08T12:57:20.900411"}, {"id": 2, "name": "Carbon Emissions", "category": "emissions", "value": 42, "unit": "tons CO2e", "timestamp": "2024-11-07T12:57:20.900422"}, {"id": 3, "name": "Carbon Emissions", "category": "emissions", "value": 38, "unit": "tons CO2e", "timestamp": "2024-12-07T12:57:20.900425"}, {"id": 4, "name": "Carbon Emissions", "category": "emissions", "value": 35, "unit": "tons CO2e", "timestamp": "2025-01-06T12:57:20.900427"}, {"id": 5, "name": "Carbon Emissions", "category": "emissions", "value": 32, "unit": "tons CO2e", "timestamp": "2025-02-05T12:57:20.900429"}, {"id": 6, "name": "Carbon Emissions", "category": "emissions", "value": 30, "unit": "tons CO2e", "timestamp": "2025-03-07T12:57:20.900431"}, {"id": 7, "name": "Energy Consumption", "category": "energy", "value": 1250, "unit": "MWh", "timestamp": "2024-10-08T12:57:20.900411"}, {"id": 8, "name": "Energy Consumption", "category": "energy", "value": 1200, "unit": "MWh", "timestamp": "2024-11-07T12:57:20.900422"}, {"id": 9, "name": "Energy Consumption", "category": "energy", "value": 1150, "unit": "MWh", "timestamp": "2024-12-07T12:57:20.900425"}, {"id": 10, "name": "Energy Consumption", "category": "energy", "value": 1100, "unit": "MWh", "timestamp": "2025-01-06T12:57:20.900427"}, {"id": 11, "name": "Energy Consumption", "category": "energy", "value": 1075, "unit": "MWh", "timestamp": "2025-02-05T12:57:20.900429"}, {"id": 12, "name": "Energy Consumption", "category": "energy", "value": 1050, "unit": "MWh", "timestamp": "2025-03-07T12:57:20.900431"}, {"id": 13, "name": "Water Usage", "category": "water", "value": 350, "unit": "kiloliters", "timestamp": "2024-10-08T12:57:20.900411"}, {"id": 14, "name": "Water Usage", "category": "water", "value": 340, "unit": "kiloliters", "timestamp": "2024-11-07T12:57:20.900422"}, {"id": 15, "name": "Water Usage", "category": "water", "value": 330, "unit": "kiloliters", "timestamp": "2024-12-07T12:57:20.900425"}, {"id": 16, "name": "Water Usage", "category": "water", "value": 320, "unit": "kiloliters", "timestamp": "2025-01-06T12:57:20.900427"}, {"id": 17, "name": "Water Usage", "category": "water", "value": 310, "unit": "kiloliters", "timestamp": "2025-02-05T12:57:20.900429"}, {"id": 18, "name": "Water Usage", "category": "water", "value": 300, "unit": "kiloliters", "timestamp": "2025-03-07T12:57:20.900431"}, {"id": 19, "name": "Waste Recycled", "category": "waste", "value": 65, "unit": "percent", "timestamp": "2024-10-08T12:57:20.900411"}, {"id": 20, "name": "Waste Recycled", "category": "waste", "value": 68, "unit": "percent", "timestamp": "2024-11-07T12:57:20.900422"}, {"id": 21, "name": "Waste Recycled", "category": "waste", "value": 72, "unit": "percent", "timestamp": "2024-12-07T12:57:20.900425"}, {"id": 22, "name": "Waste Recycled", "category": "waste", "value": 76, "unit": "percent", "timestamp": "2025-01-06T12:57:20.900427"}, {"id": 23, "name": "Waste Recycled", "category": "waste", "value": 80, "unit": "percent", "timestamp": "2025-02-05T12:57:20.900429"}, {"id": 24, "name": "Waste Recycled", "category": "waste", "value": 82, "unit": "percent", "timestamp": "2025-03-07T12:57:20.900431"}, {"id": 25, "name": "ESG Score", "category": "social", "value": 72, "unit": "score", "timestamp": "2024-10-08T12:57:20.900411"}, {"id": 26, "name": "ESG Score", "category": "social", "value": 74, "unit": "score", "timestamp": "2024-11-07T12:57:20.900422"}, {"id": 27, "name": "ESG Score", "category": "social", "value": 76, "unit": "score", "timestamp": "2024-12-07T12:57:20.900425"}, {"id": 28, "name": "ESG Score", "category": "social", "value": 78, "unit": "score", "timestamp": "2025-01-06T12:57:20.900427"}, {"id": 29, "name": "ESG Score", "category": "social", "value": 80, "unit": "score", "timestamp": "2025-02-05T12:57:20.900429"}, {"id": 30, "name": "ESG Score", "category": "social", "value": 82, "unit": "score", "timestamp": "2025-03-07T12:57:20.900431"}];
+  window.categories = ["emissions", "energy", "social", "waste", "water"];
+</script>
+<script src="/static/js/dashboard.js"></script>
+
+</body>
+</html>
