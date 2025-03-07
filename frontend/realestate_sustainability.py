@@ -15,11 +15,13 @@ The module supports RAG-based insights generation for private market data.
 """
 import json
 import logging
+import random
+import time
 from datetime import datetime, timedelta
 import pandas as pd
 import numpy as np
 import jinja2.exceptions
-from flask import Flask, render_template, jsonify, request, Blueprint
+from flask import Flask, render_template, jsonify, request, Blueprint, Response, stream_with_context
 from typing import List, Dict, Any, Optional, Union, Tuple
 
 # Custom JSON encoder to handle numpy and pandas types
@@ -718,6 +720,80 @@ def configure_routes(app):
             status=200,
             mimetype='application/json'
         )
+        
+    @app.route('/api/realestate-realtime-updates')
+    def realestate_realtime_updates():
+        """
+        Server-Sent Events endpoint for real-time dashboard updates
+        Provides real-time MongoDB data streaming for SimCorp One-inspired UI
+        """
+        def generate():
+            # Initial SSE message to establish connection
+            yield "data: {\"event\": \"connected\", \"message\": \"Real-time updates established\"}\n\n"
+            
+            # In a production environment, this would use a MongoDB change stream
+            # For now, we'll simulate real-time updates with periodic data
+            count = 0
+            try:
+                while True:
+                    count += 1
+                    # Check if client closed connection
+                    if request.headers.get('Accept') != 'text/event-stream':
+                        break
+                        
+                    # Generate simulated update data
+                    if count % 3 == 0:
+                        # BREEAM metrics update
+                        update_data = {
+                            "event": "breeam_update",
+                            "component": "breeam",
+                            "data": {
+                                "property_id": f"PROP-{random.randint(1000, 9999)}",
+                                "score": round(random.uniform(70, 95), 1),
+                                "category": random.choice(["management", "health", "energy", "water", "materials"]),
+                                "timestamp": datetime.now().isoformat()
+                            }
+                        }
+                    elif count % 3 == 1:
+                        # Energy metrics update
+                        update_data = {
+                            "event": "energy_update",
+                            "component": "energy",
+                            "data": {
+                                "property_id": f"PROP-{random.randint(1000, 9999)}",
+                                "consumption": round(random.uniform(80, 150), 1),
+                                "unit": "kWh/m²",
+                                "trend": random.choice(["decreasing", "stable", "increasing"]),
+                                "timestamp": datetime.now().isoformat()
+                            }
+                        }
+                    else:
+                        # Carbon metrics update
+                        update_data = {
+                            "event": "carbon_update",
+                            "component": "carbon",
+                            "data": {
+                                "property_id": f"PROP-{random.randint(1000, 9999)}",
+                                "emissions": round(random.uniform(20, 50), 1),
+                                "unit": "kgCO₂e/m²",
+                                "reduction": round(random.uniform(5, 25), 1),
+                                "timestamp": datetime.now().isoformat()
+                            }
+                        }
+                        
+                    yield f"data: {json.dumps(update_data)}\n\n"
+                    time.sleep(5)  # Send update every 5 seconds
+                    
+            except GeneratorExit:
+                logger.info("Client closed SSE connection")
+            except Exception as e:
+                logger.error(f"Error in SSE stream: {str(e)}")
+                
+        return Response(stream_with_context(generate()), 
+                      mimetype='text/event-stream',
+                      headers={'Cache-Control': 'no-cache', 
+                                'Connection': 'keep-alive',
+                                'X-Accel-Buffering': 'no'})
 
 def register_routes(app):
     """

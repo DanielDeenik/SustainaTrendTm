@@ -449,6 +449,108 @@
         border-bottom-color: var(--primary-color);
         font-weight: 500;
     }
+    
+    /* Real-time updates styling */
+    .realtime-update {
+        padding: 0.75rem;
+        border-radius: 0.5rem;
+        margin-bottom: 0.75rem;
+        animation: fadeIn 0.5s ease-in-out, highlightUpdate 2s ease-in-out;
+        border-left: 3px solid var(--primary-color);
+        background-color: rgba(255, 255, 255, 0.05);
+    }
+    
+    .realtime-update-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 0.5rem;
+    }
+    
+    .realtime-update-body {
+        font-size: 0.9rem;
+    }
+    
+    .realtime-update-timestamp {
+        font-size: 0.75rem;
+        color: var(--text-muted);
+    }
+    
+    .realtime-update.breeam {
+        border-left-color: #2ecc71;
+    }
+    
+    .realtime-update.energy {
+        border-left-color: #3498db;
+    }
+    
+    .realtime-update.carbon {
+        border-left-color: #e67e22;
+    }
+    
+    .realtime-update.financial {
+        border-left-color: #9b59b6;
+    }
+    
+    /* Animation for new updates */
+    @keyframes fadeIn {
+        from { opacity: 0; transform: translateY(-10px); }
+        to { opacity: 1; transform: translateY(0); }
+    }
+    
+    @keyframes highlightUpdate {
+        0% { background-color: rgba(var(--primary-rgb), 0.2); }
+        100% { background-color: rgba(255, 255, 255, 0.05); }
+    }
+    
+    /* Live indicator pulse animation */
+    .badge.bg-danger {
+        animation: pulseLive 2s infinite;
+    }
+    
+    @keyframes pulseLive {
+        0% { opacity: 1; }
+        50% { opacity: 0.6; }
+        100% { opacity: 1; }
+    }
+    
+    /* Update notification badges */
+    .update-badge {
+        display: inline-flex;
+        align-items: center;
+        padding: 0.25rem 0.5rem;
+        border-radius: 0.25rem;
+        font-size: 0.75rem;
+        font-weight: 700;
+    }
+    
+    .update-badge.improved {
+        background-color: rgba(46, 204, 113, 0.2);
+        color: #2ecc71;
+    }
+    
+    .update-badge.declined {
+        background-color: rgba(231, 76, 60, 0.2);
+        color: #e74c3c;
+    }
+    
+    .update-badge.neutral {
+        background-color: rgba(52, 152, 219, 0.2);
+        color: #3498db;
+    }
+    
+    .update-badge i {
+        margin-right: 0.25rem;
+    }
+    
+    /* CSS variables for theme colors */
+    :root {
+        --update-breeam-color: #2ecc71;
+        --update-energy-color: #3498db;
+        --update-carbon-color: #e67e22;
+        --update-financial-color: #9b59b6;
+        --primary-rgb: 52, 152, 219;
+    }
 </style>
 {% endblock %}
 
@@ -756,6 +858,24 @@
             <div id="breeam-results-container">
                 <!-- Dynamic search results will be inserted here -->
                 <div id="breeam-search-results" style="display: none;"></div>
+                
+                <!-- Real-time updates container -->
+                <div class="card mb-4">
+                    <div class="card-header d-flex justify-content-between align-items-center">
+                        <h5 class="card-title mb-0">
+                            <i class="bi bi-broadcast-pin"></i> Live BREEAM Updates
+                        </h5>
+                        <span class="badge bg-danger">LIVE</span>
+                    </div>
+                    <div class="card-body">
+                        <div id="breeam-realtime-updates">
+                            <!-- Real-time updates will be inserted here by JavaScript -->
+                            <div class="alert alert-info">
+                                <i class="bi bi-info-circle me-2"></i> Monitoring for real-time BREEAM certification updates...
+                            </div>
+                        </div>
+                    </div>
+                </div>
             </div>
             
             <div class="row">
@@ -929,6 +1049,24 @@
             <div id="energy-results-container">
                 <!-- Dynamic search results will be inserted here -->
                 <div id="energy-search-results" style="display: none;"></div>
+                
+                <!-- Real-time updates container -->
+                <div class="card mb-4">
+                    <div class="card-header d-flex justify-content-between align-items-center">
+                        <h5 class="card-title mb-0">
+                            <i class="bi bi-broadcast-pin"></i> Live Energy Updates
+                        </h5>
+                        <span class="badge bg-danger">LIVE</span>
+                    </div>
+                    <div class="card-body">
+                        <div id="energy-realtime-updates">
+                            <!-- Real-time updates will be inserted here by JavaScript -->
+                            <div class="alert alert-info">
+                                <i class="bi bi-info-circle me-2"></i> Monitoring for real-time energy consumption updates...
+                            </div>
+                        </div>
+                    </div>
+                </div>
             </div>
             
             <!-- Energy efficiency metrics content -->
@@ -1016,6 +1154,24 @@
             <div id="carbon-results-container">
                 <!-- Dynamic search results will be inserted here -->
                 <div id="carbon-search-results" style="display: none;"></div>
+                
+                <!-- Real-time updates container -->
+                <div class="card mb-4">
+                    <div class="card-header d-flex justify-content-between align-items-center">
+                        <h5 class="card-title mb-0">
+                            <i class="bi bi-broadcast-pin"></i> Live Carbon Updates
+                        </h5>
+                        <span class="badge bg-danger">LIVE</span>
+                    </div>
+                    <div class="card-body">
+                        <div id="carbon-realtime-updates">
+                            <!-- Real-time updates will be inserted here by JavaScript -->
+                            <div class="alert alert-info">
+                                <i class="bi bi-info-circle me-2"></i> Monitoring for real-time carbon footprint updates...
+                            </div>
+                        </div>
+                    </div>
+                </div>
             </div>
             
             <!-- Carbon footprint metrics content -->

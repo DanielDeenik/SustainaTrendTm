@@ -1,5 +1,6 @@
 :root {
     --primary-color: #10b981; /* SustainaTrend green */
+    --primary-color-rgb: 16, 185, 129; /* RGB values for primary color */
     --primary-dark: #059669;
     --primary-light: #d1fae5;
     --bg-sidebar: #111827;
@@ -17,6 +18,11 @@
     --positive-color: #22c55e;
     --negative-color: #ef4444;
     --neutral-color: #f59e0b;
+    /* Badge colors for real-time updates */
+    --badge-breeam: #10b981;
+    --badge-energy: #0ea5e9;
+    --badge-carbon: #64748b;
+    --badge-live: #ef4444;
 }
 
 .light-mode {
@@ -311,6 +317,43 @@ body {
 @keyframes spin {
     0% { transform: rotate(0deg); }
     100% { transform: rotate(360deg); }
+}
+
+/* Real-time updates animation */
+@keyframes highlight-update {
+    0% { 
+        background-color: rgba(var(--primary-color-rgb, 16, 185, 129), 0.3);
+        transform: translateY(-5px);
+        box-shadow: 0 8px 15px rgba(0, 0, 0, 0.1);
+    }
+    50% {
+        background-color: rgba(var(--primary-color-rgb, 16, 185, 129), 0.15);
+        transform: translateY(-2px);
+    }
+    100% { 
+        background-color: transparent;
+        transform: translateY(0);
+    }
+}
+
+.highlight-update {
+    animation: highlight-update 2s ease-in-out;
+}
+
+.realtime-update {
+    border-left: 4px solid var(--primary-color);
+    position: relative;
+    transition: all 0.3s ease;
+}
+
+.realtime-update .metric-badge {
+    animation: pulse 2s infinite;
+}
+
+@keyframes pulse {
+    0% { opacity: 0.7; }
+    50% { opacity: 1; }
+    100% { opacity: 0.7; }
 }
 
 .live-search-toggle {
@@ -725,6 +768,48 @@ body {
     color: #10b981;
     background-color: rgba(16, 185, 129, 0.1);
     border: 1px solid rgba(16, 185, 129, 0.2);
+}
+
+/* Metric badges for real-time updates */
+.metric-badge {
+    display: inline-flex;
+    align-items: center;
+    padding: 0.25rem 0.5rem;
+    border-radius: 0.375rem;
+    font-size: 0.75rem;
+    font-weight: 600;
+    margin-left: 0.5rem;
+}
+
+.metric-badge.certification {
+    background-color: rgba(16, 185, 129, 0.15);
+    color: var(--badge-breeam, #10b981);
+    border: 1px solid rgba(16, 185, 129, 0.3);
+}
+
+.metric-badge.energy {
+    background-color: rgba(14, 165, 233, 0.15);
+    color: var(--badge-energy, #0ea5e9);
+    border: 1px solid rgba(14, 165, 233, 0.3);
+}
+
+.metric-badge.carbon {
+    background-color: rgba(100, 116, 139, 0.15);
+    color: var(--badge-carbon, #64748b);
+    border: 1px solid rgba(100, 116, 139, 0.3);
+}
+
+.metric-badge.financing {
+    background-color: rgba(245, 158, 11, 0.15);
+    color: #f59e0b;
+    border: 1px solid rgba(245, 158, 11, 0.3);
+}
+
+.metric-badge.live {
+    background-color: rgba(239, 68, 68, 0.15);
+    color: var(--badge-live, #ef4444);
+    border: 1px solid rgba(239, 68, 68, 0.3);
+    animation: pulse 2s infinite;
 }
 
 .dark-mode .dashboard-metric-change.positive {

@@ -14,6 +14,7 @@ document.addEventListener("DOMContentLoaded", function() {
     initializeValueChainFilters();
     initializeCharts();
     initializeTabNavigation();
+    initializeRealtimeUpdates(); // Add real-time updates via SSE
 
     // Show initial AI insight
     showDefaultAIInsight();
@@ -707,6 +708,219 @@ function initializeCarbonCharts() {
 function initializeFinancialCharts() {
     // This is a placeholder for Financial-specific chart initialization
     // Would be implemented based on specific visualization needs
+}
+
+/**
+ * Initialize real-time updates using Server-Sent Events (SSE)
+ * Establishes connection with our SSE endpoint and processes updates
+ */
+function initializeRealtimeUpdates() {
+    // Check if EventSource is supported in the browser
+    if (typeof EventSource === 'undefined') {
+        console.warn('Server-Sent Events not supported in this browser. Real-time updates disabled.');
+        return;
+    }
+
+    // Create the SSE connection
+    const eventSource = new EventSource('/api/realestate-realtime-updates');
+    
+    // Connection opened successfully
+    eventSource.addEventListener('open', function() {
+        console.info('Real-time updates connection established');
+        showToast('Real-time Updates', 'Connected to live data stream', 'info');
+    });
+
+    // Handle incoming messages
+    eventSource.addEventListener('message', function(event) {
+        try {
+            // Parse the JSON data
+            const updateData = JSON.parse(event.data);
+            console.log('Received real-time update:', updateData);
+            
+            // Process updates based on event type
+            switch (updateData.event) {
+                case 'connected':
+                    console.info('Real-time updates stream connected:', updateData.message);
+                    break;
+                    
+                case 'breeam_update':
+                    processRealtimeBREEAMUpdate(updateData.data);
+                    break;
+                    
+                case 'energy_update':
+                    processRealtimeEnergyUpdate(updateData.data);
+                    break;
+                    
+                case 'carbon_update':
+                    processRealtimeCarbonUpdate(updateData.data);
+                    break;
+                    
+                default:
+                    console.warn('Unknown real-time update type:', updateData.event);
+            }
+        } catch (error) {
+            console.error('Error processing real-time update:', error);
+        }
+    });
+
+    // Error handling
+    eventSource.addEventListener('error', function(event) {
+        console.error('SSE connection error:', event);
+        
+        if (event.target.readyState === EventSource.CLOSED) {
+            console.warn('SSE connection closed');
+            // Try to reconnect after a delay
+            setTimeout(() => {
+                console.info('Attempting to reconnect to real-time updates...');
+                initializeRealtimeUpdates();
+            }, 5000);
+        }
+    });
+}
+
+/**
+ * Process real-time BREEAM metric updates
+ * 
+ * @param {Object} data - BREEAM update data
+ */
+function processRealtimeBREEAMUpdate(data) {
+    // Get the BREEAM real-time updates container
+    const realtimeUpdatesContainer = document.getElementById('breeam-realtime-updates');
+    if (!realtimeUpdatesContainer) return;
+    
+    // Create a new update card
+    const updateCard = document.createElement('div');
+    updateCard.className = 'metric-breakdown-card realtime-update';
+    
+    updateCard.innerHTML = `
+        <div class="metric-header">
+            <span>Property ${data.property_id} - ${data.category} Update</span>
+            <span class="metric-badge certification">LIVE</span>
+        </div>
+        <div class="metric-body">
+            <div><strong>BREEAM Score:</strong> ${data.score}</div>
+            <div><strong>Category:</strong> ${data.category}</div>
+            <div><strong>Timestamp:</strong> ${new Date(data.timestamp).toLocaleTimeString()}</div>
+        </div>
+    `;
+    
+    // Add the new update to the container (at the top)
+    realtimeUpdatesContainer.prepend(updateCard);
+    
+    // Limit the number of displayed updates to prevent overflow
+    const maxUpdates = 5;
+    const updates = realtimeUpdatesContainer.querySelectorAll('.realtime-update');
+    if (updates.length > maxUpdates) {
+        for (let i = maxUpdates; i < updates.length; i++) {
+            updates[i].remove();
+        }
+    }
+    
+    // If not already on BREEAM tab, add notification indicator
+    if (!document.getElementById('breeam-tab').classList.contains('active')) {
+        document.getElementById('breeam-tab').classList.add('has-update');
+    }
+    
+    // Animate the update notification
+    updateCard.style.animation = 'highlight-update 2s ease-in-out';
+}
+
+/**
+ * Process real-time Energy metric updates
+ * 
+ * @param {Object} data - Energy update data
+ */
+function processRealtimeEnergyUpdate(data) {
+    // Get the Energy real-time updates container
+    const realtimeUpdatesContainer = document.getElementById('energy-realtime-updates');
+    if (!realtimeUpdatesContainer) return;
+    
+    // Create a new update card
+    const updateCard = document.createElement('div');
+    updateCard.className = 'metric-breakdown-card realtime-update';
+    
+    updateCard.innerHTML = `
+        <div class="metric-header">
+            <span>Property ${data.property_id} - Energy Update</span>
+            <span class="metric-badge energy">LIVE</span>
+        </div>
+        <div class="metric-body">
+            <div><strong>Consumption:</strong> ${data.consumption} ${data.unit}</div>
+            <div><strong>Trend:</strong> ${data.trend}</div>
+            <div><strong>Timestamp:</strong> ${new Date(data.timestamp).toLocaleTimeString()}</div>
+        </div>
+    `;
+    
+    // Add the new update to the container (at the top)
+    realtimeUpdatesContainer.prepend(updateCard);
+    
+    // Limit the number of displayed updates
+    const maxUpdates = 5;
+    const updates = realtimeUpdatesContainer.querySelectorAll('.realtime-update');
+    if (updates.length > maxUpdates) {
+        for (let i = maxUpdates; i < updates.length; i++) {
+            updates[i].remove();
+        }
+    }
+    
+    // If not already on Energy tab, add notification indicator
+    if (!document.getElementById('energy-tab').classList.contains('active')) {
+        document.getElementById('energy-tab').classList.add('has-update');
+    }
+    
+    // Animate the update notification
+    updateCard.style.animation = 'highlight-update 2s ease-in-out';
+}
+
+/**
+ * Process real-time Carbon metric updates
+ * 
+ * @param {Object} data - Carbon update data
+ */
+function processRealtimeCarbonUpdate(data) {
+    // Get the Carbon real-time updates container
+    const realtimeUpdatesContainer = document.getElementById('carbon-realtime-updates');
+    if (!realtimeUpdatesContainer) return;
+    
+    // Create a new update card
+    const updateCard = document.createElement('div');
+    updateCard.className = 'metric-breakdown-card realtime-update carbon';
+    
+    // Determine change direction for styling
+    const changeClass = data.change < 0 ? 'improved' : (data.change > 0 ? 'declined' : 'neutral');
+    const changeIcon = data.change < 0 ? 'bi-arrow-down' : (data.change > 0 ? 'bi-arrow-up' : 'bi-dash');
+    
+    updateCard.innerHTML = `
+        <div class="metric-header">
+            <span>Property ${data.property_id} - Carbon Update</span>
+            <span class="metric-badge carbon">LIVE</span>
+        </div>
+        <div class="metric-body">
+            <div><strong>Emissions:</strong> ${data.emissions} ${data.unit}</div>
+            <div><strong>Reduction:</strong> ${data.reduction}%</div>
+            <div><strong>Timestamp:</strong> ${new Date(data.timestamp).toLocaleTimeString()}</div>
+        </div>
+    `;
+    
+    // Add the new update to the container (at the top)
+    realtimeUpdatesContainer.prepend(updateCard);
+    
+    // Limit the number of displayed updates
+    const maxUpdates = 5;
+    const updates = realtimeUpdatesContainer.querySelectorAll('.realtime-update');
+    if (updates.length > maxUpdates) {
+        for (let i = maxUpdates; i < updates.length; i++) {
+            updates[i].remove();
+        }
+    }
+    
+    // If not already on Carbon tab, add notification indicator
+    if (!document.getElementById('carbon-tab').classList.contains('active')) {
+        document.getElementById('carbon-tab').classList.add('has-update');
+    }
+    
+    // Animate the update notification
+    updateCard.style.animation = 'highlight-update 2s ease-in-out';
 }
 
 /**
