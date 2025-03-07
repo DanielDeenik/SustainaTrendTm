@@ -10,9 +10,23 @@ from pymongo.errors import ConnectionFailure, ServerSelectionTimeoutError
 from motor.motor_asyncio import AsyncIOMotorClient
 import asyncio
 from datetime import datetime
+from collections import OrderedDict
 
 # Configure logging
 logger = logging.getLogger(__name__)
+
+# Compatibility for bson.SON which may not be available in some installations
+# SON is an OrderedDict subclass used by MongoDB
+try:
+    from bson import SON
+except ImportError:
+    # Create a compatible SON implementation using OrderedDict
+    class SON(OrderedDict):
+        """
+        SON compatibility class using OrderedDict
+        Used for MongoDB when the original bson.SON is not available
+        """
+        pass
 
 # Default connection settings
 DEFAULT_MONGO_URI = "mongodb://localhost:27017/"

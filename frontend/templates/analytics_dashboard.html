@@ -446,8 +446,8 @@
                 document.getElementById('predictive-company').textContent = `Company: ${data.company}`;
                 document.getElementById('predictive-date').textContent = `Forecast Date: ${formatDate(data.forecast_date)}`;
                 
-                // Create chart
-                const ctx = document.getElementById('predictions-chart').getContext('2d');
+                // Create chart using trendViz namespace
+                const predictionCanvas = document.getElementById('predictions-chart');
                 
                 // Prepare data for chart
                 const metrics = data.predictions.map(p => p.name);
@@ -472,26 +472,18 @@
                     ...predictedSets
                 ];
                 
-                // Create chart
-                new Chart(ctx, {
-                    type: 'bar',
-                    data: {
-                        labels: metrics,
-                        datasets: datasets
-                    },
-                    options: {
-                        scales: {
-                            y: {
-                                beginAtZero: true
-                            }
-                        },
-                        plugins: {
-                            title: {
-                                display: true,
-                                text: 'Sustainability Metrics Forecast'
-                            }
-                        }
-                    }
+                // Create chart using trendViz namespace
+                trendViz.createChart(predictionCanvas, 'bar', {
+                    labels: metrics,
+                    datasets: datasets
+                }, {
+                    title: 'Sustainability Metrics Forecast',
+                    xAxisTitle: 'Metrics',
+                    yAxisTitle: 'Value',
+                    showLegend: true,
+                    legendPosition: 'top-right',
+                    gridLines: true,
+                    responsive: true
                 });
                 
                 // Display AI insights

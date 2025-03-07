@@ -1411,6 +1411,58 @@ def debug_info():
         logger.error(f"Error in debug endpoint: {str(e)}")
         return jsonify({"error": str(e)}), 500
 
+@app.route('/api/mongodb-test')
+def test_mongodb_connection():
+    """Test the MongoDB connection and service layer"""
+    try:
+        # Import MongoDB service
+        from frontend.services.mongodb_service import MongoDBService
+        
+        # Log the request
+        logger.info("MongoDB connection test endpoint called")
+        
+        # Try to get categories from MongoDB
+        categories = MongoDBService.get_categories()
+        
+        # Try to get metrics from MongoDB
+        metrics = MongoDBService.get_metrics(limit=5)
+        
+        # Try to get trends from MongoDB
+        trends = MongoDBService.get_trends(limit=5)
+        
+        # Try to get stories from MongoDB
+        stories = MongoDBService.get_stories(limit=5)
+        
+        # Prepare response
+        result = {
+            "status": "success",
+            "message": "MongoDB connection and service layer working correctly",
+            "timestamp": datetime.now().isoformat(),
+            "data": {
+                "categories": categories,
+                "metrics_count": len(metrics),
+                "metrics_sample": metrics[:2] if metrics else [],
+                "trends_count": len(trends),
+                "trends_sample": trends[:2] if trends else [],
+                "stories_count": len(stories),
+                "stories_sample": stories[:2] if stories else []
+            }
+        }
+        
+        logger.info(f"MongoDB test successful: {len(metrics)} metrics, {len(trends)} trends, {len(stories)} stories found")
+        return jsonify(result)
+    except Exception as e:
+        # Log the error
+        logger.error(f"MongoDB connection test failed: {str(e)}")
+        
+        # Return error response
+        return jsonify({
+            "status": "error",
+            "message": f"MongoDB connection or service layer error: {str(e)}",
+            "error_type": str(type(e).__name__),
+            "timestamp": datetime.now().isoformat()
+        }), 500
+
 # Add API endpoint for summarization
 @app.route('/api/summarize', methods=['POST'])
 def summarize_text():
