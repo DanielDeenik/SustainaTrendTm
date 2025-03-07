@@ -1,173 +1,145 @@
 """
-Template Manager for SustainaTrend™
+Template Manager Module for SustainaTrend™
 
-This module provides functions to standardize template rendering and management.
-It enforces consistent use of the base_new.html template and template variables.
+This module provides template management services for the SustainaTrend™ platform.
+It handles template loading, rendering, and caching.
 """
 
+import os
 import logging
-from typing import Dict, Any, Optional, List
-from flask import render_template  # type: ignore
+import json
+from typing import Dict, Any, Optional
+from datetime import datetime
 
-# Configure logging
-logger = logging.getLogger(__name__)
+# Setup logging
+logger = logging.getLogger("services.template_manager")
 
 class TemplateManager:
-    """Manager class for standardized template handling"""
+    """
+    Template management service for handling UI templates.
+    Provides caching and template selection logic.
+    """
     
-    # Base template to use consistently across the application
-    BASE_TEMPLATE = "base_new.html"
-    
-    # Default page titles for common pages
-    DEFAULT_TITLES = {
-        "dashboard": "Dashboard | SustainaTrend™",
-        "search": "Search | SustainaTrend™",
-        "trend_analysis": "Trend Analysis | SustainaTrend™",
-        "analytics": "Analytics | SustainaTrend™",
-        "sustainability": "Sustainability | SustainaTrend™",
-        "storytelling": "Sustainability Storytelling | SustainaTrend™",
-        "monetization": "Monetization | SustainaTrend™",
-        "settings": "Settings | SustainaTrend™"
-    }
-    
-    @classmethod
-    def get_base_context(cls, page_id: str, title: Optional[str] = None) -> Dict[str, Any]:
+    def __init__(self, template_dir: str = "templates"):
         """
-        Get base context dictionary for template rendering
+        Initialize the template manager
         
         Args:
-            page_id: ID of the current page (for navigation highlighting)
-            title: Page title (defaults to standard title based on page_id)
+            template_dir: Directory containing templates
+        """
+        self.template_dir = template_dir
+        self.template_cache = {}
+        self.last_modified = {}
+        logger.info(f"Template manager initialized with template directory: {template_dir}")
+    
+    def get_template_path(self, template_name: str) -> str:
+        """
+        Get the full path to a template
+        
+        Args:
+            template_name: Name of the template
             
         Returns:
-            Base context dictionary
+            Full path to the template file
         """
-        # Get default title based on page_id or use provided title
-        page_title = title or cls.DEFAULT_TITLES.get(page_id, "SustainaTrend™")
-        
-        return {
-            "page_id": page_id,
-            "title": page_title,
-            "show_header": True,
-            "show_footer": True,
-            "show_sidebar": True,
-            # Common UI settings
-            "show_search": True,
-            "show_actions": True,
-            "show_export": True,
-            "show_filter": True,
-            # Theme-related context (could be expanded later)
-            "theme": {
-                "primary_color": "var(--primary-color)",
-                "secondary_color": "var(--secondary-color)",
-                "text_color": "var(--text-color)",
-                "bg_color": "var(--bg-body)"
-            }
-        }
+        # Handle templates with or without extension
+        if not template_name.endswith(".html"):
+            template_name = f"{template_name}.html"
+            
+        # Create full path
+        return os.path.join(self.template_dir, template_name)
     
-    @classmethod
-    def render(
-        cls, 
-        template_name: str, 
-        page_id: str,
-        title: Optional[str] = None,
-        **kwargs
-    ) -> str:
+    def get_template(self, template_name: str, use_cache: bool = True) -> Optional[str]:
         """
-        Render a template with standardized context
+        Get a template by name
+        
+        Args:
+            template_name: Name of the template to load
+            use_cache: Whether to use cached templates
+            
+        Returns:
+            Template content as string, or None if not found
+        """
+        template_path = self.get_template_path(template_name)
+        
+        # Check if template exists
+        if not os.path.exists(template_path):
+            logger.warning(f"Template not found: {template_path}")
+            return None
+            
+        # Check if we can use cached version
+        if use_cache and template_name in self.template_cache:
+            last_modified = os.path.getmtime(template_path)
+            if last_modified <= self.last_modified.get(template_name, 0):
+                logger.debug(f"Using cached template: {template_name}")
+                return self.template_cache[template_name]
+                
+        # Load template from file
+        try:
+            with open(template_path, 'r', encoding='utf-8') as f:
+                content = f.read()
+                
+            # Update cache
+            if use_cache:
+                self.template_cache[template_name] = content
+                self.last_modified[template_name] = os.path.getmtime(template_path)
+                
+            logger.debug(f"Loaded template: {template_name}")
+            return content
+        except Exception as e:
+            logger.error(f"Error loading template {template_name}: {str(e)}")
+            return None
+    
+    def render_template(self, template_name: str, context: Dict[str, Any]) -> Optional[str]:
+        """
+        Render a template with the given context
+        This is a simple template renderer for demonstration purposes.
+        In a real application, use Flask or Jinja2 for template rendering.
         
         Args:
             template_name: Name of the template to render
-            page_id: ID of the current page (for navigation highlighting)
-            title: Page title (optional)
-            **kwargs: Additional template variables
+            context: Dictionary of variables to use in the template
             
         Returns:
-            Rendered template
+            Rendered template as string, or None if rendering failed
         """
-        # Get base context and merge with provided kwargs
-        context = cls.get_base_context(page_id, title)
-        context.update(kwargs)
-        
-        # Log template rendering
-        logger.debug(f"Rendering template {template_name} for page {page_id}")
-        
-        return render_template(template_name, **context)
+        # Get template content
+        template_content = self.get_template(template_name)
+        if not template_content:
+            return None
+            
+        # Simple variable substitution
+        rendered = template_content
+        for key, value in context.items():
+            placeholder = f"{{{{{key}}}}}"
+            rendered = rendered.replace(placeholder, str(value))
+            
+        return rendered
     
-    @classmethod
-    def render_dashboard(cls, metrics: List[Dict[str, Any]], **kwargs) -> str:
+    def get_available_templates(self) -> Dict[str, Dict[str, Any]]:
         """
-        Render the dashboard template with metrics data
+        Get list of available templates with metadata
         
-        Args:
-            metrics: List of metrics data
-            **kwargs: Additional template variables
-            
         Returns:
-            Rendered dashboard template
+            Dictionary mapping template names to metadata
         """
-        return cls.render("dashboard_new.html", "dashboard", **kwargs)
-    
-    @classmethod
-    def render_trend_analysis(cls, trends: List[Dict[str, Any]], **kwargs) -> str:
-        """
-        Render the trend analysis template with trends data
+        templates = {}
         
-        Args:
-            trends: List of trends data
-            **kwargs: Additional template variables
-            
-        Returns:
-            Rendered trend analysis template
-        """
-        return cls.render("trend_analysis.html", "trend_analysis", **kwargs)
-    
-    @classmethod
-    def render_analytics(cls, **kwargs) -> str:
-        """
-        Render the analytics dashboard template
+        # Scan template directory
+        if os.path.exists(self.template_dir):
+            for filename in os.listdir(self.template_dir):
+                if filename.endswith(".html"):
+                    template_name = filename.replace(".html", "")
+                    template_path = os.path.join(self.template_dir, filename)
+                    
+                    # Get template metadata
+                    templates[template_name] = {
+                        "name": template_name,
+                        "path": template_path,
+                        "size": os.path.getsize(template_path),
+                        "last_modified": datetime.fromtimestamp(
+                            os.path.getmtime(template_path)
+                        ).isoformat()
+                    }
         
-        Args:
-            **kwargs: Template variables
-            
-        Returns:
-            Rendered analytics template
-        """
-        return cls.render("analytics_dashboard.html", "analytics", **kwargs)
-    
-    @classmethod
-    def render_search(cls, query: str, results: List[Dict[str, Any]], **kwargs) -> str:
-        """
-        Render the search template with search results
-        
-        Args:
-            query: Search query
-            results: Search results
-            **kwargs: Additional template variables
-            
-        Returns:
-            Rendered search template
-        """
-        return cls.render("search.html", "search", query=query, results=results, **kwargs)
-    
-    @classmethod
-    def render_error(cls, error_code: int, message: str, **kwargs) -> str:
-        """
-        Render an error template
-        
-        Args:
-            error_code: HTTP error code
-            message: Error message
-            **kwargs: Additional template variables
-            
-        Returns:
-            Rendered error template
-        """
-        return cls.render(
-            "error.html", 
-            "error",
-            title=f"Error {error_code} | SustainaTrend™",
-            error_code=error_code,
-            error_message=message,
-            **kwargs
-        )
+        return templates

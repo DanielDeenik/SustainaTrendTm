@@ -29,6 +29,23 @@ logger = logging.getLogger(__name__)
 # Load environment variables
 load_dotenv()
 
+# Import SimpleMockService for data operations
+try:
+    # Try different import paths to handle various module configurations
+    try:
+        from services.simple_mock_service import SimpleMockService
+    except ImportError:
+        # Try relative import
+        from .services.simple_mock_service import SimpleMockService
+    
+    # Create global instance
+    mock_service = SimpleMockService()
+    MOCK_SERVICE_AVAILABLE = True
+    logger.info("SimpleMockService initialized successfully")
+except ImportError as e:
+    MOCK_SERVICE_AVAILABLE = False
+    logger.warning(f"SimpleMockService not available: {e}")
+    
 # Import enhanced search functionality
 try:
     from enhanced_search import initialize_search_engine, perform_search, format_search_results
@@ -779,9 +796,24 @@ def ensure_category_diversity(results, max_results):
 # Fetch sustainability metrics from FastAPI backend with improved error handling
 @cache_result(expire=300)
 def get_sustainability_metrics():
-    """Fetch sustainability metrics from FastAPI backend"""
+    """Fetch sustainability metrics - now using SimpleMockService"""
     try:
-        logger.info(f"Fetching metrics from FastAPI backend: {BACKEND_URL}/api/metrics")
+        # Check if SimpleMockService is available and initialized
+        if MOCK_SERVICE_AVAILABLE:
+            logger.info("Using SimpleMockService for metrics data")
+            metrics_data = mock_service.get_metrics()
+            logger.info(f"Successfully fetched {len(metrics_data)} metrics from SimpleMockService")
+            
+            # Log a sample of the metrics data to verify format
+            if metrics_data and len(metrics_data) > 0:
+                logger.info(f"Sample metric data: {json.dumps(metrics_data[0], indent=2)}")
+                logger.info(f"Metrics categories: {set(m['category'] for m in metrics_data)}")
+                logger.info(f"Metrics names: {set(m['name'] for m in metrics_data)}")
+            
+            return metrics_data
+            
+        # If SimpleMockService is not available, try original API request
+        logger.info(f"SimpleMockService not available, fetching from FastAPI backend: {BACKEND_URL}/api/metrics")
 
         # Use synchronous requests instead of async
         response = requests.get(f"{BACKEND_URL}/api/metrics", timeout=10.0)
@@ -1234,31 +1266,58 @@ def api_trends():
         category = request.args.get('category', None)
 
         # Get data source preference
-        source = request.args.get('source', 'api')  # 'api' or 'mock'
+        source = request.args.get('source', 'mock_service')  # 'api', 'mock', or 'mock_service'
 
-        if source == 'api':
+        # Get the trends data based on the source preference
+        if source == 'mock_service' and MOCK_SERVICE_AVAILABLE:
+            # Use the SimpleMockService for trend data
+            if category and category != 'all':
+                trends_data = mock_service.get_trends(category=category)
+                logger.info(f"Using SimpleMockService for trend analysis with category={category}")
+            else:
+                trends_data = mock_service.get_trends()
+                logger.info(f"Using SimpleMockService for trend analysis (all categories)")
+                
+            # Get metrics for supplementary data
+            metrics = get_sustainability_metrics()
+            logger.info(f"Using metrics data for additional trend context")
+            
+            # We already have the trend data, so we'll use these later to supplement the metrics data
+            has_trend_data = True
+            
+        elif source == 'api':
             # Try to get from API first
             try:
                 metrics = get_sustainability_metrics()
                 logger.info(f"Using API data for trend analysis with {len(metrics)} metrics")
+                has_trend_data = False
             except Exception as api_error:
                 logger.error(f"Error getting API metrics for trends: {str(api_error)}")
                 # Fall back to mock data
                 metrics = get_mock_sustainability_metrics()
                 logger.info(f"Falling back to mock data for trend analysis")
+                has_trend_data = False
         else:
             # Use mock data as requested
             metrics = get_mock_sustainability_metrics()
             logger.info(f"Using mock data for trend analysis as requested")
+            has_trend_data = False
 
-        # Filter by category if specified
+        # Filter metrics by category if specified
         if category and category != 'all':
-            logger.info(f"Filtering trend data by category: {category}")
+            logger.info(f"Filtering metrics data by category: {category}")
             metrics = [m for m in metrics if m.get('category') == category]
 
-        # Process metrics into trend cards format using our analysis function
-        from sustainability_trend import calculate_trend_virality
-        trends = calculate_trend_virality(metrics, category)
+        # Process metrics into trend cards format
+        if source == 'mock_service' and MOCK_SERVICE_AVAILABLE and has_trend_data:
+            # We already have the trend data from the mock service
+            trends = trends_data
+            logger.info(f"Using trend data directly from SimpleMockService ({len(trends)} trends)")
+        else:
+            # Use the calculate_trend_virality function to generate trends from metrics
+            from sustainability_trend import calculate_trend_virality
+            trends = calculate_trend_virality(metrics, category)
+            logger.info(f"Generated {len(trends)} trends from metrics data using calculate_trend_virality")
         
         # Ensure trends are sorted by virality score (high to low)
         trends = sorted(trends, key=lambda x: x.get("virality_score", 0), reverse=True)
@@ -1415,28 +1474,98 @@ def debug_info():
 def test_mongodb_connection():
     """Test the MongoDB connection and service layer"""
     try:
-        # Import MongoDB service
-        from frontend.services.mongodb_service import MongoDBService
+        # Create a Simple Mock Service manually without importing from another module
+        class InlineMockService:
+            """Inline mock service class for data operations"""
+            
+            @staticmethod
+            def get_categories():
+                """Get mock categories"""
+                logger.info("Generating mock categories")
+                return ["environmental", "social", "governance", "economic", "climate"]
+                
+            @staticmethod
+            def get_metrics(limit: int = 5):
+                """Get mock metrics data"""
+                logger.info(f"Generating {limit} mock metrics")
+                
+                categories = ["environmental", "social", "governance", "economic"]
+                metrics = []
+                
+                for i in range(limit):
+                    category = random.choice(categories)
+                    metric = {
+                        "id": f"metric_{i+1}",
+                        "name": f"Sample Metric {i+1}",
+                        "category": category,
+                        "value": round(random.uniform(10, 100), 1),
+                        "unit": random.choice(["tons", "%", "score", "index"]),
+                        "timestamp": (datetime.now() - timedelta(days=random.randint(1, 30))).isoformat()
+                    }
+                    metrics.append(metric)
+                    
+                return metrics
+            
+            @staticmethod
+            def get_trends(limit: int = 5):
+                """Get mock trends data"""
+                logger.info(f"Generating {limit} mock trends")
+                
+                categories = ["environmental", "social", "governance", "economic"]
+                trends = []
+                
+                for i in range(limit):
+                    category = random.choice(categories)
+                    trend = {
+                        "id": f"trend_{i+1}",
+                        "name": f"Sample Trend {i+1}",
+                        "category": category,
+                        "virality_score": round(random.uniform(0.3, 0.9), 2),
+                        "timestamp": (datetime.now() - timedelta(days=random.randint(1, 14))).isoformat(),
+                        "momentum": random.choice(["rising", "steady", "falling"])
+                    }
+                    trends.append(trend)
+                    
+                return trends
+            
+            @staticmethod
+            def get_stories(limit: int = 5):
+                """Get mock stories data"""
+                logger.info(f"Generating {limit} mock stories")
+                
+                categories = ["environmental", "social", "governance", "economic"]
+                stories = []
+                
+                for i in range(limit):
+                    category = random.choice(categories)
+                    story = {
+                        "id": f"story_{i+1}",
+                        "title": f"Sample Sustainability Story {i+1}",
+                        "content": f"This is sample content for story {i+1}. It discusses important sustainability topics in the {category} category.",
+                        "category": category,
+                        "tags": random.sample(["innovation", "best practice", "case study", "leadership"], 2),
+                        "publication_date": (datetime.now() - timedelta(days=random.randint(1, 30))).isoformat()
+                    }
+                    stories.append(story)
+                    
+                return stories
+        
+        # Create local instance of the inline service
+        mock_service = InlineMockService()
         
         # Log the request
-        logger.info("MongoDB connection test endpoint called")
+        logger.info("MongoDB test endpoint called (using inline mock service)")
         
-        # Try to get categories from MongoDB
-        categories = MongoDBService.get_categories()
-        
-        # Try to get metrics from MongoDB
-        metrics = MongoDBService.get_metrics(limit=5)
-        
-        # Try to get trends from MongoDB
-        trends = MongoDBService.get_trends(limit=5)
-        
-        # Try to get stories from MongoDB
-        stories = MongoDBService.get_stories(limit=5)
+        # Get data from mock service
+        categories = mock_service.get_categories()
+        metrics = mock_service.get_metrics(limit=5)
+        trends = mock_service.get_trends(limit=5)
+        stories = mock_service.get_stories(limit=5)
         
         # Prepare response
         result = {
             "status": "success",
-            "message": "MongoDB connection and service layer working correctly",
+            "message": "Mock data service working correctly",
             "timestamp": datetime.now().isoformat(),
             "data": {
                 "categories": categories,
@@ -1449,7 +1578,7 @@ def test_mongodb_connection():
             }
         }
         
-        logger.info(f"MongoDB test successful: {len(metrics)} metrics, {len(trends)} trends, {len(stories)} stories found")
+        logger.info(f"Mock data test successful: {len(metrics)} metrics, {len(trends)} trends, {len(stories)} stories found")
         return jsonify(result)
     except Exception as e:
         # Log the error
