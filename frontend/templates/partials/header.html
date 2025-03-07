@@ -27,6 +27,14 @@
   
   <!-- Header navigation (right side) -->
   <div class="navbar-nav flex-row">
+    <!-- Quick access links -->
+    <div class="nav-item d-none d-lg-block me-2">
+      <a class="nav-link header-quicklink" href="/realestate-unified-dashboard" data-bs-toggle="tooltip" data-bs-placement="bottom" title="Real Estate Dashboard">
+        <i class="bi bi-building me-1"></i> Real Estate
+        <span class="badge rounded-pill bg-success-subtle text-success ms-1" style="font-size: 0.65rem; padding: 0.15rem 0.4rem;">NEW</span>
+      </a>
+    </div>
+    
     <!-- Dark mode toggle -->
     <div class="nav-item">
       <a class="nav-link header-icon-link px-3" href="#" id="darkModeToggle" data-bs-toggle="tooltip" data-bs-placement="bottom" title="Toggle dark mode">
@@ -285,6 +293,24 @@
   height: 32px;
   font-weight: 600;
   font-size: 0.875rem;
+}
+
+/* Header Quick Links */
+.header-quicklink {
+  color: rgba(255, 255, 255, 0.9);
+  background-color: rgba(255, 255, 255, 0.1);
+  border-radius: 20px;
+  padding: 0.375rem 0.75rem !important;
+  font-size: 0.875rem;
+  font-weight: 500;
+  transition: all 0.2s ease;
+  text-align: center;
+  white-space: nowrap;
+}
+
+.header-quicklink:hover {
+  background-color: rgba(255, 255, 255, 0.2);
+  color: white;
 }
 
 /* Media queries */

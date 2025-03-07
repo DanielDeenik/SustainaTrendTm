@@ -684,6 +684,25 @@ def configure_routes(app):
                 sort="virality"
             )
     
+    @app.route('/realestate-unified-dashboard')
+    def realestate_unified_dashboard():
+        """Unified Real Estate Sustainability Dashboard with BREEAM & Extended Metrics"""
+        # Get category filter if provided
+        category = request.args.get('category', None)
+        
+        # Get trend data
+        trend_data = get_realestate_trend_analysis(category)
+        
+        # Return the unified dashboard template
+        return render_template(
+            "realestate_unified_dashboard.html",
+            trends=trend_data['trends'],
+            trend_chart_data=json.dumps(trend_data['chart_data'], cls=NumPyJSONEncoder),
+            category=category or 'all',
+            categories=REALESTATE_CATEGORIES,
+            sort="virality"
+        )
+    
     @app.route('/api/realestate-trends')
     def api_realestate_trends():
         """API endpoint for real estate sustainability trend data"""

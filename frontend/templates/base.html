@@ -474,6 +474,12 @@
                     <h6 class="sidebar-heading mt-4">Business</h6>
                     <ul class="nav flex-column">
                         <li class="nav-item">
+                            <a class="nav-link {% if request.path == '/realestate-unified-dashboard' %}active{% endif %}" href="/realestate-unified-dashboard">
+                                <i class="bi bi-building"></i> <span>Real Estate Dashboard</span>
+                                <span class="badge bg-success rounded-pill ms-auto" style="font-size: 0.65rem; opacity: 0.9;">NEW</span>
+                            </a>
+                        </li>
+                        <li class="nav-item">
                             <a class="nav-link {% if request.path == '/monetization' %}active{% endif %}" href="/monetization">
                                 <i class="bi bi-currency-dollar"></i> <span>Monetization</span>
                             </a>

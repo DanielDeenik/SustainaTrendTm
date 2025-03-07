@@ -58,8 +58,15 @@
       </div>
       <ul class="nav flex-column">
         <li class="nav-item">
-          <a class="sidebar-link {{ 'active' if active_page == 'realestate-trends' else '' }}" href="/realestate-trends">
+          <a class="sidebar-link {{ 'active' if active_page == 'realestate-unified-dashboard' else '' }}" href="/realestate-unified-dashboard">
             <i class="bi bi-building"></i>
+            <span>Real Estate Dashboard</span>
+            <span class="sidebar-badge-success">New</span>
+          </a>
+        </li>
+        <li class="nav-item">
+          <a class="sidebar-link {{ 'active' if active_page == 'realestate-trends' else '' }}" href="/realestate-trends">
+            <i class="bi bi-graph-up"></i>
             <span>Real Estate Trends</span>
           </a>
         </li>
