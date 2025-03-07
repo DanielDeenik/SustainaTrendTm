@@ -890,8 +890,76 @@ def dashboard():
     try:
         logger.info("Dashboard page requested, fetching metrics...")
         metrics = get_sustainability_metrics()
+        
+        # Convert metrics to JSON for JavaScript use
+        import json
+        from datetime import datetime
+        
+        class DateTimeEncoder(json.JSONEncoder):
+            def default(self, o):
+                if isinstance(o, datetime):
+                    return o.isoformat()
+                return super().default(o)
+        
+        # Process metrics for additional context data
+        categories = set()
+        trend_metrics_count = 0
+        earliest_date = None
+        latest_date = None
+        
+        for metric in metrics:
+            categories.add(metric.get('category', 'Uncategorized'))
+            
+            # Count improving trend metrics
+            if metric.get('trend') == 'up' or (metric.get('trend') == 'down' and metric.get('trend_good', False)):
+                trend_metrics_count += 1
+            
+            # Track date range
+            timestamp = metric.get('timestamp')
+            if timestamp:
+                metric_date = timestamp if isinstance(timestamp, datetime) else datetime.fromisoformat(timestamp) if isinstance(timestamp, str) else None
+                if metric_date:
+                    if earliest_date is None or metric_date < earliest_date:
+                        earliest_date = metric_date
+                    if latest_date is None or metric_date > latest_date:
+                        latest_date = metric_date
+        
+        # Calculate months of data
+        data_range_months = 0
+        if earliest_date and latest_date:
+            data_range_months = ((latest_date.year - earliest_date.year) * 12 + 
+                               latest_date.month - earliest_date.month + 1)
+        
+        # Convert categories to sorted list
+        categories_list = sorted(list(categories))
+        categories_json = json.dumps(categories_list)
+        
+        # Convert metrics to JSON for JavaScript use
+        metrics_json = json.dumps(metrics, cls=DateTimeEncoder)
+        
+        # Set active page for navigation
+        active_page = 'dashboard'
+        
+        # Prepare template context
+        context = {
+            'metrics': metrics,
+            'metrics_json': metrics_json,
+            'active_page': active_page,
+            'title': 'Sustainability Dashboard',
+            'description': 'Monitor and analyze key sustainability metrics',
+            'show_actions': True,
+            'show_export': True,
+            'show_filter': True,
+            'categories': categories_list,
+            'categories_json': categories_json,
+            'total_metrics': len(metrics),
+            'category_count': len(categories),
+            'data_range_months': data_range_months,
+            'trend_metrics': trend_metrics_count
+        }
+        
         logger.info(f"Rendering dashboard with {len(metrics)} metrics")
-        return render_template("dashboard.html", metrics=metrics)
+        return render_template("dashboard_new.html", **context)
     except Exception as e:
         logger.error(f"Error in dashboard route: {str(e)}")
         return f"Error loading dashboard: {str(e)}", 500

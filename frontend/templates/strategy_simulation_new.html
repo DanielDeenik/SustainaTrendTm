@@ -10,28 +10,24 @@
 
 {% block content %}
 <div class="container-fluid fade-in">
-  <div class="d-flex justify-content-between flex-wrap flex-md-nowrap align-items-center pb-2 mb-3 border-bottom">
-    <h1 class="h2">Strategy Simulation & McKinsey-Style Reporting</h1>
-    <div class="btn-toolbar mb-2 mb-md-0">
-      <div class="btn-group me-2">
-        <button type="button" class="btn btn-sm btn-outline-primary" id="resetFrameworkBtn">
-          <i class="bi bi-arrow-repeat me-1"></i> Reset
-        </button>
-        <button type="button" class="btn btn-sm btn-outline-success" id="exportReportBtn">
-          <i class="bi bi-file-earmark-pdf me-1"></i> Export Report
-        </button>
-      </div>
-      <div class="dropdown">
-        <button class="btn btn-sm btn-outline-secondary dropdown-toggle" type="button" id="exportDropdown" data-bs-toggle="dropdown" aria-expanded="false">
-          <i class="bi bi-download me-1"></i> Export
-        </button>
-        <ul class="dropdown-menu dropdown-menu-end" aria-labelledby="exportDropdown">
-          <li><a class="dropdown-item" href="#" data-export-format="pdf"><i class="bi bi-file-earmark-pdf me-2"></i>PDF</a></li>
-          <li><a class="dropdown-item" href="#" data-export-format="excel"><i class="bi bi-file-earmark-excel me-2"></i>Excel</a></li>
-          <li><a class="dropdown-item" href="#" data-export-format="ppt"><i class="bi bi-file-earmark-slides me-2"></i>PowerPoint</a></li>
-        </ul>
-      </div>
-    </div>
+  <!-- Use consistent page header partial -->
+  {% with 
+    title="Strategy Simulation & McKinsey-Style Reporting",
+    description="Apply strategic frameworks to transform sustainability data into actionable business strategies",
+    show_actions=true,
+    show_export=true
+  %}
+    {% include "partials/page_header.html" %}
+  {% endwith %}
+
+  <!-- Additional action buttons specific to this page -->
+  <div class="additional-actions mb-4">
+    <button type="button" class="btn btn-outline-primary me-2" id="resetFrameworkBtn">
+      <i class="bi bi-arrow-repeat"></i> Reset
+    </button>
+    <button type="button" class="btn btn-outline-success me-2" id="exportReportBtn">
+      <i class="bi bi-file-earmark-pdf"></i> Export Report
+    </button>
   </div>
 
   <!-- Framework Selection Phase -->

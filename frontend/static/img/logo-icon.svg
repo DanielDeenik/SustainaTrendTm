@@ -1,0 +1,39 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg width="128" height="128" viewBox="0 0 128 128" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <!-- Main circular background -->
+  <circle cx="64" cy="64" r="60" fill="#0D6EFD" fill-opacity="0.1"/>
+  
+  <!-- Central circular gradient -->
+  <circle cx="64" cy="64" r="40" fill="url(#paint0_radial)"/>
+  
+  <!-- Outer ring with data points -->
+  <path d="M64 14C83.33 14 99.67 25.63 108 42.5" stroke="#0D6EFD" stroke-width="3" stroke-linecap="round"/>
+  <path d="M108 42.5C116.33 59.37 114.33 79.63 102 94.5" stroke="#0D6EFD" stroke-width="3" stroke-linecap="round"/>
+  <path d="M102 94.5C89.67 109.37 70.33 116.13 52 112" stroke="#0D6EFD" stroke-width="3" stroke-linecap="round"/>
+  <path d="M52 112C33.67 107.87 20.33 93.63 16 76" stroke="#0D6EFD" stroke-width="3" stroke-linecap="round"/>
+  <path d="M16 76C11.67 58.37 17.67 39.63 31 27.5" stroke="#0D6EFD" stroke-width="3" stroke-linecap="round"/>
+  <path d="M31 27.5C44.33 15.37 60.67 11.63 76 17" stroke="#0D6EFD" stroke-width="3" stroke-linecap="round"/>
+  
+  <!-- Data points (small circles) -->
+  <circle cx="64" cy="14" r="4" fill="#0D6EFD"/>
+  <circle cx="108" cy="42.5" r="4" fill="#0D6EFD"/>
+  <circle cx="102" cy="94.5" r="4" fill="#0D6EFD"/>
+  <circle cx="52" cy="112" r="4" fill="#0D6EFD"/>
+  <circle cx="16" cy="76" r="4" fill="#0D6EFD"/>
+  <circle cx="31" cy="27.5" r="4" fill="#0D6EFD"/>
+  
+  <!-- Upward trend arrow -->
+  <path d="M44 65L58 51L72 65L88 49" stroke="#FFFFFF" stroke-width="4" stroke-linecap="round" stroke-linejoin="round"/>
+  <circle cx="88" cy="49" r="5" fill="#FFFFFF"/>
+  
+  <!-- Letter S stylized for sustainability -->
+  <path d="M64 92C69.523 92 74 87.523 74 82C74 76.477 69.523 72 64 72C58.477 72 54 67.523 54 62C54 56.477 58.477 52 64 52" stroke="#FFFFFF" stroke-width="4" stroke-linecap="round"/>
+  
+  <!-- Gradients definitions -->
+  <defs>
+    <radialGradient id="paint0_radial" cx="0" cy="0" r="1" gradientUnits="userSpaceOnUse" gradientTransform="translate(64 64) rotate(90) scale(40)">
+      <stop offset="0" stop-color="#0D6EFD"/>
+      <stop offset="1" stop-color="#0B5ED7"/>
+    </radialGradient>
+  </defs>
+</svg>

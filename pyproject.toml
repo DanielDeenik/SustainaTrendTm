@@ -41,6 +41,9 @@ dependencies = [
     "pytesseract>=0.3.13",
     "pillow>=11.1.0",
     "fpdf>=1.7.2",
+    "pymongo>=4.11.2",
+    "motor>=3.7.0",
+    "bson>=0.5.10",
 ]
 
 [[tool.uv.index]]

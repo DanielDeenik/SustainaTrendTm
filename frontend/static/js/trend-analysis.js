@@ -1,1035 +1,815 @@
-// Sustainability Trend Analysis Dashboard JavaScript
-// Handles dark mode toggling, chart theme updates, filter functionality and data operations
+/**
+ * SustainaTrend™ - Trend Analysis Dashboard
+ * Main JavaScript file for the trend analysis dashboard
+ */
 
-// Global variable initialization
-let currentTrendData = []; // Store current trend data
-let chartInstances = []; // Store chart instances for theme updates
-let currentTheme = localStorage.getItem('darkMode') === 'true' ? 'dark' : 'light';
-
-// Chart color palette configuration
-const chartColors = {
-  light: {
-    emissions: '#10b981', // green
-    energy: '#0ea5e9',    // blue
-    water: '#06b6d4',     // cyan
-    waste: '#64748b',     // slate
-    social: '#7c3aed',    // purple
-    background: '#f8fafc',
-    text: '#1e293b',
-    grid: '#e2e8f0',
-    tooltip: 'rgba(255, 255, 255, 0.9)'
+// Global state
+const state = {
+  trends: [],
+  filters: {
+    timeframe: 'year',
+    categories: ['emissions', 'energy', 'water', 'waste', 'social', 'governance'],
+    minVirality: 30
   },
-  dark: {
-    emissions: '#4ade80', // brighter green
-    energy: '#38bdf8',    // brighter blue
-    water: '#22d3ee',     // brighter cyan
-    waste: '#94a3b8',     // brighter slate
-    social: '#a78bfa',    // brighter purple
-    background: '#0f172a',
-    text: '#e2e8f0',
-    grid: '#334155',
-    tooltip: 'rgba(15, 23, 42, 0.9)'
-  }
+  chartTimeRange: 'year'
 };
 
-document.addEventListener('DOMContentLoaded', function() {
-    // Apply dark mode on initial load if saved in local storage
-    const savedDarkMode = localStorage.getItem('darkMode') === 'true';
-    if (savedDarkMode) {
-        document.body.classList.add('dark-mode');
-        document.documentElement.classList.add('dark-mode');
-        updateChartTheme(true);
-    }
-    
-    // Theme toggler
-    const themeToggle = document.getElementById('theme-toggle');
-    if (themeToggle) {
-        themeToggle.addEventListener('click', function() {
-            // Add transition class for smooth effect
-            document.body.classList.add('theme-transition');
-            document.documentElement.classList.add('theme-transition');
-            
-            // Toggle dark mode
-            document.body.classList.toggle('dark-mode');
-            document.documentElement.classList.toggle('dark-mode');
-            
-            const isDarkMode = document.body.classList.contains('dark-mode');
-            localStorage.setItem('darkMode', isDarkMode);
-            updateChartTheme(isDarkMode);
-            
-            // Update theme icon
-            const themeIcon = this.querySelector('i');
-            if (isDarkMode) {
-                themeIcon.classList.remove('bi-sun');
-                themeIcon.classList.add('bi-moon-stars-fill');
-            } else {
-                themeIcon.classList.remove('bi-moon-stars-fill');
-                themeIcon.classList.add('bi-sun');
-            }
-            
-            // Show theme notification
-            showNotification(
-                isDarkMode ? 'Dark mode activated' : 'Light mode activated', 
-                isDarkMode ? 'bi-moon-stars-fill' : 'bi-sun'
-            );
-            
-            // Remove transition class after animation completes
-            setTimeout(() => {
-                document.body.classList.remove('theme-transition');
-                document.documentElement.classList.remove('theme-transition');
-            }, 500);
-        });
-        
-        // Update theme icon on initial load
-        if (savedDarkMode) {
-            const themeIcon = themeToggle.querySelector('i');
-            if (themeIcon) {
-                themeIcon.classList.remove('bi-sun');
-                themeIcon.classList.add('bi-moon-stars-fill');
-            }
-        }
-    }
-    
-    // Chart time range selector
-    const chartTimeRange = document.getElementById('chart-time-range');
-    if (chartTimeRange) {
-        chartTimeRange.addEventListener('change', function() {
-            fetchTrendData(null, this.value);
-            
-            // Show filter notification
-            const selectedTimeframe = this.options[this.selectedIndex].text;
-            showNotification(`Timeframe set to ${selectedTimeframe}`, 'bi-calendar');
-        });
-    }
-    
-    // Table category filter
-    const tableCategoryFilter = document.getElementById('table-category-filter');
-    if (tableCategoryFilter) {
-        tableCategoryFilter.addEventListener('change', function() {
-            const category = this.value;
-            
-            // If category is 'all', show all rows
-            if (category === 'all') {
-                document.querySelectorAll('#trend-table tbody tr').forEach(row => {
-                    row.style.display = '';
-                });
-            } else {
-                // Otherwise, show only rows with matching category
-                document.querySelectorAll('#trend-table tbody tr').forEach(row => {
-                    if (row.classList.contains(`category-${category}`)) {
-                        row.style.display = '';
-                    } else {
-                        row.style.display = 'none';
-                    }
-                });
-            }
-            
-            // Show filter notification
-            const selectedCategory = this.options[this.selectedIndex].text;
-            showNotification(`Table filtered to ${selectedCategory}`, 'bi-filter');
-        });
-    }
-    
-    // Refresh table button
-    const refreshTableBtn = document.getElementById('refresh-table');
-    if (refreshTableBtn) {
-        refreshTableBtn.addEventListener('click', function() {
-            const tableCategoryFilter = document.getElementById('table-category-filter');
-            const category = tableCategoryFilter ? tableCategoryFilter.value : null;
-            
-            // Add spinning animation to icon
-            const icon = this.querySelector('i');
-            if (icon) icon.classList.add('spin-animation');
-            
-            // Fetch data and update table
-            fetchTrendData(category);
-            
-            // Show notification
-            showNotification('Trend data refreshed', 'bi-arrow-clockwise');
-            
-            // Remove spinning animation after a short delay
-            setTimeout(() => {
-                if (icon) icon.classList.remove('spin-animation');
-            }, 1000);
-        });
-    }
-    
-    // Category filter
-    const categoryFilter = document.getElementById('category-filter');
-    if (categoryFilter) {
-        categoryFilter.addEventListener('change', function() {
-            fetchTrendData(this.value);
-            
-            // Show filter notification
-            const selectedCategory = this.options[this.selectedIndex].text;
-            showNotification(`Filtered to ${selectedCategory}`, 'bi-filter');
-        });
-    }
-    
-    // Export button
-    const exportBtn = document.getElementById('export-btn');
-    const exportDropdown = document.getElementById('export-dropdown');
-    
-    if (exportBtn && exportDropdown) {
-        exportBtn.addEventListener('click', function(e) {
-            e.preventDefault();
-            e.stopPropagation();
-            exportDropdown.classList.toggle('show');
-            
-            // Position the dropdown
-            const btnRect = exportBtn.getBoundingClientRect();
-            exportDropdown.style.top = btnRect.bottom + 5 + 'px';
-            exportDropdown.style.right = (window.innerWidth - btnRect.right) + 'px';
-        });
-        
-        // Close dropdown when clicking elsewhere
-        document.addEventListener('click', function(e) {
-            if (!exportBtn.contains(e.target) && !exportDropdown.contains(e.target)) {
-                exportDropdown.classList.remove('show');
-            }
-        });
-        
-        // Export format click handlers
-        const exportFormats = exportDropdown.querySelectorAll('a');
-        exportFormats.forEach(format => {
-            format.addEventListener('click', function(e) {
-                e.preventDefault();
-                const formatType = this.getAttribute('data-format');
-                exportData(formatType);
-                exportDropdown.classList.remove('show');
-            });
-        });
-    }
-    
-    // Filter modal
-    const filterBtn = document.getElementById('filter-btn');
-    const filterModal = document.getElementById('filter-modal');
-    const closeModal = document.getElementById('close-modal');
-    const applyFilters = document.getElementById('apply-filters');
-    
-    if (filterBtn && filterModal) {
-        filterBtn.addEventListener('click', function(e) {
-            e.preventDefault();
-            filterModal.classList.add('show');
-        });
-        
-        if (closeModal) {
-            closeModal.addEventListener('click', function() {
-                filterModal.classList.remove('show');
-            });
-        }
-        
-        // Close modal when clicking outside
-        filterModal.addEventListener('click', function(e) {
-            if (e.target === filterModal) {
-                filterModal.classList.remove('show');
-            }
-        });
-        
-        if (applyFilters) {
-            applyFilters.addEventListener('click', function(e) {
-                e.preventDefault();
-                
-                // Collect filter values
-                const timeframe = document.querySelector('input[name="timeframe"]:checked')?.value || 'all';
-                const categories = Array.from(document.querySelectorAll('input[name="category"]:checked'))
-                    .map(checkbox => checkbox.value);
-                
-                // Apply filters and close modal
-                applyDataFilters(timeframe, categories);
-                filterModal.classList.remove('show');
-                
-                // Show confirmation
-                showNotification('Filters applied successfully', 'bi-check-circle');
-            });
-        }
-    }
-    
-    // Initialize charts
-    initCharts();
-    
-    // Fetch initial data
-    fetchTrendData();
-});
-
-// Function to update chart theme
-function updateChartTheme(isDarkMode) {
-    // Update the current theme
-    currentTheme = isDarkMode ? 'dark' : 'light';
-    
-    // Apply CSS variables for chart themes
-    const root = document.documentElement;
-    const colors = chartColors[currentTheme];
-    
-    // Set CSS variables for charts
-    root.style.setProperty('--chart-emissions-color', colors.emissions);
-    root.style.setProperty('--chart-energy-color', colors.energy);
-    root.style.setProperty('--chart-water-color', colors.water);
-    root.style.setProperty('--chart-waste-color', colors.waste);
-    root.style.setProperty('--chart-social-color', colors.social);
-    root.style.setProperty('--chart-background', colors.background);
-    root.style.setProperty('--chart-text-color', colors.text);
-    root.style.setProperty('--chart-grid-color', colors.grid);
-    root.style.setProperty('--chart-tooltip-background', colors.tooltip);
-    
-    // Update Plotly charts
-    updatePlotlyTheme(isDarkMode);
-    
-    // Update Recharts if React dashboard is active
-    if (window.reactTrendDashboard && typeof window.reactTrendDashboard.updateTheme === 'function') {
-        window.reactTrendDashboard.updateTheme(currentTheme);
-    }
-    
-    // Log theme update
-    console.log(`Theme updated to ${currentTheme} mode`);
+/**
+ * Initialize the trend analysis dashboard
+ */
+function initTrendAnalysis() {
+  console.log('Initializing Trend Analysis Dashboard');
+  
+  // Initialize tooltips and other UI components
+  initUI();
+  
+  // Fetch trend data
+  fetchTrendData();
+  
+  // Initialize export functionality
+  initExport();
+  
+  // Initialize filter modal
+  initFilterModal();
+  
+  // Initialize chart controls
+  initChartControls();
 }
 
-// Update Plotly charts with theme
-function updatePlotlyTheme(isDarkMode) {
-    if (typeof Plotly === 'undefined') return;
-    
-    const colors = chartColors[currentTheme];
-    
-    // Update each Plotly chart
-    const plotlyCharts = document.querySelectorAll('[id^="plotly-"]');
-    plotlyCharts.forEach(chart => {
-        const chartId = chart.id;
-        
-        Plotly.relayout(chartId, {
-            paper_bgcolor: colors.background,
-            plot_bgcolor: colors.background,
-            font: {
-                color: colors.text
-            },
-            xaxis: {
-                gridcolor: colors.grid,
-                zerolinecolor: colors.grid,
-                tickcolor: colors.text
-            },
-            yaxis: {
-                gridcolor: colors.grid,
-                zerolinecolor: colors.grid,
-                tickcolor: colors.text
-            }
-        });
+/**
+ * Initialize UI components
+ */
+function initUI() {
+  // Initialize tooltips
+  initTooltips();
+  
+  // Initialize card animations
+  initCardAnimation();
+  
+  // Initialize notifications
+  initNotifications();
+  
+  // Show welcome notification
+  setTimeout(() => {
+    showNotification('Welcome to the Trend Analysis Dashboard. Data is being loaded.', 'info');
+  }, 1000);
+}
+
+/**
+ * Fetch trend data from API
+ */
+function fetchTrendData() {
+  // Show loading state
+  showLoading(true);
+  
+  // Fetch data from API
+  fetch('/api/trends')
+    .then(response => {
+      if (!response.ok) {
+        throw new Error('Network response was not ok');
+      }
+      return response.json();
+    })
+    .then(data => {
+      console.log('Trend data loaded:', data);
+      
+      // Store data in state
+      state.trends = data.trends || [];
+      
+      // Update UI with data
+      updateDashboard();
+      
+      // Hide loading state
+      showLoading(false);
+      
+      // Show success notification
+      showNotification('Trend data loaded successfully', 'success');
+    })
+    .catch(error => {
+      console.error('Error fetching trend data:', error);
+      
+      // Hide loading state
+      showLoading(false);
+      
+      // Show error notification
+      showNotification('Failed to load trend data. Please try again.', 'error');
+      
+      // Load mock data as fallback
+      loadMockData();
     });
 }
 
-// Function to initialize charts
-function initCharts() {
-    const trendChartEl = document.getElementById('trend-chart');
-    const categoryDistributionEl = document.getElementById('category-distribution');
-    const viralityRadarEl = document.getElementById('virality-radar');
-    
-    // Initialize charts based on which elements are present
-    if (trendChartEl) {
-        initTrendChart(trendChartEl);
-    }
-    
-    if (categoryDistributionEl) {
-        initCategoryDistribution(categoryDistributionEl);
-    }
-    
-    if (viralityRadarEl) {
-        initViralityRadar(viralityRadarEl);
-    }
-    
-    // Apply initial theme
-    updateChartTheme(currentTheme === 'dark');
+/**
+ * Load mock data as fallback
+ */
+function loadMockData() {
+  console.log('Loading mock trend data');
+  
+  // Generate mock trend data
+  const mockTrends = generateMockTrends();
+  
+  // Store mock data in state
+  state.trends = mockTrends;
+  
+  // Update UI with mock data
+  updateDashboard();
+  
+  // Show info notification
+  showNotification('Using mock data for demonstration', 'info');
 }
 
-// Initialize the main trend chart
-function initTrendChart(element) {
-    if (typeof Plotly === 'undefined') {
-        console.warn('Plotly library not loaded');
-        return;
-    }
+/**
+ * Generate mock trend data
+ * @returns {Array} Array of mock trend objects
+ */
+function generateMockTrends() {
+  const categories = ['emissions', 'energy', 'water', 'waste', 'social', 'governance'];
+  const trendNames = {
+    emissions: ['Carbon Footprint Reduction', 'Scope 3 Emissions Tracking', 'Carbon Capture Implementation', 'Emissions Reporting Standards', 'Net Zero Commitments'],
+    energy: ['Renewable Energy Usage', 'Energy Efficiency Measures', 'Green Energy Certificates', 'Energy Storage Solutions', 'Smart Grid Integration'],
+    water: ['Water Conservation', 'Water Recycling Programs', 'Water Footprint Assessment', 'Watershed Protection', 'Water Quality Monitoring'],
+    waste: ['Zero Waste Initiatives', 'Circular Economy Integration', 'Plastic Reduction Programs', 'Composting Programs', 'E-waste Management'],
+    social: ['Diversity Initiatives', 'Community Engagement', 'Labor Standards Compliance', 'Human Rights Due Diligence', 'Employee Wellbeing Programs'],
+    governance: ['ESG Board Oversight', 'Sustainability Reporting', 'Ethical Supply Chain', 'Anti-corruption Measures', 'Stakeholder Engagement']
+  };
+  
+  const trends = [];
+  
+  // Generate 30 mock trends
+  for (let i = 0; i < 30; i++) {
+    const category = categories[Math.floor(Math.random() * categories.length)];
+    const nameOptions = trendNames[category];
+    const name = nameOptions[Math.floor(Math.random() * nameOptions.length)];
     
-    // Create an empty trend chart with proper styling
-    const colors = chartColors[currentTheme];
+    // Generate date within last year
+    const daysAgo = Math.floor(Math.random() * 365);
+    const date = new Date();
+    date.setDate(date.getDate() - daysAgo);
     
-    Plotly.newPlot(element.id, [], {
-        margin: { t: 10, r: 10, l: 50, b: 50 },
-        paper_bgcolor: colors.background,
-        plot_bgcolor: colors.background,
-        font: { color: colors.text },
-        xaxis: {
-            title: 'Date',
-            gridcolor: colors.grid,
-            tickcolor: colors.text
-        },
-        yaxis: {
-            title: 'Virality Score',
-            gridcolor: colors.grid,
-            tickcolor: colors.text
-        },
-        showlegend: true,
-        legend: { orientation: 'h', y: -0.2 }
-    }, {
-        responsive: true
+    trends.push({
+      id: `trend-${i + 1}`,
+      name: name,
+      category: category,
+      virality_score: Math.floor(Math.random() * 70) + 30, // 30-100
+      direction: Math.random() > 0.3 ? 'increasing' : 'decreasing',
+      duration: ['short', 'medium', 'long'][Math.floor(Math.random() * 3)],
+      date: date.toISOString(),
+      description: `Trend in ${name} showing ${Math.random() > 0.3 ? 'positive' : 'negative'} momentum across the industry.`
     });
+  }
+  
+  return trends;
 }
 
-// Initialize category distribution chart
-function initCategoryDistribution(element) {
-    if (typeof Plotly === 'undefined') {
-        console.warn('Plotly library not loaded');
-        return;
-    }
-    
-    // Create an empty pie chart with proper styling
-    const colors = chartColors[currentTheme];
-    
-    Plotly.newPlot(element.id, [], {
-        margin: { t: 10, r: 10, l: 10, b: 10 },
-        paper_bgcolor: colors.background,
-        plot_bgcolor: colors.background,
-        font: { color: colors.text },
-        showlegend: true
-    }, {
-        responsive: true
-    });
+/**
+ * Update dashboard with current data
+ */
+function updateDashboard() {
+  // Apply current filters
+  const filteredTrends = filterTrends(state.trends, state.filters);
+  
+  // Update metrics overview
+  updateMetricsOverview(filteredTrends);
+  
+  // Update charts
+  createTrendChart(filteredTrends);
+  createCategoryDistribution(filteredTrends);
+  createViralityRadar(filteredTrends);
+  
+  // Update trend table
+  updateTrendTable(filteredTrends);
 }
 
-// Initialize virality radar chart
-function initViralityRadar(element) {
-    if (typeof Plotly === 'undefined') {
-        console.warn('Plotly library not loaded');
-        return;
+/**
+ * Filter trends based on current filters
+ * @param {Array} trends - Trends to filter
+ * @param {Object} filters - Filter criteria
+ * @returns {Array} Filtered trends
+ */
+function filterTrends(trends, filters) {
+  return trends.filter(trend => {
+    // Filter by category
+    if (filters.categories.length > 0 && !filters.categories.includes(trend.category)) {
+      return false;
     }
     
-    // Create an empty radar chart with proper styling
-    const colors = chartColors[currentTheme];
+    // Filter by virality score
+    if (trend.virality_score < filters.minVirality) {
+      return false;
+    }
     
-    Plotly.newPlot(element.id, [], {
-        margin: { t: 30, r: 30, l: 30, b: 30 },
-        paper_bgcolor: colors.background,
-        plot_bgcolor: colors.background,
-        font: { color: colors.text },
-        polar: {
-            radialaxis: {
-                visible: true,
-                gridcolor: colors.grid
-            },
-            angularaxis: {
-                gridcolor: colors.grid
-            }
-        }
-    }, {
-        responsive: true
-    });
+    // Filter by timeframe
+    if (filters.timeframe !== 'all') {
+      const trendDate = new Date(trend.date);
+      const now = new Date();
+      
+      // Calculate date threshold based on timeframe
+      let threshold = new Date();
+      switch (filters.timeframe) {
+        case 'month':
+          threshold.setMonth(now.getMonth() - 1);
+          break;
+        case '3month':
+          threshold.setMonth(now.getMonth() - 3);
+          break;
+        case '6month':
+          threshold.setMonth(now.getMonth() - 6);
+          break;
+        case 'year':
+          threshold.setFullYear(now.getFullYear() - 1);
+          break;
+      }
+      
+      if (trendDate < threshold) {
+        return false;
+      }
+    }
+    
+    return true;
+  });
 }
 
-// Function to fetch trend data
-function fetchTrendData(category = null, timeframe = null) {
-    console.log('Fetching trend data', 
-                category ? `for category: ${category}` : 'for all categories',
-                timeframe ? `with timeframe: ${timeframe}` : '');
-    
-    // Show loading state for all relevant containers
-    const containers = [
-        document.getElementById('trend-container'),
-        document.getElementById('trend-chart'),
-        document.getElementById('category-distribution'),
-        document.getElementById('virality-radar')
-    ];
-    
-    containers.forEach(container => {
-        if (container) {
-            container.classList.add('loading');
-            
-            // Add loading indicator if it's a chart container
-            if (container.classList.contains('chart-container') || 
-                container.classList.contains('trend-chart-container')) {
-                const loadingEl = document.createElement('div');
-                loadingEl.className = 'chart-loading-indicator';
-                loadingEl.innerHTML = `
-                    <div class="spinner-border text-primary" role="status">
-                        <span class="visually-hidden">Loading...</span>
-                    </div>
-                    <p class="mt-2 text-muted">Loading data...</p>
-                `;
-                
-                // Only add if not already present
-                if (!container.querySelector('.chart-loading-indicator')) {
-                    container.appendChild(loadingEl);
-                }
-            }
-        }
-    });
-    
-    // Show loading placeholder in table
-    const tableBody = document.querySelector('#trend-table tbody');
-    if (tableBody) {
-        tableBody.innerHTML = `
-            <tr class="placeholder-glow">
-                <td colspan="7" class="text-center py-5">
-                    <div class="d-flex justify-content-center">
-                        <div class="spinner-border text-primary" role="status">
-                            <span class="visually-hidden">Loading trend data...</span>
-                        </div>
-                    </div>
-                    <p class="text-muted mt-3">Loading trend data...</p>
-                </td>
-            </tr>
-        `;
-    }
-    
-    // Prepare API URL with query parameters
-    let apiUrl = '/api/trends';
-    const params = new URLSearchParams();
-    
-    if (category && category !== 'all') {
-        params.append('category', category);
-    }
-    
-    if (timeframe && timeframe !== 'all') {
-        params.append('timeframe', timeframe);
-    }
-    
-    // Add params to URL if any exist
-    if (params.toString()) {
-        apiUrl += `?${params.toString()}`;
-    }
-    
-    // Fetch data
-    fetch(apiUrl)
-        .then(response => {
-            if (!response.ok) {
-                throw new Error(`HTTP error ${response.status}`);
-            }
-            return response.json();
-        })
-        .then(data => {
-            currentTrendData = data;
-            updateDashboard(data);
-            
-            // Remove loading states
-            containers.forEach(container => {
-                if (container) {
-                    container.classList.remove('loading');
-                    const loadingEl = container.querySelector('.chart-loading-indicator');
-                    if (loadingEl) {
-                        loadingEl.remove();
-                    }
-                }
-            });
-            
-            // Show success notification
-            showNotification('Data updated successfully', 'bi-check-circle');
-        })
-        .catch(error => {
-            console.error('Error fetching trend data:', error);
-            showNotification('Error loading data. Please try again.', 'bi-exclamation-triangle');
-            
-            // Remove loading states
-            containers.forEach(container => {
-                if (container) {
-                    container.classList.remove('loading');
-                    const loadingEl = container.querySelector('.chart-loading-indicator');
-                    if (loadingEl) {
-                        loadingEl.remove();
-                    }
-                }
-            });
-            
-            // Show error in table
-            if (tableBody) {
-                tableBody.innerHTML = `
-                    <tr>
-                        <td colspan="7" class="text-center py-5">
-                            <div class="error-icon">
-                                <i class="bi bi-exclamation-triangle text-danger fs-1"></i>
-                            </div>
-                            <p class="text-danger">Error loading trend data. Please try again.</p>
-                            <p class="text-muted small">${error.message}</p>
-                        </td>
-                    </tr>
-                `;
-            }
-        });
+/**
+ * Update metrics overview with trend data
+ * @param {Array} trends - Filtered trends
+ */
+function updateMetricsOverview(trends) {
+  // Get DOM elements
+  const totalTrendsEl = document.getElementById('total-trends');
+  const avgViralityEl = document.getElementById('avg-virality');
+  const improvingTrendsEl = document.getElementById('improving-trends');
+  const improvingPercentEl = document.getElementById('improving-percent');
+  const worseningTrendsEl = document.getElementById('worsening-trends');
+  const worseningPercentEl = document.getElementById('worsening-percent');
+  
+  // Calculate metrics
+  const totalTrends = trends.length;
+  
+  // Calculate average virality
+  const totalVirality = trends.reduce((sum, trend) => sum + trend.virality_score, 0);
+  const avgVirality = totalTrends > 0 ? Math.round(totalVirality / totalTrends) : 0;
+  
+  // Count improving and worsening trends
+  const improvingTrends = trends.filter(trend => trend.direction === 'increasing').length;
+  const worseningTrends = trends.filter(trend => trend.direction === 'decreasing').length;
+  
+  // Calculate percentages
+  const improvingPercent = totalTrends > 0 ? Math.round((improvingTrends / totalTrends) * 100) : 0;
+  const worseningPercent = totalTrends > 0 ? Math.round((worseningTrends / totalTrends) * 100) : 0;
+  
+  // Update DOM elements
+  totalTrendsEl.textContent = totalTrends;
+  avgViralityEl.textContent = avgVirality;
+  improvingTrendsEl.textContent = improvingTrends;
+  improvingPercentEl.textContent = `${improvingPercent}%`;
+  worseningTrendsEl.textContent = worseningTrends;
+  worseningPercentEl.textContent = `${worseningPercent}%`;
 }
 
-// Function to update dashboard with data
-function updateDashboard(data) {
-    console.log('Updating dashboard with data:', data);
-    
-    // Update cards with summary stats
-    updateSummaryCards(data);
-    
-    // Update charts
-    updateCharts(data);
-    
-    // Update trend tables
-    updateTrendTables(data);
+/**
+ * Create the main trend chart
+ * @param {Array} trends - Filtered trends
+ */
+function createTrendChart(trends) {
+  // Prepare chart data
+  const chartData = prepareTrendChartData(trends, state.chartTimeRange);
+  
+  // Create traces for each category
+  const traces = Object.keys(chartData).map(category => {
+    return {
+      type: 'scatter',
+      mode: 'lines',
+      name: category.charAt(0).toUpperCase() + category.slice(1),
+      x: chartData[category].dates,
+      y: chartData[category].values,
+      line: {
+        shape: 'spline',
+        width: 3,
+        color: trendViz.categoryColors[category] || '#666'
+      }
+    };
+  });
+  
+  // Create chart
+  trendViz.createLineChart('trend-chart', traces, {
+    yAxisTitle: 'Virality Score',
+    xAxisTitle: 'Date',
+    gridLines: true,
+    responsive: true
+  });
 }
 
-// Function to update summary cards
-function updateSummaryCards(data) {
-    if (!data || !data.trends || data.trends.length === 0) {
-        console.warn('No data available for summary cards');
-        return;
+/**
+ * Prepare data for trend chart
+ * @param {Array} trends - Filtered trends
+ * @param {string} timeRange - Time range for chart
+ * @returns {Object} Chart data organized by category
+ */
+function prepareTrendChartData(trends, timeRange) {
+  // Get categories from trends
+  const categories = [...new Set(trends.map(trend => trend.category))];
+  
+  // Get time range boundaries
+  const now = new Date();
+  let startDate = new Date();
+  
+  // Set start date based on time range
+  switch (timeRange) {
+    case '3month':
+      startDate.setMonth(now.getMonth() - 3);
+      break;
+    case '6month':
+      startDate.setMonth(now.getMonth() - 6);
+      break;
+    case 'year':
+      startDate.setFullYear(now.getFullYear() - 1);
+      break;
+    case 'all':
+      // Find earliest trend date
+      startDate = new Date(Math.min(...trends.map(trend => new Date(trend.date).getTime())));
+      break;
+  }
+  
+  // Generate date series for the time range
+  const dateRange = generateDateRange(startDate, now, timeRange);
+  
+  // Initialize chart data structure
+  const chartData = {};
+  categories.forEach(category => {
+    chartData[category] = {
+      dates: dateRange,
+      values: Array(dateRange.length).fill(0)
+    };
+  });
+  
+  // Populate values for each category
+  trends.forEach(trend => {
+    const trendDate = new Date(trend.date);
+    
+    // Skip trends outside the date range
+    if (trendDate < startDate) return;
+    
+    // Find closest date index
+    const closestDateIndex = findClosestDateIndex(dateRange, trendDate);
+    if (closestDateIndex !== -1) {
+      // Add trend virality to the appropriate date and category
+      chartData[trend.category].values[closestDateIndex] += trend.virality_score;
     }
+  });
+  
+  // Smooth the data for better visualization
+  categories.forEach(category => {
+    chartData[category].values = smoothArray(chartData[category].values);
+  });
+  
+  return chartData;
+}
+
+/**
+ * Generate a date range array
+ * @param {Date} startDate - Start date
+ * @param {Date} endDate - End date
+ * @param {string} timeRange - Time range type
+ * @returns {Array} Array of date strings
+ */
+function generateDateRange(startDate, endDate, timeRange) {
+  const dates = [];
+  const step = timeRange === '3month' ? 7 : 15; // Use weekly or bi-weekly steps
+  
+  const currentDate = new Date(startDate);
+  while (currentDate <= endDate) {
+    dates.push(formatDate(currentDate, 'short'));
+    currentDate.setDate(currentDate.getDate() + step);
+  }
+  
+  return dates;
+}
+
+/**
+ * Find the closest date index in a date array
+ * @param {Array} dates - Array of date strings
+ * @param {Date} targetDate - Target date to find
+ * @returns {number} Index of closest date, or -1 if not found
+ */
+function findClosestDateIndex(dates, targetDate) {
+  const targetDateStr = formatDate(targetDate, 'short');
+  
+  // First try exact match
+  const exactIndex = dates.indexOf(targetDateStr);
+  if (exactIndex !== -1) return exactIndex;
+  
+  // If no exact match, find closest date
+  // For simplicity, we'll just use the nearest past date
+  // by converting back all strings to dates
+  const dateObjects = dates.map(d => new Date(d));
+  
+  for (let i = dateObjects.length - 1; i >= 0; i--) {
+    if (dateObjects[i] <= targetDate) {
+      return i;
+    }
+  }
+  
+  return 0; // Default to first date if no past date found
+}
+
+/**
+ * Apply simple smoothing to an array of numbers
+ * @param {Array} arr - Array to smooth
+ * @returns {Array} Smoothed array
+ */
+function smoothArray(arr) {
+  // Skip smoothing for small arrays
+  if (arr.length < 4) return arr;
+  
+  const result = [...arr];
+  
+  // Apply simple moving average smoothing
+  for (let i = 1; i < arr.length - 1; i++) {
+    result[i] = (arr[i - 1] + arr[i] * 2 + arr[i + 1]) / 4;
+  }
+  
+  return result;
+}
+
+/**
+ * Create the category distribution pie chart
+ * @param {Array} trends - Filtered trends
+ */
+function createCategoryDistribution(trends) {
+  // Get categories and count trends in each
+  const categoryMap = {};
+  trends.forEach(trend => {
+    categoryMap[trend.category] = (categoryMap[trend.category] || 0) + 1;
+  });
+  
+  // Prepare chart data
+  const labels = Object.keys(categoryMap).map(cat => cat.charAt(0).toUpperCase() + cat.slice(1));
+  const values = Object.values(categoryMap);
+  
+  // Set colors based on category names
+  const colors = Object.keys(categoryMap).map(cat => trendViz.categoryColors[cat] || '#666');
+  
+  // Create chart
+  trendViz.createPieChart('category-distribution', { labels, values }, {
+    colors: colors,
+    donut: true,
+    holeSize: 0.4,
+    showLabels: true,
+    showPercentages: true
+  });
+}
+
+/**
+ * Create the virality radar chart
+ * @param {Array} trends - Filtered trends
+ */
+function createViralityRadar(trends) {
+  // Get categories and average virality in each
+  const categoryMap = {};
+  const categoryCount = {};
+  
+  trends.forEach(trend => {
+    if (!categoryMap[trend.category]) {
+      categoryMap[trend.category] = 0;
+      categoryCount[trend.category] = 0;
+    }
+    categoryMap[trend.category] += trend.virality_score;
+    categoryCount[trend.category]++;
+  });
+  
+  // Calculate average virality for each category
+  const categories = Object.keys(categoryMap);
+  categories.forEach(cat => {
+    categoryMap[cat] = categoryCount[cat] > 0 
+      ? categoryMap[cat] / categoryCount[cat]
+      : 0;
+  });
+  
+  // Prepare chart data
+  const radarData = [{
+    name: 'Average Virality',
+    categories: categories.map(cat => cat.charAt(0).toUpperCase() + cat.slice(1)),
+    values: categories.map(cat => categoryMap[cat])
+  }];
+  
+  // Create chart
+  trendViz.createRadarChart('virality-radar', radarData, {
+    colors: ['#2E7D32'],
+    bgFill: 0.2,
+    showLegend: false,
+    maxValue: 100
+  });
+}
+
+/**
+ * Update the trend table with filtered data
+ * @param {Array} trends - Filtered trends
+ */
+function updateTrendTable(trends) {
+  const tableBody = document.querySelector('#trend-table tbody');
+  
+  // Clear table
+  tableBody.innerHTML = '';
+  
+  // Sort trends by virality score (descending)
+  const sortedTrends = [...trends].sort((a, b) => b.virality_score - a.virality_score);
+  
+  // Populate table
+  sortedTrends.forEach((trend, index) => {
+    const row = document.createElement('tr');
     
-    const trends = data.trends;
+    // Define direction icon and class
+    const directionIcon = trend.direction === 'increasing' 
+      ? '<i class="bi bi-arrow-up-right text-success"></i>' 
+      : '<i class="bi bi-arrow-down-right text-danger"></i>';
     
-    // Calculate summary statistics
-    const stats = {
-        totalTrends: trends.length,
-        avgViralityScore: 0,
-        improvingTrends: 0,
-        worseningTrends: 0,
-        topCategory: '',
-        categoryDistribution: {}
+    const durationMap = {
+      'short': 'Short-term',
+      'medium': 'Medium-term',
+      'long': 'Long-term'
     };
     
-    // Calculate statistics
-    let totalViralityScore = 0;
-    
-    trends.forEach(trend => {
-        // Track virality score
-        totalViralityScore += trend.virality_score;
-        
-        // Track trend direction
-        if (trend.trend_direction === 'improving' || trend.trend_direction === 'increasing') {
-            stats.improvingTrends++;
-        } else {
-            stats.worseningTrends++;
-        }
-        
-        // Track category distribution
-        if (!stats.categoryDistribution[trend.category]) {
-            stats.categoryDistribution[trend.category] = 0;
-        }
-        stats.categoryDistribution[trend.category]++;
-    });
-    
-    // Calculate average virality score
-    stats.avgViralityScore = Math.round(totalViralityScore / trends.length);
-    
-    // Find top category
-    let maxCount = 0;
-    Object.entries(stats.categoryDistribution).forEach(([category, count]) => {
-        if (count > maxCount) {
-            maxCount = count;
-            stats.topCategory = category;
-        }
-    });
-    
-    // Update total trends card
-    const totalTrendsEl = document.getElementById('total-trends');
-    if (totalTrendsEl) {
-        totalTrendsEl.textContent = stats.totalTrends;
-    }
-    
-    // Update average virality score card
-    const avgViralityEl = document.getElementById('avg-virality');
-    if (avgViralityEl) {
-        avgViralityEl.textContent = stats.avgViralityScore;
-        
-        // Set color based on score
-        if (stats.avgViralityScore > 75) {
-            avgViralityEl.classList.add('high-virality');
-        } else if (stats.avgViralityScore > 50) {
-            avgViralityEl.classList.add('medium-virality');
-        } else {
-            avgViralityEl.classList.add('low-virality');
-        }
-    }
-    
-    // Update improving/worsening trends cards
-    const improvingTrendsEl = document.getElementById('improving-trends');
-    if (improvingTrendsEl) {
-        improvingTrendsEl.textContent = stats.improvingTrends;
-        
-        // Update percentage if element exists
-        const improvingPercentEl = document.getElementById('improving-percent');
-        if (improvingPercentEl) {
-            const percent = Math.round((stats.improvingTrends / stats.totalTrends) * 100);
-            improvingPercentEl.textContent = `${percent}%`;
-        }
-    }
-    
-    const worseningTrendsEl = document.getElementById('worsening-trends');
-    if (worseningTrendsEl) {
-        worseningTrendsEl.textContent = stats.worseningTrends;
-        
-        // Update percentage if element exists
-        const worseningPercentEl = document.getElementById('worsening-percent');
-        if (worseningPercentEl) {
-            const percent = Math.round((stats.worseningTrends / stats.totalTrends) * 100);
-            worseningPercentEl.textContent = `${percent}%`;
-        }
-    }
-    
-    // Update top category card
-    const topCategoryEl = document.getElementById('top-category');
-    if (topCategoryEl) {
-        const formattedCategory = stats.topCategory.charAt(0).toUpperCase() + stats.topCategory.slice(1);
-        topCategoryEl.textContent = formattedCategory;
-    }
-    
-    console.log('Summary cards updated with stats:', stats);
-}
-
-// Function to update charts
-function updateCharts(data) {
-    if (!data || !data.trends || data.trends.length === 0) {
-        console.warn('No data available for charts');
-        return;
-    }
-    
-    const trends = data.trends;
-    
-    // Update main trend chart
-    updateTrendChart(trends);
-    
-    // Update category distribution chart
-    updateCategoryDistributionChart(trends);
-    
-    // Update virality radar chart
-    updateViralityRadarChart(trends);
-}
-
-// Update the main trend chart
-function updateTrendChart(trends) {
-    const trendChartEl = document.getElementById('trend-chart');
-    if (!trendChartEl || typeof Plotly === 'undefined') return;
-    
-    // Process data for trend chart
-    // Group by category
-    const categoryData = {};
-    const timestamps = [...new Set(trends.map(t => t.timestamp))].sort();
-    
-    // Initialize data structure
-    trends.forEach(trend => {
-        if (!categoryData[trend.category]) {
-            categoryData[trend.category] = {
-                x: [],
-                y: [],
-                type: 'scatter',
-                mode: 'lines+markers',
-                name: trend.category.charAt(0).toUpperCase() + trend.category.slice(1),
-                line: {
-                    width: 3,
-                    color: chartColors[currentTheme][trend.category] || '#8884d8'
-                },
-                marker: {
-                    size: 8
-                }
-            };
-        }
-    });
-    
-    // Add data points
-    trends.forEach(trend => {
-        categoryData[trend.category].x.push(trend.timestamp);
-        categoryData[trend.category].y.push(trend.virality_score);
-    });
-    
-    // Convert to array for Plotly
-    const plotData = Object.values(categoryData);
-    
-    // Colors for theme
-    const colors = chartColors[currentTheme];
-    
-    // Update chart
-    Plotly.react(trendChartEl.id, plotData, {
-        margin: { t: 10, r: 10, l: 50, b: 50 },
-        paper_bgcolor: colors.background,
-        plot_bgcolor: colors.background,
-        font: { color: colors.text },
-        xaxis: {
-            title: 'Date',
-            gridcolor: colors.grid,
-            tickcolor: colors.text
-        },
-        yaxis: {
-            title: 'Virality Score',
-            gridcolor: colors.grid,
-            tickcolor: colors.text
-        },
-        showlegend: true,
-        legend: { orientation: 'h', y: -0.2 }
-    }, {
-        responsive: true
-    });
-}
-
-// Update category distribution chart
-function updateCategoryDistributionChart(trends) {
-    const categoryDistributionEl = document.getElementById('category-distribution');
-    if (!categoryDistributionEl || typeof Plotly === 'undefined') return;
-    
-    // Count trends by category
-    const categoryCount = {};
-    trends.forEach(trend => {
-        if (!categoryCount[trend.category]) {
-            categoryCount[trend.category] = 0;
-        }
-        categoryCount[trend.category]++;
-    });
-    
-    // Prepare data for pie chart
-    const labels = Object.keys(categoryCount).map(
-        cat => cat.charAt(0).toUpperCase() + cat.slice(1)
-    );
-    const values = Object.values(categoryCount);
-    const colors = Object.keys(categoryCount).map(
-        cat => chartColors[currentTheme][cat] || '#8884d8'
-    );
-    
-    const data = [{
-        type: 'pie',
-        labels: labels,
-        values: values,
-        marker: {
-            colors: colors
-        },
-        textinfo: 'label+percent',
-        insidetextorientation: 'radial',
-        hoverinfo: 'label+value'
-    }];
-    
-    // Update chart
-    Plotly.react(categoryDistributionEl.id, data, {
-        margin: { t: 20, r: 20, l: 20, b: 20 },
-        paper_bgcolor: chartColors[currentTheme].background,
-        plot_bgcolor: chartColors[currentTheme].background,
-        font: { color: chartColors[currentTheme].text },
-        showlegend: false
-    }, {
-        responsive: true
-    });
-}
-
-// Update virality radar chart
-function updateViralityRadarChart(trends) {
-    const viralityRadarEl = document.getElementById('virality-radar');
-    if (!viralityRadarEl || typeof Plotly === 'undefined') return;
-    
-    // Calculate average virality score by category
-    const categoryData = {};
-    trends.forEach(trend => {
-        if (!categoryData[trend.category]) {
-            categoryData[trend.category] = {
-                sum: 0,
-                count: 0
-            };
-        }
-        categoryData[trend.category].sum += trend.virality_score;
-        categoryData[trend.category].count++;
-    });
-    
-    // Convert to radar data
-    const categories = Object.keys(categoryData);
-    const scores = categories.map(cat => 
-        Math.round(categoryData[cat].sum / categoryData[cat].count)
-    );
-    
-    // Add the first point again to close the loop
-    categories.push(categories[0]);
-    scores.push(scores[0]);
-    
-    const formattedCategories = categories.map(
-        cat => cat.charAt(0).toUpperCase() + cat.slice(1)
-    );
-    
-    const data = [{
-        type: 'scatterpolar',
-        r: scores,
-        theta: formattedCategories,
-        fill: 'toself',
-        fillcolor: `rgba(124, 58, 237, ${currentTheme === 'dark' ? 0.4 : 0.2})`,
-        line: {
-            color: chartColors[currentTheme].social,
-            width: 3
-        },
-        name: 'Avg. Virality Score'
-    }];
-    
-    // Colors for theme
-    const colors = chartColors[currentTheme];
-    
-    // Update chart
-    Plotly.react(viralityRadarEl.id, data, {
-        polar: {
-            radialaxis: {
-                visible: true,
-                range: [0, 100],
-                gridcolor: colors.grid
-            },
-            angularaxis: {
-                gridcolor: colors.grid
-            }
-        },
-        margin: { t: 30, r: 30, l: 30, b: 30 },
-        paper_bgcolor: colors.background,
-        plot_bgcolor: colors.background,
-        font: { color: colors.text }
-    }, {
-        responsive: true
-    });
-}
-
-// Function to update trend tables
-function updateTrendTables(data) {
-    if (!data || !data.trends || data.trends.length === 0) {
-        console.warn('No data available for trend tables');
-        return;
-    }
-    
-    const trends = data.trends;
-    const trendTableBody = document.querySelector('#trend-table tbody');
-    
-    if (!trendTableBody) return;
-    
-    // Clear existing rows
-    trendTableBody.innerHTML = '';
-    
-    // Sort trends by virality score descending
-    const sortedTrends = [...trends].sort((a, b) => b.virality_score - a.virality_score);
-    
-    // Generate table rows
-    sortedTrends.forEach((trend, index) => {
-        const row = document.createElement('tr');
-        
-        // Apply category-specific class for styling
-        row.classList.add(`category-${trend.category}`);
-        
-        // Format date
-        const date = new Date(trend.timestamp);
-        const formattedDate = `${date.getFullYear()}-${(date.getMonth()+1).toString().padStart(2, '0')}-${date.getDate().toString().padStart(2, '0')}`;
-        
-        // Determine virality class
-        let viralityClass = 'low-virality';
-        if (trend.virality_score > 75) {
-            viralityClass = 'high-virality';
-        } else if (trend.virality_score > 50) {
-            viralityClass = 'medium-virality';
-        }
-        
-        // Format trend direction with icon
-        const directionIcon = trend.trend_direction === 'improving' || trend.trend_direction === 'increasing' 
-            ? '<i class="bi bi-arrow-up-right"></i>' 
-            : '<i class="bi bi-arrow-down-right"></i>';
-        
-        const directionClass = trend.trend_direction === 'improving' || trend.trend_direction === 'increasing'
-            ? 'text-success'
-            : 'text-danger';
-        
-        // Generate row HTML
-        row.innerHTML = `
-            <td>${index + 1}</td>
-            <td>${trend.name}</td>
-            <td>
-                <span class="category-badge ${trend.category}">
-                    ${trend.category.charAt(0).toUpperCase() + trend.category.slice(1)}
-                </span>
-            </td>
-            <td class="${viralityClass}">${Math.round(trend.virality_score)}</td>
-            <td class="${directionClass}">${directionIcon} ${trend.trend_direction.charAt(0).toUpperCase() + trend.trend_direction.slice(1)}</td>
-            <td>${trend.trend_duration.charAt(0).toUpperCase() + trend.trend_duration.slice(1)}</td>
-            <td>${formattedDate}</td>
-        `;
-        
-        trendTableBody.appendChild(row);
-    });
-    
-    console.log('Trend table updated with', trends.length, 'rows');
-}
-
-// Function to apply data filters
-function applyDataFilters(timeframe, categories) {
-    console.log('Applying filters:', {timeframe, categories});
-    
-    // In a real implementation, this would update the chart data
-    // For now, just refresh with the category filter
-    const categoryFilter = document.getElementById('category-filter');
-    if (categoryFilter) {
-        fetchTrendData(categoryFilter.value);
-    }
-}
-
-// Function to export data
-function exportData(format) {
-    console.log('Exporting data as', format);
-    
-    // Show notification
-    showNotification(`Data exported as ${format.toUpperCase()}`, 'bi-download');
-    
-    // In a real implementation, this would generate and download the file
-    // For now, just log the action
-    const mockData = {
-        trends: currentTrendData || [],
-        format: format,
-        timestamp: new Date().toISOString()
-    };
-    
-    console.log('Export data:', mockData);
-}
-
-// Show notification
-function showNotification(message, iconClass, type = 'info') {
-    console.log('Notification:', message, type);
-    
-    // Get the container
-    let container = document.getElementById('toast-container');
-    if (!container) {
-        console.warn('Toast container not found, fallback to body');
-        // Create container if it doesn't exist
-        const newContainer = document.createElement('div');
-        newContainer.id = 'toast-container';
-        newContainer.className = 'toast-container';
-        document.body.appendChild(newContainer);
-        container = newContainer;
-    }
-    
-    // Determine notification type if not set based on iconClass
-    if (type === 'info') {
-        if (iconClass.includes('check')) type = 'success';
-        else if (iconClass.includes('exclamation')) type = 'warning';
-        else if (iconClass.includes('x-circle')) type = 'error';
-    }
-    
-    // Create the notification element
-    const notification = document.createElement('div');
-    notification.className = `toast-notification ${type}`;
-    
-    // Add content
-    notification.innerHTML = `
-        <div class="toast-icon"><i class="bi ${iconClass}"></i></div>
-        <div class="toast-content">
-            <div class="toast-message">${message}</div>
+    // Create table row
+    row.innerHTML = `
+      <td>${index + 1}</td>
+      <td>${trend.name}</td>
+      <td>
+        <span class="badge rounded-pill" style="background-color: ${trendViz.categoryColors[trend.category] || '#666'}">
+          ${trend.category.charAt(0).toUpperCase() + trend.category.slice(1)}
+        </span>
+      </td>
+      <td>
+        <div class="progress" style="height: 8px;">
+          <div class="progress-bar bg-success" role="progressbar" style="width: ${trend.virality_score}%"></div>
         </div>
-        <button class="toast-close" aria-label="Close">&times;</button>
+        <span class="small">${trend.virality_score}</span>
+      </td>
+      <td>${directionIcon} ${trend.direction.charAt(0).toUpperCase() + trend.direction.slice(1)}</td>
+      <td>${durationMap[trend.duration] || trend.duration}</td>
+      <td>${formatDate(new Date(trend.date), 'medium')}</td>
     `;
     
-    // Add to container
-    container.appendChild(notification);
-    
-    // Apply animation and show
-    setTimeout(() => {
-        notification.classList.add('show');
-    }, 10);
-    
-    // Add event listener for close button
-    const closeBtn = notification.querySelector('.toast-close');
-    if (closeBtn) {
-        closeBtn.addEventListener('click', () => {
-            notification.classList.remove('show');
-            setTimeout(() => {
-                notification.remove();
-            }, 300);
-        });
-    }
-    
-    // Auto-remove after delay (different times based on type)
-    const displayTime = type === 'error' ? 8000 : type === 'warning' ? 6000 : 5000;
-    setTimeout(() => {
-        notification.classList.remove('show');
-        setTimeout(() => {
-            notification.remove();
-        }, 300);
-    }, displayTime);
+    tableBody.appendChild(row);
+  });
+  
+  // Show empty state if no trends
+  if (sortedTrends.length === 0) {
+    const emptyRow = document.createElement('tr');
+    emptyRow.innerHTML = `
+      <td colspan="7" class="text-center py-4">
+        <i class="bi bi-search me-2"></i>
+        No trends match the current filters. Try adjusting your filter criteria.
+      </td>
+    `;
+    tableBody.appendChild(emptyRow);
+  }
 }
+
+/**
+ * Initialize export functionality
+ */
+function initExport() {
+  const exportButtons = document.querySelectorAll('[data-export]');
+  
+  exportButtons.forEach(button => {
+    button.addEventListener('click', (e) => {
+      e.preventDefault();
+      const exportType = button.getAttribute('data-export');
+      
+      switch (exportType) {
+        case 'csv':
+          exportTrendsCSV();
+          break;
+        case 'json':
+          exportTrendsJSON();
+          break;
+        case 'pdf':
+          showNotification('PDF export will be available in a future update', 'info');
+          break;
+      }
+    });
+  });
+}
+
+/**
+ * Export trends data as CSV
+ */
+function exportTrendsCSV() {
+  // Apply current filters
+  const filteredTrends = filterTrends(state.trends, state.filters);
+  
+  // Create CSV header
+  let csv = 'Name,Category,Virality Score,Direction,Duration,Date\n';
+  
+  // Add rows
+  filteredTrends.forEach(trend => {
+    const row = [
+      `"${trend.name}"`,
+      trend.category,
+      trend.virality_score,
+      trend.direction,
+      trend.duration,
+      new Date(trend.date).toLocaleDateString()
+    ];
+    csv += row.join(',') + '\n';
+  });
+  
+  // Download file
+  downloadFile(csv, 'sustainatrend_trends.csv', 'text/csv');
+  
+  // Show notification
+  showNotification('Trends exported as CSV', 'success');
+}
+
+/**
+ * Export trends data as JSON
+ */
+function exportTrendsJSON() {
+  // Apply current filters
+  const filteredTrends = filterTrends(state.trends, state.filters);
+  
+  // Convert to JSON
+  const json = JSON.stringify(filteredTrends, null, 2);
+  
+  // Download file
+  downloadFile(json, 'sustainatrend_trends.json', 'application/json');
+  
+  // Show notification
+  showNotification('Trends exported as JSON', 'success');
+}
+
+/**
+ * Initialize filter modal
+ */
+function initFilterModal() {
+  // Get filter button and modal elements
+  const filterButton = document.querySelector('[data-action="filter"]');
+  const filterModal = document.getElementById('filter-modal');
+  const closeModal = document.getElementById('close-modal');
+  const applyFilters = document.getElementById('apply-filters');
+  const resetFilters = document.getElementById('reset-filters');
+  const viralitySlider = document.getElementById('virality-slider');
+  const viralityValue = document.getElementById('virality-value');
+  
+  // Show modal when filter button is clicked
+  if (filterButton && filterModal) {
+    filterButton.addEventListener('click', () => {
+      filterModal.classList.add('show');
+    });
+  }
+  
+  // Close modal when close button is clicked
+  if (closeModal && filterModal) {
+    closeModal.addEventListener('click', () => {
+      filterModal.classList.remove('show');
+    });
+  }
+  
+  // Close modal when clicking outside
+  if (filterModal) {
+    filterModal.addEventListener('click', (e) => {
+      if (e.target === filterModal) {
+        filterModal.classList.remove('show');
+      }
+    });
+  }
+  
+  // Update virality slider value
+  if (viralitySlider && viralityValue) {
+    viralitySlider.value = state.filters.minVirality;
+    viralityValue.textContent = state.filters.minVirality;
+    
+    viralitySlider.addEventListener('input', () => {
+      viralityValue.textContent = viralitySlider.value;
+    });
+  }
+  
+  // Apply filters when apply button is clicked
+  if (applyFilters) {
+    applyFilters.addEventListener('click', () => {
+      // Get selected timeframe
+      const timeframeEl = document.querySelector('input[name="timeframe"]:checked');
+      if (timeframeEl) {
+        state.filters.timeframe = timeframeEl.value;
+      }
+      
+      // Get selected categories
+      const categoryEls = document.querySelectorAll('input[name="category"]:checked');
+      state.filters.categories = Array.from(categoryEls).map(el => el.value);
+      
+      // Get virality slider value
+      if (viralitySlider) {
+        state.filters.minVirality = parseInt(viralitySlider.value);
+      }
+      
+      // Update dashboard with new filters
+      updateDashboard();
+      
+      // Close modal
+      filterModal.classList.remove('show');
+      
+      // Show notification
+      showNotification('Filters applied successfully', 'success');
+    });
+  }
+  
+  // Reset filters when reset button is clicked
+  if (resetFilters) {
+    resetFilters.addEventListener('click', () => {
+      // Reset timeframe
+      const timeframeEls = document.querySelectorAll('input[name="timeframe"]');
+      timeframeEls.forEach(el => {
+        el.checked = el.value === 'all';
+      });
+      
+      // Reset categories
+      const categoryEls = document.querySelectorAll('input[name="category"]');
+      categoryEls.forEach(el => {
+        el.checked = true;
+      });
+      
+      // Reset virality slider
+      if (viralitySlider && viralityValue) {
+        viralitySlider.value = 30;
+        viralityValue.textContent = '30';
+      }
+    });
+  }
+}
+
+/**
+ * Initialize chart control events
+ */
+function initChartControls() {
+  const chartTimeRange = document.getElementById('chart-time-range');
+  const tableFilter = document.getElementById('table-category-filter');
+  const refreshTable = document.getElementById('refresh-table');
+  
+  // Update chart when time range changes
+  if (chartTimeRange) {
+    chartTimeRange.addEventListener('change', () => {
+      state.chartTimeRange = chartTimeRange.value;
+      createTrendChart(filterTrends(state.trends, state.filters));
+    });
+  }
+  
+  // Filter table when category filter changes
+  if (tableFilter) {
+    tableFilter.addEventListener('change', () => {
+      const category = tableFilter.value;
+      
+      if (category === 'all') {
+        // Show all trends
+        updateTrendTable(filterTrends(state.trends, state.filters));
+      } else {
+        // Filter by selected category
+        const filteredTrends = filterTrends(state.trends, state.filters)
+          .filter(trend => trend.category === category);
+        updateTrendTable(filteredTrends);
+      }
+    });
+  }
+  
+  // Refresh table
+  if (refreshTable) {
+    refreshTable.addEventListener('click', () => {
+      // Reload data and update table
+      fetchTrendData();
+      
+      // Show loading in the button
+      const originalText = refreshTable.innerHTML;
+      refreshTable.innerHTML = '<i class="bi bi-arrow-clockwise spin-animation"></i> Loading...';
+      refreshTable.disabled = true;
+      
+      // Reset button after 2 seconds
+      setTimeout(() => {
+        refreshTable.innerHTML = originalText;
+        refreshTable.disabled = false;
+      }, 2000);
+    });
+  }
+}
+
+/**
+ * Show/hide loading state
+ * @param {boolean} isLoading - Whether to show or hide loading state
+ */
+function showLoading(isLoading) {
+  // Get loading elements
+  const loadingElements = document.querySelectorAll('.placeholder-glow');
+  
+  if (isLoading) {
+    // Show loading state
+    loadingElements.forEach(el => {
+      el.style.display = 'block';
+    });
+  } else {
+    // Hide loading state
+    loadingElements.forEach(el => {
+      el.style.display = 'none';
+    });
+  }
+}
+
+// Initialize the dashboard when DOM is loaded
+document.addEventListener('DOMContentLoaded', initTrendAnalysis);

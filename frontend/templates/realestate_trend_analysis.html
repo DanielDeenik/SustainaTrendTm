@@ -5,8 +5,10 @@
 {% block extra_css %}
 <!-- Enhanced dark mode styling -->
 <link rel="stylesheet" href="{{ url_for('static', filename='css/dark-theme.css') }}">
-<!-- Plotly.js for interactive charts -->
-<script src="https://cdn.plot.ly/plotly-latest.min.js"></script>
+<!-- jQuery (required for dynamic interactions) -->
+<script src="https://code.jquery.com/jquery-3.7.1.min.js" integrity="sha256-/JqT3SQfawRcv/BIHPThkBvs0OEvtFFmqPF/lYI/Cxo=" crossorigin="anonymous"></script>
+<!-- Plotly.js for interactive charts - using specific version to avoid deprecation warning -->
+<script src="https://cdn.plot.ly/plotly-2.29.1.min.js"></script>
 <style>
     /* Real estate sustainability specific styling */
     .property-insights-card {

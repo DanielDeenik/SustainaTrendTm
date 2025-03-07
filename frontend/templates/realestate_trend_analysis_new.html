@@ -2,7 +2,7 @@
 
 {% block title %}Real Estate Sustainability Intelligence | SustainaTrend™{% endblock %}
 
-{% block extra_css %}
+{% block styles %}
 <!-- Enhanced dark mode styling -->
 <link rel="stylesheet" href="{{ url_for('static', filename='css/dark-theme.css') }}">
 <!-- Plotly.js for interactive charts -->
@@ -292,31 +292,16 @@
 <!-- Toast notifications container -->
 <div class="toast-container" id="toast-container"></div>
 
-<div class="trend-page-header">
-    <h1>Real Estate Sustainability Intelligence</h1>
-    <p class="text-muted">AI-driven insights for sustainable real estate across the value chain</p>
-    <div class="trend-actions mt-4">
-        <button class="btn btn-outline-primary me-2" id="toggle-view">
-            <i class="bi bi-grid"></i> Toggle View
-        </button>
-        <button class="btn btn-outline-primary me-2" id="filter-btn">
-            <i class="bi bi-funnel"></i> Filter
-        </button>
-        <div class="dropdown d-inline-block">
-            <button class="btn btn-outline-primary" id="export-btn">
-                <i class="bi bi-download"></i> Export Insights
-            </button>
-            <div id="export-dropdown" class="export-dropdown">
-                <ul class="export-dropdown-menu">
-                    <li><a href="#" data-format="csv"><i class="bi bi-filetype-csv"></i> CSV</a></li>
-                    <li><a href="#" data-format="excel"><i class="bi bi-filetype-xlsx"></i> Excel</a></li>
-                    <li><a href="#" data-format="pdf"><i class="bi bi-filetype-pdf"></i> PDF Report</a></li>
-                    <li><a href="#" data-format="json"><i class="bi bi-filetype-json"></i> JSON</a></li>
-                </ul>
-            </div>
-        </div>
-    </div>
-</div>
+{% with 
+    title="Real Estate Sustainability Intelligence",
+    description="AI-driven insights for sustainable real estate across the value chain",
+    show_actions=true,
+    show_toggle=true,
+    show_filter=true,
+    show_export=true
+%}
+    {% include "partials/page_header.html" %}
+{% endwith %}
 
 <!-- Real Estate Value Chain Selector -->
 <div class="container mt-4">
