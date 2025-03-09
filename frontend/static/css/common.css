@@ -362,6 +362,126 @@ table {
   --bs-tooltip-color: var(--dark-color);
 }
 
+/* Real-time Updates Styling */
+:root {
+  /* Real-time update theme colors */
+  --update-breeam-color: #2ecc71;
+  --update-energy-color: #3498db;
+  --update-carbon-color: #e67e22;
+  --update-financial-color: #9b59b6;
+  --primary-rgb: 46, 125, 50;
+}
+
+.realtime-update {
+  padding: 0.75rem;
+  border-radius: 0.5rem;
+  margin-bottom: 0.75rem;
+  animation: fadeIn 0.5s ease-in-out, highlightUpdate 2s ease-in-out;
+  border-left: 3px solid var(--primary-color);
+  background-color: rgba(255, 255, 255, 0.05);
+  transition: transform 0.3s ease, box-shadow 0.3s ease;
+}
+
+.realtime-update:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+}
+
+.realtime-update-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 0.5rem;
+}
+
+.realtime-update-body {
+  font-size: 0.9rem;
+}
+
+.realtime-update-timestamp {
+  font-size: 0.75rem;
+  color: var(--text-muted);
+}
+
+.realtime-update.breeam {
+  border-left-color: var(--update-breeam-color);
+}
+
+.realtime-update.energy {
+  border-left-color: var(--update-energy-color);
+}
+
+.realtime-update.carbon {
+  border-left-color: var(--update-carbon-color);
+}
+
+.realtime-update.financial {
+  border-left-color: var(--update-financial-color);
+}
+
+/* Animation for new updates */
+@keyframes fadeIn {
+  from { opacity: 0; transform: translateY(-10px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+@keyframes highlightUpdate {
+  0% { background-color: rgba(var(--primary-rgb), 0.2); }
+  100% { background-color: rgba(255, 255, 255, 0.05); }
+}
+
+/* Live indicator pulse animation */
+.badge.bg-danger.live {
+  animation: pulseLive 2s infinite;
+}
+
+@keyframes pulseLive {
+  0% { opacity: 1; }
+  50% { opacity: 0.6; }
+  100% { opacity: 1; }
+}
+
+/* Update notification badges */
+.update-badge {
+  display: inline-flex;
+  align-items: center;
+  padding: 0.25rem 0.5rem;
+  border-radius: 0.25rem;
+  font-size: 0.75rem;
+  font-weight: 700;
+}
+
+.update-badge.improved {
+  background-color: rgba(46, 204, 113, 0.2);
+  color: #2ecc71;
+}
+
+.update-badge.declined {
+  background-color: rgba(231, 76, 60, 0.2);
+  color: #e74c3c;
+}
+
+.update-badge.neutral {
+  background-color: rgba(52, 152, 219, 0.2);
+  color: #3498db;
+}
+
+.update-badge i {
+  margin-right: 0.25rem;
+}
+
+/* Tab update notification */
+.nav-link.has-update::after {
+  content: '';
+  display: inline-block;
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background-color: var(--danger-color);
+  margin-left: 5px;
+  animation: pulseLive 2s infinite;
+}
+
 /* Chart Containers */
 .chart-container {
   width: 100%;

@@ -7,11 +7,15 @@
     <link rel="stylesheet" href="{{ url_for('static', filename='styles.css') }}">
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.0/font/bootstrap-icons.css">
+    <!-- SustainaTrend CSS Framework -->
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/sustainatrend-index.css') }}">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/simcorp-inspired.css') }}">
     <style>
         :root {
             --primary-color: #10b981;
             --primary-dark: #059669;
             --primary-light: #d1fae5;
+            --primary-rgb: 16, 185, 129;
             --bg-sidebar: #052e16;
             --bg-sidebar-hover: rgba(255, 255, 255, 0.1);
             --bg-body: #f8f9fa;
@@ -20,6 +24,12 @@
             --card-bg: #fff;
             --border-color: rgba(0, 0, 0, 0.1);
             --transition-speed: 0.3s;
+            
+            /* Real-time update colors - connect to framework variables */
+            --update-breeam-color: #2ecc71;
+            --update-energy-color: #3498db;
+            --update-carbon-color: #e67e22;
+            --update-financial-color: #9b59b6;
         }
 
         .light-mode {
@@ -388,7 +398,7 @@
     <link rel="stylesheet" href="{{ url_for('static', filename='css/common.css') }}">
     {% block extra_css %}{% endblock %}
 </head>
-<body>
+<body class="sustainatrend-theme">
     <!-- Mobile Sidebar Toggle (visible on small screens) -->
     <button class="mobile-toggle d-md-none">
         <i class="bi bi-list"></i>
@@ -410,123 +420,122 @@
                         </button>
                     </div>
 
-                    <ul class="nav flex-column mt-3">
-                        <li class="nav-item">
-                            <a class="nav-link {% if request.path == '/' %}active{% endif %}" href="/">
-                                <i class="bi bi-house-door-fill"></i> <span>Home</span>
-                            </a>
-                        </li>
-                        <li class="nav-item">
-                            <a class="nav-link {% if request.path == '/dashboard' %}active{% endif %}" href="/dashboard">
-                                <i class="bi bi-speedometer2"></i> <span>Dashboard</span>
-                            </a>
-                        </li>
-                        <li class="nav-item">
-                            <a class="nav-link {% if request.path == '/analytics-dashboard' %}active{% endif %}" href="/analytics-dashboard">
-                                <i class="bi bi-graph-up-arrow"></i> <span>Analytics</span>
-                            </a>
-                        </li>
-                    </ul>
+                    <!-- SimCorp-inspired Global Search -->
+                    <div class="st-global-search">
+                        <div class="st-global-search-bar">
+                            <i class="bi bi-search st-global-search-icon"></i>
+                            <input type="text" placeholder="Search across platform..." class="st-global-search-input" id="global-search-input">
+                        </div>
+                    </div>
 
-                    <h6 class="sidebar-heading mt-4">AI Tools</h6>
-                    <ul class="nav flex-column">
-                        <li class="nav-item">
-                            <a class="nav-link {% if request.path == '/search' %}active{% endif %}" href="/search">
-                                <i class="bi bi-search"></i> <span>AI Search</span>
-                            </a>
-                        </li>
-                        <li class="nav-item">
-                            <a class="nav-link {% if request.path == '/gemini-search' %}active{% endif %}" href="/gemini-search">
-                                <i class="bi bi-stars"></i> <span>Gemini Search</span>
-                            </a>
-                        </li>
-                        <li class="nav-item">
-                            <a class="nav-link {% if request.path == '/sustainability-stories' %}active{% endif %}" href="/sustainability-stories">
-                                <i class="bi bi-book"></i> <span>AI Stories</span>
-                            </a>
-                        </li>
-                    </ul>
+                    <!-- Dashboard Section - Using Atomic Navigation Components -->
+                    <div class="st-nav-section">
+                        <a href="/" class="st-nav-item {% if request.path == '/' %}active{% endif %}">
+                            <span class="st-nav-icon"><i class="bi bi-house-door-fill"></i></span>
+                            <span class="st-nav-text">Home</span>
+                        </a>
+                        <a href="/dashboard" class="st-nav-item {% if request.path == '/dashboard' %}active{% endif %}">
+                            <span class="st-nav-icon"><i class="bi bi-speedometer2"></i></span>
+                            <span class="st-nav-text">Dashboard</span>
+                        </a>
+                        <a href="/analytics-dashboard" class="st-nav-item {% if request.path == '/analytics-dashboard' %}active{% endif %}">
+                            <span class="st-nav-icon"><i class="bi bi-graph-up-arrow"></i></span>
+                            <span class="st-nav-text">Analytics</span>
+                        </a>
+                    </div>
 
-                    <h6 class="sidebar-heading mt-4">Sustainability</h6>
-                    <ul class="nav flex-column">
-                        <li class="nav-item">
-                            <a class="nav-link {% if request.path == '/trend-analysis' %}active{% endif %}" href="/trend-analysis">
-                                <i class="bi bi-arrow-up-right"></i> <span>Trend Analysis</span>
-                            </a>
-                        </li>
-                        <li class="nav-item">
-                            <a class="nav-link {% if request.path == '/sustainability' %}active{% endif %}" href="/sustainability">
-                                <i class="bi bi-bar-chart-fill"></i> <span>ESG Analysis</span>
-                            </a>
-                        </li>
-                        <li class="nav-item">
-                            <a class="nav-link {% if request.path == '/sentiment-analysis' %}active{% endif %}" href="/sentiment-analysis">
-                                <i class="bi bi-emoji-smile"></i> <span>Sentiment</span>
-                            </a>
-                        </li>
-                        <li class="nav-item">
-                            <a class="nav-link {% if request.path == '/document-upload' %}active{% endif %}" href="/document-upload">
-                                <i class="bi bi-file-earmark-pdf"></i> <span>Document Analysis</span>
-                            </a>
-                        </li>
-                    </ul>
+                    <div class="st-nav-divider"></div>
+                    <h6 class="st-nav-header">AI Tools</h6>
+                    <div class="st-nav-section">
+                        <a href="/search" class="st-nav-item {% if request.path == '/search' %}active{% endif %}">
+                            <span class="st-nav-icon"><i class="bi bi-search"></i></span>
+                            <span class="st-nav-text">AI Search</span>
+                        </a>
+                        <a href="/gemini-search" class="st-nav-item {% if request.path == '/gemini-search' %}active{% endif %}">
+                            <span class="st-nav-icon"><i class="bi bi-stars"></i></span>
+                            <span class="st-nav-text">Gemini Search</span>
+                            <span class="st-nav-badge">New</span>
+                        </a>
+                        <a href="/sustainability-stories" class="st-nav-item {% if request.path == '/sustainability-stories' %}active{% endif %}">
+                            <span class="st-nav-icon"><i class="bi bi-book"></i></span>
+                            <span class="st-nav-text">AI Stories</span>
+                        </a>
+                    </div>
 
-                    <h6 class="sidebar-heading mt-4">Business</h6>
-                    <ul class="nav flex-column">
-                        <li class="nav-item">
-                            <a class="nav-link {% if request.path == '/realestate-unified-dashboard' %}active{% endif %}" href="/realestate-unified-dashboard">
-                                <i class="bi bi-building"></i> <span>Real Estate Dashboard</span>
-                                <span class="badge bg-success rounded-pill ms-auto" style="font-size: 0.65rem; opacity: 0.9;">NEW</span>
-                            </a>
-                        </li>
-                        <li class="nav-item">
-                            <a class="nav-link {% if request.path == '/monetization' %}active{% endif %}" href="/monetization">
-                                <i class="bi bi-currency-dollar"></i> <span>Monetization</span>
-                            </a>
-                        </li>
-                        <li class="nav-item">
-                            <a class="nav-link {% if request.path == '/ethical-ai' %}active{% endif %}" href="/ethical-ai">
-                                <i class="bi bi-shield-check"></i> <span>Ethical AI</span>
-                            </a>
-                        </li>
-                        <li class="nav-item">
-                            <a class="nav-link {% if request.path == '/ai-development-tools' %}active{% endif %}" href="/ai-development-tools">
-                                <i class="bi bi-code-slash"></i> <span>Dev Tools</span>
-                            </a>
-                        </li>
-                    </ul>
+                    <div class="st-nav-divider"></div>
+                    <h6 class="st-nav-header">Sustainability</h6>
+                    <div class="st-nav-section">
+                        <a href="/trend-analysis" class="st-nav-item {% if request.path == '/trend-analysis' %}active{% endif %}">
+                            <span class="st-nav-icon"><i class="bi bi-arrow-up-right"></i></span>
+                            <span class="st-nav-text">Trend Analysis</span>
+                        </a>
+                        <a href="/sustainability" class="st-nav-item {% if request.path == '/sustainability' %}active{% endif %}">
+                            <span class="st-nav-icon"><i class="bi bi-bar-chart-fill"></i></span>
+                            <span class="st-nav-text">ESG Analysis</span>
+                        </a>
+                        <a href="/sentiment-analysis" class="st-nav-item {% if request.path == '/sentiment-analysis' %}active{% endif %}">
+                            <span class="st-nav-icon"><i class="bi bi-emoji-smile"></i></span>
+                            <span class="st-nav-text">Sentiment</span>
+                        </a>
+                        <a href="/document-upload" class="st-nav-item {% if request.path == '/document-upload' %}active{% endif %}">
+                            <span class="st-nav-icon"><i class="bi bi-file-earmark-pdf"></i></span>
+                            <span class="st-nav-text">Document Analysis</span>
+                        </a>
+                    </div>
 
-                    <h6 class="sidebar-heading mt-4">System</h6>
-                    <ul class="nav flex-column">
-                        <li class="nav-item">
-                            <a class="nav-link {% if request.path == '/api-status' %}active{% endif %}" href="/api-status">
-                                <i class="bi bi-hdd-network"></i> <span>API Status</span>
-                                {% if api_status %}
-                                    {% if api_status.using_real_apis %}
-                                        <span class="status-badge bg-success">Online</span>
-                                    {% elif api_status.fallback_active %}
-                                        <span class="status-badge bg-warning text-dark">Fallback</span>
-                                    {% else %}
-                                        <span class="status-badge bg-danger">Offline</span>
-                                    {% endif %}
+                    <div class="st-nav-divider"></div>
+                    <h6 class="st-nav-header">Business</h6>
+                    <div class="st-nav-section">
+                        <a href="/realestate-unified-dashboard" class="st-nav-item {% if request.path == '/realestate-unified-dashboard' %}active{% endif %}">
+                            <span class="st-nav-icon"><i class="bi bi-building"></i></span>
+                            <span class="st-nav-text">Real Estate Dashboard</span>
+                            <span class="st-nav-badge st-nav-badge-success">New</span>
+                        </a>
+                        <a href="/monetization" class="st-nav-item {% if request.path == '/monetization' %}active{% endif %}">
+                            <span class="st-nav-icon"><i class="bi bi-currency-dollar"></i></span>
+                            <span class="st-nav-text">Monetization</span>
+                        </a>
+                        <a href="/ethical-ai" class="st-nav-item {% if request.path == '/ethical-ai' %}active{% endif %}">
+                            <span class="st-nav-icon"><i class="bi bi-shield-check"></i></span>
+                            <span class="st-nav-text">Ethical AI</span>
+                        </a>
+                        <a href="/ai-development-tools" class="st-nav-item {% if request.path == '/ai-development-tools' %}active{% endif %}">
+                            <span class="st-nav-icon"><i class="bi bi-code-slash"></i></span>
+                            <span class="st-nav-text">Dev Tools</span>
+                        </a>
+                    </div>
+
+                    <div class="st-nav-divider"></div>
+                    <h6 class="st-nav-header">System</h6>
+                    <div class="st-nav-section">
+                        <a href="/api-status" class="st-nav-item {% if request.path == '/api-status' %}active{% endif %}">
+                            <span class="st-nav-icon"><i class="bi bi-hdd-network"></i></span>
+                            <span class="st-nav-text">API Status</span>
+                            {% if api_status %}
+                                {% if api_status.using_real_apis %}
+                                    <span class="st-nav-badge st-nav-badge-success">Online</span>
+                                {% elif api_status.fallback_active %}
+                                    <span class="st-nav-badge st-nav-badge-warning">Fallback</span>
+                                {% else %}
+                                    <span class="st-nav-badge st-nav-badge-danger">Offline</span>
                                 {% endif %}
-                            </a>
-                        </li>
-                        <li class="nav-item">
-                            <a class="nav-link {% if request.path == '/debug' %}active{% endif %}" href="/debug">
-                                <i class="bi bi-bug"></i> <span>Debug Info</span>
-                            </a>
-                        </li>
-                    </ul>
+                            {% endif %}
+                        </a>
+                        <a href="/debug" class="st-nav-item {% if request.path == '/debug' %}active{% endif %}">
+                            <span class="st-nav-icon"><i class="bi bi-bug"></i></span>
+                            <span class="st-nav-text">Debug Info</span>
+                        </a>
+                    </div>
                 </div>
 
-                <!-- Enhanced Theme Toggle -->
-                <div class="theme-toggle">
-                    <span>Dark Mode</span>
-                    <label class="switch">
-                        <input type="checkbox" id="theme-toggle-input" checked>
-                        <span class="toggle-slider"></span>
-                    </label>
+                <!-- Atomic Theme Toggle -->
+                <div class="st-sidebar-footer">
+                    <div class="st-flex st-justify-between st-items-center">
+                        <span class="st-text-sm st-text-muted">Dark Mode</span>
+                        <button class="st-sidebar-toggle theme-toggle-button">
+                            <i class="bi bi-moon-stars-fill"></i>
+                        </button>
+                    </div>
                 </div>
             </nav>
 

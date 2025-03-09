@@ -1,0 +1,493 @@
+/**
+ * SustainaTrend™ SimCorp One-Inspired Components
+ * A specialized component library inspired by SimCorp One design system
+ */
+
+/* SimCorp-inspired Tabs */
+.st-simcorp-tabs {
+  display: flex;
+  border-bottom: 1px solid var(--st-neutral-200);
+  margin-bottom: 1.5rem;
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+}
+
+.st-simcorp-tab {
+  padding: 1rem 1.25rem;
+  font-size: 0.9rem;
+  font-weight: 500;
+  color: var(--st-neutral-600);
+  border-bottom: 2px solid transparent;
+  cursor: pointer;
+  transition: all var(--st-transition);
+  white-space: nowrap;
+}
+
+.st-simcorp-tab:hover {
+  color: var(--st-neutral-900);
+}
+
+.st-simcorp-tab.active {
+  color: var(--st-secondary-dark);
+  border-bottom-color: var(--st-secondary-dark);
+}
+
+/* Tab Content */
+.st-tab-content {
+  display: none;
+}
+
+.st-tab-content.active {
+  display: block;
+}
+
+/* SimCorp-inspired Cards */
+.st-simcorp-card {
+  background-color: white;
+  border-radius: 6px;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.08);
+  margin-bottom: 1.5rem;
+  border: 1px solid var(--st-neutral-200);
+  transition: box-shadow var(--st-transition);
+}
+
+.st-simcorp-card:hover {
+  box-shadow: 0 3px 8px rgba(0, 0, 0, 0.1);
+}
+
+.st-simcorp-card-header {
+  padding: 1.25rem 1.5rem;
+  border-bottom: 1px solid var(--st-neutral-200);
+  display: flex;
+  flex-direction: column;
+}
+
+.st-simcorp-card-title {
+  margin: 0;
+  font-size: 1rem;
+  font-weight: 600;
+  color: var(--st-neutral-800);
+}
+
+.st-simcorp-card-subtitle {
+  margin-top: 0.25rem;
+  font-size: 0.875rem;
+  color: var(--st-neutral-500);
+}
+
+.st-simcorp-card-body {
+  padding: 1.5rem;
+}
+
+.st-simcorp-card-footer {
+  padding: 1rem 1.5rem;
+  border-top: 1px solid var(--st-neutral-200);
+  font-size: 0.875rem;
+}
+
+/* SimCorp-inspired Grid */
+.st-simcorp-grid {
+  width: 100%;
+  border-collapse: separate;
+  border-spacing: 0;
+}
+
+.st-simcorp-grid th {
+  padding: 0.75rem 1rem;
+  text-align: left;
+  font-weight: 500;
+  font-size: 0.8125rem;
+  color: var(--st-neutral-500);
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  border-bottom: 1px solid var(--st-neutral-200);
+  background-color: var(--st-neutral-50);
+}
+
+.st-simcorp-grid td {
+  padding: 1rem;
+  border-bottom: 1px solid var(--st-neutral-200);
+  font-size: 0.9rem;
+  transition: background-color var(--st-transition-fast);
+}
+
+.st-simcorp-grid tr:last-child td {
+  border-bottom: none;
+}
+
+.st-simcorp-grid tr:hover td {
+  background-color: var(--st-neutral-50);
+}
+
+/* BREEAM Rating Badges */
+.st-breeam-badge {
+  display: inline-flex;
+  align-items: center;
+  padding: 0.3rem 0.6rem;
+  border-radius: 4px;
+  font-size: 0.75rem;
+  font-weight: 600;
+  line-height: 1;
+  text-transform: uppercase;
+}
+
+.st-breeam-badge-outstanding {
+  background-color: var(--st-realestate-breeam-outstanding);
+  color: white;
+}
+
+.st-breeam-badge-excellent {
+  background-color: var(--st-realestate-breeam-excellent);
+  color: white;
+}
+
+.st-breeam-badge-verygood {
+  background-color: var(--st-realestate-breeam-verygood);
+  color: var(--st-neutral-900);
+}
+
+.st-breeam-badge-good {
+  background-color: var(--st-realestate-breeam-good);
+  color: var(--st-neutral-900);
+}
+
+.st-breeam-badge-pass {
+  background-color: var(--st-realestate-breeam-pass);
+  color: var(--st-neutral-900);
+}
+
+.st-breeam-badge-unclassified {
+  background-color: var(--st-realestate-breeam-unclassified);
+  color: white;
+}
+
+/* Realtime Feed */
+.st-realtime-feed {
+  display: flex;
+  flex-direction: column;
+}
+
+.st-realtime-item {
+  display: flex;
+  padding: 1rem 0;
+  border-bottom: 1px solid var(--st-neutral-100);
+}
+
+.st-realtime-item:last-child {
+  border-bottom: none;
+}
+
+.st-realtime-icon {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 2.5rem;
+  height: 2.5rem;
+  border-radius: 8px;
+  margin-right: 1rem;
+  flex-shrink: 0;
+}
+
+.st-realtime-icon-breeam {
+  background-color: rgba(16, 185, 129, 0.1);
+  color: var(--st-primary);
+}
+
+.st-realtime-icon-energy {
+  background-color: rgba(245, 158, 11, 0.1);
+  color: var(--st-warning);
+}
+
+.st-realtime-icon-carbon {
+  background-color: rgba(99, 102, 241, 0.1);
+  color: var(--st-accent-2);
+}
+
+.st-realtime-icon-financial {
+  background-color: rgba(236, 72, 153, 0.1);
+  color: var(--st-accent-3);
+}
+
+.st-realtime-content {
+  flex: 1;
+}
+
+.st-realtime-title {
+  font-weight: 500;
+  margin-bottom: 0.25rem;
+  color: var(--st-neutral-800);
+}
+
+.st-realtime-description {
+  font-size: 0.875rem;
+  color: var(--st-neutral-600);
+  margin-bottom: 0.5rem;
+}
+
+.st-realtime-timestamp {
+  font-size: 0.75rem;
+  color: var(--st-neutral-400);
+}
+
+/* SimCorp-inspired Forms */
+.st-simcorp-form-group {
+  margin-bottom: 1.5rem;
+}
+
+.st-simcorp-form-label {
+  display: block;
+  margin-bottom: 0.5rem;
+  font-size: 0.875rem;
+  font-weight: 500;
+  color: var(--st-neutral-700);
+}
+
+.st-simcorp-form-input {
+  display: block;
+  width: 100%;
+  padding: 0.75rem 1rem;
+  font-size: 0.9rem;
+  line-height: 1.5;
+  color: var(--st-neutral-800);
+  background-color: white;
+  background-clip: padding-box;
+  border: 1px solid var(--st-neutral-300);
+  border-radius: 4px;
+  transition: border-color var(--st-transition), box-shadow var(--st-transition);
+}
+
+.st-simcorp-form-input:focus {
+  border-color: var(--st-secondary);
+  outline: 0;
+  box-shadow: 0 0 0 3px rgba(0, 85, 165, 0.15);
+}
+
+.st-simcorp-form-select {
+  display: block;
+  width: 100%;
+  padding: 0.75rem 2.5rem 0.75rem 1rem;
+  font-size: 0.9rem;
+  line-height: 1.5;
+  color: var(--st-neutral-800);
+  background-color: white;
+  background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'%3e%3cpath fill='none' stroke='%234b5563' stroke-linecap='round' stroke-linejoin='round' stroke-width='2' d='M2 5l6 6 6-6'/%3e%3c/svg%3e");
+  background-repeat: no-repeat;
+  background-position: right 1rem center;
+  background-size: 16px 12px;
+  border: 1px solid var(--st-neutral-300);
+  border-radius: 4px;
+  appearance: none;
+  transition: border-color var(--st-transition), box-shadow var(--st-transition);
+}
+
+.st-simcorp-form-select:focus {
+  border-color: var(--st-secondary);
+  outline: 0;
+  box-shadow: 0 0 0 3px rgba(0, 85, 165, 0.15);
+}
+
+.st-simcorp-form-help {
+  display: block;
+  margin-top: 0.5rem;
+  font-size: 0.75rem;
+  color: var(--st-neutral-500);
+}
+
+/* SimCorp-inspired Buttons */
+.st-simcorp-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0.75rem 1.5rem;
+  font-size: 0.9rem;
+  font-weight: 500;
+  line-height: 1.5;
+  text-align: center;
+  vertical-align: middle;
+  cursor: pointer;
+  user-select: none;
+  border: 1px solid transparent;
+  border-radius: 4px;
+  transition: color var(--st-transition), background-color var(--st-transition), border-color var(--st-transition), box-shadow var(--st-transition);
+}
+
+.st-simcorp-btn-primary {
+  color: white;
+  background-color: var(--st-secondary);
+  border-color: var(--st-secondary);
+}
+
+.st-simcorp-btn-primary:hover {
+  background-color: var(--st-secondary-dark);
+  border-color: var(--st-secondary-dark);
+}
+
+.st-simcorp-btn-secondary {
+  color: var(--st-neutral-700);
+  background-color: white;
+  border-color: var(--st-neutral-300);
+}
+
+.st-simcorp-btn-secondary:hover {
+  color: var(--st-neutral-900);
+  background-color: var(--st-neutral-50);
+}
+
+.st-simcorp-btn-danger {
+  color: white;
+  background-color: var(--st-error);
+  border-color: var(--st-error);
+}
+
+.st-simcorp-btn-danger:hover {
+  background-color: #dc2626;
+  border-color: #dc2626;
+}
+
+.st-simcorp-btn-sm {
+  padding: 0.5rem 1rem;
+  font-size: 0.8125rem;
+}
+
+.st-simcorp-btn-lg {
+  padding: 0.875rem 1.75rem;
+  font-size: 1rem;
+}
+
+.st-simcorp-btn-icon {
+  margin-right: 0.5rem;
+}
+
+/* SimCorp-inspired Charts and Analytics */
+.st-analytics-chart-container {
+  height: 300px;
+  margin-bottom: 1.5rem;
+  background-color: white;
+  border-radius: 6px;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.08);
+  padding: 1.5rem;
+  border: 1px solid var(--st-neutral-200);
+}
+
+.st-analytics-chart-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 1rem;
+}
+
+.st-analytics-chart-title {
+  font-size: 0.9rem;
+  font-weight: 600;
+  color: var(--st-neutral-800);
+  margin: 0;
+}
+
+.st-analytics-chart-actions {
+  display: flex;
+  gap: 0.5rem;
+}
+
+.st-analytics-chart-legend {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 1rem;
+  margin-top: 1rem;
+}
+
+.st-analytics-legend-item {
+  display: flex;
+  align-items: center;
+  font-size: 0.75rem;
+  color: var(--st-neutral-600);
+}
+
+.st-analytics-legend-color {
+  width: 12px;
+  height: 12px;
+  border-radius: 2px;
+  margin-right: 0.5rem;
+}
+
+/* SimCorp-inspired Responsive Utilities */
+@media (max-width: 768px) {
+  .st-simcorp-card-header,
+  .st-simcorp-card-body,
+  .st-simcorp-card-footer {
+    padding: 1rem;
+  }
+  
+  .st-simcorp-grid th,
+  .st-simcorp-grid td {
+    padding: 0.75rem;
+  }
+  
+  .st-realtime-item {
+    flex-direction: column;
+  }
+  
+  .st-realtime-icon {
+    margin-bottom: 0.75rem;
+    margin-right: 0;
+  }
+}
+
+/* Dark mode overrides */
+.dark-mode .st-simcorp-card {
+  background-color: var(--st-neutral-800);
+  border-color: var(--st-neutral-700);
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.2);
+}
+
+.dark-mode .st-simcorp-card-header,
+.dark-mode .st-simcorp-card-footer {
+  border-color: var(--st-neutral-700);
+}
+
+.dark-mode .st-simcorp-card-title {
+  color: var(--st-neutral-100);
+}
+
+.dark-mode .st-simcorp-card-subtitle {
+  color: var(--st-neutral-400);
+}
+
+.dark-mode .st-simcorp-grid th {
+  background-color: var(--st-neutral-700);
+  color: var(--st-neutral-300);
+  border-color: var(--st-neutral-600);
+}
+
+.dark-mode .st-simcorp-grid td {
+  border-color: var(--st-neutral-700);
+  color: var(--st-neutral-300);
+}
+
+.dark-mode .st-simcorp-grid tr:hover td {
+  background-color: var(--st-neutral-700);
+}
+
+.dark-mode .st-realtime-item {
+  border-color: var(--st-neutral-700);
+}
+
+.dark-mode .st-realtime-title {
+  color: var(--st-neutral-200);
+}
+
+.dark-mode .st-realtime-description {
+  color: var(--st-neutral-400);
+}
+
+.dark-mode .st-analytics-chart-container {
+  background-color: var(--st-neutral-800);
+  border-color: var(--st-neutral-700);
+}
+
+.dark-mode .st-analytics-chart-title {
+  color: var(--st-neutral-200);
+}
+
+.dark-mode .st-analytics-legend-item {
+  color: var(--st-neutral-400);
+}

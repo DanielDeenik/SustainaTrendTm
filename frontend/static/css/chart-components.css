@@ -1,0 +1,409 @@
+/**
+ * Chart Components CSS
+ * Standardized styles for charts and data visualization components across the SustainaTrend™ platform
+ * Designed to match the standardized JavaScript architecture
+ */
+
+:root {
+  /* Chart container dimensions */
+  --chart-height-sm: 180px;
+  --chart-height-md: 240px;
+  --chart-height-lg: 320px;
+  --chart-height-xl: 400px;
+  
+  /* Chart color palette */
+  --chart-color-1: var(--chart-emissions-color, #10b981);
+  --chart-color-2: var(--chart-energy-color, #0ea5e9);
+  --chart-color-3: var(--chart-water-color, #06b6d4);
+  --chart-color-4: var(--chart-waste-color, #64748b);
+  --chart-color-5: var(--chart-social-color, #7c3aed);
+  --chart-color-6: var(--chart-governance-color, #e11d48);
+  
+  /* Chart element colors */
+  --chart-grid-color: var(--border-color, #E0E0E0);
+  --chart-text-color: var(--text-muted, #757575);
+  --chart-tooltip-bg: var(--card-bg, #FFFFFF);
+  --chart-tooltip-border: var(--border-color, #E0E0E0);
+  
+  /* Chart theme colors */
+  --chart-positive-area: rgba(46, 125, 50, 0.1);
+  --chart-negative-area: rgba(211, 47, 47, 0.1);
+  --chart-neutral-area: rgba(2, 136, 209, 0.1);
+}
+
+/* Dark mode variables */
+.dark-mode {
+  --chart-grid-color: rgba(255, 255, 255, 0.1);
+  --chart-tooltip-bg: var(--dark-color);
+  --chart-tooltip-border: rgba(255, 255, 255, 0.2);
+}
+
+/* Base chart container */
+.chart-container {
+  width: 100%;
+  height: var(--chart-height-md);
+  position: relative;
+  overflow: hidden;
+}
+
+.chart-container-sm { height: var(--chart-height-sm); }
+.chart-container-md { height: var(--chart-height-md); }
+.chart-container-lg { height: var(--chart-height-lg); }
+.chart-container-xl { height: var(--chart-height-xl); }
+
+/* Chart wrapper for placeholder and loading states */
+.chart-wrapper {
+  position: relative;
+  width: 100%;
+  height: 100%;
+}
+
+/* Chart loading state */
+.chart-loading {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background-color: rgba(255, 255, 255, 0.7);
+  z-index: 10;
+}
+
+.dark-mode .chart-loading {
+  background-color: rgba(0, 0, 0, 0.5);
+}
+
+.chart-loading-spinner {
+  width: 40px;
+  height: 40px;
+  border: 4px solid rgba(var(--primary-rgb), 0.1);
+  border-radius: 50%;
+  border-top: 4px solid var(--primary-color);
+  animation: chart-spin 1s linear infinite;
+}
+
+@keyframes chart-spin {
+  0% { transform: rotate(0deg); }
+  100% { transform: rotate(360deg); }
+}
+
+/* Chart empty state */
+.chart-empty {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  padding: 1rem;
+}
+
+.chart-empty-icon {
+  font-size: 2rem;
+  color: var(--text-muted);
+  margin-bottom: 1rem;
+  opacity: 0.5;
+}
+
+.chart-empty-text {
+  font-size: 0.875rem;
+  color: var(--text-muted);
+  max-width: 200px;
+}
+
+/* Chart legend */
+.chart-legend {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 1rem;
+  margin-top: 1rem;
+  justify-content: center;
+}
+
+.chart-legend-item {
+  display: flex;
+  align-items: center;
+  font-size: 0.75rem;
+  color: var(--text-muted);
+}
+
+.chart-legend-color {
+  width: 12px;
+  height: 12px;
+  border-radius: 3px;
+  margin-right: 0.5rem;
+}
+
+/* Custom tooltip styles */
+.custom-tooltip {
+  background-color: var(--chart-tooltip-bg);
+  border: 1px solid var(--chart-tooltip-border);
+  border-radius: 4px;
+  padding: 0.75rem;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
+  font-size: 0.75rem;
+  z-index: 100;
+  max-width: 220px;
+}
+
+.tooltip-header {
+  font-weight: 600;
+  padding-bottom: 0.5rem;
+  margin-bottom: 0.5rem;
+  border-bottom: 1px solid var(--chart-tooltip-border);
+}
+
+.tooltip-label {
+  display: flex;
+  align-items: center;
+  margin-bottom: 0.25rem;
+}
+
+.tooltip-color {
+  width: 8px;
+  height: 8px;
+  border-radius: 2px;
+  margin-right: 0.5rem;
+}
+
+.tooltip-value {
+  font-weight: 600;
+  margin-left: auto;
+}
+
+.tooltip-date {
+  color: var(--text-muted);
+  font-size: 0.7rem;
+  margin-top: 0.5rem;
+  text-align: right;
+}
+
+/* Chart title and controls */
+.chart-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 1rem;
+}
+
+.chart-title {
+  font-weight: 600;
+  font-size: 0.875rem;
+  margin: 0;
+}
+
+.chart-controls {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+}
+
+.chart-timeframe {
+  display: flex;
+  gap: 0.25rem;
+  border-radius: 4px;
+  overflow: hidden;
+  border: 1px solid var(--chart-grid-color);
+}
+
+.chart-timeframe-btn {
+  border: none;
+  background: none;
+  padding: 0.25rem 0.5rem;
+  font-size: 0.75rem;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.chart-timeframe-btn:hover {
+  background-color: rgba(0, 0, 0, 0.03);
+}
+
+.chart-timeframe-btn.active {
+  background-color: var(--primary-color);
+  color: white;
+}
+
+/* Chart type selector */
+.chart-type-selector {
+  display: flex;
+  gap: 0.25rem;
+  border-radius: 4px;
+  overflow: hidden;
+  border: 1px solid var(--chart-grid-color);
+}
+
+.chart-type-btn {
+  border: none;
+  background: none;
+  padding: 0.25rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  width: 28px;
+  height: 28px;
+}
+
+.chart-type-btn:hover {
+  background-color: rgba(0, 0, 0, 0.03);
+}
+
+.chart-type-btn.active {
+  background-color: rgba(var(--primary-rgb), 0.1);
+  color: var(--primary-color);
+}
+
+/* D3 specific overrides */
+.d3-chart text {
+  fill: var(--chart-text-color);
+  font-size: 11px;
+}
+
+.d3-chart line, .d3-chart .domain {
+  stroke: var(--chart-grid-color);
+}
+
+.d3-chart .grid line {
+  stroke: var(--chart-grid-color);
+  stroke-dasharray: 3, 3;
+  stroke-opacity: 0.5;
+}
+
+.d3-chart .grid .domain {
+  display: none;
+}
+
+.d3-chart .area {
+  opacity: 0.6;
+}
+
+/* Recharts specific overrides */
+.recharts-wrapper {
+  font-family: inherit;
+}
+
+.recharts-cartesian-grid-horizontal line,
+.recharts-cartesian-grid-vertical line {
+  stroke: var(--chart-grid-color);
+  stroke-dasharray: 3, 3;
+  stroke-opacity: 0.5;
+}
+
+.recharts-text {
+  fill: var(--chart-text-color);
+  font-size: 11px;
+}
+
+.recharts-legend-item-text {
+  color: var(--chart-text-color) !important;
+}
+
+/* Chart annotations */
+.chart-annotation {
+  position: absolute;
+  transform: translate(-50%, -100%);
+  z-index: 5;
+}
+
+.chart-annotation-dot {
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  background-color: var(--primary-color);
+  border: 2px solid white;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+}
+
+.chart-annotation-label {
+  position: absolute;
+  bottom: 15px;
+  left: 50%;
+  transform: translateX(-50%);
+  background-color: var(--chart-tooltip-bg);
+  border: 1px solid var(--chart-tooltip-border);
+  border-radius: 4px;
+  padding: 0.25rem 0.5rem;
+  font-size: 0.7rem;
+  white-space: nowrap;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+/* Chart KPI indicators */
+.chart-kpi-indicators {
+  display: flex;
+  justify-content: space-between;
+  margin-top: 1rem;
+}
+
+.chart-kpi {
+  text-align: center;
+  flex: 1;
+}
+
+.chart-kpi-value {
+  font-size: 1.25rem;
+  font-weight: 700;
+  margin-bottom: 0.25rem;
+}
+
+.chart-kpi-label {
+  font-size: 0.75rem;
+  color: var(--chart-text-color);
+}
+
+/* Sparkline charts */
+.sparkline-container {
+  height: 30px;
+  width: 100px;
+  display: inline-block;
+  vertical-align: middle;
+}
+
+/* Interactive chart tooltip marker */
+.chart-tooltip-marker {
+  position: absolute;
+  width: 12px;
+  height: 12px;
+  border-radius: 50%;
+  background-color: white;
+  border: 2px solid var(--primary-color);
+  box-shadow: 0 0 4px rgba(0, 0, 0, 0.3);
+  z-index: 11;
+  transform: translate(-50%, -50%);
+  pointer-events: none;
+}
+
+/* Responsive adjustments */
+@media (max-width: 768px) {
+  .chart-container {
+    height: var(--chart-height-sm);
+  }
+  
+  .chart-container-lg, .chart-container-xl {
+    height: var(--chart-height-md);
+  }
+  
+  .chart-header {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 0.5rem;
+  }
+  
+  .chart-kpi-indicators {
+    flex-wrap: wrap;
+    gap: 1rem;
+  }
+  
+  .chart-kpi {
+    min-width: 80px;
+  }
+}

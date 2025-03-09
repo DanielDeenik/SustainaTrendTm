@@ -4,15 +4,17 @@
 
 {% block styles %}
 <style>
+    /* API Status Dashboard styles using SustainaTrend Framework */
     .status-card {
-        border-radius: 12px;
+        border-radius: var(--st-radius-md);
         margin-bottom: 1.5rem;
-        transition: all 0.2s ease-in-out;
+        transition: transform var(--st-transition-normal) ease, 
+                  box-shadow var(--st-transition-normal) ease;
     }
     
     .status-card:hover {
         transform: translateY(-5px);
-        box-shadow: 0 10px 20px rgba(0, 0, 0, 0.1);
+        box-shadow: var(--st-shadow-lg);
     }
     
     .status-indicator {
@@ -24,56 +26,76 @@
     }
     
     .status-online {
-        background-color: #10b981;
+        background-color: var(--st-success);
+        box-shadow: 0 0 0 3px rgba(var(--st-primary-rgb), 0.1);
     }
     
     .status-offline {
-        background-color: #ef4444;
+        background-color: var(--st-danger);
     }
     
     .api-log {
         font-family: 'Roboto Mono', monospace;
-        font-size: 0.85rem;
+        font-size: var(--st-font-xs);
     }
     
     .log-success {
-        color: #10b981;
+        color: var(--st-success);
     }
     
     .log-error {
-        color: #ef4444;
+        color: var(--st-danger);
     }
     
     .api-config-info {
         font-family: 'Roboto Mono', monospace;
-        background-color: #f3f4f6;
+        background-color: rgba(0, 0, 0, 0.03);
         padding: 0.5rem 1rem;
-        border-radius: 6px;
+        border-radius: var(--st-radius-sm);
+    }
+    
+    .dark-mode .api-config-info {
+        background-color: rgba(255, 255, 255, 0.05);
     }
     
     .card-header-gemini {
         background-color: #8b5cf6;
         color: white;
-        border-top-left-radius: 12px;
-        border-top-right-radius: 12px;
+        border-top-left-radius: var(--st-radius-md);
+        border-top-right-radius: var(--st-radius-md);
     }
     
     .card-header-google {
         background-color: #3b82f6;
         color: white;
-        border-top-left-radius: 12px;
-        border-top-right-radius: 12px;
+        border-top-left-radius: var(--st-radius-md);
+        border-top-right-radius: var(--st-radius-md);
     }
     
     .card-header-system {
-        background-color: #052e16;
+        background-color: var(--st-dark);
         color: white;
-        border-top-left-radius: 12px;
-        border-top-right-radius: 12px;
+        border-top-left-radius: var(--st-radius-md);
+        border-top-right-radius: var(--st-radius-md);
     }
     
     .progress-bar-info {
-        background-color: #3b82f6;
+        background-color: var(--st-info);
+    }
+    
+    /* API Status badges using framework */
+    .api-status-badge {
+        display: inline-flex;
+        align-items: center;
+        font-size: var(--st-font-xs);
+        border-radius: var(--st-radius-full);
+        padding: 0.25rem 0.5rem;
+        font-weight: var(--st-weight-semibold);
+    }
+    
+    /* Pulse animation for online status */
+    .status-online.with-pulse {
+        animation: st-pulse 2s infinite;
     }
 </style>
 {% endblock %}
@@ -217,7 +239,7 @@
     </div>
     
     <!-- System Status Card -->
-    <div class="card status-card shadow-sm">
+    <div class="card status-card shadow-sm st-hover-lift">
         <div class="card-header card-header-system">
             <h3 class="card-title mb-0">
                 <i class="bi bi-cpu"></i> System Status
@@ -226,20 +248,32 @@
         <div class="card-body">
             <div class="row">
                 <div class="col-md-6">
-                    <p><strong>Current Mode:</strong> {% if api_status.fallback_active %}Fallback - {{ api_status.fallback_mode }}{% else %}Normal Operation{% endif %}</p>
-                    <p><strong>Using Real APIs:</strong> {% if api_status.using_real_apis %}Yes{% else %}No{% endif %}</p>
-                    <p><strong>Redis Cache:</strong> <span class="badge bg-danger">Offline</span></p>
-                    <p><strong>Backend Status:</strong> <span class="badge bg-danger">Not Connected</span></p>
-                    <p><strong>Database Status:</strong> <span class="badge bg-danger">Not Connected</span></p>
+                    <p><strong>Current Mode:</strong> 
+                        {% if api_status.fallback_active %}
+                            <span class="st-badge st-badge-warning">Fallback - {{ api_status.fallback_mode }}</span>
+                        {% else %}
+                            <span class="st-badge st-badge-success">Normal Operation</span>
+                        {% endif %}
+                    </p>
+                    <p><strong>Using Real APIs:</strong> 
+                        {% if api_status.using_real_apis %}
+                            <span class="st-badge st-badge-success">Yes</span>
+                        {% else %}
+                            <span class="st-badge st-badge-danger">No</span>
+                        {% endif %}
+                    </p>
+                    <p><strong>Redis Cache:</strong> <span class="st-status-dot error"></span> <span class="st-text-danger">Offline</span></p>
+                    <p><strong>Backend Status:</strong> <span class="st-status-dot error"></span> <span class="st-text-danger">Not Connected</span></p>
+                    <p><strong>Database Status:</strong> <span class="st-status-dot error"></span> <span class="st-text-danger">Not Connected</span></p>
                 </div>
                 <div class="col-md-6">
                     <h5>API Health History (7 days)</h5>
                     <p><strong>Gemini API Uptime:</strong></p>
-                    <div class="progress mb-3">
+                    <div class="progress mb-3 st-mb-3">
                         <div class="progress-bar progress-bar-info" role="progressbar" style="width: 95%;" aria-valuenow="95" aria-valuemin="0" aria-valuemax="100">95%</div>
                     </div>
                     <p><strong>Google Search API Uptime:</strong></p>
-                    <div class="progress mb-3">
+                    <div class="progress mb-3 st-mb-3">
                         <div class="progress-bar progress-bar-info" role="progressbar" style="width: 98%;" aria-valuenow="98" aria-valuemin="0" aria-valuemax="100">98%</div>
                     </div>
                 </div>
@@ -248,27 +282,36 @@
     </div>
     
     <!-- API Configuration Card -->
-    <div class="card status-card shadow-sm">
+    <div class="card status-card shadow-sm st-hover-lift">
         <div class="card-header card-header-system">
-            <h3 class="card-title mb-0">
-                <i class="bi bi-gear"></i> API Configuration
+            <h3 class="card-title mb-0 st-flex st-items-center">
+                <i class="bi bi-gear st-mr-2"></i> API Configuration
             </h3>
         </div>
         <div class="card-body">
-            <div class="mb-3">
-                <h5>Gemini API Key</h5>
+            <div class="st-mb-4">
+                <h5 class="st-flex st-items-center">
+                    <i class="bi bi-stars st-mr-2"></i>
+                    Gemini API Key
+                </h5>
                 <div class="api-config-info">
                     AIza***********************************
                 </div>
             </div>
-            <div class="mb-3">
-                <h5>Google API Key</h5>
+            <div class="st-mb-4">
+                <h5 class="st-flex st-items-center">
+                    <i class="bi bi-google st-mr-2"></i>
+                    Google API Key
+                </h5>
                 <div class="api-config-info">
                     *************************************
                 </div>
             </div>
-            <div class="mb-3">
-                <h5>Google CSE ID</h5>
+            <div class="st-mb-3">
+                <h5 class="st-flex st-items-center">
+                    <i class="bi bi-search st-mr-2"></i>
+                    Google CSE ID
+                </h5>
                 <div class="api-config-info">
                     017576662512468239146:omuauf_lfve
                 </div>
@@ -276,12 +319,12 @@
         </div>
     </div>
     
-    <div class="d-flex justify-content-between mt-4">
+    <div class="st-flex st-justify-between st-mt-5">
         <a href="/" class="btn btn-secondary">
             <i class="bi bi-arrow-left"></i> Back to Dashboard
         </a>
         <button class="btn btn-primary" onclick="window.location.reload()">
-            <i class="bi bi-arrow-clockwise"></i> Refresh Status
+            <i class="bi bi-arrow-clockwise st-mr-1"></i> Refresh Status
         </button>
     </div>
 </div>

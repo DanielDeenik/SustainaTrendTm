@@ -1,0 +1,225 @@
+<!-- 
+  SustainaTrend™ Atomic Navigation Component
+  Following atomic design principles with SimCorp One inspiration
+-->
+
+<!-- Top Navigation Bar -->
+<nav class="st-topnav">
+  <div class="st-topnav-left">
+    <div class="st-sidebar-toggle">
+      <i class="bi bi-list"></i>
+    </div>
+    <div class="st-topnav-logo">
+      <img src="{{ url_for('static', filename='img/sustainatrend-logo.svg') }}" alt="SustainaTrend" class="st-sidebar-logo" onerror="this.src='{{ url_for('static', filename='img/sustainatrend-logo.png') }}'; this.onerror='';">
+    </div>
+    <div class="st-topnav-menu">
+      <a href="{{ url_for('home') }}" class="st-topnav-menu-item {% if request.path == url_for('home') %}active{% endif %}">
+        Home
+      </a>
+      <a href="{{ url_for('dashboard') }}" class="st-topnav-menu-item {% if request.path == url_for('dashboard') %}active{% endif %}">
+        Dashboard
+      </a>
+      <a href="{{ url_for('trend_analysis') }}" class="st-topnav-menu-item {% if request.path == url_for('trend_analysis') %}active{% endif %}">
+        Trends
+      </a>
+      <a href="{{ url_for('realestate_unified_dashboard') }}" class="st-topnav-menu-item {% if request.path == url_for('realestate_unified_dashboard') %}active{% endif %}">
+        Real Estate
+      </a>
+    </div>
+  </div>
+  <div class="st-topnav-right">
+    <div class="st-topnav-item">
+      <i class="bi bi-bell"></i>
+    </div>
+    <div class="st-topnav-item">
+      <i class="bi bi-gear"></i>
+    </div>
+    <div class="st-user-menu">
+      <div class="st-user-menu-toggle">
+        <div class="st-user-avatar">
+          ST
+        </div>
+        <div class="st-user-info">
+          <div class="st-user-name">Demo User</div>
+          <div class="st-user-role">Sustainability Manager</div>
+        </div>
+        <i class="bi bi-chevron-down ms-1"></i>
+      </div>
+    </div>
+  </div>
+</nav>
+
+<!-- Sidebar Navigation -->
+<div class="st-sidebar">
+  <div class="st-sidebar-header">
+    <img src="{{ url_for('static', filename='img/sustainatrend-logo.svg') }}" alt="SustainaTrend" class="st-sidebar-logo" onerror="this.src='{{ url_for('static', filename='img/sustainatrend-logo.png') }}'; this.onerror='';">
+  </div>
+  
+  <div class="st-nav-search">
+    <i class="bi bi-search st-nav-search-icon"></i>
+    <input type="text" class="st-nav-search-input" placeholder="Search...">
+  </div>
+  
+  <div class="st-sidebar-content">
+    <!-- Main Navigation Section -->
+    <div class="st-nav-section">
+      <div class="st-nav-section-title">Main</div>
+      
+      <a href="{{ url_for('home') }}" class="st-nav-item {% if request.path == url_for('home') %}active{% endif %}">
+        <div class="st-nav-item-icon">
+          <i class="bi bi-house"></i>
+        </div>
+        <div class="st-nav-item-text">Home</div>
+      </a>
+      
+      <a href="{{ url_for('dashboard') }}" class="st-nav-item {% if request.path == url_for('dashboard') %}active{% endif %}">
+        <div class="st-nav-item-icon">
+          <i class="bi bi-speedometer2"></i>
+        </div>
+        <div class="st-nav-item-text">Dashboard</div>
+      </a>
+      
+      <a href="{{ url_for('trend_analysis') }}" class="st-nav-item {% if request.path == url_for('trend_analysis') %}active{% endif %}">
+        <div class="st-nav-item-icon">
+          <i class="bi bi-graph-up"></i>
+        </div>
+        <div class="st-nav-item-text">Trend Analysis</div>
+      </a>
+
+      <a href="{{ url_for('search') }}" class="st-nav-item {% if request.path == url_for('search') %}active{% endif %}">
+        <div class="st-nav-item-icon">
+          <i class="bi bi-search"></i>
+        </div>
+        <div class="st-nav-item-text">AI Search</div>
+      </a>
+    </div>
+    
+    <!-- Modules Navigation Section -->
+    <div class="st-nav-section">
+      <div class="st-nav-section-title">Modules</div>
+      
+      <a href="{{ url_for('sustainability') }}" class="st-nav-item {% if request.path == url_for('sustainability') %}active{% endif %}">
+        <div class="st-nav-item-icon">
+          <i class="bi bi-tree"></i>
+        </div>
+        <div class="st-nav-item-text">Sustainability</div>
+      </a>
+      
+      <a href="{{ url_for('realestate_unified_dashboard') }}" class="st-nav-item {% if request.path == url_for('realestate_unified_dashboard') %}active{% endif %}">
+        <div class="st-nav-item-icon">
+          <i class="bi bi-building"></i>
+        </div>
+        <div class="st-nav-item-text">Real Estate</div>
+        <div class="st-nav-item-badge primary">New</div>
+      </a>
+      
+      <a href="{{ url_for('sustainability_stories') }}" class="st-nav-item {% if request.path == url_for('sustainability_stories') %}active{% endif %}">
+        <div class="st-nav-item-icon">
+          <i class="bi bi-book"></i>
+        </div>
+        <div class="st-nav-item-text">Stories</div>
+      </a>
+      
+      <div class="st-nav-dropdown">
+        <div class="st-nav-dropdown-toggle">
+          <div class="st-nav-item-icon">
+            <i class="bi bi-award"></i>
+          </div>
+          <div class="st-nav-item-text">Compliance</div>
+          <i class="bi bi-chevron-down st-nav-dropdown-toggle-icon"></i>
+        </div>
+        <div class="st-nav-dropdown-menu">
+          <a href="{{ url_for('esrs_framework') }}" class="st-nav-item {% if request.path == url_for('esrs_framework') %}active{% endif %}">
+            <div class="st-nav-item-text">ESRS Framework</div>
+          </a>
+          <a href="{{ url_for('ethical_ai') }}" class="st-nav-item {% if request.path == url_for('ethical_ai') %}active{% endif %}">
+            <div class="st-nav-item-text">Ethical AI</div>
+          </a>
+        </div>
+      </div>
+    </div>
+    
+    <!-- Tools Navigation Section -->
+    <div class="st-nav-section">
+      <div class="st-nav-section-title">Tools</div>
+      
+      <a href="{{ url_for('document_upload') }}" class="st-nav-item {% if request.path == url_for('document_upload') %}active{% endif %}">
+        <div class="st-nav-item-icon">
+          <i class="bi bi-file-earmark-text"></i>
+        </div>
+        <div class="st-nav-item-text">Document Processor</div>
+      </a>
+      
+      <a href="{{ url_for('company_search') }}" class="st-nav-item {% if request.path == url_for('company_search') %}active{% endif %}">
+        <div class="st-nav-item-icon">
+          <i class="bi bi-building-gear"></i>
+        </div>
+        <div class="st-nav-item-text">Company Search</div>
+      </a>
+      
+      <a href="{{ url_for('ai_development_tools') }}" class="st-nav-item {% if request.path == url_for('ai_development_tools') %}active{% endif %}">
+        <div class="st-nav-item-icon">
+          <i class="bi bi-robot"></i>
+        </div>
+        <div class="st-nav-item-text">AI Tools</div>
+      </a>
+    </div>
+  </div>
+  
+  <div class="st-sidebar-footer">
+    <div class="st-nav-item">
+      <div class="st-nav-item-icon">
+        <i class="bi bi-question-circle"></i>
+      </div>
+      <div class="st-nav-item-text">Help & Resources</div>
+    </div>
+  </div>
+</div>
+
+<!-- Navigation JavaScript to handle dropdowns and mobile toggles -->
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+  // Initialize dropdown toggles
+  const dropdownToggles = document.querySelectorAll('.st-nav-dropdown-toggle');
+  dropdownToggles.forEach(toggle => {
+    toggle.addEventListener('click', function() {
+      const dropdown = this.closest('.st-nav-dropdown');
+      dropdown.classList.toggle('open');
+    });
+  });
+  
+  // Initialize sidebar toggle for mobile
+  const sidebarToggle = document.querySelector('.st-sidebar-toggle');
+  if (sidebarToggle) {
+    sidebarToggle.addEventListener('click', function() {
+      document.body.classList.toggle('st-layout-sidebar-visible');
+    });
+  }
+  
+  // Initialize user menu dropdown
+  const userMenuToggle = document.querySelector('.st-user-menu-toggle');
+  if (userMenuToggle) {
+    userMenuToggle.addEventListener('click', function() {
+      const userMenu = this.closest('.st-user-menu');
+      userMenu.classList.toggle('open');
+    });
+  }
+  
+  // Close dropdowns when clicking outside
+  document.addEventListener('click', function(event) {
+    // Close user menu when clicking outside
+    const userMenu = document.querySelector('.st-user-menu');
+    if (userMenu && !userMenu.contains(event.target)) {
+      userMenu.classList.remove('open');
+    }
+    
+    // Close nav dropdowns when clicking outside
+    const navDropdowns = document.querySelectorAll('.st-nav-dropdown');
+    navDropdowns.forEach(dropdown => {
+      if (!dropdown.contains(event.target)) {
+        dropdown.classList.remove('open');
+      }
+    });
+  });
+});
+</script>

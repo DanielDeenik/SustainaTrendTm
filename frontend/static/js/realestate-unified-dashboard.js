@@ -755,6 +755,10 @@ function initializeRealtimeUpdates() {
                     processRealtimeCarbonUpdate(updateData.data);
                     break;
                     
+                case 'sustainability_alert':
+                    processRealtimeSustainabilityAlert(updateData.data);
+                    break;
+                    
                 default:
                     console.warn('Unknown real-time update type:', updateData.event);
             }
@@ -779,35 +783,91 @@ function initializeRealtimeUpdates() {
 }
 
 /**
- * Process real-time BREEAM metric updates
+ * Process real-time metric updates with standardized approach
  * 
- * @param {Object} data - BREEAM update data
+ * @param {string} type - Type of update (breeam, energy, carbon)
+ * @param {Object} data - Update data
+ * @param {Object} options - Processing options
  */
-function processRealtimeBREEAMUpdate(data) {
-    // Get the BREEAM real-time updates container
-    const realtimeUpdatesContainer = document.getElementById('breeam-realtime-updates');
+function processRealtimeMetricUpdate(type, data, options = {}) {
+    // Default options
+    const defaults = {
+        container: `${type}-realtime-updates`,
+        tabId: `${type}-tab`,
+        title: `${capitalizeFirstLetter(type)} Update`,
+        mainLabel: capitalizeFirstLetter(type),
+        mainValue: data[Object.keys(data).find(key => 
+            ['score', 'consumption', 'emissions'].includes(key))],
+        unit: data.unit || '',
+        secondaryLabel: data.category ? 'Category' : (data.trend ? 'Trend' : 'Status'),
+        secondaryValue: data.category || data.trend || 'Active',
+        changeReversed: type === 'carbon' // For carbon, negative change is good
+    };
+    
+    // Merge defaults with options
+    const config = {...defaults, ...options};
+    
+    // Get the updates container
+    const realtimeUpdatesContainer = document.getElementById(config.container);
     if (!realtimeUpdatesContainer) return;
     
-    // Create a new update card
+    // Create a new update card using standardized CSS classes
     const updateCard = document.createElement('div');
-    updateCard.className = 'metric-breakdown-card realtime-update';
+    updateCard.className = `realtime-update ${type}`;
     
+    // Determine change/trend direction for styling
+    let changeDirection, changeIcon, changeValue;
+    
+    if (type === 'energy' && data.trend) {
+        // Energy uses 'trend' field
+        changeDirection = data.trend === 'decreasing' ? 'improved' : 
+                         (data.trend === 'increasing' ? 'declined' : 'neutral');
+        changeIcon = changeDirection === 'improved' ? 'bi-arrow-down' : 
+                    (changeDirection === 'declined' ? 'bi-arrow-up' : 'bi-dash');
+        changeValue = data.change || '0';
+    } else {
+        // BREEAM and Carbon use 'change' field
+        const change = parseFloat(data.change || 0);
+        const isPositive = change >= 0;
+        
+        // For carbon, negative change is good; for others, positive change is good
+        changeDirection = (isPositive !== config.changeReversed) ? 'improved' : 'declined';
+        
+        // Icon direction depends on the type and change value
+        if (config.changeReversed) {
+            // For carbon, down arrow means improvement
+            changeIcon = isPositive ? 'bi-arrow-up' : 'bi-arrow-down';
+        } else {
+            // For BREEAM, up arrow means improvement
+            changeIcon = isPositive ? 'bi-arrow-up' : 'bi-arrow-down';
+        }
+        
+        changeValue = config.changeReversed ? Math.abs(change) : change;
+    }
+    
+    // Build the update card HTML
     updateCard.innerHTML = `
-        <div class="metric-header">
-            <span>Property ${data.property_id} - ${data.category} Update</span>
-            <span class="metric-badge certification">LIVE</span>
+        <div class="realtime-update-header">
+            <span>Property ${data.property_id} - ${config.title}</span>
+            <span class="badge bg-danger live">LIVE</span>
         </div>
-        <div class="metric-body">
-            <div><strong>BREEAM Score:</strong> ${data.score}</div>
-            <div><strong>Category:</strong> ${data.category}</div>
-            <div><strong>Timestamp:</strong> ${new Date(data.timestamp).toLocaleTimeString()}</div>
+        <div class="realtime-update-body">
+            <div><strong>${config.mainLabel}:</strong> ${config.mainValue} ${config.unit}
+                <span class="update-badge ${changeDirection}">
+                    <i class="bi ${changeIcon}"></i>
+                    ${changeValue}%
+                </span>
+            </div>
+            <div><strong>${config.secondaryLabel}:</strong> ${config.secondaryValue}</div>
+            ${data.reduction ? `<div><strong>Reduction Target:</strong> ${data.reduction}%</div>` : ''}
+            <div class="realtime-update-timestamp">${new Date(data.timestamp).toLocaleTimeString()}</div>
         </div>
     `;
     
     // Add the new update to the container (at the top)
     realtimeUpdatesContainer.prepend(updateCard);
     
-    // Limit the number of displayed updates to prevent overflow
+    // Limit the number of displayed updates
     const maxUpdates = 5;
     const updates = realtimeUpdatesContainer.querySelectorAll('.realtime-update');
     if (updates.length > maxUpdates) {
@@ -816,13 +876,26 @@ function processRealtimeBREEAMUpdate(data) {
         }
     }
     
-    // If not already on BREEAM tab, add notification indicator
-    if (!document.getElementById('breeam-tab').classList.contains('active')) {
-        document.getElementById('breeam-tab').classList.add('has-update');
+    // If not already on the relevant tab, add notification indicator
+    const tabElement = document.getElementById(config.tabId);
+    if (tabElement && !tabElement.classList.contains('active')) {
+        tabElement.classList.add('has-update');
     }
     
-    // Animate the update notification
-    updateCard.style.animation = 'highlight-update 2s ease-in-out';
+    // Play notification sound if enabled
+    playNotificationSound('update');
+}
+
+/**
+ * Process real-time BREEAM metric updates
+ * 
+ * @param {Object} data - BREEAM update data
+ */
+function processRealtimeBREEAMUpdate(data) {
+    processRealtimeMetricUpdate('breeam', data, {
+        mainLabel: 'BREEAM Score',
+        changeReversed: false // For BREEAM, positive change is good
+    });
 }
 
 /**
@@ -831,45 +904,10 @@ function processRealtimeBREEAMUpdate(data) {
  * @param {Object} data - Energy update data
  */
 function processRealtimeEnergyUpdate(data) {
-    // Get the Energy real-time updates container
-    const realtimeUpdatesContainer = document.getElementById('energy-realtime-updates');
-    if (!realtimeUpdatesContainer) return;
-    
-    // Create a new update card
-    const updateCard = document.createElement('div');
-    updateCard.className = 'metric-breakdown-card realtime-update';
-    
-    updateCard.innerHTML = `
-        <div class="metric-header">
-            <span>Property ${data.property_id} - Energy Update</span>
-            <span class="metric-badge energy">LIVE</span>
-        </div>
-        <div class="metric-body">
-            <div><strong>Consumption:</strong> ${data.consumption} ${data.unit}</div>
-            <div><strong>Trend:</strong> ${data.trend}</div>
-            <div><strong>Timestamp:</strong> ${new Date(data.timestamp).toLocaleTimeString()}</div>
-        </div>
-    `;
-    
-    // Add the new update to the container (at the top)
-    realtimeUpdatesContainer.prepend(updateCard);
-    
-    // Limit the number of displayed updates
-    const maxUpdates = 5;
-    const updates = realtimeUpdatesContainer.querySelectorAll('.realtime-update');
-    if (updates.length > maxUpdates) {
-        for (let i = maxUpdates; i < updates.length; i++) {
-            updates[i].remove();
-        }
-    }
-    
-    // If not already on Energy tab, add notification indicator
-    if (!document.getElementById('energy-tab').classList.contains('active')) {
-        document.getElementById('energy-tab').classList.add('has-update');
-    }
-    
-    // Animate the update notification
-    updateCard.style.animation = 'highlight-update 2s ease-in-out';
+    processRealtimeMetricUpdate('energy', data, {
+        mainLabel: 'Consumption',
+        secondaryLabel: 'Trend'
+    });
 }
 
 /**
@@ -878,49 +916,75 @@ function processRealtimeEnergyUpdate(data) {
  * @param {Object} data - Carbon update data
  */
 function processRealtimeCarbonUpdate(data) {
-    // Get the Carbon real-time updates container
-    const realtimeUpdatesContainer = document.getElementById('carbon-realtime-updates');
-    if (!realtimeUpdatesContainer) return;
+    processRealtimeMetricUpdate('carbon', data, {
+        mainLabel: 'Emissions',
+        changeReversed: true // For carbon, negative change is good
+    });
+}
+
+/**
+ * Process real-time sustainability alerts
+ * 
+ * @param {Object} data - Sustainability alert data
+ */
+function processRealtimeSustainabilityAlert(data) {
+    // Get the alerts container (shared across all tabs)
+    const alertsContainer = document.getElementById('sustainability-alerts');
+    if (!alertsContainer) return;
     
-    // Create a new update card
-    const updateCard = document.createElement('div');
-    updateCard.className = 'metric-breakdown-card realtime-update carbon';
+    // Create a new alert card using standardized CSS classes
+    const alertCard = document.createElement('div');
+    alertCard.className = `realtime-alert ${data.severity.toLowerCase()}`;
     
-    // Determine change direction for styling
-    const changeClass = data.change < 0 ? 'improved' : (data.change > 0 ? 'declined' : 'neutral');
-    const changeIcon = data.change < 0 ? 'bi-arrow-down' : (data.change > 0 ? 'bi-arrow-up' : 'bi-dash');
+    // Get the appropriate icon for the alert severity
+    const severityIcon = getAlertIcon(data.severity.toLowerCase());
     
-    updateCard.innerHTML = `
-        <div class="metric-header">
-            <span>Property ${data.property_id} - Carbon Update</span>
-            <span class="metric-badge carbon">LIVE</span>
+    alertCard.innerHTML = `
+        <div class="realtime-alert-header">
+            <span>
+                <i class="bi ${severityIcon}"></i>
+                ${capitalizeFirstLetter(data.severity)} Alert
+            </span>
+            <span class="badge bg-danger live">LIVE</span>
         </div>
-        <div class="metric-body">
-            <div><strong>Emissions:</strong> ${data.emissions} ${data.unit}</div>
-            <div><strong>Reduction:</strong> ${data.reduction}%</div>
-            <div><strong>Timestamp:</strong> ${new Date(data.timestamp).toLocaleTimeString()}</div>
+        <div class="realtime-alert-body">
+            <div class="alert-title">${data.title}</div>
+            <div class="alert-message">${data.message}</div>
+            <div class="alert-properties">
+                ${data.properties ? `Affected properties: ${data.properties.join(', ')}` : ''}
+            </div>
+            <div class="realtime-alert-timestamp">${new Date(data.timestamp).toLocaleTimeString()}</div>
         </div>
     `;
     
-    // Add the new update to the container (at the top)
-    realtimeUpdatesContainer.prepend(updateCard);
+    // Add the new alert to the container (at the top)
+    alertsContainer.prepend(alertCard);
     
-    // Limit the number of displayed updates
-    const maxUpdates = 5;
-    const updates = realtimeUpdatesContainer.querySelectorAll('.realtime-update');
-    if (updates.length > maxUpdates) {
-        for (let i = maxUpdates; i < updates.length; i++) {
-            updates[i].remove();
+    // Limit the number of displayed alerts
+    const maxAlerts = 5;
+    const alerts = alertsContainer.querySelectorAll('.realtime-alert');
+    if (alerts.length > maxAlerts) {
+        for (let i = maxAlerts; i < alerts.length; i++) {
+            alerts[i].remove();
         }
     }
     
-    // If not already on Carbon tab, add notification indicator
-    if (!document.getElementById('carbon-tab').classList.contains('active')) {
-        document.getElementById('carbon-tab').classList.add('has-update');
-    }
+    // Add visual indicator to all tabs since alerts are global
+    document.querySelectorAll('.nav-link').forEach(tab => {
+        if (!tab.classList.contains('active')) {
+            tab.classList.add('has-alert');
+        }
+    });
     
-    // Animate the update notification
-    updateCard.style.animation = 'highlight-update 2s ease-in-out';
+    // Show a toast notification for the alert
+    showToast(
+        `${capitalizeFirstLetter(data.severity)} Alert`, 
+        data.title,
+        data.severity.toLowerCase()
+    );
+    
+    // Play alert notification sound
+    playNotificationSound('alert');
 }
 
 /**
@@ -1016,5 +1080,73 @@ function getToastIcon(type) {
         case 'info':
         default:
             return 'bi bi-info-circle-fill text-info';
+    }
+}
+
+/**
+ * Get alert icon based on alert type
+ * 
+ * @param {string} type - Alert type
+ * @returns {string} Icon class
+ */
+function getAlertIcon(type) {
+    switch (type) {
+        case 'success':
+            return 'bi-check-circle-fill';
+        case 'error':
+            return 'bi-exclamation-circle-fill';
+        case 'warning':
+            return 'bi-exclamation-triangle-fill';
+        case 'info':
+        default:
+            return 'bi-info-circle-fill';
+    }
+}
+
+/**
+ * Capitalize first letter of a string
+ * 
+ * @param {string} str - String to capitalize
+ * @returns {string} Capitalized string
+ */
+function capitalizeFirstLetter(str) {
+    if (!str) return '';
+    return str.charAt(0).toUpperCase() + str.slice(1);
+}
+
+/**
+ * Play notification sound based on notification type
+ * 
+ * @param {string} type - Notification type (update, alert, success)
+ * @param {boolean} enabled - Whether notification sounds are enabled
+ */
+function playNotificationSound(type = 'update', enabled = true) {
+    // Check if notification sounds are enabled
+    if (!enabled) return;
+    
+    // Check if Audio API is supported
+    if (typeof Audio === 'undefined') return;
+    
+    // Define sound files (would be actual sound files in production)
+    const soundFiles = {
+        update: '/static/sounds/update-notification.mp3',
+        alert: '/static/sounds/alert-notification.mp3',
+        success: '/static/sounds/success-notification.mp3'
+    };
+    
+    // Use a silent MP3 as fallback since we don't actually have sound files in this demo
+    const soundFile = soundFiles[type] || '/static/sounds/silent.mp3';
+    
+    // Try to play the notification sound
+    try {
+        // Log instead of playing actual sound for demo purposes
+        console.log(`[SOUND] Would play notification sound: ${type}`);
+        
+        // Uncomment in production when sound files are available
+        // const audio = new Audio(soundFile);
+        // audio.volume = 0.5;
+        // audio.play();
+    } catch (error) {
+        console.warn('Failed to play notification sound:', error);
     }
 }

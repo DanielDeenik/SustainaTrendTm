@@ -705,6 +705,117 @@ def configure_routes(app):
             sort="virality"
         )
     
+    @app.route('/api-realestate-gemini-search', methods=['GET', 'POST'])
+    def api_realestate_gemini_search():
+        """API endpoint for Gemini-powered real estate sustainability search"""
+        if request.method == 'POST':
+            data = request.get_json()
+            query = data.get('query', '') if data else ''
+        else:
+            query = request.args.get('query', '')
+        
+        try:
+            # Import the Gemini search controller
+            from gemini_search import GeminiSearchController
+            
+            # Initialize the Gemini search controller
+            gemini_controller = GeminiSearchController()
+            
+            # Convert the async function to sync using asyncio.run
+            import asyncio
+            response = asyncio.run(gemini_controller.enhanced_search(
+                query=query,
+                mode="gemini",
+                max_results=5
+            ))
+            
+            # Process the response to extract the most relevant content
+            if response and 'results' in response and len(response['results']) > 0:
+                first_result = response['results'][0]
+                content_html = f"""
+                <div class="mb-3">{first_result.get('snippet', '')}</div>
+                <div class="st-gemini-source-info">
+                    <a href="{first_result.get('url', '#')}" target="_blank" class="st-gemini-source-link">
+                        {first_result.get('title', 'Source')} <i class="bi bi-box-arrow-up-right ms-1"></i>
+                    </a>
+                </div>
+                """
+                
+                # Add more in-depth analysis if available
+                if 'analysis' in response:
+                    content_html += f"""
+                    <div class="alert alert-info mt-3">
+                        <i class="bi bi-info-circle"></i> <strong>Insight:</strong> {response['analysis'].get('summary', '')}
+                    </div>
+                    """
+                
+                return jsonify({
+                    'success': True,
+                    'content': content_html,
+                    'query': query,
+                    'result_count': len(response.get('results', []))
+                })
+            else:
+                # If no results, return a formatted message
+                return jsonify({
+                    'success': False,
+                    'content': """
+                    <div class="alert alert-warning">
+                        <i class="bi bi-exclamation-triangle"></i> No specific information found for this query. 
+                        Please try one of the suggested questions or rephrase your query.
+                    </div>
+                    """,
+                    'query': query,
+                    'result_count': 0
+                })
+                
+        except Exception as e:
+            # Log the error
+            app.logger.error(f"Error in Gemini search: {str(e)}")
+            
+            # Return a formatted error message
+            return jsonify({
+                'success': False,
+                'content': f"""
+                <div class="alert alert-danger">
+                    <i class="bi bi-exclamation-triangle-fill"></i> <strong>Error:</strong> 
+                    Unable to process your query at this time. Please try again later.
+                </div>
+                <div class="small text-muted">Error details: {str(e)}</div>
+                """,
+                'query': query,
+                'error': str(e)
+            })
+    
+    @app.route('/api/realestate-updates')
+    def api_realestate_updates():
+        """API endpoint for recent updates in real estate sustainability metrics"""
+        # This provides a regular JSON API for recent updates
+        # Different from the SSE endpoint which provides real-time streaming
+        
+        return jsonify({
+            'updates': [
+                {
+                    'type': 'breeam',
+                    'title': 'BREEAM Rating Updated',
+                    'description': 'Marina Heights has achieved "Excellent" BREEAM certification after recent renovations.',
+                    'timestamp': datetime.now().isoformat()
+                },
+                {
+                    'type': 'energy',
+                    'title': 'Energy Consumption Alert',
+                    'description': 'Eastern Complex showing unusual energy consumption patterns in the last 24 hours.',
+                    'timestamp': (datetime.now() - timedelta(minutes=15)).isoformat()
+                },
+                {
+                    'type': 'carbon',
+                    'title': 'Carbon Reduction Achievement',
+                    'description': 'Healthcare Center has achieved carbon neutrality goal for Q1 2025.',
+                    'timestamp': (datetime.now() - timedelta(minutes=35)).isoformat()
+                }
+            ]
+        })
+            
     @app.route('/api/realestate-trends')
     def api_realestate_trends():
         """API endpoint for real estate sustainability trend data"""
