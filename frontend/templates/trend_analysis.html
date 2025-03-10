@@ -2,6 +2,37 @@
 
 {% block title %}Sustainability Trend Analysis | SustainaTrend™{% endblock %}
 
+{% block extra_head %}
+<!-- Trend Analysis Co-Pilot Context Data -->
+<script type="application/json" id="trend-analysis-copilot-context">
+{
+    "context": "trend_analysis",
+    "trends": [
+        {"name": "Renewable Energy Usage", "category": "energy", "virality": 92, "change": 24, "direction": "up"},
+        {"name": "Carbon Capture Implementation", "category": "emissions", "virality": 78, "change": 18, "direction": "up"},
+        {"name": "Water Recycling Programs", "category": "water", "virality": 76, "change": 14, "direction": "up"},
+        {"name": "Diversity Initiatives", "category": "social", "virality": 72, "change": 12, "direction": "up"},
+        {"name": "Scope 3 Emissions", "category": "emissions", "virality": 68, "change": 7, "direction": "up", "concern": true},
+        {"name": "Waste Management", "category": "waste", "virality": 65, "change": -3, "direction": "down", "concern": true}
+    ],
+    "categories": ["emissions", "energy", "water", "waste", "social", "governance"],
+    "metrics": {
+        "totalTrends": 25,
+        "avgVirality": 68,
+        "improving": 18,
+        "worsening": 7
+    },
+    "suggested_prompts": [
+        "What are the most significant sustainability trends this quarter?",
+        "How does our renewable energy usage compare to industry benchmarks?",
+        "What actions should we take to address scope 3 emissions?",
+        "Generate a report on our top sustainability improvement areas",
+        "What sustainability themes are trending in our industry?"
+    ]
+}
+</script>
+{% endblock %}
+
 {% block styles %}
 <!-- Chart.js is already included in base_new.html -->
 <!-- jQuery (required for dynamic interactions) -->
@@ -441,6 +472,58 @@
 {% endblock %}
 
 {% block scripts %}
+<!-- Trend Analysis Co-Pilot Integration -->
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        // Get context data from the JSON in the page
+        const trendAnalysisContextElement = document.getElementById('trend-analysis-copilot-context');
+        if (trendAnalysisContextElement) {
+            try {
+                const contextData = JSON.parse(trendAnalysisContextElement.textContent);
+                
+                // Add it to body data attribute for Co-Pilot to access
+                document.body.setAttribute('data-copilot-context', JSON.stringify(contextData));
+                
+                // Add Co-Pilot button to the top actions area
+                const trendActions = document.querySelector('.trend-actions');
+                if (trendActions) {
+                    const copilotButton = document.createElement('button');
+                    copilotButton.className = 'btn btn-primary ms-2';
+                    copilotButton.id = 'trend-copilot-button';
+                    copilotButton.innerHTML = '<i class="bi bi-robot"></i> Ask Co-Pilot';
+                    
+                    copilotButton.addEventListener('click', function(e) {
+                        e.preventDefault();
+                        
+                        // Pre-populate with a trend-specific question
+                        const copilotQuery = document.getElementById('copilot-query');
+                        if (copilotQuery) {
+                            copilotQuery.value = "What are the most significant sustainability trends this quarter?";
+                        }
+                        
+                        // Open the Co-Pilot
+                        if (window.copilotInstance) {
+                            window.copilotInstance.toggleCopilot();
+                            
+                            // Submit the query automatically
+                            setTimeout(() => {
+                                if (window.copilotInstance && typeof window.copilotInstance.submitQuery === 'function') {
+                                    window.copilotInstance.submitQuery();
+                                }
+                            }, 500);
+                        }
+                    });
+                    
+                    trendActions.appendChild(copilotButton);
+                }
+                
+                console.log('Trend Analysis Co-Pilot context initialized');
+            } catch (e) {
+                console.error('Error parsing Trend Analysis Co-Pilot context:', e);
+            }
+        }
+    });
+</script>
 <!-- React Dashboard Bundle -->
 <script src="{{ url_for('static', filename='js/react/dist/trendDashboard.bundle.js') }}"></script>
 

@@ -143,6 +143,10 @@ class GeminiSearchController:
 
     def __init__(self):
         """Initialize the Gemini search controller"""
+        # Initialize attributes
+        self.genai = genai if GEMINI_AVAILABLE else GenaiPlaceholder()
+        self.best_model = "gemini-pro"  # Default best model name
+        
         # Get API keys from environment variables with more robust fallback handling
         # Process environment vars - handle both raw values and ${VAR} format
         def process_env_var(env_value):

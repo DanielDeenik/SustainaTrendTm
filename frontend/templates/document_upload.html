@@ -4,6 +4,31 @@
 
 {% block head %}
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<link rel="stylesheet" href="{{ url_for('static', filename='css/sustainability-copilot.css') }}">
+<script type="application/json" id="document-copilot-context">
+{
+    "context": "document_analysis",
+    "document_types": ["sustainability_report", "esg_disclosure", "regulatory_filing", "impact_assessment", "carbon_disclosure"],
+    "frameworks": ["GRI", "SASB", "TCFD", "EU CSRD", "ESRS", "CDP", "Science Based Targets"],
+    "analysis_capabilities": [
+        "ESG metrics extraction", 
+        "Regulatory compliance assessment", 
+        "Framework alignment", 
+        "KPI identification", 
+        "Executive summary generation",
+        "Comparative benchmarking",
+        "Climate risk exposure"
+    ],
+    "suggested_actions": [
+        "Framework gap analysis",
+        "Compliance prediction",
+        "Materiality assessment",
+        "Peer comparison",
+        "Risk identification",
+        "Improvement recommendations"
+    ]
+}
+</script>
 {% endblock %}
 
 {% block styles %}
@@ -1538,6 +1563,26 @@
             
             // Scroll to results
             queryResultsContainer.scrollIntoView({ behavior: 'smooth' });
+        }
+    });
+    
+    // Initialize Sustainability Co-Pilot context
+    document.addEventListener('DOMContentLoaded', function() {
+        const documentContextElement = document.getElementById('document-copilot-context');
+        if (documentContextElement) {
+            try {
+                const contextData = JSON.parse(documentContextElement.textContent);
+                // Set data attribute for Co-Pilot to read
+                document.body.setAttribute('data-copilot-context', JSON.stringify(contextData));
+                console.log('Document Analysis Co-Pilot context loaded:', contextData);
+                
+                // Load the Co-Pilot script
+                const script = document.createElement('script');
+                script.src = "{{ url_for('static', filename='js/sustainability-copilot.js') }}";
+                document.body.appendChild(script);
+            } catch (e) {
+                console.error('Error loading Document Analysis Co-Pilot context:', e);
+            }
         }
     });
 </script>

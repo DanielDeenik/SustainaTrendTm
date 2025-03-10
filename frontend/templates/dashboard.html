@@ -2,6 +2,33 @@
 
 {% block title %}Dashboard | SustainaTrend™{% endblock %}
 
+{% block extra_head %}
+<!-- Co-Pilot Dashboard Context Data -->
+<script type="application/json" id="dashboard-copilot-context">
+{
+    "context": "dashboard",
+    "metrics": [
+        {"name": "Carbon Emissions", "trend": "down", "value": "33%"},
+        {"name": "Water Consumption", "trend": "down", "value": "14%"},
+        {"name": "Waste Recycling", "trend": "up", "value": "82%"},
+        {"name": "Energy Efficiency", "trend": "up", "value": "16%"}
+    ],
+    "recommendations": [
+        "Continue investment in renewable energy sources",
+        "Implement additional water conservation measures",
+        "Expand circular economy initiatives"
+    ],
+    "suggested_prompts": [
+        "Explain this carbon emissions trend",
+        "What actions would improve our ESG score?",
+        "Compare our metrics to industry benchmarks",
+        "Generate a report summary of these metrics",
+        "What sustainability KPIs should I focus on?"
+    ]
+}
+</script>
+{% endblock %}
+
 {% block styles %}
 <script src="https://cdn.plot.ly/plotly-latest.min.js"></script>
 <style>
@@ -315,6 +342,50 @@
 {% block scripts %}
     <!-- Visualization utilities with trendViz namespace -->
     <script src="{{ url_for('static', filename='js/visualization-utils.js') }}"></script>
+    
+    <!-- Dashboard Co-Pilot Integration -->
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            // Get context data from the JSON in the page
+            const dashboardContextElement = document.getElementById('dashboard-copilot-context');
+            if (dashboardContextElement) {
+                try {
+                    const contextData = JSON.parse(dashboardContextElement.textContent);
+                    
+                    // Add it to body data attribute for Co-Pilot to access
+                    document.body.setAttribute('data-copilot-context', JSON.stringify(contextData));
+                    
+                    // Set up dashboard-specific Co-Pilot behavior
+                    const insightsCopilotButton = document.getElementById('insights-copilot-button');
+                    if (insightsCopilotButton && window.copilotInstance) {
+                        insightsCopilotButton.addEventListener('click', function(e) {
+                            e.preventDefault();
+                            
+                            // Pre-populate with a dashboard-specific question
+                            const copilotQuery = document.getElementById('copilot-query');
+                            if (copilotQuery) {
+                                copilotQuery.value = "What do these carbon emissions trends mean for our sustainability goals?";
+                            }
+                            
+                            // Open the Co-Pilot
+                            window.copilotInstance.toggleCopilot();
+                            
+                            // Submit the query automatically
+                            setTimeout(() => {
+                                if (window.copilotInstance && typeof window.copilotInstance.submitQuery === 'function') {
+                                    window.copilotInstance.submitQuery();
+                                }
+                            }, 500);
+                        });
+                    }
+                    
+                    console.log('Dashboard Co-Pilot context initialized');
+                } catch (e) {
+                    console.error('Error parsing dashboard Co-Pilot context:', e);
+                }
+            }
+        });
+    </script>
     
     <script>
         // Parse metrics data from Flask

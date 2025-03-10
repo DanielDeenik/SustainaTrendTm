@@ -332,5 +332,9 @@
   
   <!-- Additional scripts -->
   {% block scripts %}{% endblock %}
+  
+  <!-- Base Co-Pilot scripts -->
+  <script type="module" src="{{ url_for('static', filename='js/copilot-prompt-templates.js') }}"></script>
+  <script src="{{ url_for('static', filename='js/sustainability-copilot.js') }}"></script>
 </body>
 </html>

@@ -1,7 +1,28 @@
 /**
  * Sustainability Co-Pilot JavaScript
  * Handles the client-side functionality for the Gemini-powered Sustainability Co-Pilot
+ * Provides context-aware AI assistance and insights for sustainability intelligence
  */
+
+// Import prompt templates - this will be loaded by the script tag in the layout
+let CopilotPromptTemplates;
+let getPromptTemplate;
+let generateSystemPrompt;
+let getSuggestedPrompts;
+
+// Try to import from module if available
+document.addEventListener('DOMContentLoaded', function() {
+    // Check if prompt templates are available as a global variable
+    if (typeof window.CopilotPromptTemplates !== 'undefined') {
+        CopilotPromptTemplates = window.CopilotPromptTemplates;
+        getPromptTemplate = window.getPromptTemplate;
+        generateSystemPrompt = window.generateSystemPrompt;
+        getSuggestedPrompts = window.getSuggestedPrompts;
+        console.log('Loaded prompt templates from global scope');
+    } else {
+        console.warn('Prompt templates not available, using fallback prompts');
+    }
+});
 
 // Main Co-Pilot class
 class SustainabilityCopilot {
@@ -14,21 +35,102 @@ class SustainabilityCopilot {
         this.isOpen = false;
         this.isLoading = false;
         this.conversationId = null;
-        this.context = 'general';
-        this.page = window.location.pathname.replace('/', '');
+        this.context = this.detectContext();
+        this.page = window.location.pathname;
+        this.pageTitle = document.title;
+        this.pageData = this.gatherPageData();
         
         // Elements
         this.copilotPanel = null;
         this.copilotToggleButton = null;
+        this.copilotFloatingButton = null;
         this.initElements();
         
         // Bind event handlers
         this.toggleCopilot = this.toggleCopilot.bind(this);
         this.submitQuery = this.submitQuery.bind(this);
         this.handleSuggestedPromptClick = this.handleSuggestedPromptClick.bind(this);
+        this.handleKeyboardShortcut = this.handleKeyboardShortcut.bind(this);
+        this.updateContextFromPageState = this.updateContextFromPageState.bind(this);
         
         // Initialize
         this.initialize();
+    }
+    
+    // Detect the current context based on the URL and page content
+    detectContext() {
+        const path = window.location.pathname;
+        
+        // Check for specific routes to determine context
+        if (path.includes('dashboard')) {
+            return 'dashboard';
+        } else if (path.includes('realestate') || path.includes('real-estate')) {
+            return 'real_estate';
+        } else if (path.includes('trend-analysis')) {
+            return 'trend_analysis';
+        } else if (path.includes('document')) {
+            return 'document_analysis';
+        } else if (path.includes('strategy')) {
+            return 'strategy';
+        } else if (path.includes('sustainability-stories')) {
+            return 'stories';
+        } else if (path.includes('esrs')) {
+            return 'esrs';
+        } else if (path.includes('search')) {
+            return 'search';
+        }
+        
+        return 'general';
+    }
+    
+    // Gather relevant data from the current page for context
+    gatherPageData() {
+        let data = {
+            url: window.location.href,
+            title: document.title,
+            metrics: [],
+            charts: [],
+            ids: {}
+        };
+        
+        // Check for data attributes in the page that provide context
+        document.querySelectorAll('[data-copilot-context]').forEach(el => {
+            try {
+                const contextData = JSON.parse(el.dataset.copilotContext);
+                if (contextData) {
+                    data = {...data, ...contextData};
+                    
+                    // Update context from data attribute if defined
+                    if (contextData.context) {
+                        this.context = contextData.context;
+                    }
+                    
+                    // Log context for debugging
+                    console.log('Co-Pilot context loaded:', contextData);
+                }
+            } catch (e) {
+                console.warn('Error parsing copilot context data:', e);
+            }
+        });
+        
+        // Extract entity IDs from URL if available
+        const urlParams = new URLSearchParams(window.location.search);
+        for (const [key, value] of urlParams.entries()) {
+            if (key.includes('id') || key.includes('uuid')) {
+                data.ids[key] = value;
+            }
+        }
+        
+        // Extract ID from path if present (like /property/123)
+        const pathParts = window.location.pathname.split('/');
+        if (pathParts.length > 2) {
+            const possibleId = pathParts[pathParts.length - 1];
+            if (/^[0-9a-f-]+$/.test(possibleId)) {
+                data.ids.pathId = possibleId;
+            }
+        }
+        
+        return data;
     }
     
     // Create and initialize the Co-Pilot UI elements
@@ -102,6 +204,52 @@ class SustainabilityCopilot {
         if (!this.conversationId) {
             this.conversationId = 'conv-' + Date.now() + '-' + Math.floor(Math.random() * 9000 + 1000);
         }
+        
+        // Add global keyboard shortcut (Ctrl+K)
+        document.addEventListener('keydown', this.handleKeyboardShortcut);
+        
+        // Add floating button if it doesn't exist yet
+        this.createFloatingButton();
+        
+        // Listen for route changes (for SPAs)
+        window.addEventListener('popstate', this.updateContextFromPageState);
+    }
+    
+    // Create a floating button for Co-Pilot access
+    createFloatingButton() {
+        if (!document.getElementById('copilot-floating-button')) {
+            const button = document.createElement('button');
+            button.id = 'copilot-floating-button';
+            button.className = 'copilot-floating-button';
+            button.innerHTML = `<i class="bi bi-robot"></i><span>AI Assistant</span>`;
+            button.setAttribute('title', 'Open Sustainability Co-Pilot (Ctrl+K)');
+            button.addEventListener('click', this.toggleCopilot);
+            document.body.appendChild(button);
+            this.copilotFloatingButton = button;
+        } else {
+            this.copilotFloatingButton = document.getElementById('copilot-floating-button');
+        }
+    }
+    
+    // Handle keyboard shortcut (Ctrl+K)
+    handleKeyboardShortcut(event) {
+        // Check for Ctrl+K (or Cmd+K on Mac)
+        if ((event.ctrlKey || event.metaKey) && event.key === 'k') {
+            event.preventDefault();
+            this.toggleCopilot();
+        }
+    }
+    
+    // Update context when page state changes
+    updateContextFromPageState() {
+        // Update context based on new URL
+        this.context = this.detectContext();
+        this.page = window.location.pathname;
+        this.pageTitle = document.title;
+        this.pageData = this.gatherPageData();
+        
+        // Reload suggested prompts
+        this.loadSuggestedPrompts();
     }
     
     // Toggle the Co-Pilot panel
@@ -118,7 +266,7 @@ class SustainabilityCopilot {
         this.isOpen = !this.isOpen;
     }
     
-    // Load suggested prompts from the server
+    // Load suggested prompts from the server or local template
     async loadSuggestedPrompts() {
         try {
             const promptsContainer = document.getElementById('copilot-suggested-prompts');
@@ -126,22 +274,44 @@ class SustainabilityCopilot {
             // Show loading state
             promptsContainer.innerHTML = '<div class="copilot-loading">Loading suggestions...</div>';
             
-            // Get prompts from API
-            const response = await fetch(this.suggestedPromptsEndpoint + 
-                `?context=${encodeURIComponent(this.context)}&page=${encodeURIComponent(this.page)}`);
+            // Try to get local prompt suggestions first if the module is available
+            let prompts = [];
+            
+            if (typeof getSuggestedPrompts === 'function' && typeof getPromptTemplate === 'function') {
+                // Use local prompt templates
+                const template = getPromptTemplate(this.context);
                 
-            if (!response.ok) {
-                throw new Error('Failed to load suggested prompts');
+                if (template && template.suggestedPrompts) {
+                    prompts = template.suggestedPrompts;
+                    console.log('Using local prompt templates for context:', this.context);
+                }
             }
             
-            const data = await response.json();
+            // If no local prompts or empty, fetch from server
+            if (!prompts || prompts.length === 0) {
+                // Get prompts from API
+                const response = await fetch(this.suggestedPromptsEndpoint + 
+                    `?context=${encodeURIComponent(this.context)}&page=${encodeURIComponent(this.page)}`);
+                    
+                if (!response.ok) {
+                    throw new Error('Failed to load suggested prompts');
+                }
+                
+                const data = await response.json();
+                
+                if (data.prompts && data.prompts.length > 0) {
+                    prompts = data.prompts;
+                    console.log('Using server-provided prompt templates');
+                }
+            }
             
-            if (data.prompts && data.prompts.length > 0) {
+            // Display prompts if we have them
+            if (prompts && prompts.length > 0) {
                 // Clear container
                 promptsContainer.innerHTML = '';
                 
                 // Add new prompts
-                data.prompts.forEach(prompt => {
+                prompts.forEach(prompt => {
                     const promptElement = document.createElement('div');
                     promptElement.className = 'copilot-suggested-prompt';
                     promptElement.textContent = prompt;
@@ -206,6 +376,22 @@ class SustainabilityCopilot {
             // Clear input
             queryInput.value = '';
             
+            // Get structured prompt if available
+            let structuredPrompt = null;
+            if (typeof generateSystemPrompt === 'function' && typeof getPromptTemplate === 'function') {
+                try {
+                    // Get the prompt template for the current context
+                    const template = getPromptTemplate(this.context);
+                    if (template) {
+                        // Generate a system prompt based on the template and context
+                        structuredPrompt = generateSystemPrompt(this.context, this.pageData);
+                        console.log('Generated structured prompt for context:', this.context);
+                    }
+                } catch (e) {
+                    console.warn('Error generating structured prompt:', e);
+                }
+            }
+            
             // Send query to API
             const response = await fetch(this.apiEndpoint, {
                 method: 'POST',
@@ -216,7 +402,8 @@ class SustainabilityCopilot {
                     query,
                     context: this.context,
                     page: this.page,
-                    conversation_id: this.conversationId
+                    conversation_id: this.conversationId,
+                    structured_prompt: structuredPrompt
                 })
             });
             
@@ -343,4 +530,20 @@ document.addEventListener('DOMContentLoaded', () => {
     activationButtons.forEach(button => {
         button.addEventListener('click', () => window.copilotInstance.toggleCopilot());
     });
+    
+    // Log context for debugging
+    const contextData = document.body.getAttribute('data-copilot-context');
+    if (contextData) {
+        console.log('Co-Pilot found context data:', contextData);
+    }
+    
+    // If there's a suggestion placeholder in the URL, activate the Co-Pilot automatically
+    if (window.location.hash === '#activate-copilot') {
+        setTimeout(() => {
+            window.copilotInstance.toggleCopilot();
+        }, 1000);
+        
+        // Remove the hash to prevent reopening on page refresh
+        history.replaceState(null, document.title, window.location.pathname + window.location.search);
+    }
 });

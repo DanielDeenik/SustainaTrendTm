@@ -305,6 +305,104 @@
   background-color: rgba(76, 175, 80, 0.08);
 }
 
+/* Floating Button */
+.copilot-floating-button {
+  position: fixed;
+  bottom: 20px;
+  right: 20px;
+  background-color: var(--primary-color);
+  color: white;
+  border: none;
+  border-radius: 50%;
+  width: 60px;
+  height: 60px;
+  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.15);
+  cursor: pointer;
+  z-index: 1040;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.3s ease;
+  font-size: 12px;
+}
+
+.copilot-floating-button i {
+  font-size: 24px;
+  margin-bottom: 3px;
+}
+
+.copilot-floating-button:hover {
+  background-color: var(--success-color);
+  transform: scale(1.05);
+}
+
+/* Keyboard shortcut indicators */
+.copilot-keyboard-shortcut {
+  position: absolute;
+  top: 50%;
+  right: 16px;
+  transform: translateY(-50%);
+  background: rgba(255, 255, 255, 0.1);
+  border-radius: 4px;
+  padding: 3px 6px;
+  font-size: 12px;
+  color: rgba(255, 255, 255, 0.7);
+}
+
+/* Floating keyboard shortcut hint */
+.copilot-shortcut-hint {
+  position: fixed;
+  bottom: 90px;
+  right: 20px;
+  background-color: var(--primary-color);
+  color: white;
+  padding: 12px 16px;
+  border-radius: 8px;
+  font-size: 14px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+  z-index: 1045;
+  opacity: 0;
+  transform: translateY(20px);
+  transition: opacity 0.3s ease, transform 0.3s ease;
+  pointer-events: none;
+}
+
+.copilot-shortcut-hint.show {
+  opacity: 1;
+  transform: translateY(0);
+}
+
+.copilot-shortcut-hint kbd {
+  background-color: rgba(255, 255, 255, 0.25);
+  border-radius: 4px;
+  padding: 2px 6px;
+  font-family: monospace;
+  font-size: 12px;
+  margin: 0 2px;
+}
+
+/* Charts and Visualizations */
+.copilot-chart {
+  background-color: var(--card-bg);
+  border-radius: 8px;
+  padding: 16px;
+  margin-top: 16px;
+  width: 100%;
+  overflow: hidden;
+}
+
+.copilot-chart canvas {
+  max-width: 100%;
+}
+
+.copilot-chart-title {
+  font-weight: 600;
+  margin-bottom: 10px;
+  font-size: 14px;
+  color: var(--primary-color);
+}
+
 /* Mobile responsiveness */
 @media (max-width: 768px) {
   .copilot-panel {
@@ -314,5 +412,16 @@
   
   .copilot-message {
     max-width: 95%;
+  }
+  
+  .copilot-floating-button {
+    width: 50px;
+    height: 50px;
+    font-size: 10px;
+  }
+  
+  .copilot-floating-button i {
+    font-size: 20px;
+    margin-bottom: 2px;
   }
 }

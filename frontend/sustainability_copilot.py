@@ -92,7 +92,7 @@ class SustainabilityCopilot:
     def get_suggested_prompts(self, context: str = "general", page: str = "", 
                               conversation_id: Optional[str] = None) -> List[str]:
         """
-        Get context-aware suggested prompts for the Co-Pilot
+        Get context-aware suggested prompts for the Co-Pilot using structured templates
         
         Args:
             context: Context category for the prompts (general, dashboard, etc.)
@@ -102,16 +102,92 @@ class SustainabilityCopilot:
         Returns:
             List of suggested prompts
         """
-        # Start with default prompts based on context
-        if context in DEFAULT_PROMPTS:
-            prompts = DEFAULT_PROMPTS[context].copy()
-        else:
-            prompts = DEFAULT_PROMPTS["general"].copy()
+        # Map context to template contexts (similar to prompt building function)
+        # Clean up context string for template matching
+        template_context = context.lower().replace('-', '_').replace(' ', '_')
+        
+        # Standard context mapping
+        context_map = {
+            "dashboard": "dashboard",
+            "real_estate": "real_estate",
+            "realestate": "real_estate",
+            "trend_analysis": "trend_analysis",
+            "trend-analysis": "trend_analysis",
+            "document_analysis": "document_analysis", 
+            "document_upload": "document_analysis",
+            "document-upload": "document_analysis",
+            "stories": "stories",
+            "sustainability_stories": "stories",
+            "search": "search",
+            "esrs": "esrs",
+            "esrs_framework": "esrs"
+        }
+        
+        # Get the mapped context or use general as fallback
+        template_context = context_map.get(template_context, "general")
+        
+        # Context-specific prompts based on structured templates
+        context_prompts = {
+            "dashboard": [
+                "Explain these sustainability metrics",
+                "Which metrics need improvement?",
+                "Benchmark these metrics against industry standards",
+                "What actions will improve our sustainability score?",
+                "Show trends in our carbon emissions"
+            ],
+            "real_estate": [
+                "How to improve building efficiency?",
+                "Compare my properties to industry benchmarks",
+                "What retrofits give the best ROI?",
+                "How does this property's EPC rating compare to market?",
+                "What green certifications should we pursue?"
+            ],
+            "trend_analysis": [
+                "What do these sustainability trends indicate?",
+                "Predict future sustainability trends",
+                "How do these trends compare to market averages?",
+                "Which emerging sustainability topics should we monitor?",
+                "What competitive intelligence can we derive from these trends?"
+            ],
+            "document_analysis": [
+                "Analyze this sustainability report",
+                "Identify compliance gaps in this document",
+                "Extract key metrics from this report",
+                "How does this report compare to best practices?",
+                "What areas of this report need improvement?"
+            ],
+            "stories": [
+                "Generate a sustainability narrative from our data",
+                "Create a compelling story from these metrics",
+                "How can we better communicate our sustainability progress?",
+                "What storytelling approach works best for our data?",
+                "How should we frame our environmental impact story?"
+            ],
+            "search": [
+                "Find information about carbon accounting",
+                "What are the latest sustainability reporting standards?",
+                "Search for green building certifications",
+                "Find best practices for ESG disclosure",
+                "What companies are leading in sustainability?"
+            ],
+            "esrs": [
+                "Explain ESRS compliance requirements",
+                "What disclosures are required under ESRS E1?",
+                "How does ESRS compare to other frameworks?",
+                "What are the deadlines for ESRS reporting?",
+                "How should we prepare for ESRS compliance?"
+            ],
+            "general": DEFAULT_PROMPTS["general"].copy()
+        }
+        
+        # Get prompts for the current context or fall back to general
+        prompts = context_prompts.get(template_context, context_prompts["general"])
+        
+        # If page context provides additional specificity, refine prompts
+        if page and template_context == "general":
+            page_clean = page.lower().replace('-', ' ').replace('_', ' ')
             
-        # Adjust prompts based on current page if not already using a page-specific context
-        if context == "general" and page:
-            page_clean = page.replace('-', '').replace('_', '').lower()
-            
+            # Specific page-level refinements
             if "dashboard" in page_clean:
                 prompts[0] = "Explain these dashboard metrics"
                 prompts[1] = "What actions would improve our numbers?"
@@ -127,7 +203,7 @@ class SustainabilityCopilot:
             elif "story" in page_clean or "storytelling" in page_clean:
                 prompts[0] = "Generate a sustainability narrative"
                 prompts[1] = "Create a story from our metrics data"
-                
+            
         # Add personalized prompts based on conversation history if available
         if conversation_id and conversation_id in CONVERSATIONS:
             history = CONVERSATIONS[conversation_id]
@@ -142,7 +218,8 @@ class SustainabilityCopilot:
         return prompts
     
     def process_query(self, query: str, context: str = "general", 
-                     page: str = "", conversation_id: Optional[str] = None) -> Dict[str, Any]:
+                     page: str = "", conversation_id: Optional[str] = None,
+                     structured_prompt: Optional[str] = None) -> Dict[str, Any]:
         """
         Process a user query and generate a response
         
@@ -151,6 +228,7 @@ class SustainabilityCopilot:
             context: Context category for the query (general, dashboard, etc.)
             page: Current page in the platform
             conversation_id: Optional ID of the current conversation
+            structured_prompt: Optional structured prompt from client templates
             
         Returns:
             Response data including text, actions, facts, and conversation ID
@@ -172,7 +250,13 @@ class SustainabilityCopilot:
         # Process based on available capabilities
         if self.available and self.gemini_controller:
             # Use Gemini for high-quality response generation
-            response_data = self._generate_with_gemini(query, context, page, CONVERSATIONS[conversation_id])
+            response_data = self._generate_with_gemini(
+                query, 
+                context, 
+                page, 
+                CONVERSATIONS[conversation_id],
+                structured_prompt
+            )
         else:
             # Use fallback response generation
             response_data = self._generate_fallback_response(query, context, page, CONVERSATIONS[conversation_id])
@@ -196,7 +280,8 @@ class SustainabilityCopilot:
         return response_data
     
     def _generate_with_gemini(self, query: str, context: str, 
-                             page: str, history: List[Dict]) -> Dict[str, Any]:
+                             page: str, history: List[Dict],
+                             structured_prompt: Optional[str] = None) -> Dict[str, Any]:
         """
         Generate a response using Gemini
         
@@ -205,20 +290,57 @@ class SustainabilityCopilot:
             context: Query context
             page: Current page
             history: Conversation history
+            structured_prompt: Optional structured prompt from client
             
         Returns:
             Response data
         """
         try:
-            # Build prompt with conversation history, context, and query
-            prompt = self._build_gemini_prompt(query, context, page, history)
+            # Use client-provided structured prompt if available, otherwise build our own
+            if structured_prompt:
+                logger.info(f"Using client-provided structured prompt for context: {context}")
+                prompt = f"{structured_prompt}\n\nUser: {query}\nAssistant:"
+            else:
+                # Build prompt with conversation history, context, and query
+                prompt = self._build_gemini_prompt(query, context, page, history)
             
             # Get response from Gemini
-            model_name = self.gemini_controller._best_model or "gemini-pro"
-            model = self.gemini_controller.genai.GenerativeModel(model_name=model_name)
-            
-            # Generate content
-            response = model.generate_content(prompt)
+            try:
+                # Use the controller's best model if available, or fallback to gemini-pro
+                model_name = "gemini-pro"
+                if hasattr(self.gemini_controller, 'best_model'):
+                    model_name = self.gemini_controller.best_model
+                elif hasattr(self.gemini_controller, '_best_model'):
+                    model_name = self.gemini_controller._best_model
+                    
+                # Create model
+                model = None
+                if hasattr(self.gemini_controller, 'genai'):
+                    # Try to get available models
+                    available_models = []
+                    try:
+                        available_models = list(self.gemini_controller.genai.list_models())
+                        model_names = [m.name for m in available_models]
+                        logger.info(f"Available Gemini models: {model_names}")
+                        
+                        # Use first available model if our preferred one isn't available
+                        if available_models and model_name not in model_names:
+                            model_name = available_models[0].name
+                            logger.info(f"Using alternative model: {model_name}")
+                    except Exception as e:
+                        logger.warning(f"Could not list available models: {str(e)}")
+                    
+                    # Create the model with best available name
+                    model = self.gemini_controller.genai.GenerativeModel(model_name=model_name)
+                else:
+                    raise ValueError("Gemini API not properly initialized")
+                
+                # Generate content
+                response = model.generate_content(prompt)
+                
+            except Exception as model_error:
+                logger.error(f"Error using Gemini model: {str(model_error)}")
+                return self._generate_fallback_response(query, context, page, history)
             
             # Parse structured response (handle expected JSON format)
             if hasattr(response, 'text'):
@@ -265,7 +387,8 @@ class SustainabilityCopilot:
     
     def _build_gemini_prompt(self, query: str, context: str, page: str, history: List[Dict]) -> str:
         """
-        Build a prompt for Gemini that includes context and conversation history
+        Build a structured prompt for Gemini that includes context and conversation history
+        Uses predefined prompt templates for different contexts
         
         Args:
             query: User query
@@ -276,24 +399,87 @@ class SustainabilityCopilot:
         Returns:
             Formatted prompt string
         """
-        # Build system prompt with context
-        if context == "dashboard":
-            system_prompt = "You are the Sustainability Co-Pilot, an assistant that helps analyze sustainability metrics and performance data. Provide actionable insights based on the metrics being viewed."
-        elif context == "trend-analysis":
-            system_prompt = "You are the Sustainability Co-Pilot, an assistant that helps identify and explain sustainability trends. Provide context for what's driving these trends and make predictions."
-        elif context == "document-upload":
-            system_prompt = "You are the Sustainability Co-Pilot, an assistant that helps analyze sustainability reports and documents. Identify key metrics, compliance gaps, and improvement opportunities."
+        # Map context to template contexts
+        # Clean up context string for template matching
+        template_context = context.lower().replace('-', '_').replace(' ', '_')
+        
+        # Standard context mapping
+        context_map = {
+            "dashboard": "dashboard",
+            "real_estate": "real_estate",
+            "trend_analysis": "trend_analysis",
+            "document_analysis": "document_analysis", 
+            "document_upload": "document_analysis",
+            "stories": "stories",
+            "sustainability_stories": "stories",
+            "search": "search",
+            "esrs": "esrs",
+            "esrs_framework": "esrs"
+        }
+        
+        # Get the mapped context or use general as fallback
+        template_context = context_map.get(template_context, "general")
+        
+        # Build system prompt with template structure
+        if template_context == "dashboard":
+            system_prompt = """You are the Sustainability Co-Pilot for SustainaTrend™, an expert AI assistant specializing in sustainability intelligence.
+You're currently helping with the main dashboard which shows portfolio-wide sustainability metrics.
+Format your responses to be concise and action-oriented, focusing on insights rather than descriptions.
+Include specific metrics when available and suggest concrete next steps."""
+        elif template_context == "real_estate":
+            system_prompt = """You are the Sustainability Co-Pilot for SustainaTrend™, an expert AI assistant specializing in real estate sustainability.
+You're currently helping with the real estate portfolio view which shows property-specific environmental performance.
+Focus on practical building improvements, energy efficiency, certification paths, and financial benefits of sustainable practices.
+Provide specific, actionable recommendations relevant to property types in the portfolio."""
+        elif template_context == "trend_analysis":
+            system_prompt = """You are the Sustainability Co-Pilot for SustainaTrend™, an expert AI assistant specializing in sustainability trend analysis.
+You're currently helping with the trend analysis view which tracks emerging sustainability themes and market trends.
+Focus on identifying patterns, predicting future developments, and connecting trends to strategic opportunities.
+Highlight emerging risks, market sentiment shifts, and competitive intelligence."""
+        elif template_context == "document_analysis":
+            system_prompt = """You are the Sustainability Co-Pilot for SustainaTrend™, an expert AI assistant specializing in sustainability document analysis.
+You're currently helping with the document analysis view which examines sustainability reports and ESG disclosures.
+Focus on extracting key metrics, evaluating compliance with reporting frameworks, and identifying gaps or opportunities.
+Provide insights on report quality, completeness, and comparability to industry standards."""
+        elif template_context == "stories":
+            system_prompt = """You are the Sustainability Co-Pilot for SustainaTrend™, an expert AI assistant specializing in sustainability storytelling.
+You're currently helping with the sustainability stories view which transforms data into compelling narratives.
+Focus on creating impactful, accurate, and engaging stories that effectively communicate sustainability progress.
+Suggest narrative structures, key message points, and suitable data visualizations."""
+        elif template_context == "search":
+            system_prompt = """You are the Sustainability Co-Pilot for SustainaTrend™, an expert AI assistant specializing in sustainability information retrieval.
+You're currently helping with the search view which helps users find relevant sustainability information and resources.
+Focus on understanding search intent, suggesting relevant filters, and providing context for search results.
+Help users refine their searches and connect them to the most valuable resources."""
+        elif template_context == "esrs":
+            system_prompt = """You are the Sustainability Co-Pilot for SustainaTrend™, an expert AI assistant specializing in ESRS compliance.
+You're currently helping with the ESRS framework view which guides organizations on compliance with European Sustainability Reporting Standards.
+Focus on practical implementation guidance, disclosure requirements, and compliance strategies.
+Provide specific, actionable insights tailored to the organization's context and reporting maturity."""
         else:
-            system_prompt = "You are the Sustainability Co-Pilot, an assistant that provides sustainability intelligence insights. You're an expert in ESG frameworks, reporting standards, and sustainability metrics."
+            system_prompt = """You are the Sustainability Co-Pilot for SustainaTrend™, an expert AI assistant specializing in sustainability intelligence.
+You provide knowledgeable, practical guidance on sustainability topics across environmental, social, and governance domains.
+Keep responses concise, factual, and practical with a focus on actionable insights.
+When appropriate, suggest relevant areas of the platform to explore for more detailed information."""
             
         # Add page-specific context if available
         if page:
-            if page == "dashboard" or "dashboard" in page:
-                system_prompt += " The user is viewing a dashboard with sustainability metrics including carbon emissions, energy usage, water consumption, and waste management data."
-            elif page == "trend-analysis" or "trend" in page:
-                system_prompt += " The user is viewing trend analysis for sustainability metrics, including historical data and projections."
-            elif page == "document-upload" or "document" in page:
-                system_prompt += " The user is working with a sustainability report document, looking to extract insights and compliance information."
+            page_clean = page.lower().replace('-', ' ').replace('_', ' ')
+            
+            if "dashboard" in page_clean:
+                system_prompt += "\n\nThe user is viewing a dashboard with sustainability metrics including carbon emissions, energy usage, water consumption, and waste management data."
+            elif "trend" in page_clean and "analysis" in page_clean:
+                system_prompt += "\n\nThe user is viewing trend analysis for sustainability metrics, including historical data and projections."
+            elif "document" in page_clean or "upload" in page_clean:
+                system_prompt += "\n\nThe user is working with a sustainability report document, looking to extract insights and compliance information."
+            elif "realestate" in page_clean or "real estate" in page_clean:
+                system_prompt += "\n\nThe user is viewing real estate property sustainability data, including energy ratings, carbon footprint, and retrofit opportunities."
+            elif "stories" in page_clean or "storytelling" in page_clean:
+                system_prompt += "\n\nThe user is working with sustainability storytelling tools to create compelling narratives from sustainability data."
+            elif "search" in page_clean:
+                system_prompt += "\n\nThe user is searching for sustainability information and resources."
+            elif "esrs" in page_clean:
+                system_prompt += "\n\nThe user is working with ESRS compliance tools to prepare for European Sustainability Reporting Standards requirements."
         
         # Add response format instructions
         system_prompt += "\n\nProvide responses that include:\n"
@@ -304,7 +490,7 @@ class SustainabilityCopilot:
         system_prompt += "Format your response as a JSON object with the following structure:\n"
         system_prompt += "{\n  \"response\": \"Your main response text\",\n  \"facts\": [\"Fact 1\", \"Fact 2\"],\n  \"actions\": [{\"label\": \"Action button text\", \"action\": \"URL or action identifier\"}],\n  \"sources\": [\"Source 1\", \"Source 2\"]\n}\n\n"
         
-        # Add conversation history (limited to last 5 exchanges)
+        # Add conversation history (limited to last 10 exchanges for context)
         history_prompt = ""
         if history and len(history) > 0:
             recent_history = history[-10:] if len(history) > 10 else history
@@ -336,8 +522,23 @@ class SustainabilityCopilot:
         # Define some fallback responses based on recognized keywords
         query_lower = query.lower()
         
+        # Check for context-specific queries
+        if context == "real_estate" and any(word in query_lower for word in ["property", "building", "retrofit", "epc", "energy", "efficiency", "certification", "roi"]):
+            return {
+                "response": "I understand you're asking about real estate sustainability improvements. In fallback mode, I can tell you that the retrofits with best ROI typically include LED lighting (1-3 years payback), energy management systems (2-4 years), HVAC optimization (3-5 years), and building envelope improvements (5-10 years). For specific ROI calculations based on your property portfolio, please try again when our AI services are fully operational.",
+                "facts": [
+                    "Energy efficiency retrofits typically show ROI between 10-25% depending on property type and location",
+                    "Building certification programs like BREEAM, LEED, and WELL can increase property value by 3-7%",
+                    "The EU's Energy Performance of Buildings Directive requires all new buildings to be nearly zero-energy by 2030"
+                ],
+                "actions": [
+                    {"label": "View Real Estate Dashboard", "action": "/realestate-trends"},
+                    {"label": "Energy Efficiency Calculator", "action": "/sustainability"}
+                ]
+            }
+        
         # Check for metrics-related queries
-        if any(word in query_lower for word in ["metrics", "kpi", "data", "carbon", "emissions", "measure"]):
+        elif any(word in query_lower for word in ["metrics", "kpi", "data", "carbon", "emissions", "measure"]):
             return {
                 "response": "I understand you're asking about sustainability metrics. While I'm operating in fallback mode with limited capabilities, I can tell you that comprehensive sustainability metrics typically include carbon emissions (Scope 1, 2, and 3), energy usage, water consumption, waste management, and social impact indicators. For more specific analysis, please try again when our Gemini AI connection is restored.",
                 "facts": [
@@ -451,13 +652,25 @@ if FLASK_AVAILABLE:
             context = data.get('context', 'general')
             page = data.get('page', '')
             conversation_id = data.get('conversation_id')
+            structured_prompt = data.get('structured_prompt')
             
             if not query:
                 return jsonify({"error": "No query provided"}), 400
                 
             logger.info(f"Co-Pilot query received: '{query}' (context: {context}, page: {page})")
             
-            response_data = copilot.process_query(query, context, page, conversation_id)
+            # Log if a structured prompt was received from the client
+            if structured_prompt:
+                logger.info(f"Received structured prompt from client for context: {context}")
+            
+            # Pass structured prompt to the process_query method
+            response_data = copilot.process_query(
+                query, 
+                context, 
+                page, 
+                conversation_id, 
+                structured_prompt=structured_prompt
+            )
             
             logger.info(f"Co-Pilot response generated for query: '{query}'")
             return jsonify(response_data)

@@ -4,6 +4,42 @@
 
 {% block title %}Real Estate Sustainability | SustainaTrend™{% endblock %}
 
+{% block head_extras %}
+<link rel="stylesheet" href="{{ url_for('static', filename='css/sustainability-copilot.css') }}">
+<script type="application/json" id="realestate-copilot-context">
+{
+    "context": "real_estate",
+    "metrics": [
+        {"name": "Energy Efficiency", "value": "A+", "trend": "up", "change": "15%", "unit": "EPC rating"},
+        {"name": "Carbon Footprint", "value": "27.8", "trend": "down", "change": "8.2%", "unit": "kg CO₂e/m²"},
+        {"name": "Water Management", "value": "183", "trend": "down", "change": "12%", "unit": "L/day"},
+        {"name": "BREEAM Score", "value": "73.2", "trend": "up", "change": "5.7", "unit": "%"}
+    ],
+    "properties": {
+        "total": 248,
+        "epcDistribution": {
+            "A": 42,
+            "B": 78,
+            "C": 89,
+            "D": 25,
+            "E": 10,
+            "F": 4
+        },
+        "top_performers": ["Green Park Tower", "Eco Residences", "Horizon Offices", "Urban Lofts", "Riverside Complex"],
+        "regions": ["Amsterdam, NL", "Stockholm, SE", "Copenhagen, DK", "Berlin, DE", "Vienna, AT"]
+    },
+    "insights": [
+        "A+ rated properties commanding 12% higher rental yields",
+        "24% of portfolio needs upgrading to meet 2028 regulations",
+        "Smart building technology reduced carbon by 15.3%",
+        "Rainwater harvesting systems showing 32% lower water costs",
+        "Green financing rates 0.4% lower than standard rates",
+        "Nordic properties 18% better energy efficiency"
+    ]
+}
+</script>
+{% endblock %}
+
 {% block header_title %}Real Estate Sustainability{% endblock %}
 
 {% block header_actions %}
@@ -336,6 +372,7 @@
 {% endblock %}
 
 {% block additional_scripts %}
+<script src="{{ url_for('static', filename='js/sustainability-copilot.js') }}"></script>
 <script>
 document.addEventListener('DOMContentLoaded', function() {
     // Create Portfolio Performance Chart
@@ -346,6 +383,19 @@ document.addEventListener('DOMContentLoaded', function() {
     
     // Set up event listeners for dropdown changes
     setupEventListeners();
+    
+    // Initialize Co-Pilot context
+    const realEstateContextElement = document.getElementById('realestate-copilot-context');
+    if (realEstateContextElement) {
+        try {
+            const contextData = JSON.parse(realEstateContextElement.textContent);
+            // Set data attribute for Co-Pilot to read
+            document.body.setAttribute('data-copilot-context', JSON.stringify(contextData));
+            console.log('Real Estate Co-Pilot context loaded:', contextData);
+        } catch (e) {
+            console.error('Error parsing Real Estate Co-Pilot context:', e);
+        }
+    }
 });
 
 function createPortfolioChart() {

@@ -13,7 +13,7 @@ import re
 from functools import wraps
 import os
 from dotenv import load_dotenv
-from flask import Flask, render_template, jsonify, request, redirect, url_for, abort
+from flask import Flask, render_template, jsonify, request, redirect, url_for, abort, session
 import requests
 from flask_caching import Cache
 import jinja2.exceptions
@@ -1159,40 +1159,59 @@ def perform_ai_search(query: str, model="rag"):
 # Fix for real-time search API endpoint
 @app.route("/api/realtime-search")
 def api_realtime_search():
-    """API endpoint for real-time search results"""
+    """API endpoint for real-time search results - now redirects to Sustainability Co-Pilot"""
     try:
         query = request.args.get('query', '')
-        model = request.args.get('model', 'hybrid')  # Default to hybrid model for new search engine
-        logger.info(f"Real-time search API called with query: '{query}', model: {model}")
+        model = request.args.get('model', 'copilot')  # Default to Co-Pilot mode now
+        logger.info(f"Real-time search API called with query: '{query}', redirecting to Co-Pilot")
 
         if not query:
             logger.warning("Real-time search API called with empty query")
             return jsonify({"error": "Query parameter is required"}), 400
-
-        # Use our enhanced search engine which now always returns a dictionary with results and explanation
-        search_data = perform_enhanced_search(query, model)
         
-        # Extract results from the standardized format
-        if isinstance(search_data, dict) and 'results' in search_data:
-            results = search_data.get('results', [])
-            explanation = search_data.get('explanation', None)
-        else:
-            # Fallback for backward compatibility
-            results = search_data
-            explanation = None
+        # Store query in session for Co-Pilot to access
+        if query:
+            session_data = session.get('copilot_context', {})
+            session_data['last_search_query'] = query
+            session_data['last_search_time'] = datetime.now().isoformat()
+            session_data['source'] = 'api_realtime_search'
+            session['copilot_context'] = session_data
             
-        # Prepare response
+            logger.info(f"Stored query '{query}' in session for Co-Pilot (from realtime API)")
+        
+        # If Co-Pilot API is available, use it
+        if SUSTAINABILITY_COPILOT_AVAILABLE:
+            try:
+                # Forward the query to the Co-Pilot API
+                copilot_response = requests.post(
+                    f"{request.host_url.rstrip('/')}/api/sustainability-copilot/query",
+                    json={"query": query, "source": "search_api"},
+                    headers={"Content-Type": "application/json"}
+                )
+                
+                if copilot_response.status_code == 200:
+                    # Return Co-Pilot response
+                    return jsonify({
+                        "query": query,
+                        "copilot_response": copilot_response.json(),
+                        "message": "Query redirected to Co-Pilot",
+                        "timestamp": datetime.now().isoformat(),
+                        "search_mode": "copilot"
+                    })
+            except Exception as copilot_error:
+                logger.error(f"Error forwarding to Co-Pilot: {str(copilot_error)}")
+                # Continue to fallback
+                
+        # Fallback to mock response with Co-Pilot prompt
         response_data = {
             "query": query,
-            "results": results,
-            "timestamp": datetime.now().isoformat()
+            "results": [],
+            "message": "Search functionality has been replaced by the Sustainability Co-Pilot. Please use the Co-Pilot interface.",
+            "timestamp": datetime.now().isoformat(),
+            "search_mode": "fallback"
         }
-        
-        # Add explanation if we have it
-        if explanation:
-            response_data['explanation'] = explanation
 
-        logger.info(f"Real-time search returned {len(results) if isinstance(results, list) else 'unknown number of'} results")
+        logger.info(f"Real-time search redirected to Co-Pilot")
         return jsonify(response_data)
     except Exception as e:
         logger.error(f"Error in real-time search API: {str(e)}")
@@ -2420,26 +2439,28 @@ def api_status_dashboard():
 @app.route("/gemini-search")
 def gemini_search():
     """
-    Gemini-powered enhanced AI search interface with Google Search integration
+    Redirects to the comprehensive Sustainability Co-Pilot powered by Google Gemini
     """
     try:
         query = request.args.get('query', '')
-        mode = request.args.get('mode', 'hybrid')  # hybrid, gemini, google
+        mode = request.args.get('mode', 'copilot')  # Now using Co-Pilot as default
         
-        logger.info(f"Gemini search requested with query: '{query}', mode: {mode}")
+        logger.info(f"Gemini search requested with query: '{query}', redirecting to Co-Pilot")
         
-        # Check API status with enhanced, detailed information from our controller
-        # 1. Gemini API Status Check
+        # Store query in session for Co-Pilot to access
+        if query:
+            # Save query in session context for the Co-Pilot
+            session_data = session.get('copilot_context', {})
+            session_data['last_search_query'] = query
+            session_data['last_search_time'] = datetime.now().isoformat()
+            session_data['source'] = 'gemini_search'
+            session['copilot_context'] = session_data
+            
+            logger.info(f"Stored query '{query}' in session for Co-Pilot (from Gemini search)")
+        
+        # We still need to check availability for template rendering
         gemini_error = None
-        if hasattr(gemini_search_controller, 'api_key') and gemini_search_controller.api_key:
-            if GEMINI_SEARCH_AVAILABLE:
-                gemini_available = True
-            else:
-                gemini_available = False
-                gemini_error = "Gemini library not installed correctly"
-        else:
-            gemini_available = False
-            gemini_error = "Gemini API key not configured or invalid"
+        gemini_available = GEMINI_SEARCH_AVAILABLE
             
         # 2. Google Search API Status Check
         google_error = None
