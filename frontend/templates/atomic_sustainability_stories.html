@@ -1,0 +1,436 @@
+{% extends "layouts/atomic_layout.html" %}
+
+{% block title %}Sustainability Stories - SustainaTrend™ Platform{% endblock %}
+
+{% block meta_description %}
+Transform complex sustainability data into compelling narratives with AI-powered storytelling.
+{% endblock %}
+
+{% block head_extras %}
+<link rel="stylesheet" href="{{ url_for('static', filename='css/atomic-sustainability-stories.css') }}">
+{% endblock %}
+
+{% block nav_stories_active %}active{% endblock %}
+
+{% block breadcrumb_current %}Sustainability Stories{% endblock %}
+
+{% block breadcrumbs %}
+<li class="st-breadcrumb__item">
+  <a href="/atomic-home" class="st-breadcrumb__link">Home</a>
+</li>
+<li class="st-breadcrumb__item">
+  <span class="st-breadcrumb__divider">/</span>
+  <span class="st-breadcrumb__text">Sustainability Stories</span>
+</li>
+{% endblock %}
+
+{% block page_title %}Sustainability Storytelling{% endblock %}
+{% block page_description %}Transform your ESG data into compelling narratives{% endblock %}
+
+{% block page_actions %}
+<button class="st-button st-button--secondary" id="export-stories">
+  <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+  Export Stories
+</button>
+<button class="st-button" id="create-story-btn">
+  <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+  Create Story
+</button>
+{% endblock %}
+
+{% block tabs_navigation %}
+<div class="st-tabs">
+  <a href="?view=all" class="st-tab {% if not request.args.get('view') or request.args.get('view') == 'all' %}active{% endif %}">All Stories</a>
+  <a href="?view=published" class="st-tab {% if request.args.get('view') == 'published' %}active{% endif %}">Published</a>
+  <a href="?view=drafts" class="st-tab {% if request.args.get('view') == 'drafts' %}active{% endif %}">Drafts</a>
+  <a href="?view=templates" class="st-tab {% if request.args.get('view') == 'templates' %}active{% endif %}">Templates</a>
+</div>
+{% endblock %}
+
+{% block left_column %}
+<!-- Filters -->
+<div class="st-card">
+  <div class="st-card__header">
+    <h2 class="st-card__title">
+      <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="22 3 2 3 10 12.46 10 19 14 21 14 12.46 22 3"/></svg>
+      Filters
+    </h2>
+  </div>
+  <div class="st-card__body">
+    <div class="st-form-group">
+      <label class="st-form-label" for="topic-filter">Topic</label>
+      <select id="topic-filter" class="st-form-select">
+        <option value="all">All Topics</option>
+        <option value="Carbon Footprint">Carbon Footprint</option>
+        <option value="Environmental Impact">Environmental Impact</option>
+        <option value="Social Responsibility">Social Responsibility</option>
+        <option value="Governance">Governance</option>
+        <option value="Circular Economy">Circular Economy</option>
+      </select>
+    </div>
+    
+    <div class="st-form-group">
+      <label class="st-form-label" for="date-range">Date Range</label>
+      <select id="date-range" class="st-form-select">
+        <option value="all">All Time</option>
+        <option value="week" selected>Last Week</option>
+        <option value="month">Last Month</option>
+        <option value="quarter">Last Quarter</option>
+        <option value="year">Last Year</option>
+      </select>
+    </div>
+    
+    <div class="st-form-group">
+      <label class="st-form-label" for="story-format">Story Format</label>
+      <select id="story-format" class="st-form-select">
+        <option value="all">All Formats</option>
+        <option value="article">Article</option>
+        <option value="report">Report</option>
+        <option value="infographic">Infographic</option>
+        <option value="presentation">Presentation</option>
+      </select>
+    </div>
+    
+    <div class="st-form-group">
+      <label class="st-form-label" for="audience">Target Audience</label>
+      <select id="audience" class="st-form-select">
+        <option value="all">All Audiences</option>
+        <option value="investors">Investors</option>
+        <option value="customers">Customers</option>
+        <option value="employees">Employees</option>
+        <option value="regulators">Regulators</option>
+      </select>
+    </div>
+    
+    <button class="st-button st-button--outline st-w-100 st-mt-3">
+      <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+      Apply Filters
+    </button>
+  </div>
+</div>
+
+<!-- Popular Topics -->
+<div class="st-card">
+  <div class="st-card__header">
+    <h2 class="st-card__title">
+      <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>
+      Popular Topics
+    </h2>
+  </div>
+  <div class="st-card__body">
+    <div class="st-topic-list">
+      <a href="#" class="st-topic-item">
+        <div class="st-topic-item__name">Carbon Footprint</div>
+        <div class="st-topic-item__count">12</div>
+      </a>
+      <a href="#" class="st-topic-item">
+        <div class="st-topic-item__name">Renewable Energy</div>
+        <div class="st-topic-item__count">8</div>
+      </a>
+      <a href="#" class="st-topic-item">
+        <div class="st-topic-item__name">Waste Reduction</div>
+        <div class="st-topic-item__count">7</div>
+      </a>
+      <a href="#" class="st-topic-item">
+        <div class="st-topic-item__name">Supply Chain</div>
+        <div class="st-topic-item__count">6</div>
+      </a>
+      <a href="#" class="st-topic-item">
+        <div class="st-topic-item__name">Diversity & Inclusion</div>
+        <div class="st-topic-item__count">5</div>
+      </a>
+      <a href="#" class="st-topic-item">
+        <div class="st-topic-item__name">Water Management</div>
+        <div class="st-topic-item__count">4</div>
+      </a>
+    </div>
+  </div>
+</div>
+{% endblock %}
+
+{% block center_column %}
+<!-- Story Grid -->
+<div class="st-story-grid">
+  {% if stories %}
+    {% for story in stories %}
+    <div class="st-story-card">
+      <div class="st-story-card__image" style="background-image: url('{{ story.image_url if story.image_url else 'data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iNDAwIiBoZWlnaHQ9IjIwMCIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj48cmVjdCB3aWR0aD0iMTAwJSIgaGVpZ2h0PSIxMDAlIiBmaWxsPSIjZjBmMGYwIi8+PHRleHQgeD0iNTAlIiB5PSI1MCUiIGZvbnQtZmFtaWx5PSJBcmlhbCIgZm9udC1zaXplPSIyNCIgdGV4dC1hbmNob3I9Im1pZGRsZSIgZmlsbD0iIzk5OTk5OSI+U3VzdGFpbmFiaWxpdHkgU3Rvcnk8L3RleHQ+PC9zdmc+' }}')">
+        <div class="st-story-card__format">{{ story.format }}</div>
+      </div>
+      <div class="st-story-card__content">
+        <div class="st-story-card__meta">
+          <span class="st-story-card__date">{{ story.date.strftime('%b %d, %Y') if story.date is defined and story.date is not none else 'Draft' }}</span>
+          <span class="st-story-card__category">{{ story.category }}</span>
+        </div>
+        <h3 class="st-story-card__title">{{ story.title }}</h3>
+        <p class="st-story-card__description">{{ story.summary }}</p>
+        <div class="st-story-card__footer">
+          <div class="st-story-card__stats">
+            <div class="st-story-card__stat">
+              <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>
+              <span>{{ story.views|default(0) }}</span>
+            </div>
+            <div class="st-story-card__stat">
+              <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
+              <span>{{ story.comments|default(0) }}</span>
+            </div>
+            <div class="st-story-card__stat">
+              <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/></svg>
+              <span>{{ story.likes|default(0) }}</span>
+            </div>
+          </div>
+          <a href="#" class="st-story-card__link">Read More</a>
+        </div>
+      </div>
+    </div>
+    {% endfor %}
+  {% else %}
+    <div class="st-empty-state">
+      <div class="st-empty-state__icon">
+        <svg xmlns="http://www.w3.org/2000/svg" width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1" stroke-linecap="round" stroke-linejoin="round"><path d="M2 3h6a4 4 0 0 1 4 4v14a3 3 0 0 0-3-3H2z"/><path d="M22 3h-6a4 4 0 0 0-4 4v14a3 3 0 0 1 3-3h7z"/></svg>
+      </div>
+      <h3 class="st-empty-state__title">No Stories Found</h3>
+      <p class="st-empty-state__message">No stories match your current filter criteria. Try adjusting your filters or create a new story.</p>
+      <button class="st-button" id="create-empty-story">Create a Story</button>
+    </div>
+  {% endif %}
+</div>
+
+<!-- Generate Button (fixed position) -->
+<div class="st-generate-fab">
+  <button class="st-generate-fab__button" id="generate-story-fab">
+    <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 5v14M5 12h14"/></svg>
+    <span>Generate</span>
+  </button>
+</div>
+{% endblock %}
+
+{% block right_column %}
+<!-- AI Storytelling Assistant -->
+<div class="st-ai-panel">
+  <div class="st-ai-panel__header">
+    <h2 class="st-ai-panel__title">
+      <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2a10 10 0 0 0-6.88 17.28L12 13l6.88 6.28A10 10 0 1 0 12 2Z"/><circle cx="12" cy="13" r="2"/><path d="M12 19v-7"/></svg>
+      AI Storytelling Assistant
+    </h2>
+    <button class="st-ai-panel__refresh" id="refresh-assistant">
+      <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"/><path d="M3 3v5h5"/></svg>
+    </button>
+  </div>
+  <div class="st-ai-panel__body">
+    <div class="st-ai-prompt">
+      <label class="st-form-label" for="story-prompt">Generate a sustainability story about:</label>
+      <textarea id="story-prompt" class="st-form-textarea" placeholder="e.g., Our company's carbon reduction achievements in 2024..."></textarea>
+      <div class="st-ai-prompt__controls">
+        <div class="st-ai-prompt__formats">
+          <label class="st-ai-format-option">
+            <input type="radio" name="format" value="article" checked>
+            <span>Article</span>
+          </label>
+          <label class="st-ai-format-option">
+            <input type="radio" name="format" value="report">
+            <span>Report</span>
+          </label>
+          <label class="st-ai-format-option">
+            <input type="radio" name="format" value="social">
+            <span>Social</span>
+          </label>
+        </div>
+        <button class="st-button" id="generate-story-btn">
+          <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><path d="M12 16v-4"/><path d="M12 8h.01"/></svg>
+          Generate
+        </button>
+      </div>
+    </div>
+    
+    <div class="st-ai-divider">
+      <span>Story Ideas</span>
+    </div>
+    
+    <div class="st-story-ideas">
+      <div class="st-story-idea">
+        <h4 class="st-story-idea__title">Carbon Reduction Success</h4>
+        <p class="st-story-idea__description">Share how your company achieved a 25% reduction in carbon emissions through innovative processes.</p>
+        <button class="st-button st-button--sm st-button--outline">Use Idea</button>
+      </div>
+      
+      <div class="st-story-idea">
+        <h4 class="st-story-idea__title">Supply Chain Transparency</h4>
+        <p class="st-story-idea__description">Highlight your new supply chain transparency initiative and its positive impacts.</p>
+        <button class="st-button st-button--sm st-button--outline">Use Idea</button>
+      </div>
+      
+      <div class="st-story-idea">
+        <h4 class="st-story-idea__title">Renewable Energy Transition</h4>
+        <p class="st-story-idea__description">Tell the story of your company's journey to 100% renewable energy operations.</p>
+        <button class="st-button st-button--sm st-button--outline">Use Idea</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Story Templates -->
+<div class="st-card">
+  <div class="st-card__header">
+    <h2 class="st-card__title">Popular Templates</h2>
+  </div>
+  <div class="st-card__body st-p-0">
+    <div class="st-template-list">
+      <div class="st-template-item">
+        <div class="st-template-item__icon">
+          <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><path d="M14 2v6h6"/><path d="M16 13H8"/><path d="M16 17H8"/><path d="M10 9H8"/></svg>
+        </div>
+        <div class="st-template-item__content">
+          <h3 class="st-template-item__title">Annual Sustainability Report</h3>
+          <p class="st-template-item__description">Comprehensive annual report template with sections for all ESG metrics.</p>
+        </div>
+        <button class="st-template-item__button">
+          <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14"/><path d="m12 5 7 7-7 7"/></svg>
+        </button>
+      </div>
+      
+      <div class="st-template-item">
+        <div class="st-template-item__icon">
+          <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="3" width="20" height="14" rx="2" ry="2"/><line x1="8" y1="21" x2="16" y2="21"/><line x1="12" y1="17" x2="12" y2="21"/></svg>
+        </div>
+        <div class="st-template-item__content">
+          <h3 class="st-template-item__title">Investor Presentation</h3>
+          <p class="st-template-item__description">ESG-focused slide deck template designed for investor communications.</p>
+        </div>
+        <button class="st-template-item__button">
+          <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14"/><path d="m12 5 7 7-7 7"/></svg>
+        </button>
+      </div>
+      
+      <div class="st-template-item">
+        <div class="st-template-item__icon">
+          <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21.21 15.89A10 10 0 1 1 8 2.83"/><path d="M22 12A10 10 0 0 0 12 2v10z"/></svg>
+        </div>
+        <div class="st-template-item__content">
+          <h3 class="st-template-item__title">ESG Metrics Breakdown</h3>
+          <p class="st-template-item__description">Visual infographic template for presenting key sustainability metrics.</p>
+        </div>
+        <button class="st-template-item__button">
+          <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14"/><path d="m12 5 7 7-7 7"/></svg>
+        </button>
+      </div>
+      
+      <div class="st-template-item">
+        <div class="st-template-item__icon">
+          <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="18" height="18" rx="2" ry="2"/><line x1="9" y1="3" x2="9" y2="21"/></svg>
+        </div>
+        <div class="st-template-item__content">
+          <h3 class="st-template-item__title">Blog Post Series</h3>
+          <p class="st-template-item__description">Template for a series of sustainability-focused blog posts.</p>
+        </div>
+        <button class="st-template-item__button">
+          <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14"/><path d="m12 5 7 7-7 7"/></svg>
+        </button>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script src="{{ url_for('static', filename='js/atomic-core.js') }}"></script>
+<script>
+  document.addEventListener('DOMContentLoaded', function() {
+    // Handle Generate Story button
+    const generateStoryBtn = document.getElementById('generate-story-btn');
+    const generateStoryFab = document.getElementById('generate-story-fab');
+    const storyPrompt = document.getElementById('story-prompt');
+    
+    const handleGenerateStory = function() {
+      const prompt = storyPrompt.value.trim();
+      const format = document.querySelector('input[name="format"]:checked').value;
+      
+      if (!prompt) {
+        alert('Please enter a story prompt');
+        return;
+      }
+      
+      // Show loading state
+      generateStoryBtn.innerHTML = '<div class="st-spinner"></div> Generating...';
+      generateStoryBtn.disabled = true;
+      
+      // In a real implementation, this would be an API call
+      setTimeout(() => {
+        // Reset button state
+        generateStoryBtn.innerHTML = '<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><path d="M12 16v-4"/><path d="M12 8h.01"/></svg> Generate';
+        generateStoryBtn.disabled = false;
+        
+        // Show success message
+        alert(`Story generated in ${format} format: ${prompt}`);
+      }, 2000);
+    };
+    
+    if (generateStoryBtn) {
+      generateStoryBtn.addEventListener('click', handleGenerateStory);
+    }
+    
+    if (generateStoryFab) {
+      generateStoryFab.addEventListener('click', function() {
+        // Scroll to the story prompt
+        document.querySelector('.st-ai-prompt').scrollIntoView({
+          behavior: 'smooth',
+          block: 'start'
+        });
+        
+        // Focus the textarea
+        storyPrompt.focus();
+      });
+    }
+    
+    // Handle story idea buttons
+    const storyIdeaButtons = document.querySelectorAll('.st-story-idea button');
+    storyIdeaButtons.forEach(button => {
+      button.addEventListener('click', function() {
+        const ideaTitle = this.parentElement.querySelector('.st-story-idea__title').textContent;
+        const ideaDescription = this.parentElement.querySelector('.st-story-idea__description').textContent;
+        
+        // Fill the prompt textarea with the idea
+        storyPrompt.value = `${ideaTitle}: ${ideaDescription}`;
+        storyPrompt.focus();
+      });
+    });
+    
+    // Handle template buttons
+    const templateButtons = document.querySelectorAll('.st-template-item__button');
+    templateButtons.forEach(button => {
+      button.addEventListener('click', function() {
+        const templateTitle = this.parentElement.querySelector('.st-template-item__title').textContent;
+        
+        // In a real implementation, this would load the template
+        alert(`Template selected: ${templateTitle}`);
+      });
+    });
+    
+    // Handle create story button
+    const createStoryBtn = document.getElementById('create-story-btn');
+    const createEmptyStoryBtn = document.getElementById('create-empty-story');
+    
+    const handleCreateStory = function() {
+      // In a real implementation, this would navigate to a story creation page
+      alert('Navigating to story creation page');
+    };
+    
+    if (createStoryBtn) {
+      createStoryBtn.addEventListener('click', handleCreateStory);
+    }
+    
+    if (createEmptyStoryBtn) {
+      createEmptyStoryBtn.addEventListener('click', handleCreateStory);
+    }
+    
+    // Handle export stories button
+    const exportStoriesBtn = document.getElementById('export-stories');
+    if (exportStoriesBtn) {
+      exportStoriesBtn.addEventListener('click', function() {
+        // In a real implementation, this would export stories
+        alert('Exporting stories');
+      });
+    }
+  });
+</script>
+{% endblock %}

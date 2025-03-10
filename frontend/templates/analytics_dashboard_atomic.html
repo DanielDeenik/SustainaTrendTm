@@ -1,0 +1,982 @@
+{% extends "layouts/atomic_layout.html" %}
+
+{% block title %}AI-Powered Analytics | SustainaTrend™{% endblock %}
+
+{% block meta_description %}Advanced AI-powered sustainability analytics dashboard with predictive insights, materiality assessment, and interactive visualizations.{% endblock %}
+
+{% block head_extras %}
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script src="{{ url_for('static', filename='js/visualization-utils.js') }}"></script>
+<style>
+  .st-analytics-card {
+    background-color: var(--st-surface);
+    border-radius: 0.75rem;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+    padding: 1.5rem;
+    margin-bottom: 1.25rem;
+    border: 1px solid var(--st-border-color);
+    transition: transform 0.3s, box-shadow 0.3s;
+  }
+  
+  .st-analytics-card:hover {
+    transform: translateY(-3px);
+    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.12);
+  }
+  
+  .st-form-group {
+    margin-bottom: 1rem;
+  }
+  
+  .st-form-label {
+    display: block;
+    margin-bottom: 0.5rem;
+    font-weight: 500;
+    color: var(--st-text);
+  }
+  
+  .st-form-input {
+    width: 100%;
+    padding: 0.75rem;
+    border: 1px solid var(--st-border-color);
+    border-radius: 0.375rem;
+    background-color: var(--st-input-bg);
+    color: var(--st-text);
+    transition: border-color 0.2s;
+  }
+  
+  .st-form-input:focus {
+    border-color: var(--st-primary);
+    outline: none;
+    box-shadow: 0 0 0 2px rgba(var(--st-primary-rgb), 0.2);
+  }
+  
+  .st-form-row {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 1.25rem;
+  }
+  
+  @media (max-width: 768px) {
+    .st-form-row {
+      grid-template-columns: 1fr;
+    }
+  }
+  
+  .st-loader {
+    border: 4px solid var(--st-border-color);
+    border-top: 4px solid var(--st-primary);
+    border-radius: 50%;
+    width: 2.5rem;
+    height: 2.5rem;
+    animation: st-spin 2s linear infinite;
+    margin: 1.25rem auto;
+    display: none;
+  }
+  
+  @keyframes st-spin {
+    0% { transform: rotate(0deg); }
+    100% { transform: rotate(360deg); }
+  }
+  
+  .st-chart-container {
+    height: 25rem;
+    margin: 1.5rem 0;
+    border-radius: 0.5rem;
+    overflow: hidden;
+    border: 1px solid var(--st-border-color);
+    background-color: var(--st-surface-alt);
+    padding: 1rem;
+  }
+  
+  .st-tabs {
+    display: flex;
+    border-bottom: 1px solid var(--st-border-color);
+    margin-bottom: 1.25rem;
+  }
+  
+  .st-tab {
+    padding: 0.75rem 1.5rem;
+    cursor: pointer;
+    border: 1px solid transparent;
+    border-radius: 0.5rem 0.5rem 0 0;
+    margin-right: 0.3125rem;
+    color: var(--st-text);
+    font-weight: 500;
+    transition: all 0.2s;
+  }
+  
+  .st-tab:hover {
+    background-color: var(--st-hover);
+    color: var(--st-primary);
+  }
+  
+  .st-tab.active {
+    border: 1px solid var(--st-border-color);
+    border-bottom: 1px solid var(--st-surface);
+    margin-bottom: -1px;
+    background-color: var(--st-surface);
+    color: var(--st-primary);
+  }
+  
+  .st-tab-content {
+    display: none;
+  }
+  
+  .st-tab-content.active {
+    display: block;
+  }
+  
+  .st-insights-item {
+    padding: 1rem;
+    border-left: 3px solid var(--st-primary);
+    background-color: var(--st-surface-alt);
+    margin-bottom: 1rem;
+    border-radius: 0 0.375rem 0.375rem 0;
+  }
+  
+  .st-insights-item__title {
+    font-weight: 600;
+    margin-bottom: 0.5rem;
+    color: var(--st-primary);
+  }
+  
+  .st-insights-item__content {
+    color: var(--st-text);
+    font-size: 0.9375rem;
+    line-height: 1.5;
+  }
+  
+  .st-materiality-matrix {
+    border: 1px solid var(--st-border-color);
+    border-radius: 0.75rem;
+    padding: 1.25rem;
+    margin-top: 1.25rem;
+    position: relative;
+    height: 28.125rem;
+    background-color: var(--st-surface-alt);
+  }
+  
+  .st-materiality-point {
+    position: absolute;
+    width: 0.875rem;
+    height: 0.875rem;
+    background-color: var(--st-primary);
+    border-radius: 50%;
+    transform: translate(-50%, -50%);
+    cursor: pointer;
+    transition: all 0.2s;
+  }
+  
+  .st-materiality-point:hover {
+    width: 1.125rem;
+    height: 1.125rem;
+    box-shadow: 0 0 10px rgba(0, 0, 0, 0.2);
+  }
+  
+  .st-matrix-axis {
+    position: absolute;
+    font-size: 0.75rem;
+    color: var(--st-text-secondary);
+    font-weight: 500;
+  }
+  
+  .st-x-axis {
+    bottom: 0.625rem;
+    width: 100%;
+    text-align: center;
+  }
+  
+  .st-y-axis {
+    transform: rotate(-90deg);
+    transform-origin: top left;
+    top: 50%;
+    left: 0.625rem;
+  }
+  
+  .st-grid-lines {
+    position: absolute;
+    width: calc(100% - 2.5rem);
+    height: calc(100% - 2.5rem);
+    top: 1.25rem;
+    left: 1.25rem;
+    pointer-events: none;
+  }
+  
+  .st-grid-line {
+    position: absolute;
+    background-color: rgba(var(--st-border-color-rgb), 0.3);
+  }
+  
+  .st-grid-line-h {
+    width: 100%;
+    height: 1px;
+  }
+  
+  .st-grid-line-v {
+    height: 100%;
+    width: 1px;
+  }
+  
+  .st-matrix-quadrant {
+    position: absolute;
+    font-size: 0.6875rem;
+    color: var(--st-text-secondary);
+    font-weight: 500;
+    pointer-events: none;
+  }
+  
+  .st-topic-chip {
+    display: inline-block;
+    padding: 0.375rem 0.75rem;
+    margin: 0.25rem;
+    background-color: var(--st-primary-light);
+    color: var(--st-primary);
+    border-radius: 1rem;
+    font-size: 0.75rem;
+    font-weight: 500;
+  }
+  
+  .st-ai-explanation {
+    background-color: var(--st-surface-alt);
+    border-radius: 0.5rem;
+    padding: 1rem;
+    margin-top: 1rem;
+    margin-bottom: 1rem;
+    font-size: 0.875rem;
+    line-height: 1.5;
+    border-left: 3px solid var(--st-info);
+  }
+</style>
+{% endblock %}
+
+{% block page_title %}AI-Powered Analytics{% endblock %}
+{% block page_description %}Generate predictive sustainability analytics and materiality assessments with AI{% endblock %}
+{% block breadcrumb_current %}Analytics Dashboard{% endblock %}
+
+{% block page_actions %}
+<button class="st-button st-button--secondary">
+  <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="18" height="18" rx="2" ry="2"/><line x1="8" y1="12" x2="16" y2="12"/><line x1="12" y1="8" x2="12" y2="16"/></svg>
+  <span>New Analysis</span>
+</button>
+<button class="st-button st-button--outline">
+  <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+  <span>Export Data</span>
+</button>
+{% endblock %}
+
+{% block left_column %}
+<div class="st-card">
+  <div class="st-card__header">
+    <h2 class="st-card__title">
+      <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>
+      Recent Analyses
+    </h2>
+  </div>
+  <div class="st-card__body">
+    <ul class="st-list">
+      <li class="st-list-item">
+        <a href="#" class="st-list-item__link">
+          <div class="st-list-item__icon">
+            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 3v18h18"/><path d="m18.7 8-5.1 5.2-2.8-2.7L7 14.3"/></svg>
+          </div>
+          <div class="st-list-item__content">
+            <div class="st-list-item__title">EcoTech Solutions</div>
+            <div class="st-list-item__description">Technology sector</div>
+          </div>
+          <div class="st-list-item__meta">2 days ago</div>
+        </a>
+      </li>
+      <li class="st-list-item">
+        <a href="#" class="st-list-item__link">
+          <div class="st-list-item__icon">
+            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 3v18h18"/><path d="m18.7 8-5.1 5.2-2.8-2.7L7 14.3"/></svg>
+          </div>
+          <div class="st-list-item__content">
+            <div class="st-list-item__title">GreenManufacturing Inc.</div>
+            <div class="st-list-item__description">Manufacturing sector</div>
+          </div>
+          <div class="st-list-item__meta">1 week ago</div>
+        </a>
+      </li>
+      <li class="st-list-item">
+        <a href="#" class="st-list-item__link">
+          <div class="st-list-item__icon">
+            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 3v18h18"/><path d="m18.7 8-5.1 5.2-2.8-2.7L7 14.3"/></svg>
+          </div>
+          <div class="st-list-item__content">
+            <div class="st-list-item__title">RenewEnergy Corp</div>
+            <div class="st-list-item__description">Energy sector</div>
+          </div>
+          <div class="st-list-item__meta">2 weeks ago</div>
+        </a>
+      </li>
+      <li class="st-list-item">
+        <a href="#" class="st-list-item__link">
+          <div class="st-list-item__icon">
+            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 3v18h18"/><path d="m18.7 8-5.1 5.2-2.8-2.7L7 14.3"/></svg>
+          </div>
+          <div class="st-list-item__content">
+            <div class="st-list-item__title">HealthPlus Group</div>
+            <div class="st-list-item__description">Healthcare sector</div>
+          </div>
+          <div class="st-list-item__meta">3 weeks ago</div>
+        </a>
+      </li>
+    </ul>
+  </div>
+</div>
+
+<div class="st-card">
+  <div class="st-card__header">
+    <h2 class="st-card__title">
+      <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12V7H5v14h16v-5"/><path d="M16 17h-8"/><path d="M16 13h-8"/><path d="M9 9H8"/><line x1="12" y1="3" x2="12" y2="7"/></svg>
+      Templates
+    </h2>
+  </div>
+  <div class="st-card__body">
+    <ul class="st-list">
+      <li class="st-list-item">
+        <a href="#" class="st-list-item__link">
+          <div class="st-list-item__icon">
+            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
+          </div>
+          <div class="st-list-item__content">
+            <div class="st-list-item__title">ESRS Disclosure Analysis</div>
+            <div class="st-list-item__description">European sustainability reporting standards</div>
+          </div>
+        </a>
+      </li>
+      <li class="st-list-item">
+        <a href="#" class="st-list-item__link">
+          <div class="st-list-item__icon">
+            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
+          </div>
+          <div class="st-list-item__content">
+            <div class="st-list-item__title">Carbon Footprint Analysis</div>
+            <div class="st-list-item__description">Scope 1, 2, and 3 emissions</div>
+          </div>
+        </a>
+      </li>
+      <li class="st-list-item">
+        <a href="#" class="st-list-item__link">
+          <div class="st-list-item__icon">
+            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
+          </div>
+          <div class="st-list-item__content">
+            <div class="st-list-item__title">Water Stewardship Assessment</div>
+            <div class="st-list-item__description">Water usage and conservation</div>
+          </div>
+        </a>
+      </li>
+      <li class="st-list-item">
+        <a href="#" class="st-list-item__link">
+          <div class="st-list-item__icon">
+            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
+          </div>
+          <div class="st-list-item__content">
+            <div class="st-list-item__title">Biodiversity Impact</div>
+            <div class="st-list-item__description">Ecological footprint analysis</div>
+          </div>
+        </a>
+      </li>
+    </ul>
+  </div>
+</div>
+{% endblock %}
+
+{% block center_column %}
+<div class="st-card">
+  <div class="st-card__header">
+    <h2 class="st-card__title">Generate Sustainability Analytics</h2>
+  </div>
+  <div class="st-card__body">
+    <form id="analytics-form" class="st-form">
+      <div class="st-form-row">
+        <div class="st-form-group">
+          <label for="company-name" class="st-form-label">Company Name</label>
+          <input type="text" id="company-name" name="company-name" required placeholder="e.g., EcoTech Solutions" class="st-form-input">
+        </div>
+        <div class="st-form-group">
+          <label for="industry" class="st-form-label">Industry</label>
+          <select id="industry" name="industry" required class="st-form-input">
+            <option value="">Select Industry</option>
+            <option value="Technology">Technology</option>
+            <option value="Manufacturing">Manufacturing</option>
+            <option value="Energy">Energy</option>
+            <option value="Consumer Goods">Consumer Goods</option>
+            <option value="Healthcare">Healthcare</option>
+            <option value="Finance">Finance</option>
+            <option value="Transportation">Transportation</option>
+            <option value="Retail">Retail</option>
+            <option value="Agriculture">Agriculture</option>
+            <option value="Construction">Construction</option>
+          </select>
+        </div>
+      </div>
+      
+      <div class="st-form-row">
+        <div class="st-form-group">
+          <label for="forecast-periods" class="st-form-label">Forecast Periods</label>
+          <input type="number" id="forecast-periods" name="forecast-periods" min="1" max="10" value="3" class="st-form-input">
+        </div>
+        <div class="st-form-group">
+          <label for="include-metrics" class="st-form-label">Include Historical Metrics</label>
+          <select id="include-metrics" name="include-metrics" class="st-form-input">
+            <option value="yes">Yes - Use Sample Data</option>
+            <option value="no">No - Generate Without Historical Data</option>
+          </select>
+        </div>
+      </div>
+      
+      <div class="st-form-group">
+        <label for="analysis-model" class="st-form-label">AI Model</label>
+        <select id="analysis-model" name="analysis-model" class="st-form-input">
+          <option value="standard">Standard (Faster)</option>
+          <option value="advanced" selected>Advanced (More Accurate)</option>
+          <option value="gemini">Gemini Pro (Most Advanced)</option>
+        </select>
+      </div>
+      
+      <div class="st-form-actions">
+        <button type="submit" class="st-button" id="generate-btn">
+          <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 19h-2a5 5 0 0 0-10 0H6a7 7 0 0 1 14 0Z"/><path d="M12 19V5"/><path d="m9 8 3-3 3 3"/></svg>
+          Generate Analytics
+        </button>
+      </div>
+    </form>
+    <div class="st-loader" id="loader"></div>
+  </div>
+</div>
+
+<div id="results-section" style="display: none;" class="st-mt-4">
+  <div class="st-tabs">
+    <div class="st-tab active" data-tab="predictive">Predictive Analytics</div>
+    <div class="st-tab" data-tab="materiality">Materiality Assessment</div>
+  </div>
+  
+  <div id="predictive-content" class="st-tab-content active">
+    <div class="st-card">
+      <div class="st-card__header">
+        <h2 class="st-card__title">Predictive Analytics Results</h2>
+      </div>
+      <div class="st-card__body">
+        <div id="predictive-summary">
+          <p id="predictive-company" class="st-mb-1"></p>
+          <p id="predictive-date" class="st-text-secondary st-mb-3"></p>
+        </div>
+        <div class="st-chart-container">
+          <canvas id="predictions-chart"></canvas>
+        </div>
+        
+        <h3 class="st-heading-3 st-mt-4">AI Insights</h3>
+        <div id="ai-insights">
+          <div class="st-ai-explanation">
+            <p>Select a company and industry above to generate AI-driven predictive analytics and insights.</p>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+  
+  <div id="materiality-content" class="st-tab-content">
+    <div class="st-card">
+      <div class="st-card__header">
+        <h2 class="st-card__title">Materiality Assessment Results</h2>
+      </div>
+      <div class="st-card__body">
+        <div id="materiality-summary">
+          <p id="materiality-company" class="st-mb-1"></p>
+          <p id="materiality-date" class="st-text-secondary st-mb-3"></p>
+        </div>
+        
+        <div class="st-materiality-matrix">
+          <div class="st-matrix-axis st-x-axis">Business Impact</div>
+          <div class="st-matrix-axis st-y-axis">Stakeholder Concern</div>
+          
+          <div class="st-grid-lines">
+            <div class="st-grid-line st-grid-line-h" style="top: 25%"></div>
+            <div class="st-grid-line st-grid-line-h" style="top: 50%"></div>
+            <div class="st-grid-line st-grid-line-h" style="top: 75%"></div>
+            <div class="st-grid-line st-grid-line-v" style="left: 25%"></div>
+            <div class="st-grid-line st-grid-line-v" style="left: 50%"></div>
+            <div class="st-grid-line st-grid-line-v" style="left: 75%"></div>
+          </div>
+          
+          <div class="st-matrix-quadrant" style="top: 15%; left: 15%;">Monitor</div>
+          <div class="st-matrix-quadrant" style="top: 15%; left: 85%;">Manage</div>
+          <div class="st-matrix-quadrant" style="top: 85%; left: 15%;">Maintain</div>
+          <div class="st-matrix-quadrant" style="top: 85%; left: 85%;">Focus</div>
+          
+          <div id="matrix-points"></div>
+        </div>
+        
+        <h3 class="st-heading-3 st-mt-4">Material Topics</h3>
+        <div id="material-topics">
+          <div class="st-ai-explanation">
+            <p>Select a company and industry above to generate a materiality assessment.</p>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}
+
+{% block right_column %}
+<div class="st-card">
+  <div class="st-card__header">
+    <h2 class="st-card__title">
+      <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3"/><path d="M12 17h.01"/></svg>
+      About AI Analytics
+    </h2>
+  </div>
+  <div class="st-card__body">
+    <p>The SustainaTrend™ AI Analytics uses advanced algorithms to generate predictive sustainability metrics and materiality assessments.</p>
+    
+    <h3 class="st-heading-4 st-mt-3">Predictive Analytics</h3>
+    <p class="st-text-sm">Our AI analyzes historical sustainability data and industry trends to predict future performance across key metrics including:</p>
+    <ul class="st-list st-list--check st-text-sm st-mt-2">
+      <li>Carbon emissions trajectory</li>
+      <li>Water usage forecasts</li>
+      <li>Waste reduction targets</li>
+      <li>Energy efficiency improvements</li>
+      <li>Social impact metrics</li>
+    </ul>
+    
+    <h3 class="st-heading-4 st-mt-3">Materiality Assessment</h3>
+    <p class="st-text-sm">Our AI evaluates the importance of various sustainability topics based on:</p>
+    <ul class="st-list st-list--check st-text-sm st-mt-2">
+      <li>Business impact analysis</li>
+      <li>Stakeholder concern evaluation</li>
+      <li>Regulatory requirement mapping</li>
+      <li>Industry benchmark comparison</li>
+      <li>Emerging trend identification</li>
+    </ul>
+  </div>
+</div>
+
+<div class="st-card">
+  <div class="st-card__header">
+    <h2 class="st-card__title">
+      <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.3-4.3"/><circle cx="11" cy="11" r="3"/></svg>
+      Industry Insights
+    </h2>
+  </div>
+  <div class="st-card__body">
+    <div class="st-insight-item">
+      <h3 class="st-heading-4">Technology Sector</h3>
+      <p class="st-text-sm">Key trends include data center energy efficiency, e-waste management, and supply chain transparency. Leading companies are focusing on renewable energy sourcing and circular economy principles.</p>
+    </div>
+    
+    <div class="st-insight-item">
+      <h3 class="st-heading-4">Manufacturing Sector</h3>
+      <p class="st-text-sm">Material efficiency, clean production processes, and worker safety are top concerns. Carbon reduction in manufacturing processes and sustainable sourcing are emerging focus areas.</p>
+    </div>
+    
+    <div class="st-insight-item">
+      <h3 class="st-heading-4">Energy Sector</h3>
+      <p class="st-text-sm">Transition to renewable sources, methane leakage reduction, and community impact are driving materiality assessments. Just transition planning is becoming increasingly important.</p>
+    </div>
+    
+    <div class="st-insight-item">
+      <h3 class="st-heading-4">Financial Sector</h3>
+      <p class="st-text-sm">Climate risk assessment, sustainable finance products, and ESG integration in investment decisions are critical. TCFD alignment remains a key focus for reporting.</p>
+    </div>
+  </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+  document.addEventListener('DOMContentLoaded', function() {
+    // Tab switching
+    const tabs = document.querySelectorAll('.st-tab');
+    tabs.forEach(tab => {
+      tab.addEventListener('click', function() {
+        // Remove active class from all tabs and content
+        tabs.forEach(t => t.classList.remove('active'));
+        document.querySelectorAll('.st-tab-content').forEach(content => {
+          content.classList.remove('active');
+        });
+        
+        // Add active class to clicked tab and corresponding content
+        const tabName = this.getAttribute('data-tab');
+        this.classList.add('active');
+        document.getElementById(tabName + '-content').classList.add('active');
+      });
+    });
+    
+    // Form submission
+    const analyticsForm = document.getElementById('analytics-form');
+    const loader = document.getElementById('loader');
+    const resultsSection = document.getElementById('results-section');
+    
+    analyticsForm.addEventListener('submit', function(e) {
+      e.preventDefault();
+      
+      // Show loader
+      loader.style.display = 'block';
+      
+      // Get form data
+      const companyName = document.getElementById('company-name').value;
+      const industry = document.getElementById('industry').value;
+      const forecastPeriods = document.getElementById('forecast-periods').value;
+      const includeMetrics = document.getElementById('include-metrics').value;
+      const analysisModel = document.getElementById('analysis-model').value;
+      
+      // Simulate API call with timeout
+      setTimeout(function() {
+        // Hide loader
+        loader.style.display = 'none';
+        
+        // Show results section
+        resultsSection.style.display = 'block';
+        
+        // Update predictive content
+        document.getElementById('predictive-company').textContent = 'Company: ' + companyName;
+        document.getElementById('predictive-date').textContent = 'Generated on: ' + new Date().toLocaleDateString();
+        
+        // Update materiality content
+        document.getElementById('materiality-company').textContent = 'Company: ' + companyName;
+        document.getElementById('materiality-date').textContent = 'Generated on: ' + new Date().toLocaleDateString();
+        
+        // Generate chart
+        generatePredictionsChart(companyName, industry, forecastPeriods);
+        
+        // Generate materiality matrix
+        generateMaterialityMatrix(industry);
+        
+        // Generate AI insights
+        generateAIInsights(companyName, industry, forecastPeriods);
+        
+        // Generate material topics
+        generateMaterialTopics(industry);
+        
+        // Scroll to results
+        resultsSection.scrollIntoView({ behavior: 'smooth' });
+      }, 2000);
+    });
+    
+    // Chart generation function
+    function generatePredictionsChart(company, industry, periods) {
+      const ctx = document.getElementById('predictions-chart').getContext('2d');
+      
+      // Generate some random data based on industry
+      const currentYear = new Date().getFullYear();
+      const years = Array.from({length: parseInt(periods) + 3}, (_, i) => currentYear - 3 + i);
+      
+      // Different metrics based on industry
+      let metrics = [];
+      let datasets = [];
+      
+      switch(industry) {
+        case 'Technology':
+          metrics = ['Energy Usage (MWh)', 'E-waste Recycled (%)', 'Carbon Emissions (tCO2e)'];
+          break;
+        case 'Manufacturing':
+          metrics = ['Material Efficiency (%)', 'Water Usage (kL)', 'Carbon Emissions (tCO2e)'];
+          break;
+        case 'Energy':
+          metrics = ['Renewable Energy (%)', 'Carbon Emissions (tCO2e)', 'Methane Leakage (%)'];
+          break;
+        default:
+          metrics = ['Carbon Emissions (tCO2e)', 'Water Usage (kL)', 'Waste Recycled (%)'];
+      }
+      
+      const colors = [
+        'rgba(75, 192, 192, 0.7)',
+        'rgba(54, 162, 235, 0.7)',
+        'rgba(255, 99, 132, 0.7)'
+      ];
+      
+      metrics.forEach((metric, index) => {
+        // Historical data (slightly random)
+        const historicalData = years.slice(0, 3).map((year, i) => {
+          // Base value depends on the metric
+          let base = index === 0 ? 100 : (index === 1 ? 500 : 35);
+          // Add some randomness
+          return base + Math.floor(Math.random() * 20) - (index === 2 ? 5 * i : 0);
+        });
+        
+        // Predicted data (trend improvement)
+        const predictedData = years.slice(3).map((year, i) => {
+          const lastValue = historicalData[historicalData.length - 1];
+          // Different trends for different metrics
+          let trend = index === 0 ? -5 : (index === 1 ? -15 : 5);
+          return lastValue + trend * (i + 1) + Math.floor(Math.random() * 10);
+        });
+        
+        // Combine historical and predicted data
+        const allData = [...historicalData, ...predictedData];
+        
+        datasets.push({
+          label: metric,
+          data: allData,
+          borderColor: colors[index],
+          backgroundColor: colors[index].replace('0.7', '0.1'),
+          borderWidth: 2,
+          pointBackgroundColor: colors[index],
+          tension: 0.3,
+          segment: {
+            borderDash: function(context) {
+              return context.p0.parsed.x >= 2 ? [6, 6] : undefined;
+            }
+          }
+        });
+      });
+      
+      // Create the chart
+      const chart = new Chart(ctx, {
+        type: 'line',
+        data: {
+          labels: years,
+          datasets: datasets
+        },
+        options: {
+          responsive: true,
+          maintainAspectRatio: false,
+          plugins: {
+            legend: {
+              position: 'top',
+            },
+            tooltip: {
+              mode: 'index',
+              intersect: false
+            }
+          },
+          scales: {
+            x: {
+              title: {
+                display: true,
+                text: 'Year'
+              },
+              grid: {
+                display: true,
+                drawOnChartArea: true,
+                drawTicks: true,
+                color: 'rgba(200, 200, 200, 0.15)'
+              }
+            },
+            y: {
+              title: {
+                display: true,
+                text: 'Value'
+              },
+              grid: {
+                display: true,
+                drawOnChartArea: true,
+                drawTicks: true,
+                color: 'rgba(200, 200, 200, 0.15)'
+              }
+            }
+          }
+        }
+      });
+    }
+    
+    // Materiality matrix generation
+    function generateMaterialityMatrix(industry) {
+      const matrixPoints = document.getElementById('matrix-points');
+      matrixPoints.innerHTML = '';
+      
+      // Different material topics based on industry
+      let topics = [];
+      
+      switch(industry) {
+        case 'Technology':
+          topics = [
+            { name: 'Data Privacy & Security', x: 0.85, y: 0.85 },
+            { name: 'Energy Efficiency', x: 0.75, y: 0.65 },
+            { name: 'E-waste Management', x: 0.60, y: 0.70 },
+            { name: 'Digital Inclusion', x: 0.40, y: 0.50 },
+            { name: 'Ethical AI', x: 0.70, y: 0.60 },
+            { name: 'Supply Chain Transparency', x: 0.55, y: 0.65 },
+            { name: 'Carbon Emissions', x: 0.65, y: 0.75 },
+            { name: 'Talent Diversity', x: 0.45, y: 0.55 },
+            { name: 'Water Usage', x: 0.25, y: 0.15 },
+            { name: 'Community Investment', x: 0.30, y: 0.40 }
+          ];
+          break;
+        case 'Manufacturing':
+          topics = [
+            { name: 'Worker Safety', x: 0.90, y: 0.80 },
+            { name: 'Carbon Emissions', x: 0.80, y: 0.75 },
+            { name: 'Material Efficiency', x: 0.75, y: 0.70 },
+            { name: 'Supply Chain', x: 0.65, y: 0.60 },
+            { name: 'Water Management', x: 0.60, y: 0.55 },
+            { name: 'Waste Reduction', x: 0.70, y: 0.65 },
+            { name: 'Energy Usage', x: 0.75, y: 0.60 },
+            { name: 'Product Lifecycle', x: 0.50, y: 0.45 },
+            { name: 'Community Relations', x: 0.35, y: 0.55 },
+            { name: 'Biodiversity Impact', x: 0.30, y: 0.25 }
+          ];
+          break;
+        case 'Energy':
+          topics = [
+            { name: 'Carbon Emissions', x: 0.90, y: 0.90 },
+            { name: 'Renewable Transition', x: 0.85, y: 0.80 },
+            { name: 'Methane Leakage', x: 0.75, y: 0.80 },
+            { name: 'Water Usage', x: 0.65, y: 0.60 },
+            { name: 'Biodiversity', x: 0.55, y: 0.65 },
+            { name: 'Community Impact', x: 0.60, y: 0.70 },
+            { name: 'Just Transition', x: 0.70, y: 0.65 },
+            { name: 'Safety Performance', x: 0.80, y: 0.60 },
+            { name: 'Waste Management', x: 0.35, y: 0.30 },
+            { name: 'Governance', x: 0.50, y: 0.55 }
+          ];
+          break;
+        default:
+          topics = [
+            { name: 'Carbon Emissions', x: 0.80, y: 0.75 },
+            { name: 'Energy Efficiency', x: 0.70, y: 0.65 },
+            { name: 'Water Management', x: 0.65, y: 0.60 },
+            { name: 'Waste Reduction', x: 0.60, y: 0.55 },
+            { name: 'Employee Wellbeing', x: 0.55, y: 0.60 },
+            { name: 'Diversity & Inclusion', x: 0.50, y: 0.55 },
+            { name: 'Community Impact', x: 0.45, y: 0.40 },
+            { name: 'Supply Chain', x: 0.75, y: 0.65 },
+            { name: 'Product Sustainability', x: 0.65, y: 0.70 },
+            { name: 'Governance', x: 0.60, y: 0.50 }
+          ];
+      }
+      
+      // Create the matrix points
+      topics.forEach(topic => {
+        const point = document.createElement('div');
+        point.className = 'st-materiality-point';
+        point.style.left = (topic.x * 100) + '%';
+        point.style.top = (topic.y * 100) + '%';
+        point.title = topic.name;
+        point.setAttribute('data-name', topic.name);
+        point.setAttribute('data-x', topic.x);
+        point.setAttribute('data-y', topic.y);
+        
+        // Add tooltip behavior
+        point.addEventListener('click', function() {
+          alert(topic.name + '\nBusiness Impact: ' + (topic.x * 100).toFixed(0) + '%\nStakeholder Concern: ' + (topic.y * 100).toFixed(0) + '%');
+        });
+        
+        matrixPoints.appendChild(point);
+      });
+      
+      // Add material topics
+      const materialTopics = document.getElementById('material-topics');
+      materialTopics.innerHTML = '';
+      
+      // Sort topics by combined score (x + y) to get most material topics
+      const sortedTopics = [...topics].sort((a, b) => (b.x + b.y) - (a.x + a.y));
+      
+      // Take top 5 material topics
+      const topMaterialTopics = sortedTopics.slice(0, 5);
+      
+      // Create material topics section
+      const topicsDiv = document.createElement('div');
+      topicsDiv.className = 'st-topics-container';
+      
+      topMaterialTopics.forEach(topic => {
+        const topicChip = document.createElement('div');
+        topicChip.className = 'st-topic-chip';
+        topicChip.textContent = topic.name;
+        topicsDiv.appendChild(topicChip);
+      });
+      
+      materialTopics.appendChild(topicsDiv);
+      
+      // Add AI explanation
+      const explanation = document.createElement('div');
+      explanation.className = 'st-ai-explanation st-mt-3';
+      explanation.innerHTML = `
+        <p>The materiality assessment identifies the most significant sustainability topics for 
+        ${industry} companies based on business impact and stakeholder concern. 
+        Top material topics should be prioritized in sustainability strategy and reporting.</p>
+      `;
+      materialTopics.appendChild(explanation);
+    }
+    
+    // AI insights generation
+    function generateAIInsights(company, industry, periods) {
+      const insightsContainer = document.getElementById('ai-insights');
+      insightsContainer.innerHTML = '';
+      
+      // Generate insights based on industry
+      let insights = [];
+      switch(industry) {
+        case 'Technology':
+          insights = [
+            {
+              title: "Carbon Emissions Reduction Pathway",
+              content: `Based on the forecast, ${company} is projected to reduce carbon emissions by approximately 15-20% over the next ${periods} years, which aligns with the technology sector average but falls short of industry leaders who are targeting 30-40% reductions.`
+            },
+            {
+              title: "Energy Efficiency Improvements",
+              content: `The data center energy efficiency metrics show potential for significant improvement. By implementing AI-optimized cooling systems, ${company} could achieve an additional 12-15% energy reduction beyond the current forecast.`
+            },
+            {
+              title: "E-Waste Management Opportunity",
+              content: `Current e-waste recycling rates are projected to reach 65% by year ${new Date().getFullYear() + parseInt(periods)}. There is an opportunity to implement a circular economy program that could increase this to 85%, putting ${company} among industry leaders.`
+            }
+          ];
+          break;
+        case 'Manufacturing':
+          insights = [
+            {
+              title: "Material Efficiency Trajectory",
+              content: `${company}'s material efficiency is projected to improve steadily but could be accelerated through advanced manufacturing techniques. Implementing digital twin technology could reduce material waste by an additional 8-10%.`
+            },
+            {
+              title: "Water Usage Optimization",
+              content: `The forecast shows water usage decreasing gradually, but benchmark data indicates potential for more aggressive reduction. Process water recycling systems could reduce freshwater consumption by up to 30% beyond current projections.`
+            },
+            {
+              title: "Supply Chain Emission Hotspots",
+              content: `Scope 3 emissions analysis reveals that 65% of ${company}'s carbon footprint comes from raw material suppliers. Engaging with key suppliers on emissions reduction goals could significantly improve overall sustainability performance.`
+            }
+          ];
+          break;
+        case 'Energy':
+          insights = [
+            {
+              title: "Renewable Energy Transition",
+              content: `${company}'s renewable energy portfolio is projected to reach ${30 + Math.floor(Math.random() * 20)}% by ${new Date().getFullYear() + parseInt(periods)}. Accelerating this transition through strategic investments could yield both emissions benefits and long-term cost savings.`
+            },
+            {
+              title: "Methane Leakage Reduction",
+              content: `Current projections show methane leakage rates declining by 10-15% over the forecast period. Implementing advanced leak detection and repair (LDAR) technologies could potentially double this improvement rate.`
+            },
+            {
+              title: "Community Impact Program Enhancement",
+              content: `Benchmark analysis shows that leading energy companies are investing 1.5-2% of revenue in community programs focused on just transition initiatives. ${company}'s current forecast falls below this threshold, presenting an opportunity for enhanced social impact strategy.`
+            }
+          ];
+          break;
+        default:
+          insights = [
+            {
+              title: "Carbon Reduction Strategy",
+              content: `${company} is projected to reduce carbon emissions by approximately 10-15% over the next ${periods} years based on current initiatives. There is potential to achieve more aggressive reductions through targeted investments in efficiency and renewable energy.`
+            },
+            {
+              title: "Resource Efficiency Opportunity",
+              content: `The forecast indicates modest improvements in resource efficiency metrics. Benchmarking against industry leaders suggests an opportunity to implement more advanced circular economy principles into ${company}'s operations.`
+            },
+            {
+              title: "Sustainability Reporting Enhancement",
+              content: `Analysis of current disclosure practices indicates that ${company} would benefit from more comprehensive sustainability reporting aligned with ESRS standards. This would improve transparency and stakeholder engagement.`
+            }
+          ];
+      }
+      
+      // Create insight elements
+      insights.forEach(insight => {
+        const insightElement = document.createElement('div');
+        insightElement.className = 'st-insights-item';
+        insightElement.innerHTML = `
+          <div class="st-insights-item__title">${insight.title}</div>
+          <div class="st-insights-item__content">${insight.content}</div>
+        `;
+        insightsContainer.appendChild(insightElement);
+      });
+    }
+  });
+</script>
+{% endblock %}

@@ -1,0 +1,148 @@
+/* 
+ * SustainaTrend™ Atomic Navigation Styles
+ * Specific styles for the atomic design system navigation elements
+ */
+
+/* Navigation Panel for Atomic Pages */
+.st-atomic-nav-panel {
+  display: flex;
+  flex-direction: column;
+  background-color: var(--card-bg);
+  border-radius: var(--border-radius-md);
+  border: 1px solid var(--border-color);
+  margin-bottom: var(--spacing-md);
+  box-shadow: var(--shadow-sm);
+  overflow: hidden;
+}
+
+.st-atomic-nav-title {
+  padding: var(--spacing-sm) var(--spacing-md);
+  background-color: rgba(var(--primary-rgb), 0.1);
+  color: var(--primary-color);
+  font-weight: var(--font-weight-medium);
+  border-bottom: 1px solid var(--border-color);
+  font-size: var(--font-size-sm);
+}
+
+.st-atomic-nav-items {
+  display: flex;
+  flex-wrap: wrap;
+  padding: var(--spacing-sm);
+}
+
+.st-atomic-nav-item {
+  display: flex;
+  align-items: center;
+  padding: var(--spacing-sm) var(--spacing-md);
+  border-radius: var(--border-radius-md);
+  color: var(--text-color);
+  text-decoration: none;
+  transition: all var(--transition-speed-fast) ease;
+  margin: var(--spacing-xs);
+  gap: var(--spacing-sm);
+  background-color: rgba(var(--neutral-rgb), 0.05);
+  font-size: var(--font-size-sm);
+}
+
+.st-atomic-nav-item:hover {
+  background-color: rgba(var(--primary-rgb), 0.1);
+}
+
+.st-atomic-nav-item.active {
+  background-color: var(--primary-color);
+  color: white;
+}
+
+.st-atomic-nav-item svg {
+  flex-shrink: 0;
+}
+
+/* View Atomic Design Button */
+.st-atomic-view-button {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-sm);
+  font-size: var(--font-size-sm);
+  padding: var(--spacing-sm) var(--spacing-md);
+  border-radius: var(--border-radius-md);
+  background-color: transparent;
+  color: var(--primary-color);
+  border: 1px solid var(--primary-color);
+  cursor: pointer;
+  transition: all var(--transition-speed-fast) ease;
+  font-weight: var(--font-weight-medium);
+}
+
+.st-atomic-view-button:hover {
+  background-color: var(--primary-color);
+  color: white;
+}
+
+.st-atomic-view-button svg {
+  color: currentColor;
+}
+
+/* Quick Navigation for Atomic Pages */
+.st-quick-nav {
+  display: flex;
+  flex-direction: column;
+  position: fixed;
+  left: var(--spacing-md);
+  top: 50%;
+  transform: translateY(-50%);
+  background-color: var(--card-bg);
+  border-radius: var(--border-radius-md);
+  box-shadow: var(--shadow-md);
+  z-index: var(--z-index-fixed);
+  border: 1px solid var(--border-color);
+}
+
+.st-quick-nav-item {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 44px;
+  height: 44px;
+  color: var(--text-muted);
+  transition: all var(--transition-speed-fast) ease;
+  position: relative;
+}
+
+.st-quick-nav-item:hover {
+  color: var(--primary-color);
+  background-color: rgba(var(--primary-rgb), 0.1);
+}
+
+.st-quick-nav-item.active {
+  color: var(--primary-color);
+  background-color: rgba(var(--primary-rgb), 0.1);
+}
+
+.st-quick-nav-item.active::after {
+  content: "";
+  position: absolute;
+  left: 0;
+  top: 50%;
+  transform: translateY(-50%);
+  width: 3px;
+  height: 50%;
+  background-color: var(--primary-color);
+  border-radius: 0 var(--border-radius-sm) var(--border-radius-sm) 0;
+}
+
+/* Responsive Adjustments */
+@media (max-width: 992px) {
+  .st-quick-nav {
+    display: none; /* Hide on medium screens */
+  }
+}
+
+@media (max-width: 768px) {
+  .st-atomic-nav-items {
+    flex-direction: column;
+  }
+  
+  .st-atomic-nav-item {
+    margin: var(--spacing-xs) 0;
+  }
+}
