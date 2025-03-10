@@ -226,9 +226,27 @@
 {% block content %}
 <div class="container py-5">
     <div class="row mb-4">
-        <div class="col-12">
-            <h1 class="text-center">Gemini-Powered Sustainability Search</h1>
-            <p class="text-center text-muted">Leverage Google's Gemini AI and advanced search technology to discover sustainability insights</p>
+        <div class="col-12 text-center">
+            <div class="alert alert-primary py-4">
+                <h2><i class="bi bi-stars me-2"></i> We've Evolved!</h2>
+                <p class="lead mb-4">Our Gemini AI search has been upgraded to a full-featured Sustainability Co-Pilot</p>
+                
+                <div class="mb-4">
+                    <h4>The new Co-Pilot takes full advantage of Gemini's capabilities:</h4>
+                    <ul class="list-unstyled">
+                        <li><i class="bi bi-check-circle-fill text-success me-2"></i> Conversational interface for more natural interactions</li>
+                        <li><i class="bi bi-check-circle-fill text-success me-2"></i> Advanced context understanding for deeper insights</li>
+                        <li><i class="bi bi-check-circle-fill text-success me-2"></i> Data visualization and trend analysis capabilities</li>
+                        <li><i class="bi bi-check-circle-fill text-success me-2"></i> Real-time sustainability intelligence</li>
+                    </ul>
+                </div>
+                
+                <button class="btn btn-primary btn-lg" onclick="window.copilotInstance.toggleCopilot()">
+                    <i class="bi bi-robot me-2"></i> Open the Gemini-Powered Co-Pilot
+                </button>
+                
+                <p class="mt-3 text-muted">Try asking: "How can Gemini help with sustainability reporting?"</p>
+            </div>
         </div>
     </div>
 

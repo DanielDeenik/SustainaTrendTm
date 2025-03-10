@@ -106,7 +106,10 @@
                         <a class="nav-link active" href="/dashboard">Dashboard & Monetization</a>
                     </li>
                     <li class="nav-item">
-                        <a class="nav-link" href="/search">AI Search</a>
+                        <a class="nav-link" href="#" id="dashboard-copilot-button" onclick="window.copilotInstance.toggleCopilot()">
+                            <i class="bi bi-robot"></i> AI Co-Pilot
+                            <span class="badge bg-success">New</span>
+                        </a>
                     </li>
                     <li class="nav-item">
                         <a class="nav-link" href="/trend-analysis">Trend Analysis</a>
@@ -221,6 +224,13 @@
                             <li>Implement additional water conservation measures</li>
                             <li>Expand your circular economy initiatives for further waste reduction</li>
                         </ul>
+                        
+                        <div class="mt-4 text-center">
+                            <button class="btn btn-primary btn-lg" id="insights-copilot-button" onclick="window.copilotInstance.toggleCopilot()">
+                                <i class="bi bi-robot me-2"></i> Ask the AI Co-Pilot for More Insights
+                            </button>
+                            <p class="text-muted mt-2">Our AI Co-Pilot can provide detailed analysis and custom recommendations based on your specific goals.</p>
+                        </div>
                     </div>
                 </div>
             </div>

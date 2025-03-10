@@ -3,6 +3,33 @@
  * Shared styles for all platform pages
  */
 
+/* Sustainability Co-Pilot Global Action Button */
+.st-global-action {
+  margin: 16px 12px 20px;
+}
+
+.st-global-action-button {
+  background-color: var(--primary-color);
+  color: white;
+  border-radius: 8px;
+  padding: 10px 16px;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  cursor: pointer;
+  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+  transition: all 0.2s ease;
+}
+
+.st-global-action-button:hover {
+  background-color: var(--success-color);
+  box-shadow: 0 3px 8px rgba(0, 0, 0, 0.15);
+}
+
+.st-global-action-button i {
+  font-size: 18px;
+}
+
 :root {
   /* Theme colors */
   --primary-color: #2E7D32;

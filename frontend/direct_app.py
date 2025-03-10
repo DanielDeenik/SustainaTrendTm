@@ -154,7 +154,16 @@ try:
     logger.info("Strategy Simulation module loaded successfully")
 except ImportError as e:
     STRATEGY_SIMULATION_AVAILABLE = False
-    logger.warning(f"Real Estate Sustainability module not available: {e}")
+    logger.warning(f"Strategy Simulation module not available: {e}")
+
+# Import Sustainability Co-Pilot Module
+try:
+    from sustainability_copilot import register_routes as register_sustainability_copilot_routes
+    SUSTAINABILITY_COPILOT_AVAILABLE = True
+    logger.info("Sustainability Co-Pilot module loaded successfully")
+except ImportError as e:
+    SUSTAINABILITY_COPILOT_AVAILABLE = False
+    logger.warning(f"Sustainability Co-Pilot module not available: {e}")
 
 # Initialize Flask
 app = Flask(__name__)
@@ -203,6 +212,11 @@ if REALESTATE_SUSTAINABILITY_AVAILABLE:
 if STRATEGY_SIMULATION_AVAILABLE:
     register_strategy_simulation_routes(app)
     logger.info("Strategy Simulation routes registered successfully")
+    
+# Register Sustainability Co-Pilot routes if available
+if SUSTAINABILITY_COPILOT_AVAILABLE:
+    register_sustainability_copilot_routes(app)
+    logger.info("Sustainability Co-Pilot routes registered successfully")
 
 # API Status global middleware
 def get_api_status():
@@ -1187,31 +1201,28 @@ def api_realtime_search():
 # Update the search route to use the enhanced search
 @app.route('/search')
 def search():
-    """Enhanced AI-powered search interface with advanced search engine integration"""
+    """Redirects users to the enhanced Sustainability Co-Pilot interface"""
     try:
         query = request.args.get('query', '')
-        model = request.args.get('model', 'hybrid')  # Default to hybrid model for new search engine
-
-        logger.info(f"Search requested with query: '{query}', model: {model}")
-
+        model = request.args.get('model', 'copilot')  # Default to Co-Pilot mode
+        
+        logger.info(f"Search requested with query: '{query}', redirecting to Co-Pilot interface")
+        
+        # Initialize variables needed for template rendering
         results = []
         explanation = None
         
+        # If query was provided, store it for the Co-Pilot to access
         if query:
-            # For the initial page load, use the enhanced search which will utilize 
-            # the advanced search engine if available
-            search_results = perform_enhanced_search(query, model)
+            # Store the query in session for the Co-Pilot to use
+            session_data = session.get('copilot_context', {})
+            session_data['last_search_query'] = query
+            session_data['last_search_time'] = datetime.now().isoformat()
+            session['copilot_context'] = session_data
             
-            # Check if we're using the advanced search engine and have an explanation
-            if isinstance(search_results, dict) and 'explanation' in search_results:
-                results = search_results.get('results', [])
-                explanation = search_results.get('explanation')
-            else:
-                results = search_results
-                
-            logger.info(f"Initial search returned {len(results) if isinstance(results, list) else 'unknown number of'} results for query: '{query}'")
-
-        # Add new search engine availability to template variables
+            logger.info(f"Stored query '{query}' in session for Co-Pilot")
+            
+        # Render the search template which now promotes the Co-Pilot
         return render_template(
             "search.html", 
             query=query, 
