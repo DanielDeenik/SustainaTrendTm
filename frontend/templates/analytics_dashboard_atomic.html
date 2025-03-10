@@ -18,6 +18,317 @@
     transition: transform 0.3s, box-shadow 0.3s;
   }
   
+  /* Material Topics Styles */
+  .st-material-topics-container {
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+    margin-top: 1rem;
+  }
+  
+  .st-material-topic-card {
+    background-color: var(--st-surface);
+    border-radius: 0.75rem;
+    border: 1px solid var(--st-border-color);
+    padding: 1.25rem;
+    transition: all 0.3s ease;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
+  }
+  
+  .st-material-topic-card:hover {
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.12);
+    transform: translateY(-2px);
+  }
+  
+  .st-material-topic-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 0.75rem;
+  }
+  
+  .st-material-topic-title {
+    margin: 0;
+    font-size: 1.1rem;
+    font-weight: 600;
+    color: var(--st-text-dark);
+  }
+  
+  .st-material-topic-score {
+    font-weight: 600;
+    padding: 0.35rem 0.75rem;
+    border-radius: 1rem;
+    font-size: 0.9rem;
+  }
+  
+  .st-material-topic-score.high {
+    background-color: rgba(220, 53, 69, 0.15);
+    color: #dc3545;
+  }
+  
+  .st-material-topic-score.medium {
+    background-color: rgba(255, 193, 7, 0.15);
+    color: #e6a100;
+  }
+  
+  .st-material-topic-score.low {
+    background-color: rgba(40, 167, 69, 0.15);
+    color: #28a745;
+  }
+  
+  .st-material-topic-description {
+    color: var(--st-text);
+    margin-bottom: 1rem;
+    font-size: 0.95rem;
+    line-height: 1.5;
+  }
+  
+  .st-material-topic-metrics {
+    display: flex;
+    flex-direction: column;
+    gap: 0.75rem;
+    margin-bottom: 1rem;
+  }
+  
+  .st-material-topic-metric {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+  }
+  
+  .st-material-topic-metric-label {
+    min-width: 140px;
+    font-size: 0.9rem;
+    color: var(--st-text-light);
+  }
+  
+  .st-material-topic-metric-bar {
+    flex-grow: 1;
+    height: 8px;
+    background-color: var(--st-bg-alt);
+    border-radius: 4px;
+    overflow: hidden;
+  }
+  
+  .st-material-topic-metric-fill {
+    height: 100%;
+    background-color: var(--st-primary);
+    border-radius: 4px;
+  }
+  
+  .st-material-topic-metric-value {
+    min-width: 40px;
+    text-align: right;
+    font-size: 0.9rem;
+    font-weight: 600;
+    color: var(--st-text);
+  }
+  
+  .st-material-topic-priority {
+    display: flex;
+    align-items: center;
+    margin-bottom: 1rem;
+  }
+  
+  .st-material-topic-priority-label {
+    font-size: 0.9rem;
+    color: var(--st-text-light);
+    margin-right: 0.5rem;
+  }
+  
+  .st-material-topic-priority-value {
+    font-weight: 600;
+    font-size: 0.9rem;
+  }
+  
+  .st-material-topic-priority-value.high {
+    color: #dc3545;
+  }
+  
+  .st-material-topic-priority-value.medium {
+    color: #e6a100;
+  }
+  
+  .st-material-topic-priority-value.low {
+    color: #28a745;
+  }
+  
+  .st-material-topic-action-btn {
+    background-color: var(--st-primary);
+    color: white;
+    border: none;
+    border-radius: 0.375rem;
+    padding: 0.5rem 1rem;
+    font-size: 0.9rem;
+    font-weight: 500;
+    cursor: pointer;
+    transition: background-color 0.2s;
+    width: 100%;
+  }
+  
+  .st-material-topic-action-btn:hover {
+    background-color: var(--st-primary-dark);
+  }
+  
+  /* Enhanced Materiality Matrix */
+  .st-materiality-point {
+    position: absolute;
+    width: 14px;
+    height: 14px;
+    background-color: var(--st-primary);
+    border-radius: 50%;
+    transform: translate(-50%, -50%);
+    cursor: pointer;
+    transition: all 0.3s ease;
+    z-index: 5;
+    border: 2px solid white;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+  }
+  
+  .st-materiality-point.active {
+    transform: translate(-50%, -50%) scale(1.2);
+    box-shadow: 0 0 0 6px rgba(var(--st-primary-rgb), 0.2);
+  }
+  
+  /* Matrix tooltip */
+  .st-matrix-tooltip {
+    position: absolute;
+    background-color: white;
+    border-radius: 8px;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+    padding: 1rem;
+    width: 240px;
+    z-index: 100;
+    pointer-events: none;
+  }
+  
+  .st-matrix-tooltip-header {
+    font-weight: 600;
+    margin-bottom: 0.5rem;
+    color: var(--st-text-dark);
+    font-size: 1rem;
+  }
+  
+  .st-matrix-tooltip-metrics {
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+  }
+  
+  .st-matrix-tooltip-metric {
+    display: flex;
+    justify-content: space-between;
+    font-size: 0.9rem;
+  }
+  
+  .st-matrix-tooltip-value {
+    font-weight: 600;
+  }
+  
+  .st-matrix-tooltip-arrow {
+    position: absolute;
+    bottom: -8px;
+    left: 50%;
+    margin-left: -8px;
+    width: 16px;
+    height: 8px;
+    overflow: hidden;
+  }
+  
+  .st-matrix-tooltip-arrow:after {
+    content: "";
+    position: absolute;
+    top: -8px;
+    left: 0;
+    width: 16px;
+    height: 16px;
+    background-color: white;
+    transform: rotate(45deg);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+  }
+  
+  /* Strategic actions modal */
+  .st-modal {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background-color: rgba(0, 0, 0, 0.5);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 1000;
+  }
+  
+  .st-modal-content {
+    background-color: white;
+    border-radius: 8px;
+    width: 90%;
+    max-width: 600px;
+    max-height: 80vh;
+    overflow-y: auto;
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.2);
+  }
+  
+  .st-modal-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 1.5rem;
+    border-bottom: 1px solid var(--st-border-color);
+  }
+  
+  .st-modal-header h3 {
+    margin: 0;
+    font-size: 1.25rem;
+    color: var(--st-text-dark);
+  }
+  
+  .st-modal-close {
+    background: none;
+    border: none;
+    font-size: 1.5rem;
+    cursor: pointer;
+    color: var(--st-text-light);
+    transition: color 0.2s;
+  }
+  
+  .st-modal-close:hover {
+    color: var(--st-text-dark);
+  }
+  
+  .st-modal-body {
+    padding: 1.5rem;
+  }
+  
+  .st-strategic-actions-list {
+    padding-left: 1.25rem;
+    margin: 0;
+  }
+  
+  .st-strategic-actions-list li {
+    margin-bottom: 1rem;
+    line-height: 1.5;
+  }
+  
+  /* Highlight animation */
+  .highlight-topic {
+    animation: highlight-pulse 2s;
+  }
+  
+  @keyframes highlight-pulse {
+    0% {
+      box-shadow: 0 0 0 0 rgba(var(--st-primary-rgb), 0.7);
+    }
+    70% {
+      box-shadow: 0 0 0 10px rgba(var(--st-primary-rgb), 0);
+    }
+    100% {
+      box-shadow: 0 0 0 0 rgba(var(--st-primary-rgb), 0);
+    }
+  }
+  
   .st-analytics-card:hover {
     transform: translateY(-3px);
     box-shadow: 0 8px 24px rgba(0, 0, 0, 0.12);
@@ -841,6 +1152,12 @@
       }
       
       // Create the matrix points
+      // Add a tooltip container
+      const tooltipContainer = document.createElement('div');
+      tooltipContainer.className = 'st-matrix-tooltip';
+      tooltipContainer.style.display = 'none';
+      document.querySelector('.st-materiality-matrix').appendChild(tooltipContainer);
+      
       topics.forEach(topic => {
         const point = document.createElement('div');
         point.className = 'st-materiality-point';
@@ -851,9 +1168,85 @@
         point.setAttribute('data-x', topic.x);
         point.setAttribute('data-y', topic.y);
         
-        // Add tooltip behavior
+        // Size variations based on importance (x+y score)
+        const importance = topic.x + topic.y;
+        const size = Math.max(12, Math.min(24, importance * 15)); // Size between 12-24px
+        point.style.width = `${size}px`;
+        point.style.height = `${size}px`;
+        point.style.marginLeft = `-${size/2}px`;
+        point.style.marginTop = `-${size/2}px`;
+        
+        // Add enhanced interactive behavior
+        point.addEventListener('mouseenter', function(e) {
+          // Highlight this point
+          this.classList.add('active');
+          
+          // Show tooltip with details
+          tooltipContainer.innerHTML = `
+            <div class="st-matrix-tooltip-header">${topic.name}</div>
+            <div class="st-matrix-tooltip-metrics">
+              <div class="st-matrix-tooltip-metric">
+                <span>Business Impact:</span>
+                <span class="st-matrix-tooltip-value">${(topic.x * 100).toFixed(0)}%</span>
+              </div>
+              <div class="st-matrix-tooltip-metric">
+                <span>Stakeholder Concern:</span>
+                <span class="st-matrix-tooltip-value">${(topic.y * 100).toFixed(0)}%</span>
+              </div>
+              <div class="st-matrix-tooltip-metric">
+                <span>Materiality Score:</span>
+                <span class="st-matrix-tooltip-value">${((topic.x + topic.y) / 2 * 100).toFixed(0)}%</span>
+              </div>
+            </div>
+            <div class="st-matrix-tooltip-arrow"></div>
+          `;
+          
+          // Position tooltip
+          const matrix = document.querySelector('.st-materiality-matrix');
+          const matrixRect = matrix.getBoundingClientRect();
+          const pointRect = this.getBoundingClientRect();
+          
+          // Default position above point
+          let top = pointRect.top - matrixRect.top - tooltipContainer.offsetHeight - 10;
+          let left = pointRect.left - matrixRect.left - (tooltipContainer.offsetWidth / 2) + (this.offsetWidth / 2);
+          
+          // If too close to top, position below
+          if (top < 10) {
+            top = pointRect.top - matrixRect.top + this.offsetHeight + 10;
+            tooltipContainer.querySelector('.st-matrix-tooltip-arrow').style.top = '-8px';
+          } else {
+            tooltipContainer.querySelector('.st-matrix-tooltip-arrow').style.top = 'auto';
+            tooltipContainer.querySelector('.st-matrix-tooltip-arrow').style.bottom = '-8px';
+          }
+          
+          // Ensure not too far left or right
+          left = Math.max(10, Math.min(matrixRect.width - tooltipContainer.offsetWidth - 10, left));
+          
+          tooltipContainer.style.top = `${top}px`;
+          tooltipContainer.style.left = `${left}px`;
+          tooltipContainer.style.display = 'block';
+        });
+        
+        point.addEventListener('mouseleave', function() {
+          this.classList.remove('active');
+          tooltipContainer.style.display = 'none';
+        });
+        
         point.addEventListener('click', function() {
-          alert(topic.name + '\nBusiness Impact: ' + (topic.x * 100).toFixed(0) + '%\nStakeholder Concern: ' + (topic.y * 100).toFixed(0) + '%');
+          // Show detail panel with topic details
+          const materialTopics = document.getElementById('material-topics');
+          materialTopics.scrollIntoView({ behavior: 'smooth' });
+          
+          // Highlight this topic in the material topics list if it exists
+          setTimeout(() => {
+            const topicCards = document.querySelectorAll('.st-material-topic-card');
+            topicCards.forEach(card => {
+              if (card.querySelector('.st-material-topic-title').textContent.includes(topic.name)) {
+                card.classList.add('highlight-topic');
+                setTimeout(() => card.classList.remove('highlight-topic'), 2000);
+              }
+            });
+          }, 500);
         });
         
         matrixPoints.appendChild(point);
@@ -894,6 +1287,307 @@
     }
     
     // AI insights generation
+    function generateMaterialTopics(industry) {
+      const materialTopicsContainer = document.getElementById('material-topics');
+      
+      // Get the top 5 material topics from the matrix
+      const matrixPoints = document.getElementById('matrix-points');
+      const topicPoints = matrixPoints.querySelectorAll('.st-materiality-point');
+      
+      // Convert to array and sort by materiality score (x + y)
+      const topicsArray = Array.from(topicPoints).map(point => {
+        return {
+          name: point.getAttribute('data-name'),
+          x: parseFloat(point.getAttribute('data-x')),
+          y: parseFloat(point.getAttribute('data-y')),
+          score: parseFloat(point.getAttribute('data-x')) + parseFloat(point.getAttribute('data-y'))
+        };
+      }).sort((a, b) => b.score - a.score);
+      
+      // Take top 5
+      const topTopics = topicsArray.slice(0, 5);
+      
+      // Create detailed topics section with interactive elements
+      const topicsContainer = document.createElement('div');
+      topicsContainer.className = 'st-material-topics-container';
+      
+      // Industry-specific topic descriptions
+      const topicDescriptions = {
+        'Technology': {
+          'Data Privacy & Security': 'Protection of sensitive information from unauthorized access and ensuring compliance with privacy regulations.',
+          'Energy Efficiency': 'Reducing energy consumption in data centers and operations to minimize environmental impact.',
+          'E-waste Management': 'Responsible disposal and recycling of electronic waste to minimize environmental harm.',
+          'Digital Inclusion': 'Ensuring technology products and services are accessible to all, including underserved populations.',
+          'Ethical AI': 'Developing and deploying AI systems that are fair, transparent, and respect human rights.',
+          'Supply Chain Transparency': 'Visibility into suppliers\' practices to ensure ethical and sustainable operations.',
+          'Carbon Emissions': 'Reducing direct and indirect greenhouse gas emissions from operations and products.',
+          'Talent Diversity': 'Creating an inclusive workplace with diverse representation across all levels.',
+          'Water Usage': 'Minimizing water consumption in operations and manufacturing processes.',
+          'Community Investment': 'Supporting local communities through programs, partnerships, and investments.'
+        },
+        'Manufacturing': {
+          'Worker Safety': 'Ensuring safe working conditions and preventing workplace injuries and illnesses.',
+          'Carbon Emissions': 'Reducing greenhouse gas emissions from manufacturing processes and transportation.',
+          'Material Efficiency': 'Optimizing material use to reduce waste and improve resource productivity.',
+          'Supply Chain': 'Managing environmental and social impacts throughout the supply chain.',
+          'Water Management': 'Reducing water usage and ensuring responsible wastewater management.',
+          'Waste Reduction': 'Minimizing waste generation and implementing recycling programs.',
+          'Energy Usage': 'Improving energy efficiency and transitioning to renewable energy sources.',
+          'Product Lifecycle': 'Considering environmental impacts across the entire product lifecycle.',
+          'Community Relations': 'Building positive relationships with communities where facilities operate.',
+          'Labor Practices': 'Ensuring fair labor practices, including wages, hours, and working conditions.'
+        },
+        'Retail': {
+          'Sustainable Packaging': 'Reducing packaging waste and using recyclable or biodegradable materials.',
+          'Ethical Sourcing': 'Ensuring products are produced under fair labor conditions and with respect for human rights.',
+          'Carbon Footprint': 'Reducing emissions from stores, distribution centers, and transportation.',
+          'Customer Privacy': 'Protecting customer data and maintaining transparent privacy policies.',
+          'Waste Management': 'Reducing waste from operations and implementing recycling programs.',
+          'Community Engagement': 'Supporting local communities through programs and partnerships.',
+          'Energy Management': 'Improving energy efficiency in stores and distribution centers.',
+          'Product Safety': 'Ensuring all products meet safety standards and regulations.',
+          'Diversity & Inclusion': 'Creating an inclusive workplace and ensuring diversity across all levels.',
+          'Responsible Marketing': 'Ensuring marketing practices are ethical and transparent.'
+        },
+        'Finance': {
+          'Data Security': 'Protecting sensitive financial information from unauthorized access and breaches.',
+          'Ethical Business Practices': 'Maintaining high standards of ethics and preventing corruption.',
+          'Financial Inclusion': 'Expanding access to financial services for underserved populations.',
+          'Responsible Investing': 'Incorporating ESG factors into investment decisions.',
+          'Climate Risk Management': 'Assessing and managing climate-related financial risks.',
+          'Regulatory Compliance': 'Ensuring compliance with all applicable laws and regulations.',
+          'Diversity & Inclusion': 'Creating an inclusive workplace with diverse representation.',
+          'Customer Privacy': 'Respecting and protecting customer data and privacy.',
+          'Financial Literacy': 'Promoting education and awareness about financial concepts.',
+          'Operational Footprint': 'Reducing environmental impact of operations and facilities.'
+        },
+        'Energy': {
+          'Climate Change Mitigation': 'Reducing greenhouse gas emissions and transitioning to low-carbon energy.',
+          'Environmental Compliance': 'Adherence to environmental regulations and standards.',
+          'Water Management': 'Responsible management of water resources and wastewater.',
+          'Community Relations': 'Building positive relationships with communities near operations.',
+          'Worker Safety': 'Ensuring safe working conditions and preventing accidents.',
+          'Biodiversity': 'Protecting ecosystems and wildlife in areas of operation.',
+          'Air Quality': 'Reducing air pollutants from energy production processes.',
+          'Waste Management': 'Responsible handling and disposal of waste materials.',
+          'Energy Transition': 'Shifting to renewable energy sources and technologies.',
+          'Supply Chain Management': 'Ensuring sustainable practices throughout the supply chain.'
+        }
+      };
+      
+      // Default descriptions if industry not found
+      const defaultDescriptions = {
+        'Carbon Emissions': 'Reducing greenhouse gas emissions from operations and value chain.',
+        'Energy Efficiency': 'Optimizing energy use to reduce consumption and associated emissions.',
+        'Waste Management': 'Minimizing waste generation and implementing recycling programs.',
+        'Water Stewardship': 'Responsible management of water resources throughout operations.',
+        'Diversity & Inclusion': 'Creating an inclusive workplace with diverse representation.',
+        'Supply Chain Management': 'Ensuring sustainable and ethical practices throughout the supply chain.',
+        'Community Relations': 'Building positive relationships with local communities.',
+        'Product Lifecycle': 'Considering environmental impacts across the entire product lifecycle.',
+        'Ethical Business Practices': 'Maintaining high standards of ethics and preventing corruption.',
+        'Worker Welfare': 'Ensuring fair treatment, safety, and well-being of all workers.'
+      };
+      
+      // Get appropriate descriptions
+      const descriptions = topicDescriptions[industry] || defaultDescriptions;
+      
+      // Create interactive cards for each top material topic
+      topTopics.forEach((topic, index) => {
+        const topicCard = document.createElement('div');
+        topicCard.className = 'st-material-topic-card';
+        
+        // Get description or default
+        const description = descriptions[topic.name] || 
+          'Key sustainability topic requiring management attention and strategic response.';
+        
+        // Calculate materiality score as percentage
+        const materialityScore = Math.round((topic.score / 2) * 100);
+        
+        // Determine if this is a high/medium/low priority
+        let priorityLevel, priorityClass;
+        if (materialityScore > 75) {
+          priorityLevel = 'High';
+          priorityClass = 'high';
+        } else if (materialityScore > 60) {
+          priorityLevel = 'Medium';
+          priorityClass = 'medium';
+        } else {
+          priorityLevel = 'Low';
+          priorityClass = 'low';
+        }
+        
+        topicCard.innerHTML = `
+          <div class="st-material-topic-header">
+            <h4 class="st-material-topic-title">${index + 1}. ${topic.name}</h4>
+            <span class="st-material-topic-score ${priorityClass}">${materialityScore}%</span>
+          </div>
+          <div class="st-material-topic-description">${description}</div>
+          <div class="st-material-topic-metrics">
+            <div class="st-material-topic-metric">
+              <span class="st-material-topic-metric-label">Business Impact:</span>
+              <div class="st-material-topic-metric-bar">
+                <div class="st-material-topic-metric-fill" style="width: ${Math.round(topic.x * 100)}%"></div>
+              </div>
+              <span class="st-material-topic-metric-value">${Math.round(topic.x * 100)}%</span>
+            </div>
+            <div class="st-material-topic-metric">
+              <span class="st-material-topic-metric-label">Stakeholder Concern:</span>
+              <div class="st-material-topic-metric-bar">
+                <div class="st-material-topic-metric-fill" style="width: ${Math.round(topic.y * 100)}%"></div>
+              </div>
+              <span class="st-material-topic-metric-value">${Math.round(topic.y * 100)}%</span>
+            </div>
+          </div>
+          <div class="st-material-topic-priority">
+            <span class="st-material-topic-priority-label">Priority:</span>
+            <span class="st-material-topic-priority-value ${priorityClass}">${priorityLevel}</span>
+          </div>
+          <button class="st-material-topic-action-btn">View Strategic Actions</button>
+        `;
+        
+        // Add click event for the action button
+        topicCard.querySelector('.st-material-topic-action-btn').addEventListener('click', function() {
+          // Show a modal or expand card with strategic actions
+          const actionsList = getStrategicActions(topic.name, industry);
+          
+          // Create modal for strategic actions
+          const modal = document.createElement('div');
+          modal.className = 'st-modal';
+          modal.innerHTML = `
+            <div class="st-modal-content">
+              <div class="st-modal-header">
+                <h3>Strategic Actions: ${topic.name}</h3>
+                <button class="st-modal-close">&times;</button>
+              </div>
+              <div class="st-modal-body">
+                <ul class="st-strategic-actions-list">
+                  ${actionsList.map(action => `<li>${action}</li>`).join('')}
+                </ul>
+              </div>
+            </div>
+          `;
+          
+          // Add close functionality
+          modal.querySelector('.st-modal-close').addEventListener('click', function() {
+            document.body.removeChild(modal);
+          });
+          
+          // Add to body
+          document.body.appendChild(modal);
+        });
+        
+        topicsContainer.appendChild(topicCard);
+      });
+      
+      // Add the topics to the container
+      materialTopicsContainer.innerHTML = '';
+      materialTopicsContainer.appendChild(topicsContainer);
+      
+      // Add explanation
+      const explanation = document.createElement('div');
+      explanation.className = 'st-ai-explanation st-mt-3';
+      explanation.innerHTML = `
+        <p><strong>About this analysis:</strong> The material topics assessment uses AI to evaluate 
+        the most significant sustainability issues for ${industry} companies based on business impact 
+        and stakeholder concern. These topics should form the foundation of your sustainability strategy.</p>
+      `;
+      materialTopicsContainer.appendChild(explanation);
+    }
+    
+    // Strategic actions function
+    function getStrategicActions(topicName, industry) {
+      // Create custom strategic actions based on topic and industry
+      const strategicActionsByTopic = {
+        'Data Privacy & Security': [
+          'Implement advanced encryption protocols for all customer data',
+          'Conduct regular third-party security audits and penetration testing',
+          'Establish a data privacy governance committee',
+          'Develop comprehensive employee training on data security practices',
+          'Create transparent data usage policies accessible to all customers'
+        ],
+        'Carbon Emissions': [
+          'Set science-based targets for emissions reduction',
+          'Implement energy efficiency measures across all facilities',
+          'Transition to renewable energy sources where feasible',
+          'Optimize logistics and transportation to reduce Scope 3 emissions',
+          'Invest in carbon offset projects for unavoidable emissions'
+        ],
+        'Worker Safety': [
+          'Implement comprehensive safety management systems',
+          'Conduct regular safety training and emergency drills',
+          'Invest in automation for high-risk manual tasks',
+          'Establish robust incident reporting and investigation processes',
+          'Develop leading safety performance indicators beyond compliance'
+        ],
+        'Sustainable Packaging': [
+          'Redesign packaging to reduce material use by 30%',
+          'Transition to biodegradable or recyclable packaging materials',
+          'Implement a packaging take-back program for consumers',
+          'Work with suppliers to reduce upstream packaging waste',
+          'Invest in R&D for innovative sustainable packaging solutions'
+        ],
+        'Ethical AI': [
+          'Establish an AI ethics committee with diverse representation',
+          'Develop clear guidelines for ethical AI development and use',
+          'Implement bias detection and mitigation in AI systems',
+          'Ensure transparency in AI-driven decision processes',
+          'Conduct regular audits of AI systems for ethical compliance'
+        ]
+      };
+      
+      // Generic actions by topic category
+      const genericActionsByCategory = {
+        'Environmental': [
+          'Set measurable targets with clear timelines for improvement',
+          'Implement monitoring and reporting systems to track progress',
+          'Engage suppliers in sustainability initiatives',
+          'Invest in efficiency technologies and process improvements',
+          'Develop employee engagement programs focused on environmental impact'
+        ],
+        'Social': [
+          'Establish clear policies and governance structures',
+          'Conduct regular stakeholder engagement and feedback sessions',
+          'Implement training programs for employees and management',
+          'Set measurable goals and regularly report on progress',
+          'Partner with industry initiatives and external organizations'
+        ],
+        'Governance': [
+          'Strengthen board oversight of sustainability issues',
+          'Enhance transparency in reporting and disclosures',
+          'Align executive compensation with sustainability performance',
+          'Implement robust compliance monitoring systems',
+          'Engage with investors on sustainability governance'
+        ]
+      };
+      
+      // Categorize topics
+      const environmentalTopics = ['Carbon Emissions', 'Energy Efficiency', 'Water Usage', 
+        'Waste Reduction', 'E-waste Management', 'Material Efficiency', 'Environmental Compliance', 
+        'Biodiversity', 'Air Quality', 'Sustainable Packaging', 'Product Lifecycle'];
+      
+      const socialTopics = ['Worker Safety', 'Community Relations', 'Digital Inclusion', 
+        'Talent Diversity', 'Community Investment', 'Labor Practices', 'Diversity & Inclusion', 
+        'Worker Welfare', 'Financial Inclusion', 'Financial Literacy'];
+      
+      const governanceTopics = ['Supply Chain Transparency', 'Ethical AI', 'Data Privacy & Security', 
+        'Ethical Business Practices', 'Responsible Investing', 'Regulatory Compliance', 
+        'Customer Privacy', 'Responsible Marketing', 'Supply Chain Management'];
+      
+      // Determine category
+      let category;
+      if (environmentalTopics.includes(topicName)) {
+        category = 'Environmental';
+      } else if (socialTopics.includes(topicName)) {
+        category = 'Social';
+      } else {
+        category = 'Governance';
+      }
+      
+      // Return topic-specific actions if available, otherwise generic actions for the category
+      return strategicActionsByTopic[topicName] || genericActionsByCategory[category];
+    }
+    
     function generateAIInsights(company, industry, periods) {
       const insightsContainer = document.getElementById('ai-insights');
       insightsContainer.innerHTML = '';
