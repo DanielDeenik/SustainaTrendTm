@@ -1,0 +1,261 @@
+{% extends "layouts/base_atomic.html" %}
+
+{% block content %}
+    <!-- Main Navigation -->
+    <nav class="atomic-nav">
+        <div class="atomic-brand">
+            <img class="atomic-brand-logo" src="{{ url_for('static', filename='images/logo.svg') }}" alt="SustainaTrend Logo">
+            <span class="atomic-brand-text">SustainaTrend™</span>
+        </div>
+        
+        <!-- Navigation Sections -->
+        <div class="atomic-nav-section">
+            <h6 class="atomic-nav-section-title">Main</h6>
+            <ul class="atomic-nav-menu">
+                <li>
+                    <a href="/" class="atomic-nav-item {% if request.path == '/' %}active{% endif %}">
+                        <i class="atomic-nav-icon fas fa-home"></i>
+                        <span class="atomic-nav-item-text">Home</span>
+                    </a>
+                </li>
+                <li>
+                    <a href="/dashboard" class="atomic-nav-item {% if request.path == '/dashboard' %}active{% endif %}">
+                        <i class="atomic-nav-icon fas fa-chart-line"></i>
+                        <span class="atomic-nav-item-text">Dashboard</span>
+                    </a>
+                </li>
+                <li>
+                    <a href="/search" class="atomic-nav-item {% if request.path == '/search' %}active{% endif %}">
+                        <i class="atomic-nav-icon fas fa-search"></i>
+                        <span class="atomic-nav-item-text">Search</span>
+                    </a>
+                </li>
+            </ul>
+        </div>
+        
+        <div class="atomic-nav-section">
+            <h6 class="atomic-nav-section-title">Analytics</h6>
+            <ul class="atomic-nav-menu">
+                <li>
+                    <a href="/trend-analysis" class="atomic-nav-item {% if request.path == '/trend-analysis' %}active{% endif %}">
+                        <i class="atomic-nav-icon fas fa-chart-bar"></i>
+                        <span class="atomic-nav-item-text">Trend Analysis</span>
+                    </a>
+                </li>
+                <li>
+                    <a href="/analytics-dashboard" class="atomic-nav-item {% if request.path == '/analytics-dashboard' %}active{% endif %}">
+                        <i class="atomic-nav-icon fas fa-chart-pie"></i>
+                        <span class="atomic-nav-item-text">Advanced Analytics</span>
+                    </a>
+                </li>
+                <li>
+                    <a href="#" class="atomic-nav-item atomic-nav-item-with-sub">
+                        <i class="atomic-nav-icon fas fa-chart-area"></i>
+                        <span class="atomic-nav-item-text">Reports</span>
+                    </a>
+                </li>
+                <ul class="atomic-nav-sub">
+                    <li class="atomic-nav-sub-item">
+                        <a href="/sustainability-report" class="atomic-nav-sub-link {% if request.path == '/sustainability-report' %}active{% endif %}">
+                            Sustainability Reports
+                        </a>
+                    </li>
+                    <li class="atomic-nav-sub-item">
+                        <a href="/esrs-framework" class="atomic-nav-sub-link {% if request.path == '/esrs-framework' %}active{% endif %}">
+                            ESRS Framework
+                        </a>
+                    </li>
+                </ul>
+            </ul>
+        </div>
+        
+        <div class="atomic-nav-section">
+            <h6 class="atomic-nav-section-title">AI Tools</h6>
+            <ul class="atomic-nav-menu">
+                <li>
+                    <a href="/ai-development-tools" class="atomic-nav-item {% if request.path == '/ai-development-tools' %}active{% endif %}">
+                        <i class="atomic-nav-icon fas fa-robot"></i>
+                        <span class="atomic-nav-item-text">AI Tools</span>
+                    </a>
+                </li>
+                <li>
+                    <a href="/ethical-ai" class="atomic-nav-item {% if request.path == '/ethical-ai' %}active{% endif %}">
+                        <i class="atomic-nav-icon fas fa-shield-alt"></i>
+                        <span class="atomic-nav-item-text">Ethical AI</span>
+                    </a>
+                </li>
+                <li>
+                    <a href="/sentiment-analysis" class="atomic-nav-item {% if request.path == '/sentiment-analysis' %}active{% endif %}">
+                        <i class="atomic-nav-icon fas fa-comment-dots"></i>
+                        <span class="atomic-nav-item-text">Sentiment Analysis</span>
+                    </a>
+                </li>
+                <li>
+                    <a href="/gemini-search" class="atomic-nav-item {% if request.path == '/gemini-search' %}active{% endif %}">
+                        <i class="atomic-nav-icon fas fa-search-plus"></i>
+                        <span class="atomic-nav-item-text">Gemini Search</span>
+                    </a>
+                </li>
+            </ul>
+        </div>
+        
+        <div class="atomic-nav-section">
+            <h6 class="atomic-nav-section-title">Sustainability</h6>
+            <ul class="atomic-nav-menu">
+                <li>
+                    <a href="/sustainability" class="atomic-nav-item {% if request.path == '/sustainability' %}active{% endif %}">
+                        <i class="atomic-nav-icon fas fa-leaf"></i>
+                        <span class="atomic-nav-item-text">Overview</span>
+                    </a>
+                </li>
+                <li>
+                    <a href="/sustainability-stories" class="atomic-nav-item {% if request.path == '/sustainability-stories' %}active{% endif %}">
+                        <i class="atomic-nav-icon fas fa-book-open"></i>
+                        <span class="atomic-nav-item-text">Stories</span>
+                    </a>
+                </li>
+                <li>
+                    <a href="/company-search" class="atomic-nav-item {% if request.path == '/company-search' %}active{% endif %}">
+                        <i class="atomic-nav-icon fas fa-building"></i>
+                        <span class="atomic-nav-item-text">Company Search</span>
+                    </a>
+                </li>
+                <li>
+                    <a href="/trend-virality-dashboard" class="atomic-nav-item {% if request.path == '/trend-virality-dashboard' %}active{% endif %}">
+                        <i class="atomic-nav-icon fas fa-bolt"></i>
+                        <span class="atomic-nav-item-text">Trend Virality</span>
+                    </a>
+                </li>
+            </ul>
+        </div>
+        
+        <div class="atomic-nav-section">
+            <h6 class="atomic-nav-section-title">Real Estate</h6>
+            <ul class="atomic-nav-menu">
+                <li>
+                    <a href="/realestate-trends" class="atomic-nav-item {% if request.path == '/realestate-trends' %}active{% endif %}">
+                        <i class="atomic-nav-icon fas fa-home"></i>
+                        <span class="atomic-nav-item-text">Trends</span>
+                    </a>
+                </li>
+                <li>
+                    <a href="/realestate-unified-dashboard" class="atomic-nav-item {% if request.path == '/realestate-unified-dashboard' %}active{% endif %}">
+                        <i class="atomic-nav-icon fas fa-th-large"></i>
+                        <span class="atomic-nav-item-text">Dashboard</span>
+                    </a>
+                </li>
+                <li>
+                    <a href="/strategy-simulation" class="atomic-nav-item {% if request.path == '/strategy-simulation' %}active{% endif %}">
+                        <i class="atomic-nav-icon fas fa-chess"></i>
+                        <span class="atomic-nav-item-text">Strategy Simulation</span>
+                    </a>
+                </li>
+            </ul>
+        </div>
+        
+        <div class="atomic-nav-section">
+            <h6 class="atomic-nav-section-title">System</h6>
+            <ul class="atomic-nav-menu">
+                <li>
+                    <a href="/monetization-opportunities" class="atomic-nav-item {% if request.path == '/monetization-opportunities' %}active{% endif %}">
+                        <i class="atomic-nav-icon fas fa-dollar-sign"></i>
+                        <span class="atomic-nav-item-text">Monetization</span>
+                    </a>
+                </li>
+                <li>
+                    <a href="/document-upload" class="atomic-nav-item {% if request.path == '/document-upload' %}active{% endif %}">
+                        <i class="atomic-nav-icon fas fa-file-upload"></i>
+                        <span class="atomic-nav-item-text">Document Upload</span>
+                    </a>
+                </li>
+                <li>
+                    <a href="/debug" class="atomic-nav-item {% if request.path == '/debug' %}active{% endif %}">
+                        <i class="atomic-nav-icon fas fa-bug"></i>
+                        <span class="atomic-nav-item-text">Debug</span>
+                    </a>
+                </li>
+            </ul>
+        </div>
+        
+        <!-- Navigation Toggle Button -->
+        <div class="atomic-nav-toggle">
+            <i class="fas fa-chevron-left"></i>
+        </div>
+    </nav>
+    
+    <!-- Main Content Area -->
+    <div class="atomic-content">
+        <!-- Top Bar -->
+        <div class="atomic-topbar">
+            <div class="atomic-topbar-nav-control">
+                <button class="atomic-hamburger">
+                    <span class="atomic-hamburger-icon"></span>
+                </button>
+                <h4 class="atomic-topbar-title">{% block page_title %}Dashboard{% endblock %}</h4>
+            </div>
+            
+            <div class="atomic-topbar-actions">
+                <!-- Search Button -->
+                <button class="atomic-topbar-action" id="global-search-btn">
+                    <i class="fas fa-search"></i>
+                </button>
+                
+                <!-- Notifications -->
+                <button class="atomic-topbar-action" id="notifications-btn">
+                    <i class="fas fa-bell"></i>
+                    <span class="atomic-notification-indicator"></span>
+                </button>
+                
+                <!-- Settings -->
+                <button class="atomic-topbar-action" id="settings-btn">
+                    <i class="fas fa-cog"></i>
+                </button>
+                
+                <!-- User Menu -->
+                <div class="atomic-user-menu">
+                    <img src="{{ url_for('static', filename='images/user-avatar.png') }}" alt="User" class="atomic-user-avatar">
+                    <div class="atomic-user-info">
+                        <span class="atomic-user-name">John Doe</span>
+                        <span class="atomic-user-role">Sustainability Analyst</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Page Content -->
+        <div class="atomic-page-content">
+            {% block page_content %}{% endblock %}
+        </div>
+    </div>
+{% endblock %}
+
+{% block additional_scripts %}
+    <!-- Topbar functionality -->
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            // Global search functionality
+            const globalSearchBtn = document.getElementById('global-search-btn');
+            if (globalSearchBtn) {
+                globalSearchBtn.addEventListener('click', function() {
+                    window.location.href = '/search';
+                });
+            }
+            
+            // Notifications functionality
+            const notificationsBtn = document.getElementById('notifications-btn');
+            if (notificationsBtn) {
+                notificationsBtn.addEventListener('click', function() {
+                    alert('Notifications feature will be implemented soon.');
+                });
+            }
+            
+            // Settings functionality
+            const settingsBtn = document.getElementById('settings-btn');
+            if (settingsBtn) {
+                settingsBtn.addEventListener('click', function() {
+                    alert('Settings feature will be implemented soon.');
+                });
+            }
+        });
+    </script>
+{% endblock %}

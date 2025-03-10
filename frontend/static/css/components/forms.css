@@ -1,0 +1,263 @@
+/*
+ * SustainaTrend™ Form Components
+ * A part of the atomic design system for the SustainaTrend™ Intelligence Platform
+ */
+
+/* Form Layout */
+.atomic-form {
+    margin-bottom: var(--st-spacing-4);
+}
+
+.atomic-form-row {
+    margin-bottom: var(--st-spacing-3);
+}
+
+.atomic-form-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+    gap: var(--st-spacing-3);
+    margin-bottom: var(--st-spacing-3);
+}
+
+/* Form Groups */
+.atomic-form-group {
+    margin-bottom: var(--st-spacing-3);
+}
+
+.atomic-form-label {
+    display: block;
+    margin-bottom: var(--st-spacing-1);
+    font-weight: 500;
+    color: var(--st-dark-gray);
+    font-size: 0.875rem;
+}
+
+.atomic-form-hint {
+    display: block;
+    font-size: 0.75rem;
+    color: var(--st-gray);
+    margin-top: var(--st-spacing-1);
+}
+
+.atomic-form-error {
+    display: block;
+    font-size: 0.75rem;
+    color: var(--st-danger);
+    margin-top: var(--st-spacing-1);
+}
+
+/* Basic Form Controls */
+.atomic-input,
+.atomic-select,
+.atomic-textarea {
+    display: block;
+    width: 100%;
+    padding: 0.5rem 0.75rem;
+    font-size: 0.875rem;
+    line-height: 1.5;
+    color: var(--st-dark);
+    background-color: white;
+    border: 1px solid var(--st-light-gray);
+    border-radius: var(--st-border-radius);
+    transition: border-color 0.2s ease-in-out, box-shadow 0.2s ease-in-out;
+}
+
+.atomic-input:focus,
+.atomic-select:focus,
+.atomic-textarea:focus {
+    outline: none;
+    border-color: var(--st-primary-light);
+    box-shadow: 0 0 0 3px rgba(44, 119, 68, 0.1);
+}
+
+.atomic-input::placeholder,
+.atomic-textarea::placeholder {
+    color: var(--st-gray);
+    opacity: 0.7;
+}
+
+.atomic-input:disabled,
+.atomic-select:disabled,
+.atomic-textarea:disabled {
+    background-color: var(--st-light-gray);
+    cursor: not-allowed;
+    opacity: 0.7;
+}
+
+.atomic-textarea {
+    min-height: 100px;
+    resize: vertical;
+}
+
+.atomic-select {
+    -webkit-appearance: none;
+    -moz-appearance: none;
+    appearance: none;
+    background-image: url("data:image/svg+xml;charset=utf-8,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' viewBox='0 0 24 24' fill='none' stroke='%236c757d' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M6 9l6 6 6-6'/%3E%3C/svg%3E");
+    background-repeat: no-repeat;
+    background-position: right 0.75rem center;
+    background-size: 16px 12px;
+    padding-right: 2.5rem;
+}
+
+/* Form Validation States */
+.atomic-input.is-valid,
+.atomic-select.is-valid,
+.atomic-textarea.is-valid {
+    border-color: var(--st-success);
+}
+
+.atomic-input.is-invalid,
+.atomic-select.is-invalid,
+.atomic-textarea.is-invalid {
+    border-color: var(--st-danger);
+}
+
+/* Checkboxes and Radios */
+.atomic-checkbox-group,
+.atomic-radio-group {
+    margin-bottom: var(--st-spacing-3);
+}
+
+.atomic-checkbox,
+.atomic-radio {
+    display: flex;
+    align-items: center;
+    margin-bottom: var(--st-spacing-1);
+    cursor: pointer;
+}
+
+.atomic-checkbox-input,
+.atomic-radio-input {
+    margin-right: var(--st-spacing-2);
+}
+
+.atomic-checkbox-label,
+.atomic-radio-label {
+    font-size: 0.875rem;
+    cursor: pointer;
+}
+
+/* Custom Form Controls */
+.atomic-switch {
+    position: relative;
+    display: inline-block;
+    width: 40px;
+    height: 24px;
+}
+
+.atomic-switch-input {
+    opacity: 0;
+    width: 0;
+    height: 0;
+}
+
+.atomic-switch-slider {
+    position: absolute;
+    cursor: pointer;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background-color: var(--st-light-gray);
+    transition: .4s;
+    border-radius: 34px;
+}
+
+.atomic-switch-slider:before {
+    position: absolute;
+    content: "";
+    height: 16px;
+    width: 16px;
+    left: 4px;
+    bottom: 4px;
+    background-color: white;
+    transition: .4s;
+    border-radius: 50%;
+}
+
+.atomic-switch-input:checked + .atomic-switch-slider {
+    background-color: var(--st-primary);
+}
+
+.atomic-switch-input:checked + .atomic-switch-slider:before {
+    transform: translateX(16px);
+}
+
+/* Input Groups */
+.atomic-input-group {
+    position: relative;
+    display: flex;
+    flex-wrap: wrap;
+    align-items: stretch;
+    width: 100%;
+}
+
+.atomic-input-group-prepend,
+.atomic-input-group-append {
+    display: flex;
+    align-items: center;
+    padding: 0.5rem 0.75rem;
+    font-size: 0.875rem;
+    font-weight: 400;
+    line-height: 1.5;
+    color: var(--st-gray);
+    text-align: center;
+    white-space: nowrap;
+    background-color: var(--st-light-gray);
+    border: 1px solid var(--st-light-gray);
+}
+
+.atomic-input-group-prepend {
+    border-right: 0;
+    border-top-left-radius: var(--st-border-radius);
+    border-bottom-left-radius: var(--st-border-radius);
+}
+
+.atomic-input-group-append {
+    border-left: 0;
+    border-top-right-radius: var(--st-border-radius);
+    border-bottom-right-radius: var(--st-border-radius);
+}
+
+.atomic-input-group .atomic-input {
+    position: relative;
+    flex: 1 1 auto;
+    width: 1%;
+    min-width: 0;
+    margin-bottom: 0;
+}
+
+.atomic-input-group-prepend + .atomic-input {
+    border-top-left-radius: 0;
+    border-bottom-left-radius: 0;
+}
+
+.atomic-input + .atomic-input-group-append {
+    border-top-left-radius: 0;
+    border-bottom-left-radius: 0;
+}
+
+/* Form Actions */
+.atomic-form-actions {
+    display: flex;
+    justify-content: flex-end;
+    margin-top: var(--st-spacing-4);
+    gap: var(--st-spacing-2);
+}
+
+/* Responsive Adjustments */
+@media (max-width: 768px) {
+    .atomic-form-grid {
+        grid-template-columns: 1fr;
+    }
+    
+    .atomic-form-actions {
+        flex-direction: column;
+    }
+    
+    .atomic-form-actions .atomic-btn {
+        width: 100%;
+        margin-bottom: var(--st-spacing-2);
+    }
+}

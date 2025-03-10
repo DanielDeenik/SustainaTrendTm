@@ -1,0 +1,166 @@
+/*
+ * SustainaTrend™ Card Components
+ * A part of the atomic design system for the SustainaTrend™ Intelligence Platform
+ */
+
+/* Base Card Styles */
+.atomic-card {
+    background-color: white;
+    border-radius: var(--st-border-radius);
+    box-shadow: var(--st-shadow-sm);
+    padding: var(--st-spacing-4);
+    margin-bottom: var(--st-spacing-4);
+    transition: box-shadow 0.3s ease;
+}
+
+.atomic-card:hover {
+    box-shadow: var(--st-shadow);
+}
+
+.atomic-card-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: var(--st-spacing-3);
+}
+
+.atomic-card-title {
+    color: var(--st-primary);
+    margin-bottom: 0;
+    font-size: 1.25rem;
+    font-weight: 600;
+}
+
+.atomic-card-subtitle {
+    color: var(--st-gray);
+    font-size: 0.875rem;
+    margin-top: 0.25rem;
+}
+
+.atomic-card-body {
+    margin-bottom: var(--st-spacing-3);
+}
+
+.atomic-card-footer {
+    display: flex;
+    justify-content: flex-end;
+    align-items: center;
+    padding-top: var(--st-spacing-3);
+    border-top: 1px solid var(--st-light-gray);
+}
+
+/* Card Variants */
+.atomic-card-primary {
+    border-top: 3px solid var(--st-primary);
+}
+
+.atomic-card-secondary {
+    border-top: 3px solid var(--st-secondary);
+}
+
+.atomic-card-info {
+    border-top: 3px solid var(--st-info);
+}
+
+.atomic-card-success {
+    border-top: 3px solid var(--st-success);
+}
+
+.atomic-card-warning {
+    border-top: 3px solid var(--st-warning);
+}
+
+.atomic-card-danger {
+    border-top: 3px solid var(--st-danger);
+}
+
+/* Card Layouts */
+.atomic-card-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+    gap: var(--st-spacing-4);
+}
+
+.atomic-card-row {
+    display: flex;
+    flex-wrap: wrap;
+    margin: 0 calc(var(--st-spacing-4) * -0.5);
+}
+
+.atomic-card-row .atomic-card {
+    flex: 1 1 300px;
+    margin: 0 calc(var(--st-spacing-4) * 0.5) var(--st-spacing-4);
+}
+
+/* Card Elements */
+.atomic-card-image {
+    margin: calc(var(--st-spacing-4) * -1) calc(var(--st-spacing-4) * -1) var(--st-spacing-3);
+    border-top-left-radius: var(--st-border-radius);
+    border-top-right-radius: var(--st-border-radius);
+    overflow: hidden;
+}
+
+.atomic-card-image img {
+    width: 100%;
+    height: auto;
+    display: block;
+}
+
+.atomic-card-tags {
+    display: flex;
+    flex-wrap: wrap;
+    margin-bottom: var(--st-spacing-3);
+}
+
+.atomic-card-tag {
+    display: inline-block;
+    padding: 0.25rem 0.5rem;
+    font-size: 0.75rem;
+    border-radius: var(--st-border-radius-sm);
+    background-color: var(--st-light-gray);
+    color: var(--st-dark-gray);
+    margin-right: 0.5rem;
+    margin-bottom: 0.5rem;
+}
+
+/* Metric Card */
+.atomic-metric-card {
+    text-align: center;
+    padding: var(--st-spacing-3);
+}
+
+.atomic-metric-value {
+    font-size: 2rem;
+    font-weight: 600;
+    color: var(--st-primary);
+    margin-bottom: 0.5rem;
+}
+
+.atomic-metric-label {
+    font-size: 0.875rem;
+    color: var(--st-gray);
+}
+
+.atomic-metric-icon {
+    font-size: 1.5rem;
+    margin-bottom: var(--st-spacing-2);
+    color: var(--st-primary);
+}
+
+/* Interactive Cards */
+.atomic-card-clickable {
+    cursor: pointer;
+    transition: transform 0.3s ease, box-shadow 0.3s ease;
+}
+
+.atomic-card-clickable:hover {
+    transform: translateY(-3px);
+    box-shadow: var(--st-shadow);
+}
+
+/* Responsive Adjustments */
+@media (max-width: 768px) {
+    .atomic-card-grid {
+        grid-template-columns: 1fr;
+    }
+}

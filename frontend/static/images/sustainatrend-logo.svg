@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg width="180" height="40" viewBox="0 0 180 40" xmlns="http://www.w3.org/2000/svg">
+  <!-- Main Text -->
+  <text x="4" y="26" font-family="Arial, sans-serif" font-weight="700" font-size="22" fill="#2c7744">
+    Sustaina
+    <tspan fill="#156a5d">Trend</tspan>
+  </text>
+  
+  <!-- Leaf icon -->
+  <path d="M170,12 C177,12 182,17 182,24 C182,31 177,36 170,36 C163,36 158,31 158,24 C158,17 163,12 170,12 Z" fill="#e8f5e9"/>
+  <path d="M173,18 C170,17 167,18 165,20 C163,22 162,25 163,28 C166,27 169,26 171,24 C173,22 174,20 173,18 Z" fill="#2c7744"/>
+  <path d="M173,18 C172,20 170,22 167,23 C164,24 161,24 158,24 C159,27 162,30 166,30 C171,30 175,27 175,23 C175,21 174,19 173,18 Z" fill="#156a5d"/>
+  
+  <!-- Small highlight for property icon -->
+  <rect x="153" y="22" width="2" height="2" fill="#4caf50"/>
+</svg>

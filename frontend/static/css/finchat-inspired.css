@@ -1,0 +1,384 @@
+/* FinChat-Inspired UI Components for SustainaTrend */
+
+/* Base Variables */
+:root {
+  --finchat-primary: #156a5d;
+  --finchat-primary-light: #3a8c7e;
+  --finchat-primary-dark: #0b4c42;
+  --finchat-secondary: #2c7744;
+  --finchat-text: #333333;
+  --finchat-text-light: #666666;
+  --finchat-background: #f9fbf9;
+  --finchat-card-bg: #ffffff;
+  --finchat-border: #e0e0e0;
+  --finchat-hover: #e8f5e9;
+  --finchat-radius-sm: 4px;
+  --finchat-radius-md: 8px;
+  --finchat-radius-lg: 12px;
+  --finchat-shadow-sm: 0 2px 4px rgba(0, 0, 0, 0.05);
+  --finchat-shadow-md: 0 4px 6px rgba(0, 0, 0, 0.1);
+  
+  /* Status Colors */
+  --finchat-success: #4caf50;
+  --finchat-warning: #ff9800;
+  --finchat-error: #f44336;
+  --finchat-info: #2196f3;
+}
+
+/* Overrides for body styling */
+body.finchat-theme {
+  background-color: var(--finchat-background);
+  color: var(--finchat-text);
+  font-family: 'Inter', 'Segoe UI', system-ui, -apple-system, sans-serif;
+}
+
+/* Card Component */
+.finchat-card {
+  background-color: var(--finchat-card-bg);
+  border-radius: var(--finchat-radius-md);
+  box-shadow: var(--finchat-shadow-sm);
+  margin-bottom: 1.5rem;
+  transition: box-shadow 0.2s ease, transform 0.2s ease;
+  overflow: hidden;
+}
+
+.finchat-card:hover {
+  box-shadow: var(--finchat-shadow-md);
+}
+
+.finchat-card-header {
+  padding: 1rem 1.25rem;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  border-bottom: 1px solid var(--finchat-border);
+  background-color: rgba(249, 250, 251, 0.5);
+}
+
+.finchat-card-title {
+  font-weight: 600;
+  font-size: 1rem;
+  margin: 0;
+  color: var(--finchat-text);
+}
+
+.finchat-card-content {
+  padding: 1.25rem;
+}
+
+.finchat-card-footer {
+  padding: 0.75rem 1.25rem;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  border-top: 1px solid var(--finchat-border);
+  font-size: 0.75rem;
+  color: var(--finchat-text-light);
+  background-color: rgba(249, 250, 251, 0.5);
+}
+
+/* Metrics Grid */
+.finchat-metrics-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+  gap: 1.25rem;
+  margin-bottom: 1.5rem;
+}
+
+/* Metric Value Display */
+.finchat-metric-value {
+  font-size: 1.5rem;
+  font-weight: 700;
+  margin: 0.5rem 0;
+  color: var(--finchat-primary);
+}
+
+/* Trend indicators */
+.finchat-trend {
+  display: flex;
+  align-items: center;
+  font-size: 0.875rem;
+  margin-top: 0.5rem;
+}
+
+.finchat-trend-up {
+  color: var(--finchat-success);
+}
+
+.finchat-trend-down {
+  color: var(--finchat-error);
+}
+
+.finchat-trend-neutral {
+  color: var(--finchat-text-light);
+}
+
+.finchat-trend-icon {
+  margin-right: 0.25rem;
+}
+
+/* Chart Containers */
+.finchat-chart-container {
+  width: 100%;
+  height: 300px;
+  margin: 1rem 0;
+}
+
+/* Table Styling */
+.finchat-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 0.875rem;
+}
+
+.finchat-table th {
+  background-color: rgba(249, 250, 251, 0.8);
+  font-weight: 600;
+  text-align: left;
+  padding: 0.75rem 1rem;
+  border-bottom: 1px solid var(--finchat-border);
+  color: var(--finchat-text-light);
+}
+
+.finchat-table td {
+  padding: 0.75rem 1rem;
+  border-bottom: 1px solid var(--finchat-border);
+  color: var(--finchat-text);
+}
+
+.finchat-table tr:hover td {
+  background-color: var(--finchat-hover);
+}
+
+/* Select Input */
+.finchat-select {
+  appearance: none;
+  background-color: #ffffff;
+  border: 1px solid var(--finchat-border);
+  border-radius: var(--finchat-radius-sm);
+  padding: 0.5rem 2rem 0.5rem 0.75rem;
+  font-size: 0.875rem;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' viewBox='0 0 24 24' fill='none' stroke='%23333333' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpolyline points='6 9 12 15 18 9'%3E%3C/polyline%3E%3C/svg%3E");
+  background-repeat: no-repeat;
+  background-position: right 0.5rem center;
+  background-size: 1rem;
+  cursor: pointer;
+  outline: none;
+  transition: border-color 0.2s ease, box-shadow 0.2s ease;
+}
+
+.finchat-select:focus {
+  border-color: var(--finchat-primary-light);
+  box-shadow: 0 0 0 2px rgba(21, 106, 93, 0.1);
+}
+
+/* Message Component (for chat) */
+.finchat-message {
+  margin-bottom: 1rem;
+  max-width: 80%;
+}
+
+.finchat-message-user {
+  margin-left: auto;
+  background-color: var(--finchat-primary-light);
+  color: white;
+  border-radius: 1rem 1rem 0 1rem;
+}
+
+.finchat-message-ai {
+  margin-right: auto;
+  background-color: #f0f0f0;
+  color: var(--finchat-text);
+  border-radius: 1rem 1rem 1rem 0;
+}
+
+.finchat-message-content {
+  padding: 0.75rem 1rem;
+}
+
+/* Button Styles */
+.finchat-button {
+  display: inline-block;
+  font-weight: 500;
+  text-align: center;
+  vertical-align: middle;
+  cursor: pointer;
+  padding: 0.5rem 1rem;
+  font-size: 0.875rem;
+  line-height: 1.5;
+  border-radius: var(--finchat-radius-md);
+  transition: all 0.15s ease-in-out;
+  border: none;
+  outline: none;
+}
+
+.finchat-button-primary {
+  background-color: var(--finchat-primary);
+  color: white;
+}
+
+.finchat-button-primary:hover {
+  background-color: var(--finchat-primary-dark);
+}
+
+.finchat-button-outline {
+  background-color: transparent;
+  border: 1px solid var(--finchat-primary);
+  color: var(--finchat-primary);
+}
+
+.finchat-button-outline:hover {
+  background-color: rgba(21, 106, 93, 0.05);
+}
+
+/* Progress Bars */
+.finchat-progress {
+  height: 0.5rem;
+  background-color: #e9ecef;
+  border-radius: 0.25rem;
+  overflow: hidden;
+  margin: 0.5rem 0;
+}
+
+.finchat-progress-bar {
+  height: 100%;
+  border-radius: 0.25rem;
+  transition: width 0.3s ease;
+}
+
+.finchat-progress-primary {
+  background-color: var(--finchat-primary);
+}
+
+.finchat-progress-success {
+  background-color: var(--finchat-success);
+}
+
+.finchat-progress-warning {
+  background-color: var(--finchat-warning);
+}
+
+.finchat-progress-error {
+  background-color: var(--finchat-error);
+}
+
+/* Tags/Chips */
+.finchat-tag {
+  display: inline-flex;
+  align-items: center;
+  padding: 0.25rem 0.5rem;
+  font-size: 0.75rem;
+  line-height: 1;
+  border-radius: 1rem;
+  font-weight: 500;
+  margin-right: 0.5rem;
+  margin-bottom: 0.5rem;
+}
+
+.finchat-tag-primary {
+  background-color: rgba(21, 106, 93, 0.1);
+  color: var(--finchat-primary);
+}
+
+.finchat-tag-secondary {
+  background-color: rgba(44, 119, 68, 0.1);
+  color: var(--finchat-secondary);
+}
+
+.finchat-tag-success {
+  background-color: rgba(76, 175, 80, 0.1);
+  color: var(--finchat-success);
+}
+
+.finchat-tag-warning {
+  background-color: rgba(255, 152, 0, 0.1);
+  color: var(--finchat-warning);
+}
+
+.finchat-tag-error {
+  background-color: rgba(244, 67, 54, 0.1);
+  color: var(--finchat-error);
+}
+
+.finchat-tag-info {
+  background-color: rgba(33, 150, 243, 0.1);
+  color: var(--finchat-info);
+}
+
+/* Alerts */
+.finchat-alert {
+  padding: 1rem;
+  margin-bottom: 1rem;
+  border-radius: var(--finchat-radius-md);
+  border-left: 4px solid;
+}
+
+.finchat-alert-success {
+  background-color: rgba(76, 175, 80, 0.1);
+  border-left-color: var(--finchat-success);
+}
+
+.finchat-alert-warning {
+  background-color: rgba(255, 152, 0, 0.1);
+  border-left-color: var(--finchat-warning);
+}
+
+.finchat-alert-error {
+  background-color: rgba(244, 67, 54, 0.1);
+  border-left-color: var(--finchat-error);
+}
+
+.finchat-alert-info {
+  background-color: rgba(33, 150, 243, 0.1);
+  border-left-color: var(--finchat-info);
+}
+
+/* Helpers */
+.finchat-text-primary { color: var(--finchat-primary); }
+.finchat-text-success { color: var(--finchat-success); }
+.finchat-text-warning { color: var(--finchat-warning); }
+.finchat-text-error { color: var(--finchat-error); }
+.finchat-text-info { color: var(--finchat-info); }
+.finchat-text-light { color: var(--finchat-text-light); }
+
+.finchat-fs-xs { font-size: 0.75rem; }
+.finchat-fs-sm { font-size: 0.875rem; }
+.finchat-fs-md { font-size: 1rem; }
+.finchat-fs-lg { font-size: 1.25rem; }
+.finchat-fs-xl { font-size: 1.5rem; }
+.finchat-fs-xxl { font-size: 2rem; }
+
+.finchat-fw-normal { font-weight: 400; }
+.finchat-fw-medium { font-weight: 500; }
+.finchat-fw-semibold { font-weight: 600; }
+.finchat-fw-bold { font-weight: 700; }
+
+.finchat-flex { display: flex; }
+.finchat-items-center { align-items: center; }
+.finchat-justify-between { justify-content: space-between; }
+.finchat-justify-center { justify-content: center; }
+.finchat-gap-sm { gap: 0.5rem; }
+.finchat-gap-md { gap: 1rem; }
+.finchat-gap-lg { gap: 1.5rem; }
+
+.finchat-mb-sm { margin-bottom: 0.5rem; }
+.finchat-mb-md { margin-bottom: 1rem; }
+.finchat-mb-lg { margin-bottom: 1.5rem; }
+.finchat-mt-sm { margin-top: 0.5rem; }
+.finchat-mt-md { margin-top: 1rem; }
+.finchat-mt-lg { margin-top: 1.5rem; }
+
+/* Responsive adjustments */
+@media (max-width: 768px) {
+  .finchat-metrics-grid {
+    grid-template-columns: 1fr;
+  }
+  
+  .finchat-card-content {
+    padding: 1rem;
+  }
+  
+  .finchat-message {
+    max-width: 90%;
+  }
+}

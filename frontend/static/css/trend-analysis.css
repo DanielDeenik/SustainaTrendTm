@@ -1,7 +1,191 @@
 /* 
  * SustainaTrend™ - Trend Analysis Styles
  * Custom CSS for trend analysis dashboard
+ * Enhanced for the unified design system
  */
+
+/* Trend Score Circle - Styled Indicator */
+.trend-score-circle {
+  width: 60px;
+  height: 60px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: bold;
+  font-size: 1.2rem;
+  background: conic-gradient(
+    var(--primary-color) calc(var(--score) * 1%), 
+    rgba(200, 200, 200, 0.2) calc(var(--score) * 1%)
+  );
+  position: relative;
+  color: white;
+  border: 3px solid white;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+}
+
+.trend-score-circle:before {
+  content: "";
+  position: absolute;
+  width: calc(100% - 10px);
+  height: calc(100% - 10px);
+  border-radius: 50%;
+  background-color: var(--primary-color);
+  z-index: -1;
+}
+
+/* Trend Item Styling */
+.unified-trend-items {
+  max-height: 600px;
+  overflow-y: auto;
+  padding: 0;
+}
+
+.unified-trend-item {
+  display: flex;
+  padding: 1.25rem;
+  border-bottom: 1px solid var(--border-color);
+  transition: background-color 0.2s ease;
+}
+
+.unified-trend-item:hover {
+  background-color: rgba(var(--primary-rgb), 0.05);
+}
+
+.unified-trend-item:last-child {
+  border-bottom: none;
+}
+
+.trend-content {
+  flex: 1;
+  margin: 0 1rem;
+}
+
+.trend-content h3 {
+  margin: 0 0 0.5rem 0;
+  font-size: 1.1rem;
+  font-weight: 600;
+}
+
+.trend-content p {
+  margin: 0 0 0.75rem 0;
+  color: var(--text-muted);
+  font-size: 0.9rem;
+}
+
+.trend-meta {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 1rem;
+  font-size: 0.8rem;
+}
+
+.trend-category {
+  display: inline-block;
+  background-color: rgba(var(--primary-rgb), 0.1);
+  color: var(--primary-color);
+  padding: 0.2rem 0.5rem;
+  border-radius: 4px;
+  font-weight: 500;
+}
+
+.trend-source, .trend-date {
+  color: var(--text-muted);
+}
+
+.trend-growth {
+  display: flex;
+  align-items: center;
+  font-weight: 600;
+  font-size: 0.95rem;
+}
+
+.trend-up {
+  color: var(--success-color);
+}
+
+.trend-down {
+  color: var(--danger-color);
+}
+
+.trend-up svg {
+  transform: rotate(-90deg);
+}
+
+.trend-down svg {
+  transform: rotate(90deg);
+}
+
+/* AI Insight Blocks */
+.ai-insight-block {
+  background-color: rgba(var(--primary-rgb), 0.05);
+  border-left: 3px solid var(--primary-color);
+  padding: 1rem;
+  margin-bottom: 1rem;
+  border-radius: 4px;
+}
+
+.ai-insight-block:last-child {
+  margin-bottom: 0;
+}
+
+.ai-insight-block p {
+  margin: 0;
+}
+
+.ai-insight-block .highlight {
+  color: var(--primary-color);
+  font-weight: 500;
+}
+
+.ai-insight-loading {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin: 12px 0;
+  color: #666;
+  font-style: italic;
+}
+
+.ai-loading-icon {
+  animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+  from { transform: rotate(0deg); }
+  to { transform: rotate(360deg); }
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; transform: translateY(10px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+.new-insight {
+  border-left: 3px solid #4CAF50;
+  padding-left: 12px;
+  margin: 15px 0;
+}
+
+/* Empty State Styling */
+.unified-empty-state {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 3rem 1rem;
+  text-align: center;
+  color: var(--text-muted);
+}
+
+.unified-empty-state svg {
+  color: var(--text-light);
+  margin-bottom: 1rem;
+}
+
+.unified-empty-state p {
+  margin-bottom: 1rem;
+}
 
 /* Trend Page Header */
 .trend-page-header {

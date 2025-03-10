@@ -2139,6 +2139,84 @@ def test_route():
         logger.error(f"Error in test route: {str(e)}")
         return jsonify({"error": str(e)}), 500
 
+# Add atomic navigation demo page
+@app.route('/atomic-navigation-demo')
+def atomic_navigation_demo():
+    """Demo page for atomic navigation components with SimCorp One inspiration"""
+    try:
+        logger.info("Atomic navigation demo page requested")
+        return render_template("atomic_navigation_demo.html")
+    except Exception as e:
+        logger.error(f"Error in atomic navigation demo: {str(e)}")
+        return f"Error loading atomic navigation demo: {str(e)}", 500
+
+# Add Finchat-inspired real estate minimal dashboard
+@app.route('/realestate-minimal')
+def realestate_minimal_dashboard():
+    """Minimalist Finchat-inspired Real Estate Dashboard"""
+    try:
+        logger.info("Minimal Finchat-inspired real estate dashboard requested")
+        return render_template("realestate_unified_minimal.html")
+    except Exception as e:
+        logger.error(f"Error in minimal real estate dashboard: {str(e)}")
+        return f"Error loading minimal real estate dashboard: {str(e)}", 500
+
+# AI Prompt API endpoint for Finchat-inspired interface
+@app.route('/api/ai-prompt', methods=['POST'])
+def ai_prompt_endpoint():
+    """Process AI prompts for the Finchat-inspired interface"""
+    try:
+        data = request.json
+        prompt = data.get('prompt', '')
+        
+        logger.info(f"AI prompt received: '{prompt}'")
+        
+        # Process the prompt to determine the appropriate action
+        prompt_lower = prompt.lower()
+        
+        # Check if this is a navigation request
+        if any(keyword in prompt_lower for keyword in ['show', 'go to', 'navigate', 'open']):
+            if 'real estate' in prompt_lower or 'property' in prompt_lower:
+                return jsonify({"redirect": "/realestate-minimal"})
+            elif 'trend' in prompt_lower or 'analysis' in prompt_lower:
+                return jsonify({"redirect": "/trend-analysis"})
+            elif 'dashboard' in prompt_lower:
+                return jsonify({"redirect": "/dashboard"})
+            elif 'search' in prompt_lower:
+                return jsonify({"redirect": "/search"})
+        
+        # For testing and development, always use predefined insights
+        # In production with API keys, you would use the real Gemini API
+        use_predefined_insights = True
+            
+        if use_predefined_insights:
+            # Fallback to predefined insights based on keywords
+            logger.info(f"Using predefined insights for prompt: '{prompt_lower}'")
+            
+            # Check for keyword matches with simple wordlist approach
+            if any(word in prompt_lower for word in ['carbon', 'emission', 'emissions', 'co2']):
+                insight = "Properties with the lowest carbon emissions show a 23% higher occupancy rate in your portfolio."
+            elif any(word in prompt_lower for word in ['energy', 'electricity', 'power']):
+                insight = "Installing smart energy management systems could reduce energy costs by up to 31% across your portfolio."
+            elif any(word in prompt_lower for word in ['water', 'usage', 'consumption']):
+                insight = "Your properties with rainwater harvesting systems use 42% less municipal water than similar properties."
+            elif any(word in prompt_lower for word in ['certification', 'breeam', 'rating', 'certified']):
+                insight = "BREEAM Excellent properties command 15% higher rental rates than non-certified properties in the same area."
+            elif any(word in prompt_lower for word in ['trend', 'market', 'future']):
+                insight = "Recent market trends show increasing demand for properties with renewable energy infrastructure, with premiums growing by 8% annually."
+            else:
+                insight = "I notice your portfolio's sustainability score is 17% above the industry average, primarily due to strong energy efficiency measures."
+            
+            logger.info(f"Selected insight: '{insight}'")
+        else:
+            # In a production app, this would make an actual API call to Gemini
+            insight = "I'd need to connect to the Gemini API to provide a detailed insight on that topic."
+                
+        return jsonify({"insight": insight})
+    except Exception as e:
+        logger.error(f"Error processing AI prompt: {str(e)}")
+        return jsonify({"error": str(e)}), 500
+
 # Add a simple monetization page for troubleshooting
 @app.route('/monetization-simple')
 def monetization_simple():

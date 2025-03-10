@@ -1,0 +1,84 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% block title %}SustainaTrend™ Intelligence Platform{% endblock %}</title>
+    
+    <!-- Core CSS Framework -->
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/sustainatrend-framework.css') }}">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/navigation-components.css') }}">
+    
+    <!-- Google Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    
+    <!-- Additional CSS -->
+    {% block additional_css %}{% endblock %}
+</head>
+<body class="atomic-body">
+    <!-- Top Navigation Bar -->
+    {% include 'includes/atomic_navigation.html' %}
+
+    <!-- Main Content Area -->
+    <div class="atomic-main">
+        <!-- Side Navigation -->
+        <div class="atomic-sidebar">
+            <div class="atomic-sidebar-logo">
+                <span class="atomic-logo-text">SustainaTrend™</span>
+            </div>
+            <nav class="atomic-sidebar-nav">
+                <ul class="atomic-sidebar-menu">
+                    <li class="atomic-sidebar-item"><a href="/" class="atomic-sidebar-link active"><span class="atomic-icon">🏠</span> Home</a></li>
+                    <li class="atomic-sidebar-item"><a href="/dashboard" class="atomic-sidebar-link"><span class="atomic-icon">📊</span> Dashboard</a></li>
+                    <li class="atomic-sidebar-item"><a href="/analytics-dashboard" class="atomic-sidebar-link"><span class="atomic-icon">📈</span> Analytics</a></li>
+                    <li class="atomic-sidebar-item"><a href="/gemini-search" class="atomic-sidebar-link"><span class="atomic-icon">🔍</span> AI Search</a></li>
+                    <li class="atomic-sidebar-item"><a href="/sustainability-stories" class="atomic-sidebar-link"><span class="atomic-icon">📝</span> Storytelling</a></li>
+                    <li class="atomic-sidebar-item"><a href="/realestate-trends" class="atomic-sidebar-link"><span class="atomic-icon">🏢</span> Real Estate</a></li>
+                    <li class="atomic-sidebar-item"><a href="/esrs-framework" class="atomic-sidebar-link"><span class="atomic-icon">📋</span> ESRS Framework</a></li>
+                    <li class="atomic-sidebar-item"><a href="/company-search" class="atomic-sidebar-link"><span class="atomic-icon">🔎</span> Company Search</a></li>
+                </ul>
+            </nav>
+            <div class="atomic-sidebar-footer">
+                <div class="atomic-sidebar-item"><a href="#" class="atomic-sidebar-link"><span class="atomic-icon">⚙️</span> Settings</a></div>
+                <div class="atomic-sidebar-item"><a href="#" class="atomic-sidebar-link"><span class="atomic-icon">❓</span> Help</a></div>
+            </div>
+        </div>
+
+        <!-- Content Area -->
+        <div class="atomic-content">
+            {% block content %}
+            <div class="atomic-placeholder">
+                <h1>Welcome to SustainaTrend™</h1>
+                <p>Your ultimate sustainability intelligence platform.</p>
+            </div>
+            {% endblock %}
+        </div>
+    </div>
+
+    <!-- Footer -->
+    <footer class="atomic-footer">
+        <div class="atomic-footer-content">
+            <p>&copy; 2025 SustainaTrend™ Intelligence Platform</p>
+        </div>
+    </footer>
+
+    <!-- JavaScript -->
+    <script>
+        // Simple script to toggle sidebar on mobile
+        document.addEventListener('DOMContentLoaded', function() {
+            const toggleButton = document.querySelector('.atomic-menu-toggle');
+            const sidebar = document.querySelector('.atomic-sidebar');
+            
+            if (toggleButton && sidebar) {
+                toggleButton.addEventListener('click', function() {
+                    sidebar.classList.toggle('active');
+                    toggleButton.classList.toggle('active');
+                });
+            }
+        });
+    </script>
+    
+    <!-- Additional JavaScript -->
+    {% block additional_js %}{% endblock %}
+</body>
+</html>

@@ -29,6 +29,14 @@ else:
 try:
     # This will import all the routes and functionality we've enhanced
     from direct_app import app, logger
+    
+    # Import and register unified routes
+    try:
+        from unified_routes import register_unified_routes
+        register_unified_routes(app)
+        logger.info("Unified routes registered successfully")
+    except ImportError as e:
+        logger.warning(f"Unified routes could not be registered: {e}")
 
     # Log all registered routes for debugging
     routes = [str(rule) for rule in app.url_map.iter_rules()]

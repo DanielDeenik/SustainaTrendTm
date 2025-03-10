@@ -1,0 +1,434 @@
+{% extends "layouts/app_layout.html" %}
+
+{% block title %}Atomic Navigation Demo - SustainaTrend™ Intelligence Platform{% endblock %}
+
+{% block page_title %}Atomic Design System{% endblock %}
+
+{% block page_content %}
+<div class="atomic-dashboard-header">
+    <h1 class="atomic-dashboard-title">Atomic Design System Demo</h1>
+    <p class="atomic-dashboard-description">
+        This page demonstrates the SimCorp One-inspired UI components with atomic design principles applied to the SustainaTrend™ Intelligence Platform.
+    </p>
+</div>
+
+<div class="atomic-section">
+    <h2 class="atomic-section-title">Button Components</h2>
+    <div class="atomic-grid">
+        <div class="atomic-col-12">
+            <div class="atomic-card atomic-card-primary">
+                <div class="atomic-card-header">
+                    <h3 class="atomic-card-title">Button Variants</h3>
+                </div>
+                <div class="atomic-card-body">
+                    <button class="atomic-btn atomic-btn-primary atomic-mr-2">Primary Button</button>
+                    <button class="atomic-btn atomic-btn-secondary atomic-mr-2">Secondary Button</button>
+                    <button class="atomic-btn atomic-btn-outline atomic-mr-2">Outline Button</button>
+                    <button class="atomic-btn atomic-btn-ghost">Ghost Button</button>
+                </div>
+            </div>
+
+            <div class="atomic-card">
+                <div class="atomic-card-header">
+                    <h3 class="atomic-card-title">Button Sizes</h3>
+                </div>
+                <div class="atomic-card-body">
+                    <button class="atomic-btn atomic-btn-primary atomic-btn-sm atomic-mr-2">Small Button</button>
+                    <button class="atomic-btn atomic-btn-primary atomic-mr-2">Default Button</button>
+                    <button class="atomic-btn atomic-btn-primary atomic-btn-lg">Large Button</button>
+                </div>
+            </div>
+
+            <div class="atomic-card">
+                <div class="atomic-card-header">
+                    <h3 class="atomic-card-title">Button with Icons</h3>
+                </div>
+                <div class="atomic-card-body">
+                    <button class="atomic-btn atomic-btn-primary atomic-mr-2">
+                        <i class="atomic-btn-icon fas fa-plus"></i>
+                        Add New
+                    </button>
+                    <button class="atomic-btn atomic-btn-secondary atomic-mr-2">
+                        <i class="atomic-btn-icon fas fa-download"></i>
+                        Download
+                    </button>
+                    <button class="atomic-btn atomic-btn-outline atomic-mr-2">
+                        <i class="atomic-btn-icon fas fa-save"></i>
+                        Save
+                    </button>
+                    <button class="atomic-btn atomic-btn-primary atomic-btn-icon-only atomic-mr-2">
+                        <i class="fas fa-search"></i>
+                    </button>
+                    <button class="atomic-btn atomic-btn-secondary atomic-btn-icon-only atomic-mr-2">
+                        <i class="fas fa-cog"></i>
+                    </button>
+                    <button class="atomic-btn atomic-btn-outline atomic-btn-icon-only">
+                        <i class="fas fa-trash"></i>
+                    </button>
+                </div>
+            </div>
+
+            <div class="atomic-card">
+                <div class="atomic-card-header">
+                    <h3 class="atomic-card-title">Button Groups</h3>
+                </div>
+                <div class="atomic-card-body">
+                    <div class="atomic-btn-group atomic-mb-3">
+                        <button class="atomic-btn atomic-btn-primary">Day</button>
+                        <button class="atomic-btn atomic-btn-primary">Week</button>
+                        <button class="atomic-btn atomic-btn-primary">Month</button>
+                        <button class="atomic-btn atomic-btn-primary">Year</button>
+                    </div>
+                    <div class="atomic-btn-group">
+                        <button class="atomic-btn atomic-btn-outline">
+                            <i class="atomic-btn-icon fas fa-align-left"></i>
+                        </button>
+                        <button class="atomic-btn atomic-btn-outline">
+                            <i class="atomic-btn-icon fas fa-align-center"></i>
+                        </button>
+                        <button class="atomic-btn atomic-btn-outline">
+                            <i class="atomic-btn-icon fas fa-align-right"></i>
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="atomic-section">
+    <h2 class="atomic-section-title">Card Components</h2>
+    <div class="atomic-card-grid">
+        <div class="atomic-card atomic-card-primary">
+            <div class="atomic-card-header">
+                <h3 class="atomic-card-title">Primary Card</h3>
+                <span class="atomic-card-subtitle">With primary accent</span>
+            </div>
+            <div class="atomic-card-body">
+                <p>This is a primary card component with a green accent at the top.</p>
+                <p>Cards are versatile containers that can hold various types of content.</p>
+            </div>
+            <div class="atomic-card-footer">
+                <button class="atomic-btn atomic-btn-primary atomic-btn-sm">Learn More</button>
+            </div>
+        </div>
+
+        <div class="atomic-card atomic-card-secondary">
+            <div class="atomic-card-header">
+                <h3 class="atomic-card-title">Secondary Card</h3>
+                <span class="atomic-card-subtitle">With secondary accent</span>
+            </div>
+            <div class="atomic-card-body">
+                <p>This is a secondary card component with a blue accent at the top.</p>
+                <p>Cards can contain text, images, lists, and other UI components.</p>
+            </div>
+            <div class="atomic-card-footer">
+                <button class="atomic-btn atomic-btn-secondary atomic-btn-sm">Details</button>
+            </div>
+        </div>
+
+        <div class="atomic-card atomic-card-clickable">
+            <div class="atomic-card-header">
+                <h3 class="atomic-card-title">Interactive Card</h3>
+                <span class="atomic-card-subtitle">With hover effects</span>
+            </div>
+            <div class="atomic-card-body">
+                <p>This card has enhanced hover effects to indicate that it's interactive.</p>
+                <p>It's ideal for clickable content sections that lead to more details.</p>
+            </div>
+            <div class="atomic-card-footer">
+                <button class="atomic-btn atomic-btn-outline atomic-btn-sm">View More</button>
+            </div>
+        </div>
+
+        <div class="atomic-card">
+            <div class="atomic-card-image">
+                <img src="https://via.placeholder.com/400x200" alt="Card image">
+            </div>
+            <div class="atomic-card-header">
+                <h3 class="atomic-card-title">Card with Image</h3>
+            </div>
+            <div class="atomic-card-body">
+                <p>This card includes an image at the top, useful for visual content.</p>
+            </div>
+            <div class="atomic-card-footer">
+                <button class="atomic-btn atomic-btn-ghost atomic-btn-sm">See All</button>
+            </div>
+        </div>
+    </div>
+
+    <div class="atomic-mt-4">
+        <div class="atomic-grid">
+            <div class="atomic-col-3 atomic-md-col-6 atomic-sm-col-12">
+                <div class="atomic-metric-card atomic-card">
+                    <div class="atomic-metric-icon">
+                        <i class="fas fa-leaf"></i>
+                    </div>
+                    <div class="atomic-metric-value">72%</div>
+                    <div class="atomic-metric-label">Carbon Reduction</div>
+                </div>
+            </div>
+            <div class="atomic-col-3 atomic-md-col-6 atomic-sm-col-12">
+                <div class="atomic-metric-card atomic-card">
+                    <div class="atomic-metric-icon">
+                        <i class="fas fa-solar-panel"></i>
+                    </div>
+                    <div class="atomic-metric-value">1.4M</div>
+                    <div class="atomic-metric-label">Renewable Energy (kWh)</div>
+                </div>
+            </div>
+            <div class="atomic-col-3 atomic-md-col-6 atomic-sm-col-12">
+                <div class="atomic-metric-card atomic-card">
+                    <div class="atomic-metric-icon">
+                        <i class="fas fa-recycle"></i>
+                    </div>
+                    <div class="atomic-metric-value">89%</div>
+                    <div class="atomic-metric-label">Waste Recycled</div>
+                </div>
+            </div>
+            <div class="atomic-col-3 atomic-md-col-6 atomic-sm-col-12">
+                <div class="atomic-metric-card atomic-card">
+                    <div class="atomic-metric-icon">
+                        <i class="fas fa-tint"></i>
+                    </div>
+                    <div class="atomic-metric-value">-18%</div>
+                    <div class="atomic-metric-label">Water Usage (YoY)</div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="atomic-section">
+    <h2 class="atomic-section-title">Form Components</h2>
+    <div class="atomic-grid">
+        <div class="atomic-col-6 atomic-md-col-12">
+            <div class="atomic-card">
+                <div class="atomic-card-header">
+                    <h3 class="atomic-card-title">Basic Form Controls</h3>
+                </div>
+                <div class="atomic-card-body">
+                    <form class="atomic-form">
+                        <div class="atomic-form-group">
+                            <label class="atomic-form-label" for="example-input">Text Input</label>
+                            <input type="text" class="atomic-input" id="example-input" placeholder="Enter text">
+                            <span class="atomic-form-hint">Standard text input field</span>
+                        </div>
+                        
+                        <div class="atomic-form-group">
+                            <label class="atomic-form-label" for="example-select">Select Dropdown</label>
+                            <select class="atomic-select" id="example-select">
+                                <option value="" selected disabled>Select an option</option>
+                                <option value="1">Option 1</option>
+                                <option value="2">Option 2</option>
+                                <option value="3">Option 3</option>
+                            </select>
+                        </div>
+                        
+                        <div class="atomic-form-group">
+                            <label class="atomic-form-label" for="example-textarea">Textarea</label>
+                            <textarea class="atomic-textarea" id="example-textarea" placeholder="Enter longer text here"></textarea>
+                        </div>
+                        
+                        <div class="atomic-form-actions">
+                            <button type="button" class="atomic-btn atomic-btn-ghost">Cancel</button>
+                            <button type="submit" class="atomic-btn atomic-btn-primary">Submit</button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+        
+        <div class="atomic-col-6 atomic-md-col-12">
+            <div class="atomic-card">
+                <div class="atomic-card-header">
+                    <h3 class="atomic-card-title">Advanced Form Controls</h3>
+                </div>
+                <div class="atomic-card-body">
+                    <form class="atomic-form">
+                        <div class="atomic-form-group">
+                            <label class="atomic-form-label" for="validation-input">Validation States</label>
+                            <input type="text" class="atomic-input is-valid" id="validation-input" value="Valid input">
+                            <span class="atomic-form-hint">Input with validation states</span>
+                        </div>
+                        
+                        <div class="atomic-form-group">
+                            <label class="atomic-form-label" for="error-input">Error State</label>
+                            <input type="text" class="atomic-input is-invalid" id="error-input" value="Invalid input">
+                            <span class="atomic-form-error">This field has an error</span>
+                        </div>
+                        
+                        <div class="atomic-form-group">
+                            <label class="atomic-form-label">Input Groups</label>
+                            <div class="atomic-input-group">
+                                <div class="atomic-input-group-prepend">
+                                    <span>$</span>
+                                </div>
+                                <input type="number" class="atomic-input" placeholder="Amount">
+                                <div class="atomic-input-group-append">
+                                    <span>.00</span>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="atomic-form-group">
+                            <label class="atomic-form-label">Checkboxes</label>
+                            <div class="atomic-checkbox-group">
+                                <label class="atomic-checkbox">
+                                    <input type="checkbox" class="atomic-checkbox-input">
+                                    <span class="atomic-checkbox-label">Option 1</span>
+                                </label>
+                                <label class="atomic-checkbox">
+                                    <input type="checkbox" class="atomic-checkbox-input">
+                                    <span class="atomic-checkbox-label">Option 2</span>
+                                </label>
+                            </div>
+                        </div>
+                        
+                        <div class="atomic-form-group">
+                            <label class="atomic-form-label">Toggle Switch</label>
+                            <label class="atomic-switch">
+                                <input type="checkbox" class="atomic-switch-input" checked>
+                                <span class="atomic-switch-slider"></span>
+                            </label>
+                        </div>
+                        
+                        <div class="atomic-form-actions">
+                            <button type="reset" class="atomic-btn atomic-btn-ghost">Reset</button>
+                            <button type="submit" class="atomic-btn atomic-btn-primary">Submit</button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="atomic-section">
+    <h2 class="atomic-section-title">Responsive Grid</h2>
+    <div class="atomic-card">
+        <div class="atomic-card-header">
+            <h3 class="atomic-card-title">12-Column Grid System</h3>
+            <span class="atomic-card-subtitle">Resize the window to see responsive behavior</span>
+        </div>
+        <div class="atomic-card-body">
+            <div class="atomic-grid atomic-mb-3">
+                <div class="atomic-col-12">
+                    <div class="atomic-bg-primary-light atomic-p-3 atomic-text-center">col-12</div>
+                </div>
+            </div>
+            
+            <div class="atomic-grid atomic-mb-3">
+                <div class="atomic-col-6">
+                    <div class="atomic-bg-primary-light atomic-p-3 atomic-text-center">col-6</div>
+                </div>
+                <div class="atomic-col-6">
+                    <div class="atomic-bg-primary-light atomic-p-3 atomic-text-center">col-6</div>
+                </div>
+            </div>
+            
+            <div class="atomic-grid atomic-mb-3">
+                <div class="atomic-col-4">
+                    <div class="atomic-bg-primary-light atomic-p-3 atomic-text-center">col-4</div>
+                </div>
+                <div class="atomic-col-4">
+                    <div class="atomic-bg-primary-light atomic-p-3 atomic-text-center">col-4</div>
+                </div>
+                <div class="atomic-col-4">
+                    <div class="atomic-bg-primary-light atomic-p-3 atomic-text-center">col-4</div>
+                </div>
+            </div>
+            
+            <div class="atomic-grid atomic-mb-3">
+                <div class="atomic-col-3">
+                    <div class="atomic-bg-primary-light atomic-p-3 atomic-text-center">col-3</div>
+                </div>
+                <div class="atomic-col-3">
+                    <div class="atomic-bg-primary-light atomic-p-3 atomic-text-center">col-3</div>
+                </div>
+                <div class="atomic-col-3">
+                    <div class="atomic-bg-primary-light atomic-p-3 atomic-text-center">col-3</div>
+                </div>
+                <div class="atomic-col-3">
+                    <div class="atomic-bg-primary-light atomic-p-3 atomic-text-center">col-3</div>
+                </div>
+            </div>
+            
+            <div class="atomic-grid">
+                <div class="atomic-col-2">
+                    <div class="atomic-bg-primary-light atomic-p-3 atomic-text-center">col-2</div>
+                </div>
+                <div class="atomic-col-2">
+                    <div class="atomic-bg-primary-light atomic-p-3 atomic-text-center">col-2</div>
+                </div>
+                <div class="atomic-col-2">
+                    <div class="atomic-bg-primary-light atomic-p-3 atomic-text-center">col-2</div>
+                </div>
+                <div class="atomic-col-2">
+                    <div class="atomic-bg-primary-light atomic-p-3 atomic-text-center">col-2</div>
+                </div>
+                <div class="atomic-col-2">
+                    <div class="atomic-bg-primary-light atomic-p-3 atomic-text-center">col-2</div>
+                </div>
+                <div class="atomic-col-2">
+                    <div class="atomic-bg-primary-light atomic-p-3 atomic-text-center">col-2</div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="atomic-section">
+    <h2 class="atomic-section-title">Utility Classes</h2>
+    <div class="atomic-card">
+        <div class="atomic-card-header">
+            <h3 class="atomic-card-title">Spacing, Typography & Colors</h3>
+        </div>
+        <div class="atomic-card-body">
+            <div class="atomic-mb-4">
+                <h4>Typography</h4>
+                <p class="atomic-text-xs">Extra Small Text (.atomic-text-xs)</p>
+                <p class="atomic-text-sm">Small Text (.atomic-text-sm)</p>
+                <p class="atomic-text-md">Medium Text (.atomic-text-md)</p>
+                <p class="atomic-text-lg">Large Text (.atomic-text-lg)</p>
+                <p class="atomic-text-xl">Extra Large Text (.atomic-text-xl)</p>
+                <p class="atomic-text-2xl">2XL Text (.atomic-text-2xl)</p>
+                
+                <p class="atomic-text-primary">Primary Text Color (.atomic-text-primary)</p>
+                <p class="atomic-text-secondary">Secondary Text Color (.atomic-text-secondary)</p>
+                <p class="atomic-text-gray">Gray Text Color (.atomic-text-gray)</p>
+                
+                <p class="atomic-font-light">Light Font Weight (.atomic-font-light)</p>
+                <p class="atomic-font-normal">Normal Font Weight (.atomic-font-normal)</p>
+                <p class="atomic-font-medium">Medium Font Weight (.atomic-font-medium)</p>
+                <p class="atomic-font-semibold">Semibold Font Weight (.atomic-font-semibold)</p>
+                <p class="atomic-font-bold">Bold Font Weight (.atomic-font-bold)</p>
+            </div>
+            
+            <div class="atomic-mb-4">
+                <h4>Background Colors</h4>
+                <div class="atomic-flex atomic-gap-3">
+                    <div class="atomic-bg-primary atomic-text-white atomic-p-3 atomic-rounded">.atomic-bg-primary</div>
+                    <div class="atomic-bg-primary-light atomic-p-3 atomic-rounded">.atomic-bg-primary-light</div>
+                    <div class="atomic-bg-secondary atomic-text-white atomic-p-3 atomic-rounded">.atomic-bg-secondary</div>
+                    <div class="atomic-bg-secondary-light atomic-p-3 atomic-rounded">.atomic-bg-secondary-light</div>
+                    <div class="atomic-bg-light atomic-p-3 atomic-rounded">.atomic-bg-light</div>
+                    <div class="atomic-bg-white atomic-shadow atomic-p-3 atomic-rounded">.atomic-bg-white</div>
+                </div>
+            </div>
+            
+            <div>
+                <h4>Borders & Shadows</h4>
+                <div class="atomic-flex atomic-gap-3">
+                    <div class="atomic-bg-white atomic-border atomic-p-3 atomic-rounded">.atomic-border</div>
+                    <div class="atomic-bg-white atomic-shadow-sm atomic-p-3 atomic-rounded">.atomic-shadow-sm</div>
+                    <div class="atomic-bg-white atomic-shadow atomic-p-3 atomic-rounded">.atomic-shadow</div>
+                    <div class="atomic-bg-white atomic-shadow-md atomic-p-3 atomic-rounded">.atomic-shadow-md</div>
+                    <div class="atomic-bg-white atomic-shadow-lg atomic-p-3 atomic-rounded">.atomic-shadow-lg</div>
+                    <div class="atomic-bg-white atomic-border atomic-rounded-full atomic-p-3">.atomic-rounded-full</div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<svg width="200" height="200" viewBox="0 0 200 200" xmlns="http://www.w3.org/2000/svg">
+  <style>
+    .background { fill: #e8f5ec; }
+    .person { fill: #2c7744; }
+  </style>
+  
+  <!-- Background Circle -->
+  <circle class="background" cx="100" cy="100" r="100" />
+  
+  <!-- Person Silhouette -->
+  <path class="person" d="M100,50 C115,50 130,65 130,85 C130,105 115,115 100,115 C85,115 70,105 70,85 C70,65 85,50 100,50 Z" />
+  <path class="person" d="M155,160 C155,125 130,110 100,110 C70,110 45,125 45,160 L45,170 L155,170 Z" />
+</svg>

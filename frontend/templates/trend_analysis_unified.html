@@ -1,0 +1,330 @@
+{% extends "layouts/unified_layout.html" %}
+
+{% block title %}Sustainability Trend Analysis - SustainaTrend™ Platform{% endblock %}
+
+{% block meta_description %}
+Analyze sustainability trend data with advanced AI insights and real-time metrics.
+{% endblock %}
+
+{% block head_extras %}
+<link rel="stylesheet" href="{{ url_for('static', filename='css/trend-analysis.css') }}">
+<script src="https://cdn.jsdelivr.net/npm/chart.js@3.7.1/dist/chart.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-datalabels@2.0.0"></script>
+{% endblock %}
+
+{% block header_title %}
+<div class="unified-header-content">
+  <h1>Sustainability Trend Analysis</h1>
+  <p class="unified-subtitle">Discover emerging sustainability trends and virality patterns</p>
+</div>
+{% endblock %}
+
+{% block main_content %}
+<main class="unified-main-container">
+  
+  <!-- Statistics Cards Row -->
+  <section class="unified-stats-row">
+    <div class="unified-stat-card">
+      <div class="stat-icon">
+        <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 12h-4l-3 9L9 3l-3 9H2"/></svg>
+      </div>
+      <div class="stat-content">
+        <h3>{{ trends|length }}</h3>
+        <p>Active Trends</p>
+      </div>
+    </div>
+    
+    <div class="unified-stat-card">
+      <div class="stat-icon">
+        <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"/></svg>
+      </div>
+      <div class="stat-content">
+        <h3>{{ trends|selectattr('virality_score', 'defined')|selectattr('virality_score', '>=', 80)|list|length }}</h3>
+        <p>Viral Trends</p>
+      </div>
+    </div>
+    
+    <div class="unified-stat-card">
+      <div class="stat-icon">
+        <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 20V10"/><path d="M18 20V4"/><path d="M6 20v-6"/></svg>
+      </div>
+      <div class="stat-content">
+        <h3>{{ trends|selectattr('growth_rate', 'defined')|map(attribute='growth_rate')|list|sum / trends|selectattr('growth_rate', 'defined')|list|length|round(1) if trends|selectattr('growth_rate', 'defined')|list|length > 0 else 0 }}%</h3>
+        <p>Avg Growth</p>
+      </div>
+    </div>
+    
+    <div class="unified-stat-card">
+      <div class="stat-icon">
+        <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12V7H5a2 2 0 0 1 0-4h14v4"/><path d="M3 5v14a2 2 0 0 0 2 2h16v-5"/><path d="M18 12a2 2 0 0 0 0 4h4v-4Z"/></svg>
+      </div>
+      <div class="stat-content">
+        <h3>{{ trends|selectattr('category', 'defined')|map(attribute='category')|unique|list|length }}</h3>
+        <p>Categories</p>
+      </div>
+    </div>
+  </section>
+  
+  <!-- Filter and Controls Section -->
+  <section class="unified-controls-section">
+    <div class="unified-controls-container">
+      <div class="unified-filter-group">
+        <label for="category-filter">Category:</label>
+        <select id="category-filter" class="unified-select" onchange="window.location.href='?category=' + this.value + '&sort={{ sort }}'">
+          <option value="all" {% if category == 'all' %}selected{% endif %}>All Categories</option>
+          <option value="Energy" {% if category == 'Energy' %}selected{% endif %}>Energy</option>
+          <option value="Carbon" {% if category == 'Carbon' %}selected{% endif %}>Carbon</option>
+          <option value="Waste" {% if category == 'Waste' %}selected{% endif %}>Waste Management</option>
+          <option value="Water" {% if category == 'Water' %}selected{% endif %}>Water</option>
+          <option value="Social" {% if category == 'Social' %}selected{% endif %}>Social Impact</option>
+          <option value="Governance" {% if category == 'Governance' %}selected{% endif %}>Governance</option>
+        </select>
+      </div>
+      
+      <div class="unified-filter-group">
+        <label for="sort-filter">Sort by:</label>
+        <select id="sort-filter" class="unified-select" onchange="window.location.href='?category={{ category }}&sort=' + this.value">
+          <option value="virality" {% if sort == 'virality' %}selected{% endif %}>Virality Score</option>
+          <option value="date" {% if sort == 'date' %}selected{% endif %}>Date (Newest)</option>
+          <option value="category" {% if sort == 'category' %}selected{% endif %}>Category</option>
+        </select>
+      </div>
+      
+      <button class="unified-button" id="generate-report-btn">
+        <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><path d="M14 2v6h6"/><path d="M16 13H8"/><path d="M16 17H8"/><path d="M10 9H8"/></svg>
+        Generate Report
+      </button>
+    </div>
+  </section>
+  
+  <!-- Split Layout for Chart and Trends -->
+  <section class="unified-split-layout">
+    <!-- Trends Chart -->
+    <div class="unified-chart-container">
+      <div class="unified-card">
+        <h2 class="unified-card-title">Trend Virality by Category</h2>
+        <div class="unified-card-content">
+          <canvas id="trendChart" height="300"></canvas>
+        </div>
+      </div>
+      
+      <!-- AI Insights Card -->
+      <div class="unified-card mt-4">
+        <h2 class="unified-card-title">
+          <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2a10 10 0 0 0-6.88 17.28L12 13l6.88 6.28A10 10 0 1 0 12 2Z"/><circle cx="12" cy="13" r="2"/><path d="M12 19v-7"/></svg>
+          AI Insights
+        </h2>
+        <div class="unified-card-content">
+          {% if insights %}
+          <div class="ai-insight-block">
+            <p><strong>Top Performing Category:</strong> <span class="highlight">{{ insights.top_category }}</span> has the highest average virality score of {{ insights.top_score }} in our current dataset.</p>
+          </div>
+          <div class="ai-insight-block">
+            <p><strong>Fastest Growing:</strong> <span class="highlight">{{ insights.fastest_growing }}</span> trends are showing the strongest growth at {{ insights.growth_rate }}% compared to other categories.</p>
+          </div>
+          {% else %}
+          <div class="ai-insight-block">
+            <p><strong>Emerging Pattern:</strong> The data suggests that <span class="highlight">Water Conservation</span> trends are growing 23% faster than other sustainability categories this quarter.</p>
+          </div>
+          <div class="ai-insight-block">
+            <p><strong>Prediction:</strong> Based on current virality patterns, <span class="highlight">Circular Economy</span> topics are likely to see significant growth in the next 30-60 days.</p>
+          </div>
+          {% endif %}
+          <button class="unified-button-small mt-3" id="generate-more-insights">
+            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3"/><path d="M12 17h.01"/></svg>
+            Generate More Insights
+          </button>
+        </div>
+      </div>
+    </div>
+    
+    <!-- Trending Items List -->
+    <div class="unified-trending-list">
+      <div class="unified-card">
+        <h2 class="unified-card-title">Top Sustainability Trends</h2>
+        <div class="unified-card-content p-0">
+          <div class="unified-trend-items">
+            {% if trends|length > 0 %}
+              {% for trend in trends %}
+              <div class="unified-trend-item">
+                <div class="trend-score">
+                  <div class="trend-score-circle" style="--score: {{ trend.virality_score }}">
+                    <span>{{ trend.virality_score }}</span>
+                  </div>
+                </div>
+                <div class="trend-content">
+                  <h3>{{ trend.name }}</h3>
+                  <p>{{ trend.description }}</p>
+                  <div class="trend-meta">
+                    <span class="trend-category">{{ trend.category }}</span>
+                    <span class="trend-source">{{ trend.source }}</span>
+                    <span class="trend-date">{{ trend.date.strftime('%b %d, %Y') if trend.date is defined and trend.date is not none else 'N/A' }}</span>
+                  </div>
+                </div>
+                <div class="trend-growth 
+                  {% if trend.growth_rate is defined and trend.growth_rate > 0 %}trend-up{% elif trend.growth_rate is defined and trend.growth_rate < 0 %}trend-down{% endif %}">
+                  {% if trend.growth_rate is defined %}
+                    {% if trend.growth_rate > 0 %}
+                    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m6 9 6-6 6 6"/><path d="M6 12h12"/><path d="m6 15 6 6 6-6"/></svg>
+                    {% elif trend.growth_rate < 0 %}
+                    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m6 9 6-6 6 6"/><path d="M6 12h12"/><path d="m6 15 6 6 6-6"/></svg>
+                    {% endif %}
+                    {{ trend.growth_rate }}%
+                  {% else %}
+                    --
+                  {% endif %}
+                </div>
+              </div>
+              {% endfor %}
+            {% else %}
+              <div class="unified-empty-state">
+                <svg xmlns="http://www.w3.org/2000/svg" width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1" stroke-linecap="round" stroke-linejoin="round"><path d="M22 12h-4l-3 9L9 3l-3 9H2"/></svg>
+                <p>No trends found for the selected filters.</p>
+                <button class="unified-button-small mt-2" onclick="window.location.href='?category=all&sort=virality'">Reset Filters</button>
+              </div>
+            {% endif %}
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+  
+  <!-- Related Insights Section -->
+  <section class="unified-related-section">
+    <h2 class="unified-section-title">Related Insights</h2>
+    <div class="unified-cards-grid">
+      <div class="unified-insight-card">
+        <div class="insight-icon">
+          <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3"/><path d="M12 17h.01"/></svg>
+        </div>
+        <h3>Predictive Analytics</h3>
+        <p>Forecast upcoming sustainability trends with AI-powered predictive models.</p>
+        <a href="/analytics-dashboard" class="unified-card-link">Explore Analytics</a>
+      </div>
+      
+      <div class="unified-insight-card">
+        <div class="insight-icon">
+          <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M2 3h6a4 4 0 0 1 4 4v14a3 3 0 0 0-3-3H2z"/><path d="M22 3h-6a4 4 0 0 0-4 4v14a3 3 0 0 1 3-3h7z"/></svg>
+        </div>
+        <h3>Sustainability Stories</h3>
+        <p>Discover compelling narratives based on sustainability trend data.</p>
+        <a href="/sustainability-stories" class="unified-card-link">View Stories</a>
+      </div>
+      
+      <div class="unified-insight-card">
+        <div class="insight-icon">
+          <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 3v18h18"/><path d="m18.7 8-5.1 5.2-2.8-2.7L7 14.3"/></svg>
+        </div>
+        <h3>Real Estate Impact</h3>
+        <p>See how sustainability trends are affecting real estate markets.</p>
+        <a href="/realestate-minimal" class="unified-card-link">View Property Data</a>
+      </div>
+    </div>
+  </section>
+</main>
+{% endblock %}
+
+{% block scripts %}
+<script>
+  document.addEventListener('DOMContentLoaded', function() {
+    // Initialize the trend chart
+    const ctx = document.getElementById('trendChart').getContext('2d');
+    const chartData = {{ trend_chart_data|safe }};
+    
+    const chart = new Chart(ctx, {
+      type: 'bar',
+      data: chartData,
+      options: {
+        responsive: true,
+        maintainAspectRatio: false,
+        plugins: {
+          legend: {
+            display: false
+          },
+          tooltip: {
+            backgroundColor: 'rgba(0, 0, 0, 0.8)',
+            padding: 12,
+            titleFont: {
+              size: 14,
+              weight: 'bold'
+            },
+            bodyFont: {
+              size: 13
+            }
+          }
+        },
+        scales: {
+          y: {
+            beginAtZero: true,
+            max: 100,
+            ticks: {
+              font: {
+                size: 12
+              }
+            },
+            grid: {
+              color: 'rgba(200, 200, 200, 0.15)'
+            }
+          },
+          x: {
+            ticks: {
+              font: {
+                size: 12
+              }
+            },
+            grid: {
+              display: false
+            }
+          }
+        }
+      }
+    });
+    
+    // Handle generate report button
+    document.getElementById('generate-report-btn').addEventListener('click', function() {
+      alert('Generating sustainability trend report...');
+      // In a real implementation, this would trigger a report generation process
+    });
+    
+    // Handle generate more insights button
+    document.getElementById('generate-more-insights').addEventListener('click', function() {
+      const insightsContainer = this.closest('.unified-card-content');
+      const loadingHtml = '<div class="ai-insight-loading"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="ai-loading-icon"><path d="M21 12a9 9 0 1 1-6.219-8.56"/></svg> Generating insights...</div>';
+      
+      // Insert loading indicator before the button
+      this.insertAdjacentHTML('beforebegin', loadingHtml);
+      
+      // Simulate AI analysis (would be an API call in production)
+      setTimeout(() => {
+        // Remove loading indicator
+        insightsContainer.querySelector('.ai-insight-loading').remove();
+        
+        // Add new insights
+        const newInsights = [
+          {
+            title: "Market Opportunity",
+            content: `Companies focusing on <span class="highlight">${chartData.labels[Math.floor(Math.random() * chartData.labels.length)]}</span> initiatives are seeing 18% higher consumer engagement rates compared to competitors.`
+          },
+          {
+            title: "Cross-Sector Trend",
+            content: `We're detecting increased correlation between <span class="highlight">${chartData.labels[Math.floor(Math.random() * chartData.labels.length)]}</span> and <span class="highlight">${chartData.labels[Math.floor(Math.random() * chartData.labels.length)]}</span> trends, suggesting integrated sustainability strategies are gaining traction.`
+          }
+        ];
+        
+        // Insert new insights before the button
+        newInsights.forEach(insight => {
+          const insightHtml = `<div class="ai-insight-block new-insight">
+            <p><strong>${insight.title}:</strong> ${insight.content}</p>
+          </div>`;
+          this.insertAdjacentHTML('beforebegin', insightHtml);
+        });
+        
+        // Add fade-in animation to new insights
+        insightsContainer.querySelectorAll('.new-insight').forEach(el => {
+          el.style.animation = 'fadeIn 0.5s ease-in-out';
+        });
+      }, 1500);
+    });
+  });
+</script>
+{% endblock %}
