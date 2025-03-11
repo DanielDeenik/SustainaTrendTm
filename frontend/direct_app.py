@@ -168,6 +168,9 @@ except ImportError as e:
 # Initialize Flask
 app = Flask(__name__)
 
+# Set secret key for sessions
+app.config['SECRET_KEY'] = os.environ.get('FLASK_SECRET_KEY', 'sustainatrend-platform-secret-key-2025')
+
 # Register AI Development Tools routes if available
 if AI_DEVELOPMENT_TOOLS_AVAILABLE:
     register_ai_development_routes(app)
@@ -925,9 +928,27 @@ def home():
     """Home page"""
     try:
         logger.info("Home page requested")
+        
+        # Try the collapsible template first, then fall back to the standard template
+        use_collapsible = request.args.get('collapsible', 'true').lower() == 'true'  # Default to collapsible
+        
+        if use_collapsible:
+            try:
+                logger.info("Using collapsible home template")
+                return render_template("index_collapsible.html")
+            except jinja2.exceptions.TemplateNotFound:
+                logger.warning("Collapsible home template not found, falling back to standard")
+                use_collapsible = False
+            except Exception as template_error:
+                logger.error(f"Error rendering collapsible home: {str(template_error)}, falling back to standard")
+                use_collapsible = False
+        
+        # Fall back to standard template
+        logger.info("Using standard home template")
         return render_template("index.html")
     except Exception as e:
         logger.error(f"Error in home route: {str(e)}")
+        traceback.print_exc()
         return f"Error loading home page: {str(e)}", 500
 
 @app.route('/dashboard')
@@ -1004,10 +1025,47 @@ def dashboard():
             'trend_metrics': trend_metrics_count
         }
         
+        # Add a sample metric for display in the UI
+        sample_metric = None
+        if metrics and len(metrics) > 0:
+            sample_metric = metrics[0]
+            logger.info(f"Sample metric data: {json.dumps(sample_metric, cls=DateTimeEncoder)}")
+        
+        # Log metrics categories and names for debugging
+        unique_categories = {m.get('category') for m in metrics if m.get('category')}
+        unique_names = {m.get('name') for m in metrics if m.get('name')}
+        logger.info(f"Metrics categories: {unique_categories}")
+        logger.info(f"Metrics names: {[m.get('name') for m in metrics if m.get('name')]}")
+        
         logger.info(f"Rendering dashboard with {len(metrics)} metrics")
-        return render_template("dashboard_new.html", **context)
+        
+        # Try the collapsible template first, then simplified, then fall back to the original
+        use_collapsible = request.args.get('collapsible', 'true').lower() == 'true'  # Default to collapsible
+        
+        if use_collapsible:
+            try:
+                logger.info("Using collapsible dashboard template")
+                return render_template("dashboard_collapsible.html", **context)
+            except jinja2.exceptions.TemplateNotFound:
+                logger.warning("Collapsible dashboard template not found, falling back to simplified")
+                use_collapsible = False
+            except Exception as template_error:
+                logger.error(f"Error rendering collapsible dashboard: {str(template_error)}, falling back to simplified")
+                use_collapsible = False
+        
+        # If not using collapsible or if it failed, try simplified template
+        try:
+            logger.info("Using simplified dashboard template")
+            return render_template("dashboard_simplified.html", **context)
+        except jinja2.exceptions.TemplateNotFound:
+            logger.warning("Simplified dashboard template not found, falling back to dashboard_new.html")
+            return render_template("dashboard_new.html", **context)
+        except Exception as e:
+            logger.error(f"Error rendering simplified dashboard: {str(e)}, falling back to dashboard_new.html")
+            return render_template("dashboard_new.html", **context)
     except Exception as e:
         logger.error(f"Error in dashboard route: {str(e)}")
+        traceback.print_exc()
         return f"Error loading dashboard: {str(e)}", 500
 
 @app.route('/api/metrics')
@@ -1220,39 +1278,32 @@ def api_realtime_search():
 # Update the search route to use the enhanced search
 @app.route('/search')
 def search():
-    """Redirects users to the enhanced Sustainability Co-Pilot interface"""
+    """Redirects users to the home page with Co-Pilot for searches"""
     try:
         query = request.args.get('query', '')
-        model = request.args.get('model', 'copilot')  # Default to Co-Pilot mode
-        
-        logger.info(f"Search requested with query: '{query}', redirecting to Co-Pilot interface")
-        
-        # Initialize variables needed for template rendering
-        results = []
-        explanation = None
         
         # If query was provided, store it for the Co-Pilot to access
         if query:
-            # Store the query in session for the Co-Pilot to use
-            session_data = session.get('copilot_context', {})
-            session_data['last_search_query'] = query
-            session_data['last_search_time'] = datetime.now().isoformat()
-            session['copilot_context'] = session_data
-            
-            logger.info(f"Stored query '{query}' in session for Co-Pilot")
-            
-        # Render the search template which now promotes the Co-Pilot
-        return render_template(
-            "search.html", 
-            query=query, 
-            results=results, 
-            model=model, 
-            enhanced_search_available=ENHANCED_SEARCH_AVAILABLE,
-            explanation=explanation
-        )
+            try:
+                # Store the query in session for the Co-Pilot to use
+                session_data = session.get('copilot_context', {})
+                session_data['last_search_query'] = query
+                session_data['last_search_time'] = datetime.now().isoformat()
+                session['copilot_context'] = session_data
+                
+                logger.info(f"Stored query '{query}' in session for Co-Pilot")
+                # Redirect with a flag to open Co-Pilot automatically
+                return redirect(url_for('home', open_copilot=True, copilot_query=query))
+            except Exception as session_error:
+                logger.warning(f"Failed to store query in session: {str(session_error)}")
+        
+        # Simply redirect to home
+        logger.info("Search requested, redirecting to home with Co-Pilot")
+        return redirect(url_for('home', open_copilot=True))
     except Exception as e:
         logger.error(f"Error in search route: {str(e)}")
-        return f"Error loading search page: {str(e)}", 500
+        traceback.print_exc()
+        return redirect(url_for('home'))
 
 # AI-powered trend analysis endpoint
 @app.route('/trend-analysis')
@@ -1271,16 +1322,40 @@ def trend_analysis():
         categories = list(set(metric["category"] for metric in metrics))
         logger.info(f"Available categories for trend analysis: {categories}")
 
-        # Check if the new standardized template exists, otherwise fall back to the original
+        # Prepare context data for template
+        context = {
+            'metrics': metrics,
+            'categories': categories,
+            'active_page': 'trend-analysis',
+            'title': 'Sustainability Trend Analysis',
+            'description': 'Analyze sustainability trends and predictions'
+        }
+        
+        # Try the collapsible template first, then unified simplified, then fall back to others
+        use_collapsible = request.args.get('collapsible', 'true').lower() == 'true'  # Default to collapsible
+        
+        if use_collapsible:
+            try:
+                logger.info("Using collapsible trend analysis template")
+                return render_template("trend_analysis_collapsible.html", **context)
+            except jinja2.exceptions.TemplateNotFound:
+                logger.warning("Collapsible trend analysis template not found, falling back to unified")
+                use_collapsible = False
+            except Exception as template_error:
+                logger.error(f"Error rendering collapsible trend analysis: {str(template_error)}, falling back to unified")
+                use_collapsible = False
+        
+        # Try the unified simplified template if not using collapsible or if it failed
         try:
-            return render_template("trend_analysis_new.html", 
-                                metrics=metrics, 
-                                categories=categories)
+            logger.info("Using unified trend analysis template")
+            return render_template("trend_analysis_unified.html", **context)
         except jinja2.exceptions.TemplateNotFound:
-            logger.warning("New standardized template not found, using original template")
-            return render_template("trend_analysis.html", 
-                                metrics=metrics, 
-                                categories=categories)
+            logger.warning("Unified template not found, trying alternative")
+            try:
+                return render_template("trend_analysis_new.html", **context)
+            except jinja2.exceptions.TemplateNotFound:
+                logger.warning("New template not found either, using original template")
+                return render_template("trend_analysis.html", **context)
     except Exception as e:
         logger.error(f"Error in trend analysis route: {str(e)}")
         return f"Error loading trend analysis: {str(e)}", 500
@@ -1966,9 +2041,27 @@ def sustainability():
     """Sustainability page for corporate sustainability intelligence"""
     try:
         logger.info("Sustainability page requested")
+        
+        # Try the collapsible template first, then fall back to the standard template
+        use_collapsible = request.args.get('collapsible', 'true').lower() == 'true'  # Default to collapsible
+        
+        if use_collapsible:
+            try:
+                logger.info("Using collapsible sustainability template")
+                return render_template("sustainability_collapsible.html")
+            except jinja2.exceptions.TemplateNotFound:
+                logger.warning("Collapsible sustainability template not found, falling back to standard")
+                use_collapsible = False
+            except Exception as template_error:
+                logger.error(f"Error rendering collapsible sustainability: {str(template_error)}, falling back to standard")
+                use_collapsible = False
+        
+        # Fall back to standard template
+        logger.info("Using standard sustainability template")
         return render_template("sustainability.html")
     except Exception as e:
         logger.error(f"Error in sustainability route: {str(e)}")
+        traceback.print_exc()
         return f"Error loading sustainability page: {str(e)}", 500
 
 # Add a route for the stories page
@@ -1989,10 +2082,27 @@ def sustainability_stories():
             logger.info("Using mock stories data")
             # Mock stories if API fails
             stories = get_mock_stories()
-
+        
+        # Try the collapsible template first, then fall back to the standard template
+        use_collapsible = request.args.get('collapsible', 'true').lower() == 'true'  # Default to collapsible
+        
+        if use_collapsible:
+            try:
+                logger.info("Using collapsible sustainability stories template")
+                return render_template("sustainability_stories_collapsible.html", stories=stories)
+            except jinja2.exceptions.TemplateNotFound:
+                logger.warning("Collapsible sustainability stories template not found, falling back to standard")
+                use_collapsible = False
+            except Exception as template_error:
+                logger.error(f"Error rendering collapsible sustainability stories: {str(template_error)}, falling back to standard")
+                use_collapsible = False
+        
+        # Fall back to standard template
+        logger.info("Using standard sustainability stories template")
         return render_template("sustainability_stories.html", stories=stories)
     except Exception as e:
         logger.error(f"Error in sustainability stories route: {str(e)}")
+        traceback.print_exc()
         return f"Error loading sustainability stories: {str(e)}", 500
 
 # Helper function to generate mock stories
@@ -2138,9 +2248,27 @@ def analytics_dashboard():
     """AI-powered sustainability analytics dashboard"""
     try:
         logger.info("Analytics dashboard page requested")
+        
+        # Try the collapsible template first, then fall back to the standard template
+        use_collapsible = request.args.get('collapsible', 'true').lower() == 'true'  # Default to collapsible
+        
+        if use_collapsible:
+            try:
+                logger.info("Using collapsible analytics dashboard template")
+                return render_template("analytics_dashboard_collapsible.html")
+            except jinja2.exceptions.TemplateNotFound:
+                logger.warning("Collapsible analytics dashboard template not found, falling back to standard")
+                use_collapsible = False
+            except Exception as template_error:
+                logger.error(f"Error rendering collapsible analytics dashboard: {str(template_error)}, falling back to standard")
+                use_collapsible = False
+        
+        # Fall back to standard template
+        logger.info("Using standard analytics dashboard template")
         return render_template("analytics_dashboard.html")
     except Exception as e:
         logger.error(f"Error in analytics dashboard route: {str(e)}")
+        traceback.print_exc()
         return f"Error loading analytics dashboard: {str(e)}", 500
 
 # Add a route for monetization opportunities page
@@ -2149,9 +2277,27 @@ def monetization_opportunities():
     """Monetization opportunities page"""
     try:
         logger.info("Monetization opportunities page requested")
+        
+        # Try the collapsible template first, then fall back to the standard template
+        use_collapsible = request.args.get('collapsible', 'true').lower() == 'true'  # Default to collapsible
+        
+        if use_collapsible:
+            try:
+                logger.info("Using collapsible monetization opportunities template")
+                return render_template("monetization_collapsible.html")
+            except jinja2.exceptions.TemplateNotFound:
+                logger.warning("Collapsible monetization template not found, falling back to standard")
+                use_collapsible = False
+            except Exception as template_error:
+                logger.error(f"Error rendering collapsible monetization: {str(template_error)}, falling back to standard")
+                use_collapsible = False
+        
+        # Fall back to standard template
+        logger.info("Using standard monetization template")
         return render_template("monetization.html")
     except Exception as e:
         logger.error(f"Error in monetization opportunities route: {str(e)}")
+        traceback.print_exc()
         return f"Error loading monetization opportunities page: {str(e)}", 500
 
 # Add a test endpoint to check routing issues
@@ -2186,9 +2332,20 @@ def realestate_minimal_dashboard():
     """Minimalist Finchat-inspired Real Estate Dashboard"""
     try:
         logger.info("Minimal Finchat-inspired real estate dashboard requested")
-        return render_template("realestate_unified_minimal.html")
+        
+        # Try the new finchat template first, fall back to the original if needed
+        try:
+            return render_template("realestate_finchat.html")
+        except jinja2.exceptions.TemplateNotFound:
+            logger.warning("Finchat real estate template not found, falling back to unified minimal")
+            return render_template("realestate_unified_minimal.html")
+        except Exception as template_error:
+            logger.error(f"Error rendering finchat real estate template: {str(template_error)}")
+            # Fall back to the original template
+            return render_template("realestate_unified_minimal.html")
     except Exception as e:
         logger.error(f"Error in minimal real estate dashboard: {str(e)}")
+        traceback.print_exc()
         return f"Error loading minimal real estate dashboard: {str(e)}", 500
 
 # AI Prompt API endpoint for Finchat-inspired interface
@@ -2851,6 +3008,23 @@ def document_upload():
     """Document upload page for AI-powered sustainability document analysis"""
     try:
         logger.info("Document upload page requested")
+        
+        # Try the collapsible template first, then fall back to the standard template
+        use_collapsible = request.args.get('collapsible', 'true').lower() == 'true'  # Default to collapsible
+        
+        if use_collapsible:
+            try:
+                logger.info("Using collapsible document upload template")
+                return render_template("document_upload_collapsible.html")
+            except jinja2.exceptions.TemplateNotFound:
+                logger.warning("Collapsible document upload template not found, falling back to standard")
+                use_collapsible = False
+            except Exception as template_error:
+                logger.error(f"Error rendering collapsible document upload: {str(template_error)}, falling back to standard")
+                use_collapsible = False
+        
+        # Fall back to standard template
+        logger.info("Using standard document upload template")
         return render_template("document_upload.html")
     except Exception as e:
         logger.error(f"Error in document upload route: {str(e)}")
@@ -3077,6 +3251,62 @@ def generate_compliance_report(document_id):
             'success': False,
             'error': f'Error generating report: {str(e)}'
         }), 500
+
+@app.route('/api/sustainability-document-query', methods=['POST'])
+def api_sustainability_document_query():
+    """API endpoint for querying an uploaded sustainability document using RAG"""
+    try:
+        if not request.is_json:
+            return jsonify({"error": "Request must be JSON", "success": False}), 400
+            
+        data = request.get_json()
+        document_id = data.get('document_id')
+        query = data.get('query')
+        
+        if not document_id or not query:
+            return jsonify({"error": "Document ID and query are required", "success": False}), 400
+            
+        # Check if document exists
+        filepath = os.path.join(UPLOAD_FOLDER, document_id)
+        if not os.path.exists(filepath):
+            return jsonify({"error": "Document not found", "success": False}), 404
+        
+        # Check if document processor is available
+        if not DOCUMENT_PROCESSOR_AVAILABLE:
+            return jsonify({"error": "Document analysis service unavailable", "success": False}), 500
+            
+        # Get document content
+        try:
+            result = document_processor.process_document(filepath, use_ocr=False)
+            if not result['success']:
+                raise Exception(result.get('error', 'Unknown error'))
+                
+            document_text = result['text']
+        except Exception as e:
+            logger.error(f"Error retrieving document content: {str(e)}")
+            return jsonify({
+                "error": f"Error retrieving document: {str(e)}",
+                "success": False
+            }), 500
+            
+        # Generate RAG response
+        try:
+            rag_result = document_processor.generate_rag_response(document_text, query)
+            
+            # Add success flag
+            rag_result['success'] = True
+            
+            return jsonify(rag_result)
+        except Exception as e:
+            logger.error(f"Error generating RAG response: {str(e)}")
+            return jsonify({
+                "error": f"Error answering question: {str(e)}",
+                "success": False
+            }), 500
+            
+    except Exception as e:
+        logger.error(f"Error in document query endpoint: {str(e)}")
+        return jsonify({"error": str(e), "success": False}), 500
 
 @app.route('/api/integrated-search', methods=['GET', 'POST'])
 def api_integrated_search():

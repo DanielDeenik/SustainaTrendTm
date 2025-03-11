@@ -1,0 +1,680 @@
+{% extends "layouts/collapsible_layout.html" %}
+
+{% block title %}Analytics Dashboard | SustainaTrend™{% endblock %}
+
+{% block header_title %}Analytics Dashboard{% endblock %}
+
+{% block header_actions %}
+<button class="finchat-button" id="refresh-data-btn">
+    <span class="material-icons">refresh</span>
+    <span>Refresh Data</span>
+</button>
+{% endblock %}
+
+{% block additional_css %}
+<style>
+    .analytics-container {
+        display: grid;
+        grid-template-columns: repeat(auto-fill, minmax(350px, 1fr));
+        gap: 20px;
+        margin-bottom: 30px;
+    }
+    
+    .kpi-card {
+        background-color: var(--card-bg);
+        border-radius: 12px;
+        padding: 24px;
+        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
+        display: flex;
+        flex-direction: column;
+        transition: all var(--transition-speed);
+        overflow: hidden;
+        position: relative;
+    }
+    
+    .kpi-card:hover {
+        transform: translateY(-4px);
+        box-shadow: 0 8px 16px rgba(0, 0, 0, 0.1);
+    }
+    
+    .kpi-card-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 16px;
+    }
+    
+    .kpi-card-title {
+        font-size: 16px;
+        font-weight: 600;
+        color: var(--text-color);
+        margin: 0;
+    }
+    
+    .kpi-card-value {
+        font-size: 32px;
+        font-weight: 700;
+        color: var(--primary-color);
+        margin: 10px 0;
+    }
+    
+    .kpi-card-change {
+        display: flex;
+        align-items: center;
+        font-size: 14px;
+        font-weight: 500;
+    }
+    
+    .kpi-card-change.positive {
+        color: #2e7d32;
+    }
+    
+    .kpi-card-change.negative {
+        color: #c62828;
+    }
+    
+    .kpi-card-change .material-icons {
+        font-size: 18px;
+        margin-right: 5px;
+    }
+    
+    .kpi-card-description {
+        font-size: 14px;
+        color: var(--text-muted);
+        margin-top: 10px;
+    }
+    
+    .chart-card {
+        background-color: var(--card-bg);
+        border-radius: 12px;
+        padding: 24px;
+        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
+        margin-bottom: 20px;
+        transition: all var(--transition-speed);
+    }
+    
+    .chart-card:hover {
+        transform: translateY(-4px);
+        box-shadow: 0 8px 16px rgba(0, 0, 0, 0.1);
+    }
+    
+    .chart-card-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 20px;
+    }
+    
+    .chart-card-title {
+        font-size: 18px;
+        font-weight: 600;
+        color: var(--heading-color);
+        margin: 0;
+    }
+    
+    .chart-card-controls {
+        display: flex;
+        gap: 10px;
+    }
+    
+    .chart-container {
+        height: 300px;
+        width: 100%;
+    }
+    
+    .insight-card {
+        background-color: rgba(var(--primary-rgb), 0.05);
+        border-radius: 12px;
+        padding: 20px;
+        margin-top: 20px;
+        border-left: 4px solid var(--primary-color);
+    }
+    
+    .insight-card-title {
+        font-size: 16px;
+        font-weight: 600;
+        color: var(--primary-color);
+        margin: 0 0 10px 0;
+        display: flex;
+        align-items: center;
+    }
+    
+    .insight-card-title .material-icons {
+        margin-right: 8px;
+    }
+    
+    .insight-card-content {
+        font-size: 14px;
+        line-height: 1.5;
+        color: var(--text-color);
+    }
+    
+    .metric-group {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 10px;
+        margin-top: 15px;
+    }
+    
+    .metric-badge {
+        background-color: rgba(var(--primary-rgb), 0.1);
+        color: var(--primary-color);
+        border-radius: 20px;
+        padding: 6px 12px;
+        font-size: 13px;
+        font-weight: 500;
+    }
+    
+    .toggle-view-btn {
+        background: transparent;
+        border: 1px solid var(--border-color);
+        border-radius: 4px;
+        padding: 6px 12px;
+        cursor: pointer;
+        display: flex;
+        align-items: center;
+        gap: 6px;
+        transition: all var(--transition-speed);
+    }
+    
+    .toggle-view-btn:hover {
+        background-color: var(--secondary-bg);
+    }
+    
+    .toggle-view-btn .material-icons {
+        font-size: 18px;
+    }
+    
+    /* Data story section */
+    .data-story {
+        background-color: var(--card-bg);
+        border-radius: 12px;
+        padding: 24px;
+        margin-bottom: 30px;
+        border-left: 4px solid var(--primary-color);
+    }
+    
+    .data-story-title {
+        font-size: 20px;
+        font-weight: 600;
+        color: var(--heading-color);
+        margin: 0 0 15px 0;
+    }
+    
+    .data-story-content {
+        font-size: 15px;
+        line-height: 1.6;
+        color: var(--text-color);
+    }
+    
+    .data-story-highlight {
+        font-weight: 600;
+        color: var(--primary-color);
+    }
+    
+    .data-story-metrics {
+        display: flex;
+        gap: 20px;
+        margin: 20px 0;
+        flex-wrap: wrap;
+    }
+    
+    .data-story-metric {
+        background-color: var(--card-bg);
+        border: 1px solid var(--border-color);
+        border-radius: 8px;
+        padding: 15px;
+        flex: 1;
+        min-width: 180px;
+        text-align: center;
+    }
+    
+    .data-story-metric-value {
+        font-size: 24px;
+        font-weight: 700;
+        color: var(--primary-color);
+        margin: 0 0 5px 0;
+    }
+    
+    .data-story-metric-label {
+        font-size: 14px;
+        color: var(--text-muted);
+    }
+    
+    /* Action items */
+    .action-items {
+        margin-top: 30px;
+    }
+    
+    .action-item {
+        display: flex;
+        align-items: flex-start;
+        gap: 15px;
+        padding: 15px;
+        background-color: rgba(var(--primary-rgb), 0.03);
+        border-radius: 8px;
+        margin-bottom: 10px;
+    }
+    
+    .action-item-icon {
+        background-color: var(--primary-color);
+        color: white;
+        width: 36px;
+        height: 36px;
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+    }
+    
+    .action-item-content {
+        flex: 1;
+    }
+    
+    .action-item-title {
+        font-weight: 600;
+        margin-bottom: 5px;
+        color: var(--heading-color);
+    }
+    
+    .action-item-description {
+        font-size: 14px;
+        color: var(--text-color);
+        margin: 0;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="st-container">
+    <!-- AI-Generated Data Story -->
+    <div class="data-story">
+        <h2 class="data-story-title">Executive Summary</h2>
+        <div class="data-story-content">
+            <p>Over the past quarter, your organization has shown significant progress in key sustainability metrics. 
+            <span class="data-story-highlight">Carbon emissions decreased by 12%</span> compared to the previous quarter, 
+            exceeding your target of 8%. Water usage efficiency improved by 5%, contributing to overall resource conservation efforts.</p>
+            
+            <p>The most notable improvement has been in <span class="data-story-highlight">renewable energy adoption</span>, 
+            which increased from 28% to 35% of total energy consumption. This puts you ahead of industry average (29%) 
+            and positions your organization well for the upcoming regulatory changes.</p>
+        </div>
+        
+        <div class="data-story-metrics">
+            <div class="data-story-metric">
+                <div class="data-story-metric-value">-12%</div>
+                <div class="data-story-metric-label">Carbon Emissions</div>
+            </div>
+            <div class="data-story-metric">
+                <div class="data-story-metric-value">35%</div>
+                <div class="data-story-metric-label">Renewable Energy</div>
+            </div>
+            <div class="data-story-metric">
+                <div class="data-story-metric-value">87</div>
+                <div class="data-story-metric-label">ESG Score</div>
+            </div>
+        </div>
+    </div>
+
+    <!-- KPI Cards -->
+    <h3 class="st-section-title">Key Performance Indicators</h3>
+    <div class="analytics-container">
+        <div class="kpi-card">
+            <div class="kpi-card-header">
+                <h3 class="kpi-card-title">Carbon Emissions</h3>
+                <span class="material-icons" style="color: var(--primary-color);">co2</span>
+            </div>
+            <div class="kpi-card-value">12,450 t</div>
+            <div class="kpi-card-change positive">
+                <span class="material-icons">trending_down</span>
+                -12% from last quarter
+            </div>
+            <div class="kpi-card-description">Total CO2 equivalent emissions across all operations</div>
+        </div>
+        
+        <div class="kpi-card">
+            <div class="kpi-card-header">
+                <h3 class="kpi-card-title">Energy Consumption</h3>
+                <span class="material-icons" style="color: var(--primary-color);">bolt</span>
+            </div>
+            <div class="kpi-card-value">8.2M kWh</div>
+            <div class="kpi-card-change positive">
+                <span class="material-icons">trending_down</span>
+                -3% from last quarter
+            </div>
+            <div class="kpi-card-description">Total energy usage across all facilities</div>
+        </div>
+        
+        <div class="kpi-card">
+            <div class="kpi-card-header">
+                <h3 class="kpi-card-title">Water Usage</h3>
+                <span class="material-icons" style="color: var(--primary-color);">water_drop</span>
+            </div>
+            <div class="kpi-card-value">356K m³</div>
+            <div class="kpi-card-change positive">
+                <span class="material-icons">trending_down</span>
+                -5% from last quarter
+            </div>
+            <div class="kpi-card-description">Total water consumption across operations</div>
+        </div>
+        
+        <div class="kpi-card">
+            <div class="kpi-card-header">
+                <h3 class="kpi-card-title">Renewable Energy</h3>
+                <span class="material-icons" style="color: var(--primary-color);">wb_sunny</span>
+            </div>
+            <div class="kpi-card-value">35%</div>
+            <div class="kpi-card-change positive">
+                <span class="material-icons">trending_up</span>
+                +7% from last quarter
+            </div>
+            <div class="kpi-card-description">Percentage of energy from renewable sources</div>
+        </div>
+    </div>
+    
+    <!-- Charts -->
+    <div class="st-row">
+        <div class="st-col-12">
+            <div class="chart-card">
+                <div class="chart-card-header">
+                    <h3 class="chart-card-title">Carbon Emissions Trend</h3>
+                    <div class="chart-card-controls">
+                        <button class="toggle-view-btn">
+                            <span class="material-icons">stacked_line_chart</span>
+                            <span>Line</span>
+                        </button>
+                        <button class="toggle-view-btn">
+                            <span class="material-icons">calendar_today</span>
+                            <span>Quarterly</span>
+                        </button>
+                    </div>
+                </div>
+                <div class="chart-container" id="emissions-trend-chart"></div>
+                
+                <div class="insight-card">
+                    <h4 class="insight-card-title">
+                        <span class="material-icons">lightbulb</span>
+                        AI Insight
+                    </h4>
+                    <div class="insight-card-content">
+                        <p>Carbon emissions continue their downward trend, with a significant drop of 12% this quarter. 
+                        This reduction is largely attributed to the recent energy efficiency initiatives and increased 
+                        renewable energy usage in your manufacturing facilities.</p>
+                        
+                        <p>At this rate, you're on track to meet your annual reduction target of 20%, currently at 15% YTD.</p>
+                        
+                        <div class="metric-group">
+                            <span class="metric-badge">Factory A: -18%</span>
+                            <span class="metric-badge">Factory B: -8%</span>
+                            <span class="metric-badge">Office HQ: -12%</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <div class="st-row">
+        <div class="st-col-6">
+            <div class="chart-card">
+                <div class="chart-card-header">
+                    <h3 class="chart-card-title">Energy Mix</h3>
+                </div>
+                <div class="chart-container" id="energy-mix-chart"></div>
+            </div>
+        </div>
+        
+        <div class="st-col-6">
+            <div class="chart-card">
+                <div class="chart-card-header">
+                    <h3 class="chart-card-title">Water Usage by Facility</h3>
+                </div>
+                <div class="chart-container" id="water-usage-chart"></div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Recommended Actions -->
+    <h3 class="st-section-title">Recommended Actions</h3>
+    <div class="action-items">
+        <div class="action-item">
+            <div class="action-item-icon">
+                <span class="material-icons">priority_high</span>
+            </div>
+            <div class="action-item-content">
+                <h4 class="action-item-title">Optimize HVAC Systems in Factory B</h4>
+                <p class="action-item-description">Factory B shows higher energy consumption for cooling compared to other facilities. 
+                Consider optimizing HVAC systems to achieve potential 8-10% energy savings.</p>
+            </div>
+        </div>
+        
+        <div class="action-item">
+            <div class="action-item-icon">
+                <span class="material-icons">lightbulb</span>
+            </div>
+            <div class="action-item-content">
+                <h4 class="action-item-title">Expand Solar Panel Installation</h4>
+                <p class="action-item-description">Based on current energy usage patterns and available roof space, 
+                expanding solar panel installation at HQ would increase renewable energy share by approximately 5%.</p>
+            </div>
+        </div>
+        
+        <div class="action-item">
+            <div class="action-item-icon">
+                <span class="material-icons">water_drop</span>
+            </div>
+            <div class="action-item-content">
+                <h4 class="action-item-title">Implement Water Recycling in Production</h4>
+                <p class="action-item-description">Analysis shows potential for 20% reduction in water usage by implementing 
+                closed-loop water recycling systems in production processes.</p>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block additional_js %}
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        // Initialize charts
+        initializeEmissionsTrendChart();
+        initializeEnergyMixChart();
+        initializeWaterUsageChart();
+        
+        // Refresh button functionality
+        document.getElementById('refresh-data-btn').addEventListener('click', function() {
+            // Show loading spinner
+            this.innerHTML = '<span class="material-icons spinning">refresh</span><span>Refreshing...</span>';
+            this.disabled = true;
+            
+            // Simulate data refresh
+            setTimeout(() => {
+                // Reset button
+                this.innerHTML = '<span class="material-icons">refresh</span><span>Refresh Data</span>';
+                this.disabled = false;
+                
+                // Show toast notification
+                showToast('Data refreshed successfully');
+                
+                // Re-render charts with new data
+                initializeEmissionsTrendChart();
+                initializeEnergyMixChart();
+                initializeWaterUsageChart();
+            }, 1500);
+        });
+        
+        // Toggle view buttons
+        document.querySelectorAll('.toggle-view-btn').forEach(btn => {
+            btn.addEventListener('click', function() {
+                // Toggle active state
+                document.querySelectorAll('.toggle-view-btn').forEach(b => b.classList.remove('active'));
+                this.classList.add('active');
+                
+                // In a real app, this would update the chart
+                showToast('View updated');
+            });
+        });
+    });
+    
+    // Initialize carbon emissions trend chart
+    function initializeEmissionsTrendChart() {
+        const ctx = document.getElementById('emissions-trend-chart');
+        
+        const data = {
+            x: ['Q1 2024', 'Q2 2024', 'Q3 2024', 'Q4 2024', 'Q1 2025'],
+            y: [15200, 14800, 13900, 13100, 12450],
+            type: 'scatter',
+            mode: 'lines+markers',
+            name: 'Carbon Emissions (tonnes)',
+            line: {
+                color: '#2e7d32',
+                width: 3
+            },
+            marker: {
+                size: 8
+            }
+        };
+        
+        const layout = {
+            autosize: true,
+            margin: {
+                l: 50,
+                r: 50,
+                b: 50,
+                t: 30,
+                pad: 4
+            },
+            hovermode: 'closest',
+            xaxis: {
+                title: 'Quarter'
+            },
+            yaxis: {
+                title: 'Emissions (tonnes CO2e)'
+            },
+            showlegend: false
+        };
+        
+        const config = {
+            responsive: true
+        };
+        
+        Plotly.newPlot(ctx, [data], layout, config);
+    }
+    
+    // Initialize energy mix chart
+    function initializeEnergyMixChart() {
+        const ctx = document.getElementById('energy-mix-chart');
+        
+        const data = [{
+            values: [35, 30, 25, 10],
+            labels: ['Renewable', 'Natural Gas', 'Grid Electricity', 'Other'],
+            type: 'pie',
+            marker: {
+                colors: ['#4CAF50', '#FFC107', '#2196F3', '#9E9E9E']
+            },
+            hole: 0.4,
+            textinfo: 'label+percent',
+            insidetextorientation: 'radial'
+        }];
+        
+        const layout = {
+            autosize: true,
+            margin: {
+                l: 20,
+                r: 20,
+                b:
+                20,
+                t: 30,
+                pad: 4
+            },
+            showlegend: false,
+            annotations: [{
+                font: {
+                    size: 16
+                },
+                showarrow: false,
+                text: 'Energy<br>Sources',
+                x: 0.5,
+                y: 0.5
+            }]
+        };
+        
+        const config = {
+            responsive: true
+        };
+        
+        Plotly.newPlot(ctx, data, layout, config);
+    }
+    
+    // Initialize water usage chart
+    function initializeWaterUsageChart() {
+        const ctx = document.getElementById('water-usage-chart');
+        
+        const data = [{
+            x: ['Factory A', 'Factory B', 'Factory C', 'Office HQ'],
+            y: [180000, 120000, 45000, 11000],
+            type: 'bar',
+            marker: {
+                color: '#2196F3'
+            }
+        }];
+        
+        const layout = {
+            autosize: true,
+            margin: {
+                l: 50,
+                r: 20,
+                b: 50,
+                t: 30,
+                pad: 4
+            },
+            xaxis: {
+                title: 'Facility'
+            },
+            yaxis: {
+                title: 'Water Usage (m³)'
+            },
+            showlegend: false
+        };
+        
+        const config = {
+            responsive: true
+        };
+        
+        Plotly.newPlot(ctx, data, layout, config);
+    }
+    
+    // Toast notification
+    function showToast(message) {
+        // Create toast element if it doesn't exist
+        let toast = document.getElementById('toast-notification');
+        if (!toast) {
+            toast = document.createElement('div');
+            toast.id = 'toast-notification';
+            toast.style.position = 'fixed';
+            toast.style.bottom = '20px';
+            toast.style.right = '20px';
+            toast.style.backgroundColor = 'var(--primary-color)';
+            toast.style.color = 'white';
+            toast.style.padding = '12px 20px';
+            toast.style.borderRadius = '4px';
+            toast.style.boxShadow = '0 2px 10px rgba(0, 0, 0, 0.2)';
+            toast.style.zIndex = '9999';
+            toast.style.transition = 'opacity 0.3s ease';
+            toast.style.display = 'flex';
+            toast.style.alignItems = 'center';
+            toast.style.gap = '8px';
+            document.body.appendChild(toast);
+        }
+        
+        // Set message
+        toast.innerHTML = `<span class="material-icons">check_circle</span> ${message}`;
+        toast.style.opacity = '1';
+        
+        // Auto hide after 3 seconds
+        setTimeout(() => {
+            toast.style.opacity = '0';
+        }, 3000);
+    }
+</script>
+{% endblock %}

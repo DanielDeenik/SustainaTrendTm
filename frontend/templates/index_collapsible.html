@@ -1,0 +1,276 @@
+{% extends "layouts/collapsible_layout.html" %}
+
+{% block title %}SustainaTrend™ Intelligence Platform{% endblock %}
+
+{% block header_title %}Sustainability Intelligence Platform{% endblock %}
+
+{% block header_actions %}
+    <button class="btn-primary" id="toggle-copilot-button" onclick="window.copilotInstance.toggleCopilot()">
+        <span class="material-icons">smart_toy</span>
+        Open Co-Pilot
+    </button>
+{% endblock %}
+
+{% block additional_css %}
+<style>
+    .feature-card {
+        background-color: #fff;
+        border-radius: 8px;
+        box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        padding: 0;
+        margin-bottom: 20px;
+        overflow: hidden;
+        transition: transform 0.3s ease;
+    }
+    
+    .feature-card:hover {
+        transform: translateY(-5px);
+    }
+    
+    .feature-header {
+        padding: 20px;
+        background: linear-gradient(135deg, #1e5631, #2e7d32);
+        color: white;
+    }
+    
+    .feature-title {
+        margin: 0;
+        font-size: 1.5rem;
+        font-weight: 600;
+    }
+    
+    .feature-body {
+        padding: 20px;
+    }
+    
+    .feature-footer {
+        padding: 15px 20px;
+        background-color: #f5f5f5;
+        display: flex;
+        justify-content: flex-end;
+    }
+    
+    .btn-feature {
+        padding: 8px 15px;
+        border-radius: 4px;
+        background-color: #2e7d32;
+        color: white;
+        text-decoration: none;
+        font-weight: 500;
+        display: inline-flex;
+        align-items: center;
+        transition: background-color 0.3s;
+    }
+    
+    .btn-feature:hover {
+        background-color: #1b5e20;
+        color: white;
+    }
+    
+    .btn-feature .material-icons {
+        font-size: 18px;
+        margin-right: 5px;
+    }
+    
+    .welcome-banner {
+        background: linear-gradient(135deg, rgba(46, 125, 50, 0.9), rgba(27, 94, 32, 0.9));
+        border-radius: 8px;
+        padding: 25px;
+        color: white;
+        margin-bottom: 30px;
+    }
+    
+    .badge-ai {
+        background-color: #ffcdd2;
+        color: #c62828;
+        padding: 3px 8px;
+        border-radius: 4px;
+        font-size: 0.8rem;
+        font-weight: 500;
+        display: inline-flex;
+        align-items: center;
+    }
+    
+    .badge-ai .material-icons {
+        font-size: 16px;
+        margin-right: 3px;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="st-content-area">
+    <div class="st-content-header">
+        <div class="st-content-header-info">
+            <h1 class="st-content-title">SustainaTrend™ Intelligence Platform</h1>
+            <p class="st-content-description">Transforming complex sustainability data into actionable insights</p>
+        </div>
+    </div>
+
+    <div class="st-data-card">
+        <div class="st-data-card-header">
+            <h3 class="st-data-card-title">AI Co-Pilot Assistant</h3>
+            <button class="st-data-toggle">
+                <span class="material-icons">expand_more</span>
+            </button>
+        </div>
+        <div class="st-data-content">
+            <div class="welcome-banner">
+                <h3>Welcome to SustainaTrend™ 2025!</h3>
+                <p>Our platform has been enhanced with an intelligent AI Co-Pilot that's integrated across all features. Ask questions, request insights, or get assistance anywhere in the platform.</p>
+                
+                <button class="st-btn-primary mt-3" onclick="window.copilotInstance.toggleCopilot()">
+                    <span class="material-icons">smart_toy</span> Try the Co-Pilot Now
+                </button>
+            </div>
+            
+            <div class="mb-4">
+                <h4>The AI Co-Pilot can help you:</h4>
+                <ul class="st-feature-list">
+                    <li><span class="material-icons text-success">check_circle</span> Navigate the platform and find specific features</li>
+                    <li><span class="material-icons text-success">check_circle</span> Generate insights from your sustainability data</li>
+                    <li><span class="material-icons text-success">check_circle</span> Answer questions about sustainability frameworks</li>
+                    <li><span class="material-icons text-success">check_circle</span> Create custom reports and presentations</li>
+                </ul>
+            </div>
+        </div>
+    </div>
+
+    <div class="st-data-card">
+        <div class="st-data-card-header">
+            <h3 class="st-data-card-title">Platform Features</h3>
+            <button class="st-data-toggle">
+                <span class="material-icons">expand_more</span>
+            </button>
+        </div>
+        <div class="st-data-content">
+            <div class="row">
+                <div class="col-md-6">
+                    <div class="feature-card">
+                        <div class="feature-header">
+                            <h3 class="feature-title">Interactive Dashboard</h3>
+                        </div>
+                        <div class="feature-body">
+                            <p>Visualize your sustainability metrics with dynamic, interactive charts and analytics. Monitor key performance indicators across environmental, social, and governance categories.</p>
+                        </div>
+                        <div class="feature-footer">
+                            <a href="/dashboard" class="btn-feature">
+                                <span class="material-icons">dashboard</span> View Dashboard
+                            </a>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="col-md-6">
+                    <div class="feature-card">
+                        <div class="feature-header">
+                            <h3 class="feature-title">AI-Powered Search</h3>
+                            <span class="badge-ai">
+                                <span class="material-icons">new_releases</span> New
+                            </span>
+                        </div>
+                        <div class="feature-body">
+                            <p>Find relevant sustainability insights using our advanced AI-powered search engine. Combines internal and external data sources to provide comprehensive results.</p>
+                        </div>
+                        <div class="feature-footer">
+                            <a href="/search" class="btn-feature">
+                                <span class="material-icons">search</span> Start Searching
+                            </a>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="col-md-6">
+                    <div class="feature-card">
+                        <div class="feature-header">
+                            <h3 class="feature-title">Trend Analysis</h3>
+                        </div>
+                        <div class="feature-body">
+                            <p>Stay ahead of the curve with our AI-powered trend analysis. Identify emerging sustainability topics, track regulatory changes, and anticipate market shifts.</p>
+                        </div>
+                        <div class="feature-footer">
+                            <a href="/trend-analysis" class="btn-feature">
+                                <span class="material-icons">trending_up</span> Analyze Trends
+                            </a>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="col-md-6">
+                    <div class="feature-card">
+                        <div class="feature-header">
+                            <h3 class="feature-title">Sustainability Stories</h3>
+                            <span class="badge-ai">
+                                <span class="material-icons">new_releases</span> Enhanced
+                            </span>
+                        </div>
+                        <div class="feature-body">
+                            <p>Transform your sustainability data into compelling narratives for stakeholders. Generate data-driven stories that highlight your sustainability achievements and progress.</p>
+                        </div>
+                        <div class="feature-footer">
+                            <a href="/sustainability-stories" class="btn-feature">
+                                <span class="material-icons">auto_stories</span> View Stories
+                            </a>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="col-md-6">
+                    <div class="feature-card">
+                        <div class="feature-header">
+                            <h3 class="feature-title">Document Analyzer</h3>
+                        </div>
+                        <div class="feature-body">
+                            <p>Upload sustainability reports and documents for AI-powered analysis. Extract key metrics, benchmark against frameworks, and identify opportunities for improvement.</p>
+                        </div>
+                        <div class="feature-footer">
+                            <a href="/document-upload" class="btn-feature">
+                                <span class="material-icons">upload_file</span> Upload Documents
+                            </a>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="col-md-6">
+                    <div class="feature-card">
+                        <div class="feature-header">
+                            <h3 class="feature-title">Real Estate Sustainability</h3>
+                            <span class="badge-ai">
+                                <span class="material-icons">new_releases</span> New
+                            </span>
+                        </div>
+                        <div class="feature-body">
+                            <p>Specialized analytics for real estate sustainability metrics. Track energy efficiency, carbon emissions, and green building certifications across your property portfolio.</p>
+                        </div>
+                        <div class="feature-footer">
+                            <a href="/realestate-trends" class="btn-feature">
+                                <span class="material-icons">apartment</span> Explore Real Estate
+                            </a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script src="{{ url_for('static', filename='js/sustainability-copilot.js') }}"></script>
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        // Initialize the Co-Pilot with home page context
+        if (typeof initSustainabilityCopilot === 'function') {
+            initSustainabilityCopilot({
+                context: 'home',
+                suggestedPrompts: [
+                    "What features does the platform offer?",
+                    "How can I analyze sustainability trends?",
+                    "Show me the latest sustainability metrics",
+                    "Generate a sustainability report for my company"
+                ]
+            });
+        }
+    });
+</script>
+{% endblock %}

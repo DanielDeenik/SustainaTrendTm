@@ -133,7 +133,7 @@ class SustainabilityCopilot {
         return data;
     }
     
-    // Create and initialize the Co-Pilot UI elements
+    // Create and initialize the Co-Pilot UI elements - Finchat-inspired
     initElements() {
         // Create the Co-Pilot panel if it doesn't exist
         if (!document.getElementById('copilot-panel')) {
@@ -144,7 +144,8 @@ class SustainabilityCopilot {
                 <div class="copilot-header">
                     <div class="copilot-title">
                         <i class="bi bi-robot"></i>
-                        <span>Sustainability Co-Pilot</span>
+                        <span>Sustainability Advisor</span>
+                        <div class="copilot-keyboard-shortcut">Ctrl+K</div>
                     </div>
                     <button class="copilot-close-button" id="copilot-close">
                         <i class="bi bi-x-lg"></i>
@@ -153,18 +154,22 @@ class SustainabilityCopilot {
                 <div class="copilot-content">
                     <div class="copilot-messages" id="copilot-messages">
                         <div class="copilot-welcome">
-                            <h3>Welcome to the Sustainability Co-Pilot</h3>
-                            <p>I'm here to help with all your sustainability intelligence needs. Ask me anything about sustainability metrics, trends, or reporting.</p>
+                            <h3>Hello, I'm your Sustainability Advisor</h3>
+                            <p>I can help you navigate sustainability data, analyze ESG metrics, create compelling sustainability stories, and answer your questions about frameworks like ESRS, GRI, and TCFD.</p>
                         </div>
                     </div>
                     <div class="copilot-suggested-prompts" id="copilot-suggested-prompts">
-                        <div class="copilot-suggested-prompt">What are the current sustainability trends?</div>
-                        <div class="copilot-suggested-prompt">How can we improve our carbon metrics?</div>
-                        <div class="copilot-suggested-prompt">Explain ESG reporting requirements</div>
+                        <div class="copilot-suggested-prompt">What are the emerging sustainability trends?</div>
+                        <div class="copilot-suggested-prompt">How can we reduce our carbon footprint?</div>
+                        <div class="copilot-suggested-prompt">Explain the ESRS framework</div>
+                        <div class="copilot-suggested-prompt">Create a sustainability story from our metrics</div>
                     </div>
                 </div>
                 <div class="copilot-input">
                     <textarea id="copilot-query" placeholder="Ask me anything about sustainability..."></textarea>
+                    <button class="voice-input" id="copilot-voice" title="Voice input (coming soon)">
+                        <i class="bi bi-mic"></i>
+                    </button>
                     <button id="copilot-submit">
                         <i class="bi bi-send"></i>
                     </button>
@@ -176,6 +181,15 @@ class SustainabilityCopilot {
             // Add event listeners
             document.getElementById('copilot-close').addEventListener('click', this.toggleCopilot);
             document.getElementById('copilot-submit').addEventListener('click', this.submitQuery);
+            
+            // Add event listener for voice input (placeholder)
+            const voiceButton = document.getElementById('copilot-voice');
+            if (voiceButton) {
+                voiceButton.addEventListener('click', (e) => {
+                    e.preventDefault();
+                    alert('Voice input feature coming soon!');
+                });
+            }
             
             // Add event listener for Enter key in the textarea
             document.getElementById('copilot-query').addEventListener('keypress', (e) => {
@@ -215,15 +229,35 @@ class SustainabilityCopilot {
         window.addEventListener('popstate', this.updateContextFromPageState);
     }
     
-    // Create a floating button for Co-Pilot access
+    // Create a floating button for Co-Pilot access - Finchat-inspired
     createFloatingButton() {
         if (!document.getElementById('copilot-floating-button')) {
             const button = document.createElement('button');
             button.id = 'copilot-floating-button';
             button.className = 'copilot-floating-button';
-            button.innerHTML = `<i class="bi bi-robot"></i><span>AI Assistant</span>`;
+            button.innerHTML = `
+                <span class="assistant-status"></span>
+                <i class="bi bi-robot"></i>
+                <span>Sustainability Advisor</span>
+            `;
             button.setAttribute('title', 'Open Sustainability Co-Pilot (Ctrl+K)');
             button.addEventListener('click', this.toggleCopilot);
+            
+            // Create the keyboard shortcut hint
+            const shortcutHint = document.createElement('div');
+            shortcutHint.className = 'copilot-shortcut-hint';
+            shortcutHint.innerHTML = 'Press <kbd>Ctrl</kbd>+<kbd>K</kbd> to open Co-Pilot';
+            shortcutHint.id = 'copilot-shortcut-hint';
+            document.body.appendChild(shortcutHint);
+            
+            // Show the hint briefly
+            setTimeout(() => {
+                shortcutHint.classList.add('show');
+                setTimeout(() => {
+                    shortcutHint.classList.remove('show');
+                }, 3000);
+            }, 2000);
+            
             document.body.appendChild(button);
             this.copilotFloatingButton = button;
         } else {
@@ -433,11 +467,21 @@ class SustainabilityCopilot {
         }
     }
     
-    // Add a message to the chat
+    // Add a message to the chat - Finchat-inspired
     addMessage(role, content, actions = [], facts = []) {
         const messagesContainer = document.getElementById('copilot-messages');
         const messageElement = document.createElement('div');
         messageElement.className = `copilot-message copilot-${role}-message`;
+        
+        // Add timestamp to assistant messages
+        if (role === 'assistant') {
+            // Create timestamp
+            const now = new Date();
+            const timeString = now.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+            
+            // Add avatar icon
+            messageElement.setAttribute('data-time', timeString);
+        }
         
         // Build message content
         let messageHtml = `<div class="copilot-message-content">${this.formatMessageContent(content)}</div>`;
@@ -445,7 +489,7 @@ class SustainabilityCopilot {
         // Add facts if provided
         if (facts && facts.length > 0) {
             messageHtml += '<div class="copilot-facts">';
-            messageHtml += '<h4>Key Facts</h4>';
+            messageHtml += '<h4>Key Insights</h4>';
             messageHtml += '<ul>';
             facts.forEach(fact => {
                 messageHtml += `<li>${fact}</li>`;
@@ -454,31 +498,42 @@ class SustainabilityCopilot {
             messageHtml += '</div>';
         }
         
-        // Add actions if provided
+        // Add actions if provided - styled like Finchat
         if (actions && actions.length > 0) {
             messageHtml += '<div class="copilot-actions">';
             actions.forEach(action => {
                 let actionUrl = '';
                 let actionTarget = '';
+                let actionIcon = 'arrow_forward';
                 
                 // Determine if action is internal or external
                 if (action.action && action.action.startsWith('http')) {
                     actionUrl = action.action;
                     actionTarget = 'target="_blank"';
+                    actionIcon = 'open_in_new';
                 } else if (action.action) {
                     actionUrl = action.action;
                 }
                 
                 if (actionUrl) {
-                    messageHtml += `<a href="${actionUrl}" ${actionTarget} class="copilot-action">${action.label}</a>`;
+                    messageHtml += `<a href="${actionUrl}" ${actionTarget} class="copilot-action"><i class="material-icons">${actionIcon}</i>${action.label}</a>`;
                 } else {
-                    messageHtml += `<div class="copilot-action">${action.label}</div>`;
+                    messageHtml += `<div class="copilot-action"><i class="material-icons">smart_button</i>${action.label}</div>`;
                 }
             });
             messageHtml += '</div>';
         }
         
         messageElement.innerHTML = messageHtml;
+        
+        // Add loading animation for assistant messages
+        if (role === 'assistant') {
+            // Add a small delay to simulate the AI thinking
+            messageElement.classList.add('typing');
+            setTimeout(() => {
+                messageElement.classList.remove('typing');
+            }, 500);
+        }
         
         // Remove welcome message if it exists
         const welcomeMessage = messagesContainer.querySelector('.copilot-welcome');
@@ -491,6 +546,23 @@ class SustainabilityCopilot {
         
         // Scroll to bottom
         messagesContainer.scrollTop = messagesContainer.scrollHeight;
+        
+        // Add a "New" tag for the first 5 seconds to draw attention to new messages
+        if (role === 'assistant') {
+            const newTag = document.createElement('span');
+            newTag.className = 'copilot-message-new';
+            newTag.textContent = 'New';
+            messageElement.appendChild(newTag);
+            
+            setTimeout(() => {
+                newTag.classList.add('fade-out');
+                setTimeout(() => {
+                    if (newTag.parentNode) {
+                        newTag.parentNode.removeChild(newTag);
+                    }
+                }, 500);
+            }, 5000);
+        }
     }
     
     // Format message content with Markdown-like syntax

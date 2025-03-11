@@ -1,0 +1,317 @@
+/* Card Components for SustainaTrend™ */
+
+.st-card {
+  background: var(--card-bg);
+  border-radius: 12px;
+  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.05);
+  overflow: hidden;
+  height: 100%;
+  transition: all 0.3s ease;
+  display: flex;
+  flex-direction: column;
+}
+
+.st-card:hover {
+  box-shadow: 0 6px 16px rgba(0, 0, 0, 0.08);
+}
+
+.st-card-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 16px 20px;
+  border-bottom: 1px solid rgba(0, 0, 0, 0.05);
+}
+
+.st-card-header h2 {
+  margin: 0;
+  font-size: 18px;
+  font-weight: 600;
+  color: var(--heading-color);
+}
+
+.st-card-actions {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.st-card-content {
+  padding: 20px;
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+}
+
+/* Stats and KPI Cards */
+.st-stats-row {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  gap: 16px;
+  margin-bottom: 20px;
+}
+
+.st-stat-card {
+  background: rgba(76, 175, 80, 0.1);
+  border-radius: 10px;
+  padding: 16px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+  transition: all 0.3s ease;
+}
+
+.st-stat-card:hover {
+  transform: translateY(-4px);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+}
+
+.st-stat-card.primary {
+  background: rgba(76, 175, 80, 0.1);
+}
+
+.st-stat-card.success {
+  background: rgba(33, 150, 243, 0.1);
+}
+
+.st-stat-card.warning {
+  background: rgba(255, 193, 7, 0.1);
+}
+
+.st-stat-card.danger {
+  background: rgba(244, 67, 54, 0.1);
+}
+
+.st-stat-card.info {
+  background: rgba(156, 39, 176, 0.1);
+}
+
+.st-stat-value {
+  font-size: 32px;
+  font-weight: 700;
+  margin-bottom: 4px;
+  color: var(--heading-color);
+}
+
+.st-stat-label {
+  font-size: 14px;
+  color: var(--text-muted);
+  margin-bottom: 8px;
+}
+
+.st-stat-change {
+  font-size: 12px;
+  font-weight: 600;
+  padding: 2px 6px;
+  border-radius: 12px;
+}
+
+.st-stat-change.positive {
+  background: rgba(76, 175, 80, 0.2);
+  color: #2e7d32;
+}
+
+.st-stat-change.negative {
+  background: rgba(244, 67, 54, 0.2);
+  color: #c62828;
+}
+
+/* Progress Bars */
+.st-progress-grid {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.st-progress-item {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.st-progress-label {
+  display: flex;
+  justify-content: space-between;
+  font-size: 14px;
+  color: var(--text-color);
+}
+
+.st-progress-bar {
+  height: 8px;
+  background: rgba(0, 0, 0, 0.05);
+  border-radius: 4px;
+  overflow: hidden;
+}
+
+.st-progress-fill {
+  height: 100%;
+  background: var(--primary-color);
+  border-radius: 4px;
+}
+
+/* Copilot Hint Card */
+.st-copilot-hint {
+  display: flex;
+  align-items: center;
+  background: rgba(76, 175, 80, 0.05);
+  border-radius: 12px;
+  padding: 16px;
+  border: 1px solid rgba(76, 175, 80, 0.1);
+}
+
+.st-copilot-hint-icon {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 48px;
+  height: 48px;
+  border-radius: 50%;
+  background: rgba(76, 175, 80, 0.1);
+  margin-right: 16px;
+  color: var(--primary-color);
+}
+
+.st-copilot-hint-icon .material-icons {
+  font-size: 24px;
+}
+
+.st-copilot-hint-content {
+  flex: 1;
+}
+
+.st-copilot-hint-content p {
+  margin: 0 0 12px 0;
+  font-size: 14px;
+  color: var(--text-color);
+}
+
+/* Select Wrapper */
+.st-select-wrapper {
+  position: relative;
+}
+
+.st-select {
+  appearance: none;
+  padding: 8px 32px 8px 12px;
+  border-radius: 6px;
+  border: 1px solid rgba(0, 0, 0, 0.1);
+  font-size: 14px;
+  background: white;
+  cursor: pointer;
+}
+
+.st-select-wrapper::after {
+  content: "";
+  position: absolute;
+  right: 12px;
+  top: 50%;
+  transform: translateY(-50%);
+  width: 0;
+  height: 0;
+  border-left: 5px solid transparent;
+  border-right: 5px solid transparent;
+  border-top: 5px solid var(--text-muted);
+  pointer-events: none;
+}
+
+/* Button Styles */
+.st-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 8px 16px;
+  border-radius: 6px;
+  font-weight: 500;
+  font-size: 14px;
+  border: none;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  gap: 6px;
+}
+
+.st-btn.primary {
+  background: var(--primary-color);
+  color: white;
+}
+
+.st-btn.primary:hover {
+  background: var(--primary-dark);
+  transform: translateY(-2px);
+}
+
+.st-btn.text {
+  background: transparent;
+  color: var(--primary-color);
+}
+
+.st-btn.text:hover {
+  background: rgba(76, 175, 80, 0.1);
+}
+
+.st-btn-icon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  border: none;
+  background: transparent;
+  color: var(--text-muted);
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.st-btn-icon:hover {
+  background: rgba(0, 0, 0, 0.05);
+  color: var(--text-color);
+}
+
+.st-btn .material-icons {
+  font-size: 18px;
+}
+
+/* Dark mode adjustments */
+.dark-mode .st-card {
+  background: var(--card-bg-dark);
+  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.15);
+}
+
+.dark-mode .st-card-header {
+  border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+}
+
+.dark-mode .st-progress-bar {
+  background: rgba(255, 255, 255, 0.1);
+}
+
+.dark-mode .st-select {
+  background: var(--card-bg-dark);
+  border-color: rgba(255, 255, 255, 0.1);
+  color: var(--text-color-dark);
+}
+
+.dark-mode .st-btn-icon:hover {
+  background: rgba(255, 255, 255, 0.1);
+}
+
+/* Responsive adjustments */
+@media (max-width: 768px) {
+  .st-stats-row {
+    grid-template-columns: 1fr 1fr;
+  }
+  
+  .st-stat-value {
+    font-size: 24px;
+  }
+  
+  .st-card-header {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+  
+  .st-card-actions {
+    margin-top: 8px;
+  }
+}

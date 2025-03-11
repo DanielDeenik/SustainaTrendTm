@@ -1,0 +1,181 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% block title %}SustainaTrend™ Intelligence Platform{% endblock %}</title>
+    
+    <!-- Core CSS -->
+    <link rel="stylesheet" href="{{ url_for('static', filename='styles.css') }}">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/sustainatrend-framework.css') }}">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/navigation-components.css') }}">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/finchat-inspired.css') }}">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/collapsible-navigation.css') }}">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/sustainability-copilot.css') }}">
+    
+    <!-- Add any additional CSS -->
+    {% block additional_css %}{% endblock %}
+    
+    <!-- Plotly JS for charts -->
+    <script src="https://cdn.plot.ly/plotly-latest.min.js"></script>
+    
+    <!-- Finchat-inspired icons (using Material Icons) -->
+    <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
+</head>
+<body>
+    <div class="st-nav-container">
+        <!-- Collapsible Navigation Sidebar -->
+        <aside class="st-nav-sidebar">
+            <button class="st-nav-toggle" aria-label="Toggle Navigation">
+                <span class="material-icons">chevron_left</span>
+            </button>
+            
+            <div class="st-nav-header">
+                <img src="{{ url_for('static', filename='images/sustainatrend-logo.svg') }}" alt="SustainaTrend Logo">
+                <span class="st-nav-header-title">SustainaTrend™</span>
+            </div>
+            
+            <nav class="st-nav-menu">
+                <div class="st-nav-section">
+                    <h3 class="st-nav-section-title">Main</h3>
+                    
+                    <a href="/" class="st-nav-item">
+                        <span class="st-nav-item-icon">
+                            <span class="material-icons">home</span>
+                        </span>
+                        <span class="st-nav-item-text">Home</span>
+                    </a>
+                    
+                    <a href="/dashboard" class="st-nav-item">
+                        <span class="st-nav-item-icon">
+                            <span class="material-icons">dashboard</span>
+                        </span>
+                        <span class="st-nav-item-text">Dashboard</span>
+                    </a>
+                    
+                    <a href="/trend-analysis" class="st-nav-item">
+                        <span class="st-nav-item-icon">
+                            <span class="material-icons">trending_up</span>
+                        </span>
+                        <span class="st-nav-item-text">Trend Analysis</span>
+                    </a>
+                </div>
+                
+                <div class="st-nav-section">
+                    <h3 class="st-nav-section-title">Intelligence</h3>
+                    
+                    <a href="/sustainability" class="st-nav-item">
+                        <span class="st-nav-item-icon">
+                            <span class="material-icons">eco</span>
+                        </span>
+                        <span class="st-nav-item-text">Sustainability</span>
+                    </a>
+                    
+                    <a href="/realestate-minimal" class="st-nav-item">
+                        <span class="st-nav-item-icon">
+                            <span class="material-icons">apartment</span>
+                        </span>
+                        <span class="st-nav-item-text">Real Estate</span>
+                    </a>
+                    
+                    <a href="/sustainability-stories" class="st-nav-item">
+                        <span class="st-nav-item-icon">
+                            <span class="material-icons">article</span>
+                        </span>
+                        <span class="st-nav-item-text">Stories</span>
+                    </a>
+                </div>
+                
+                <div class="st-nav-section">
+                    <h3 class="st-nav-section-title">Tools</h3>
+                    
+                    <a href="/document-upload" class="st-nav-item">
+                        <span class="st-nav-item-icon">
+                            <span class="material-icons">upload_file</span>
+                        </span>
+                        <span class="st-nav-item-text">Document Upload</span>
+                    </a>
+                    
+                    <a href="/analytics-dashboard" class="st-nav-item">
+                        <span class="st-nav-item-icon">
+                            <span class="material-icons">analytics</span>
+                        </span>
+                        <span class="st-nav-item-text">Analytics</span>
+                    </a>
+                </div>
+            </nav>
+        </aside>
+        
+        <!-- Main Content Area -->
+        <main class="st-content">
+            <header class="finchat-header">
+                <h1 class="finchat-header-title">{% block header_title %}SustainaTrend™ Platform{% endblock %}</h1>
+                <div class="finchat-header-actions">
+                    {% block header_actions %}{% endblock %}
+                </div>
+            </header>
+            
+            <div class="st-content-body">
+                {% block content %}{% endblock %}
+            </div>
+        </main>
+    </div>
+    
+    <!-- Collapsible Co-Pilot -->
+    <button class="st-copilot-toggle" aria-label="Sustainability Co-Pilot">
+        <span class="material-icons">chat</span>
+    </button>
+    
+    <div class="st-copilot-panel">
+        <div class="copilot-header">
+            <h3>Sustainability Co-Pilot</h3>
+            <div class="copilot-header-actions">
+                <button class="copilot-clear-btn" aria-label="Clear conversation">
+                    <span class="material-icons">delete_outline</span>
+                </button>
+            </div>
+        </div>
+        
+        <div class="copilot-messages">
+            <div class="copilot-message copilot-assistant">
+                <div class="copilot-assistant-avatar">AI</div>
+                <div class="copilot-message-content">
+                    How can I help with your sustainability insights today?
+                </div>
+            </div>
+        </div>
+        
+        <div class="copilot-suggested-prompts">
+            <button class="copilot-suggested-prompt">Analyze sustainability trends</button>
+            <button class="copilot-suggested-prompt">Real estate insights</button>
+            <button class="copilot-suggested-prompt">Compare to industry average</button>
+        </div>
+        
+        <div class="copilot-input">
+            <input type="text" placeholder="Ask about sustainability..." class="copilot-prompt-input">
+            <button class="copilot-send-btn">
+                <span class="material-icons">send</span>
+            </button>
+        </div>
+    </div>
+    
+    <!-- Core JavaScript -->
+    <script src="{{ url_for('static', filename='js/collapsible-navigation.js') }}"></script>
+    <script src="{{ url_for('static', filename='js/sustainability-copilot.js') }}"></script>
+    
+    <!-- Add any additional JS -->
+    {% block additional_js %}{% endblock %}
+    
+    <!-- Initialize section -->
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            // Initialize any core functionality
+            if (typeof initializeCopiloPanel === 'function') {
+                initializeCopiloPanel();
+            }
+            
+            {% block initialization_js %}{% endblock %}
+        });
+    </script>
+</body>
+</html>

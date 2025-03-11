@@ -1,0 +1,475 @@
+{% extends "layouts/finchat_inspired_layout.html" %}
+
+{% set active_page = 'dashboard' %}
+
+{% block title %}Dashboard | SustainaTrend™{% endblock %}
+
+{% block additional_styles %}
+<link rel="stylesheet" href="{{ url_for('static', filename='css/sustainability-copilot.css') }}">
+<style>
+    /* Additional styles specific to dashboard if needed */
+</style>
+{% endblock %}
+
+{% block header_title %}Sustainability Intelligence Dashboard{% endblock %}
+
+{% block header_actions %}
+<span class="finchat-badge finchat-badge-primary">REAL-TIME</span>
+<span class="finchat-badge finchat-badge-secondary">AI-POWERED</span>
+{% endblock %}
+
+{% block main_content %}
+<!-- Metrics Overview -->
+<div class="finchat-metrics-grid">
+    <!-- Carbon Emissions -->
+    <div class="finchat-card">
+        <div class="finchat-card-header">
+            <div class="finchat-card-title">Carbon Emissions</div>
+            <i class="fas fa-cloud" style="color: #607d8b;"></i>
+        </div>
+        <div class="finchat-card-content">
+            <div class="finchat-metric-value" id="emissions-value">--</div>
+            <div class="finchat-trend finchat-trend-down" id="emissions-trend">
+                <i class="fas fa-arrow-down finchat-trend-icon"></i>
+                <span>33% reduction</span>
+            </div>
+            <div class="finchat-fs-sm finchat-text-light finchat-mt-sm">
+                tons CO2e
+            </div>
+        </div>
+        <div class="finchat-card-footer">
+            <span>Updated: Mar 10, 2025</span>
+            <a href="#" class="finchat-text-primary">View Details</a>
+        </div>
+    </div>
+    
+    <!-- Water Usage -->
+    <div class="finchat-card">
+        <div class="finchat-card-header">
+            <div class="finchat-card-title">Water Usage</div>
+            <i class="fas fa-tint" style="color: #2196f3;"></i>
+        </div>
+        <div class="finchat-card-content">
+            <div class="finchat-metric-value" id="water-value">--</div>
+            <div class="finchat-trend finchat-trend-down" id="water-trend">
+                <i class="fas fa-arrow-down finchat-trend-icon"></i>
+                <span>14% reduction</span>
+            </div>
+            <div class="finchat-fs-sm finchat-text-light finchat-mt-sm">
+                kiloliters
+            </div>
+        </div>
+        <div class="finchat-card-footer">
+            <span>Updated: Mar 10, 2025</span>
+            <a href="#" class="finchat-text-primary">View Details</a>
+        </div>
+    </div>
+    
+    <!-- Waste Recycled -->
+    <div class="finchat-card">
+        <div class="finchat-card-header">
+            <div class="finchat-card-title">Waste Recycled</div>
+            <i class="fas fa-recycle" style="color: #4caf50;"></i>
+        </div>
+        <div class="finchat-card-content">
+            <div class="finchat-metric-value" id="waste-value">--</div>
+            <div class="finchat-trend finchat-trend-up" id="waste-trend">
+                <i class="fas fa-arrow-up finchat-trend-icon"></i>
+                <span>82% improvement</span>
+            </div>
+            <div class="finchat-fs-sm finchat-text-light finchat-mt-sm">
+                percent
+            </div>
+        </div>
+        <div class="finchat-card-footer">
+            <span>Updated: Mar 10, 2025</span>
+            <a href="#" class="finchat-text-primary">View Details</a>
+        </div>
+    </div>
+    
+    <!-- Energy Efficiency -->
+    <div class="finchat-card">
+        <div class="finchat-card-header">
+            <div class="finchat-card-title">Energy Efficiency</div>
+            <i class="fas fa-bolt" style="color: #ff9800;"></i>
+        </div>
+        <div class="finchat-card-content">
+            <div class="finchat-metric-value" id="energy-value">--</div>
+            <div class="finchat-trend finchat-trend-up" id="energy-trend">
+                <i class="fas fa-arrow-up finchat-trend-icon"></i>
+                <span>16% improvement</span>
+            </div>
+            <div class="finchat-fs-sm finchat-text-light finchat-mt-sm">
+                efficiency score
+            </div>
+        </div>
+        <div class="finchat-card-footer">
+            <span>Updated: Mar 10, 2025</span>
+            <a href="#" class="finchat-text-primary">View Details</a>
+        </div>
+    </div>
+</div>
+
+<!-- Sustainability Metrics Chart -->
+<div class="finchat-card">
+    <div class="finchat-card-header">
+        <div class="finchat-card-title">Sustainability Metrics Over Time</div>
+        <div>
+            <select id="category-filter" class="finchat-select">
+                <option value="all">All Categories</option>
+                <option value="emissions">Emissions</option>
+                <option value="energy">Energy</option>
+                <option value="water">Water</option>
+                <option value="waste">Waste</option>
+                <option value="social">Social & Governance</option>
+            </select>
+        </div>
+    </div>
+    <div class="finchat-card-content">
+        <div class="finchat-chart-container" id="metrics-time-series"></div>
+    </div>
+    <div class="finchat-card-footer">
+        <span>Data from certified assessments</span>
+        <span>Last updated: Mar 10, 2025</span>
+    </div>
+</div>
+
+<!-- AI-Powered Insights -->
+<div class="finchat-card">
+    <div class="finchat-card-header">
+        <div class="finchat-card-title">AI-Powered Sustainability Insights</div>
+        <span class="finchat-badge finchat-badge-primary">AI-POWERED</span>
+    </div>
+    <div class="finchat-card-content">
+        <div class="finchat-alert finchat-alert-info" style="display: flex; align-items: flex-start; gap: 1rem;">
+            <i class="fas fa-lightbulb" style="margin-top: 0.25rem; color: #2196f3;"></i>
+            <div>
+                <div style="font-weight: 600; margin-bottom: 0.25rem;">Key Insights</div>
+                <p style="margin-top: 0;">Based on the current trends, your organization is showing positive progress in reducing its environmental footprint.</p>
+            </div>
+        </div>
+        
+        <div class="finchat-mb-md"></div>
+        
+        <div style="font-weight: 600; margin-bottom: 0.5rem;">Highlighted Metrics:</div>
+        <ul class="finchat-fs-sm" style="margin-top: 0; padding-left: 1.5rem;">
+            <li>Carbon emissions have reduced by 33% over the past 6 months</li>
+            <li>Water consumption is down 14%, ahead of industry average</li>
+            <li>Waste recycling has improved to 82%, exceeding target goals</li>
+            <li>Energy efficiency measures have reduced consumption by 16%</li>
+        </ul>
+        
+        <div style="font-weight: 600; margin-bottom: 0.5rem; margin-top: 1rem;">Recommended Actions:</div>
+        <ul class="finchat-fs-sm" style="margin-top: 0; padding-left: 1.5rem;">
+            <li>Continue investment in renewable energy sources</li>
+            <li>Implement additional water conservation measures</li>
+            <li>Expand your circular economy initiatives for further waste reduction</li>
+        </ul>
+        
+        <div class="finchat-mt-lg finchat-text-center">
+            <button class="finchat-button finchat-button-primary" id="insights-copilot-button">
+                <i class="fas fa-robot" style="margin-right: 0.5rem;"></i> Ask the AI Co-Pilot for More Insights
+            </button>
+            <p class="finchat-fs-sm finchat-text-light finchat-mt-sm">Our AI Co-Pilot can provide detailed analysis and custom recommendations based on your specific goals.</p>
+        </div>
+    </div>
+</div>
+
+<!-- Monetization Framework (Simplified) -->
+<div class="finchat-card">
+    <div class="finchat-card-header">
+        <div class="finchat-card-title">Monetization Framework</div>
+        <span class="finchat-badge finchat-badge-success">STRATEGIC</span>
+    </div>
+    <div class="finchat-card-content">
+        <div style="font-weight: 600; margin-bottom: 1rem;">Revenue Channels for SustainaTrend™ 2.0</div>
+        
+        <div style="display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 1rem;">
+            <div class="finchat-card">
+                <div class="finchat-card-header">
+                    <div class="finchat-card-title">1. Data-as-a-Service</div>
+                </div>
+                <div class="finchat-card-content">
+                    <p class="finchat-fs-sm" style="margin-top: 0;"><strong>Revenue Model:</strong> Subscription-based access to sustainability metrics and insights</p>
+                    <p class="finchat-fs-sm"><strong>Target Customers:</strong> Corporations, ESG consultants, investment firms</p>
+                </div>
+            </div>
+            
+            <div class="finchat-card">
+                <div class="finchat-card-header">
+                    <div class="finchat-card-title">2. AI-Powered Analytics</div>
+                </div>
+                <div class="finchat-card-content">
+                    <p class="finchat-fs-sm" style="margin-top: 0;"><strong>Revenue Model:</strong> Premium analysis of sustainability trends</p>
+                    <p class="finchat-fs-sm"><strong>Target Customers:</strong> Strategy executives, sustainability officers</p>
+                </div>
+            </div>
+            
+            <div class="finchat-card">
+                <div class="finchat-card-header">
+                    <div class="finchat-card-title">3. Consulting Services</div>
+                </div>
+                <div class="finchat-card-content">
+                    <p class="finchat-fs-sm" style="margin-top: 0;"><strong>Revenue Model:</strong> High-touch consulting leveraging platform insights</p>
+                    <p class="finchat-fs-sm"><strong>Target Customers:</strong> Large enterprises, government agencies</p>
+                </div>
+            </div>
+            
+            <div class="finchat-card">
+                <div class="finchat-card-header">
+                    <div class="finchat-card-title">4. API Integration</div>
+                </div>
+                <div class="finchat-card-content">
+                    <p class="finchat-fs-sm" style="margin-top: 0;"><strong>Revenue Model:</strong> Developer access to sustainability data via API</p>
+                    <p class="finchat-fs-sm"><strong>Target Customers:</strong> Software developers, SaaS providers</p>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block insights_panel %}
+<div class="finchat-insights-panel">
+    <div class="finchat-insights-header">Sustainability Insights</div>
+    
+    <div class="finchat-insight-item">
+        <div class="finchat-insight-title">Carbon Reduction</div>
+        <div class="finchat-insight-content">
+            Your carbon reduction program is 38% more effective than industry peers, primarily due to renewable energy investments.
+        </div>
+    </div>
+    
+    <div class="finchat-insight-item">
+        <div class="finchat-insight-title">Water Efficiency</div>
+        <div class="finchat-insight-content">
+            Implementing smart water systems could further reduce consumption by an estimated 22% within 12 months.
+        </div>
+    </div>
+    
+    <div class="finchat-insight-item">
+        <div class="finchat-insight-title">Waste Management</div>
+        <div class="finchat-insight-content">
+            Your circular economy initiatives have reduced landfill waste by 47% compared to last year's baseline.
+        </div>
+    </div>
+    
+    <div class="finchat-insight-item">
+        <div class="finchat-insight-title">Energy Optimization</div>
+        <div class="finchat-insight-content">
+            Peak energy usage has been reduced by 19% through smart building technologies and scheduling optimizations.
+        </div>
+    </div>
+    
+    <div class="finchat-insight-item">
+        <div class="finchat-insight-title">Sustainability Score</div>
+        <div class="finchat-insight-content">
+            Your organization's sustainability score is now in the top quartile for your industry sector.
+        </div>
+    </div>
+    
+    <div class="finchat-insight-item">
+        <div class="finchat-insight-title">Cost Savings</div>
+        <div class="finchat-insight-content">
+            Sustainability initiatives have resulted in 1.3M EUR in operational cost savings over the past fiscal year.
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block additional_scripts %}
+<!-- Co-Pilot Integration -->
+<script src="{{ url_for('static', filename='js/sustainability-copilot.js') }}"></script>
+
+<!-- Dashboard Co-Pilot Context -->
+<script type="application/json" id="dashboard-copilot-context">
+{
+    "context": "dashboard",
+    "metrics": [
+        {"name": "Carbon Emissions", "trend": "down", "value": "33%"},
+        {"name": "Water Consumption", "trend": "down", "value": "14%"},
+        {"name": "Waste Recycling", "trend": "up", "value": "82%"},
+        {"name": "Energy Efficiency", "trend": "up", "value": "16%"}
+    ],
+    "recommendations": [
+        "Continue investment in renewable energy sources",
+        "Implement additional water conservation measures",
+        "Expand circular economy initiatives"
+    ],
+    "suggested_prompts": [
+        "Explain this carbon emissions trend",
+        "What actions would improve our ESG score?",
+        "Compare our metrics to industry benchmarks",
+        "Generate a report summary of these metrics",
+        "What sustainability KPIs should I focus on?"
+    ]
+}
+</script>
+
+<!-- Visualization Scripts -->
+<script src="https://cdn.plot.ly/plotly-latest.min.js"></script>
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        // Initialize dashboard
+        initializeDashboard();
+        
+        // Set up Co-Pilot button
+        const insightsCopilotButton = document.getElementById('insights-copilot-button');
+        if (insightsCopilotButton && window.copilotInstance) {
+            insightsCopilotButton.addEventListener('click', function() {
+                window.copilotInstance.toggleCopilot();
+            });
+        }
+        
+        // Initialize Co-Pilot context
+        const dashboardContextElement = document.getElementById('dashboard-copilot-context');
+        if (dashboardContextElement) {
+            try {
+                const contextData = JSON.parse(dashboardContextElement.textContent);
+                // Set data attribute for Co-Pilot to read
+                document.body.setAttribute('data-copilot-context', JSON.stringify(contextData));
+                console.log('Dashboard Co-Pilot context loaded:', contextData);
+            } catch (e) {
+                console.error('Error parsing dashboard context:', e);
+            }
+        }
+    });
+    
+    // Initialize dashboard with data and charts
+    function initializeDashboard() {
+        // Simulate loading metrics data (would normally come from API)
+        fetchMetricsData();
+        
+        // Create time series chart
+        createTimeSeriesChart();
+        
+        // Set up category filter
+        setupCategoryFilter();
+    }
+    
+    // Fetch metrics data
+    function fetchMetricsData() {
+        // Normally this would be an API call
+        // For now, use placeholder values
+        document.getElementById('emissions-value').textContent = '1,245';
+        document.getElementById('water-value').textContent = '3,870';
+        document.getElementById('waste-value').textContent = '82%';
+        document.getElementById('energy-value').textContent = '94.5';
+        
+        // Set trends with proper classes
+        const emissionsTrend = document.getElementById('emissions-trend');
+        const waterTrend = document.getElementById('water-trend');
+        const wasteTrend = document.getElementById('waste-trend');
+        const energyTrend = document.getElementById('energy-trend');
+        
+        emissionsTrend.innerHTML = '<i class="fas fa-arrow-down finchat-trend-icon"></i><span>33% reduction</span>';
+        waterTrend.innerHTML = '<i class="fas fa-arrow-down finchat-trend-icon"></i><span>14% reduction</span>';
+        wasteTrend.innerHTML = '<i class="fas fa-arrow-up finchat-trend-icon"></i><span>82% recycled</span>';
+        energyTrend.innerHTML = '<i class="fas fa-arrow-up finchat-trend-icon"></i><span>16% improvement</span>';
+    }
+    
+    // Create time series chart
+    function createTimeSeriesChart() {
+        const chartContainer = document.getElementById('metrics-time-series');
+        
+        if (!chartContainer) return;
+        
+        // Sample data for the chart
+        const months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+        const emissionsData = [1750, 1720, 1680, 1640, 1600, 1550, 1500, 1460, 1420, 1380, 1330, 1245];
+        const waterData = [4500, 4470, 4430, 4380, 4350, 4300, 4250, 4200, 4150, 4050, 3950, 3870];
+        const wasteData = [65, 66, 68, 70, 72, 73, 75, 76, 78, 80, 81, 82];
+        const energyData = [78, 79, 81, 82, 84, 85, 87, 89, 90, 92, 93, 94.5];
+        
+        const traces = [
+            {
+                name: 'Carbon Emissions',
+                x: months,
+                y: emissionsData,
+                type: 'scatter',
+                mode: 'lines+markers',
+                marker: {color: '#607d8b'},
+                line: {width: 3}
+            },
+            {
+                name: 'Water Usage',
+                x: months,
+                y: waterData,
+                type: 'scatter',
+                mode: 'lines+markers',
+                marker: {color: '#2196f3'},
+                line: {width: 3}
+            },
+            {
+                name: 'Waste Recycled',
+                x: months,
+                y: wasteData,
+                type: 'scatter',
+                mode: 'lines+markers',
+                marker: {color: '#4caf50'},
+                line: {width: 3}
+            },
+            {
+                name: 'Energy Efficiency',
+                x: months,
+                y: energyData,
+                type: 'scatter',
+                mode: 'lines+markers',
+                marker: {color: '#ff9800'},
+                line: {width: 3}
+            }
+        ];
+        
+        const layout = {
+            autosize: true,
+            height: 400,
+            margin: {l: 50, r: 50, b: 50, t: 30, pad: 4},
+            paper_bgcolor: 'rgba(0,0,0,0)',
+            plot_bgcolor: 'rgba(0,0,0,0)',
+            font: {
+                family: 'Inter, system-ui, sans-serif',
+                color: '#333333'
+            },
+            xaxis: {
+                showgrid: true,
+                gridcolor: '#e0e0e0',
+            },
+            yaxis: {
+                showgrid: true,
+                gridcolor: '#e0e0e0',
+                title: 'Value'
+            },
+            legend: {
+                orientation: 'h',
+                y: -0.2
+            }
+        };
+        
+        const config = {
+            responsive: true,
+            displayModeBar: false
+        };
+        
+        Plotly.newPlot(chartContainer, traces, layout, config);
+    }
+    
+    // Setup category filter
+    function setupCategoryFilter() {
+        const categoryFilter = document.getElementById('category-filter');
+        if (!categoryFilter) return;
+        
+        categoryFilter.addEventListener('change', function(e) {
+            const category = e.target.value;
+            console.log(`Filter changed to: ${category}`);
+            
+            // In a real implementation, this would filter the data
+            // For now, just log the selection
+            if (category === 'all') {
+                // Show all metrics
+            } else {
+                // Filter to show only metrics in the selected category
+            }
+        });
+    }
+</script>
+{% endblock %}
