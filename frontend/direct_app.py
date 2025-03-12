@@ -105,7 +105,12 @@ except ImportError as e:
 
 # Import ESRS Framework Module
 try:
-    from esrs_framework import register_routes as register_esrs_framework_routes
+    from monetization_strategies import register_routes as register_monetization_strategies_routes
+    # Keep ESRS import for backward compatibility until fully migrated
+    try:
+        from esrs_framework import register_routes as register_esrs_framework_routes
+    except ImportError:
+        logger.info("ESRS Framework module not found - using Monetization Strategies instead")
     ESRS_FRAMEWORK_AVAILABLE = True
     logger.info("ESRS Framework module loaded successfully")
 except ImportError as e:
@@ -186,10 +191,16 @@ if ETHICAL_AI_AVAILABLE:
     register_ethical_ai_routes(app)
     logger.info("Ethical AI Compliance routes registered successfully")
 
-# Register ESRS Framework routes if available
+# Register Monetization Strategies routes if available
 if ESRS_FRAMEWORK_AVAILABLE:
-    register_esrs_framework_routes(app)
-    logger.info("ESRS Framework routes registered successfully")
+    # Register new Monetization Strategies routes
+    try:
+        register_monetization_strategies_routes(app)
+        logger.info("Monetization Strategies routes registered successfully")
+    except NameError:
+        # Fall back to ESRS Framework routes for backward compatibility
+        register_esrs_framework_routes(app)
+        logger.info("ESRS Framework routes registered as fallback")
 
 # Register Company Search routes if available
 if COMPANY_SEARCH_AVAILABLE:
@@ -301,6 +312,23 @@ def inject_api_status():
     """Inject API status into all templates"""
     return {
         "api_status": get_api_status()
+    }
+
+@app.context_processor
+def inject_theme_preference():
+    """Inject theme preference into all templates"""
+    # Get theme from URL parameter first
+    theme = request.args.get('theme', '')
+    
+    # Convert to template class name
+    current_theme = 'dark-mode'  # Default
+    if theme == 'light':
+        current_theme = 'light-mode'
+    elif theme == 'dark':
+        current_theme = 'dark-mode'
+    
+    return {
+        "current_theme": current_theme
     }
 
 # OmniParser API endpoint

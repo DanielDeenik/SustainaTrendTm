@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="en" class="dark-mode">
+<html lang="en" class="{{ current_theme|default('dark-mode') }} theme-transition">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -41,6 +41,7 @@
             --text-muted: #64748b;
             --card-bg: #ffffff;
             --border-color: #e2e8f0;
+            --hover-bg: rgba(0, 0, 0, 0.03);
         }
         
         .dark-mode {
@@ -48,6 +49,7 @@
             --bg-sidebar-hover: rgba(255, 255, 255, 0.05);
             --bg-body: #1e293b;
             --text-color: #e2e8f0;
+            --hover-bg: rgba(255, 255, 255, 0.05);
             --text-muted: #94a3b8;
             --card-bg: #0f172a;
             --border-color: #334155;
@@ -244,11 +246,20 @@
             font-size: 1.1rem;
             padding: 5px;
             border-radius: 4px;
-            transition: background-color 0.2s;
+            transition: background-color 0.2s, color 0.3s ease;
         }
 
         .theme-toggle-button:hover {
             background-color: var(--bg-sidebar-hover);
+        }
+        
+        .theme-label {
+            transition: color 0.3s ease;
+        }
+        
+        /* Theme transition for smoother experience */
+        html, body, main, .sidebar, .navbar, .card {
+            transition: background-color 0.3s ease, color 0.3s ease, border-color 0.3s ease;
         }
 
         /* Badge Styles */
@@ -528,9 +539,9 @@
                 <!-- Atomic Theme Toggle -->
                 <div class="st-sidebar-footer">
                     <div class="st-flex st-justify-between st-items-center">
-                        <span class="st-text-sm st-text-muted">Dark Mode</span>
+                        <span class="st-text-sm st-text-muted theme-label">Dark Mode</span>
                         <button class="st-sidebar-toggle theme-toggle-button">
-                            <i class="bi bi-moon-stars-fill"></i>
+                            <i class="bi bi-moon-stars-fill theme-icon"></i>
                         </button>
                     </div>
                 </div>
@@ -555,6 +566,77 @@
     <script src="{{ url_for('static', filename='js/common.js') }}"></script>
     <script src="{{ url_for('static', filename='js/copilot-prompt-templates.js') }}"></script>
     <script src="{{ url_for('static', filename='js/sustainability-copilot.js') }}"></script>
+    
+    <!-- Theme toggle functionality -->
+    <script>
+        function toggleTheme() {
+            const currentTheme = document.documentElement.classList.contains('dark-mode') ? 'dark-mode' : 'light-mode';
+            const newTheme = currentTheme === 'dark-mode' ? 'light-mode' : 'dark-mode';
+            
+            // Update class on HTML element
+            document.documentElement.classList.remove(currentTheme);
+            document.documentElement.classList.add(newTheme);
+            
+            // Store preference (consistently use 'dark' and 'light' values for storage)
+            localStorage.setItem('sustainatrend-theme', newTheme === 'dark-mode' ? 'dark' : 'light');
+            
+            // Update URL to maintain theme across page loads
+            const url = new URL(window.location);
+            url.searchParams.set('theme', newTheme === 'dark-mode' ? 'dark' : 'light');
+            window.history.replaceState({}, '', url);
+            
+            // Update theme icons
+            updateThemeIcons(newTheme);
+        }
+        
+        function updateThemeIcons(theme) {
+            // Update icons
+            const themeIcons = document.querySelectorAll('.theme-icon');
+            themeIcons.forEach(icon => {
+                if (theme === 'dark-mode') {
+                    icon.classList.remove('bi-sun');
+                    icon.classList.add('bi-moon-stars-fill');
+                } else {
+                    icon.classList.remove('bi-moon-stars-fill');
+                    icon.classList.add('bi-sun');
+                }
+            });
+            
+            // Update labels
+            const themeLabels = document.querySelectorAll('.theme-label');
+            themeLabels.forEach(label => {
+                label.textContent = theme === 'dark-mode' ? 'Dark Mode' : 'Light Mode';
+            });
+        }
+        
+        // Initialize theme based on user preference
+        document.addEventListener('DOMContentLoaded', function() {
+            // Check for URL parameter first
+            const urlParams = new URLSearchParams(window.location.search);
+            let theme = urlParams.get('theme');
+            
+            // If no URL parameter, check localStorage
+            if (!theme) {
+                theme = localStorage.getItem('sustainatrend-theme');
+            }
+            
+            // Apply theme if we have a preference
+            if (theme) {
+                const currentTheme = document.documentElement.classList.contains('dark-mode') ? 'dark-mode' : 'light-mode';
+                document.documentElement.classList.remove(currentTheme);
+                document.documentElement.classList.add(theme === 'dark' || theme === 'dark-mode' ? 'dark-mode' : 'light-mode');
+                
+                // Update theme icons
+                updateThemeIcons(theme === 'dark' || theme === 'dark-mode' ? 'dark-mode' : 'light-mode');
+            }
+            
+            // Attach click handlers to theme toggle buttons
+            const themeToggleButtons = document.querySelectorAll('.theme-toggle-button');
+            themeToggleButtons.forEach(button => {
+                button.addEventListener('click', toggleTheme);
+            });
+        });
+    </script>
     
     <!-- Add context data for Co-Pilot -->
     <script>

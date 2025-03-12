@@ -17,7 +17,7 @@
     
     .esrs-category-card:hover {
         transform: translateY(-5px);
-        box-shadow: 0 8px 15px rgba(0, 0, 0, 0.1);
+        box-shadow: 0 8px 15px var(--shadow-color, rgba(0, 0, 0, 0.1));
     }
     
     .esrs-category-E1 { border-left-color: #2ecc71; }  /* Climate Change */
@@ -76,7 +76,7 @@
         background-color: var(--card-bg);
         border-radius: 10px;
         margin-bottom: 20px;
-        box-shadow: 0 4px 8px rgba(0, 0, 0, 0.05);
+        box-shadow: 0 4px 8px var(--shadow-color-light, rgba(0, 0, 0, 0.05));
         overflow: hidden;
     }
     
@@ -120,7 +120,7 @@
     
     .missing-metrics-list li {
         padding: 6px 0;
-        border-bottom: 1px solid rgba(0, 0, 0, 0.05);
+        border-bottom: 1px solid var(--border-color-light, rgba(0, 0, 0, 0.05));
     }
     
     .missing-metrics-list li:last-child {
@@ -494,6 +494,10 @@
         }
         
         // Create new chart
+        // Get theme-aware colors
+        const isDarkMode = document.documentElement.getAttribute('data-bs-theme') === 'dark';
+        const chartColors = getChartColors(isDarkMode);
+        
         window.complianceRadarChart = new Chart(ctx, {
             type: 'radar',
             data: {
@@ -501,20 +505,37 @@
                 datasets: [{
                     label: 'ESRS Compliance',
                     data: scores,
-                    backgroundColor: 'rgba(45, 152, 218, 0.2)',
-                    borderColor: 'rgba(45, 152, 218, 1)',
+                    backgroundColor: chartColors.backgroundColorAlpha,
+                    borderColor: chartColors.borderColor,
                     borderWidth: 2,
-                    pointBackgroundColor: 'rgba(45, 152, 218, 1)'
+                    pointBackgroundColor: chartColors.pointBackgroundColor
                 }]
             },
             options: {
                 scales: {
                     r: {
                         angleLines: {
-                            display: true
+                            display: true,
+                            color: chartColors.gridColor
+                        },
+                        grid: {
+                            color: chartColors.gridColor
+                        },
+                        pointLabels: {
+                            color: chartColors.textColor
+                        },
+                        ticks: {
+                            color: chartColors.textColor
                         },
                         suggestedMin: 0,
                         suggestedMax: 100
+                    }
+                },
+                plugins: {
+                    legend: {
+                        labels: {
+                            color: chartColors.textColor
+                        }
                     }
                 }
             }
@@ -769,5 +790,48 @@
             "timestamp": "2023-07-10T14:30:00Z"
         };
     }
+    
+    // Get theme-aware chart colors
+    function getChartColors(isDark) {
+        return {
+            backgroundColor: isDark ? 'rgba(45, 55, 72, 1)' : 'rgba(255, 255, 255, 1)',
+            backgroundColorAlpha: isDark ? 'rgba(45, 152, 218, 0.3)' : 'rgba(45, 152, 218, 0.2)',
+            borderColor: isDark ? 'rgba(56, 178, 255, 1)' : 'rgba(45, 152, 218, 1)',
+            pointBackgroundColor: isDark ? 'rgba(56, 178, 255, 1)' : 'rgba(45, 152, 218, 1)',
+            gridColor: isDark ? 'rgba(255, 255, 255, 0.1)' : 'rgba(0, 0, 0, 0.1)',
+            textColor: isDark ? 'rgba(255, 255, 255, 0.8)' : 'rgba(0, 0, 0, 0.8)'
+        };
+    }
+    
+    // Update chart theme when theme changes
+    function updateChartTheme(isDark) {
+        if (window.complianceRadarChart) {
+            const chartColors = getChartColors(isDark);
+            
+            // Update dataset colors
+            window.complianceRadarChart.data.datasets[0].backgroundColor = chartColors.backgroundColorAlpha;
+            window.complianceRadarChart.data.datasets[0].borderColor = chartColors.borderColor;
+            window.complianceRadarChart.data.datasets[0].pointBackgroundColor = chartColors.pointBackgroundColor;
+            
+            // Update scale colors
+            if (window.complianceRadarChart.options.scales.r) {
+                window.complianceRadarChart.options.scales.r.grid.color = chartColors.gridColor;
+                window.complianceRadarChart.options.scales.r.angleLines.color = chartColors.gridColor;
+                window.complianceRadarChart.options.scales.r.pointLabels.color = chartColors.textColor;
+                window.complianceRadarChart.options.scales.r.ticks.color = chartColors.textColor;
+            }
+            
+            // Update legend colors
+            if (window.complianceRadarChart.options.plugins.legend) {
+                window.complianceRadarChart.options.plugins.legend.labels.color = chartColors.textColor;
+            }
+            
+            // Update the chart
+            window.complianceRadarChart.update();
+        }
+    }
+    
+    // Register updateChartTheme with the global scope
+    window.updateChartTheme = updateChartTheme;
 </script>
 {% endblock %}

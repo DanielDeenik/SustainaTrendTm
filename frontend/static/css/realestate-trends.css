@@ -131,17 +131,39 @@
   }
 }
 
-/* Dark mode adjustments */
-body.dark-mode .popular-query:hover {
-  background-color: rgba(255, 255, 255, 0.1);
+/* Theme adjustments for light/dark modes */
+.popular-query:hover {
+  background-color: var(--bg-sidebar-hover);
 }
 
-body.dark-mode #ragResponseContainer {
-  background-color: #2a2a2a !important;
-  border-color: #444 !important;
+#ragResponseContainer {
+  background-color: var(--card-bg) !important;
+  border-color: var(--border-color) !important;
+  color: var(--text-color);
 }
 
-body.dark-mode .chart-tooltip {
-  background-color: rgba(255, 255, 255, 0.8);
-  color: #333;
+.chart-tooltip {
+  background-color: var(--card-bg);
+  color: var(--text-color);
+  border: 1px solid var(--border-color);
+}
+
+/* Property card theming */
+.property-card {
+  background-color: var(--card-bg);
+  border: 1px solid var(--border-color);
+  color: var(--text-color);
+}
+
+.property-card:hover {
+  box-shadow: 0 10px 20px rgba(0, 0, 0, 0.1);
+}
+
+/* Dark mode specific */
+.dark-mode .property-card:hover {
+  box-shadow: 0 10px 20px rgba(0, 0, 0, 0.3);
+}
+
+.dark-mode .chart-tooltip {
+  box-shadow: 0 3px 8px rgba(0, 0, 0, 0.3);
 }

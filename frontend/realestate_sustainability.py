@@ -658,33 +658,33 @@ def configure_routes(app):
     """
     @app.route('/realestate-trends')
     def realestate_trend_analysis():
-        """Real Estate Sustainability Trend Analysis dashboard"""
+        """Real Estate Sustainability Trend Analysis dashboard with theme support"""
         # Get category filter if provided
         category = request.args.get('category', None)
+        
+        # Get theme preference (default to dark theme)
+        theme = request.args.get('theme', 'dark')
         
         # Get trend data
         trend_data = get_realestate_trend_analysis(category)
         
-        # Try to use the standardized template first, fallback to original if not found
-        try:
-            return render_template(
-                "realestate_trend_analysis_new.html",
-                trends=trend_data['trends'],
-                trend_chart_data=json.dumps(trend_data['chart_data']),
-                category=category or 'all',
-                categories=REALESTATE_CATEGORIES,
-                sort="virality"
-            )
-        except jinja2.exceptions.TemplateNotFound:
-            logger.warning("New standardized template not found, using original template")
-            return render_template(
-                "realestate_trend_analysis.html",
-                trends=trend_data['trends'],
-                trend_chart_data=json.dumps(trend_data['chart_data']),
-                category=category or 'all',
-                categories=REALESTATE_CATEGORIES,
-                sort="virality"
-            )
+        # Use the appropriate template based on the theme
+        template_name = "realestate_trend_analysis.html"
+        if theme == 'dark':
+            template_name = "realestate_trend_analysis_dark.html"
+            logger.info("Using Finchat dark theme for real estate trend analysis")
+        else:
+            logger.info("Using light theme for real estate trend analysis")
+        
+        return render_template(
+            template_name,
+            trends=trend_data['trends'],
+            trend_chart_data=json.dumps(trend_data['chart_data']),
+            category=category or 'all',
+            categories=REALESTATE_CATEGORIES,
+            sort="virality",
+            current_theme=theme
+        )
     
     @app.route('/realestate-unified-dashboard')
     def realestate_unified_dashboard():
@@ -695,7 +695,9 @@ def configure_routes(app):
         # Get trend data
         trend_data = get_realestate_trend_analysis(category)
         
-        # Return the unified dashboard template
+        # The theme is now handled by the base template and context processor
+        logger.info("Rendering unified real estate dashboard with dynamic theme support")
+        
         return render_template(
             "realestate_unified_dashboard.html",
             trends=trend_data['trends'],
