@@ -1779,7 +1779,6 @@ def configure_routes(app):
                             }
                         ]
                     }
-            }
             
             return jsonify(story), 200
         except Exception as e:

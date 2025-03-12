@@ -66,18 +66,26 @@ def create_app():
     
     # Import and register routes
     try:
-        from routes import register_routes
+        # Try to use the cleaned, streamlined routes first
+        from cleaned_routes import register_routes
         register_routes(app)
-        logger.info("Routes registered successfully")
+        logger.info("Streamlined routes registered successfully")
     except ImportError as e:
-        logger.error(f"Failed to register routes: {e}")
-        # In case of import error, use fallback
-        logger.warning("Using direct_app.py as fallback")
+        logger.warning(f"Failed to register streamlined routes: {e}")
+        # Fall back to original routes if needed
         try:
-            from direct_app import app as direct_app
-            app = direct_app
-        except ImportError:
-            logger.error("Failed to import direct_app.py as fallback")
+            from routes import register_routes
+            register_routes(app)
+            logger.info("Original routes registered successfully")
+        except ImportError as e:
+            logger.error(f"Failed to register original routes: {e}")
+            # In case of import error, use fallback
+            logger.warning("Using direct_app.py as fallback")
+            try:
+                from direct_app import app as direct_app
+                app = direct_app
+            except ImportError:
+                logger.error("Failed to import direct_app.py as fallback")
     
     return app
 

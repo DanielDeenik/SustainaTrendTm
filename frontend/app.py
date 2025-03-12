@@ -9,6 +9,12 @@ import logging
 import os
 import sys
 import traceback
+import argparse
+
+# Parse command line arguments
+parser = argparse.ArgumentParser(description='Start the SustainaTrend Intelligence Platform')
+parser.add_argument('--use-clean-app', action='store_true', default=False, help='Explicitly use clean_app.py')
+args = parser.parse_args()
 
 # Configure logging
 logging.basicConfig(level=logging.INFO)
@@ -18,25 +24,19 @@ logger.info(f"Current working directory: {os.getcwd()}")
 logger.info(f"Python executable: {sys.executable}")
 logger.info(f"Python path: {sys.path}")
 
-# Try to import from clean_app.py first
+# Try to import from clean_app.py first (default)
 try:
     logger.info("Loading application from clean_app.py")
-    from clean_app import app
+    from clean_app import app, create_app
     
     # Log all registered routes for debugging
     routes = [str(rule) for rule in app.url_map.iter_rules()]
     logger.info(f"Successfully imported application from clean_app.py")
     logger.info(f"Registered routes: {len(routes)}")
     
-    # Start the application when run directly
-    if __name__ == "__main__":
-        # Use port 5000 to match Replit's expected configuration
-        port = int(os.environ.get('PORT', 5000))
-        logger.info(f"Starting Flask server on port {port}")
-        app.run(host="0.0.0.0", port=port, debug=True)
-        
-except ImportError:
-    logger.warning("Could not import from clean_app.py, trying direct_app.py")
+except ImportError as e:
+    logger.warning(f"Could not import from clean_app.py: {str(e)}")
+    logger.warning("Trying direct_app.py as fallback")
     
     # Fall back to direct_app.py if clean_app.py is not available
     try:
@@ -54,13 +54,7 @@ except ImportError:
         routes = [str(rule) for rule in app.url_map.iter_rules()]
         logger.info(f"Successfully imported enhanced application from direct_app.py")
         logger.info(f"Registered routes: {len(routes)}")
-    
-        if __name__ == "__main__":
-            # Use port 5000 to match Replit's expected configuration
-            port = int(os.environ.get('PORT', 5000))
-            logger.info(f"Starting Flask server on port {port}")
-            app.run(host="0.0.0.0", port=port, debug=True)
-            
+        
     except Exception as e:
         logger.error(f"Error importing or running enhanced application: {str(e)}")
         logger.error(traceback.format_exc())
@@ -112,11 +106,10 @@ except ImportError:
                 "traceback": traceback.format_exc()
             }
             return jsonify({"routes": routes, "python_info": python_info})
-    
-        if __name__ == "__main__":
-            # ALWAYS serve the app on port 5000
-            port = int(os.environ.get('PORT', 5000))
-            logger.info(f"Starting fallback Flask server on port {port}")
-            routes = [str(rule) for rule in app.url_map.iter_rules()]
-            logger.info(f"Registered routes (fallback): {len(routes)}")
-            app.run(host="0.0.0.0", port=port, debug=True)
+
+# Start the application when run directly
+if __name__ == "__main__":
+    # Use port 5000 to match Replit's expected configuration
+    port = int(os.environ.get('PORT', 5000))
+    logger.info(f"Starting Flask server on port {port}")
+    app.run(host="0.0.0.0", port=port, debug=True)

@@ -130,6 +130,61 @@ def register_routes(app):
             active_nav="terminal"
         )
     
+    @app.route('/analytics-dashboard')
+    def analytics_dashboard():
+        """Analytics Dashboard - Advanced visualization of sustainability metrics"""
+        logger.info("Analytics Dashboard accessed")
+        nav_context = get_context_for_template()
+        return render_template(
+            "analytics_dashboard_dark.html",
+            nav_sections=nav_context["nav_sections"],
+            user_menu=nav_context["user_menu"],
+            active_nav="analytics"
+        )
+        
+    @app.route('/monetization-opportunities')
+    def monetization_opportunities():
+        """Monetization Opportunities - Strategic insights for sustainable business models"""
+        logger.info("Monetization Opportunities accessed")
+        nav_context = get_context_for_template()
+        return render_template(
+            "monetization.html",
+            nav_sections=nav_context["nav_sections"],
+            user_menu=nav_context["user_menu"],
+            active_nav="monetization"
+        )
+        
+    @app.route('/sustainability')
+    def sustainability():
+        """Sustainability - Corporate sustainability intelligence dashboard"""
+        logger.info("Sustainability page accessed")
+        nav_context = get_context_for_template()
+        
+        # Try the collapsible template first, then fall back to the standard template
+        use_collapsible = request.args.get('collapsible', 'true').lower() == 'true'
+        
+        if use_collapsible:
+            try:
+                logger.info("Using collapsible sustainability template")
+                return render_template(
+                    "sustainability_collapsible.html",
+                    nav_sections=nav_context["nav_sections"],
+                    user_menu=nav_context["user_menu"],
+                    active_nav="sustainability"
+                )
+            except Exception as e:
+                logger.warning(f"Error using collapsible template: {str(e)}, falling back to standard")
+                use_collapsible = False
+        
+        # Fall back to standard template
+        logger.info("Using standard sustainability template")
+        return render_template(
+            "sustainability.html",
+            nav_sections=nav_context["nav_sections"],
+            user_menu=nav_context["user_menu"],
+            active_nav="sustainability"
+        )
+    
     @app.route('/co-pilot')
     def co_pilot():
         """Sustainability Co-Pilot - Contextual AI assistant for sustainability intelligence"""
@@ -208,35 +263,260 @@ def register_routes(app):
         # Use AI search as the backend for Co-Pilot
         results = perform_ai_search(query)
         return jsonify(results)
+        
+    @app.route('/api/summarize', methods=['POST'])
+    def api_summarize():
+        """API endpoint to summarize sustainability text using AI"""
+        logger.info("API summarize endpoint accessed")
+        
+        if not request.json or 'text' not in request.json:
+            return jsonify({"error": "No text provided for summarization"}), 400
+            
+        text = request.json.get('text', '')
+        max_length = request.json.get('max_length', 200)
+        
+        try:
+            # Simple summarization logic (this would use AI in production)
+            if len(text) > max_length:
+                summary = text[:max_length] + "..."
+            else:
+                summary = text
+                
+            return jsonify({
+                "summary": summary,
+                "original_length": len(text),
+                "summary_length": len(summary)
+            })
+        except Exception as e:
+            logger.error(f"Error in summarize endpoint: {str(e)}")
+            return jsonify({"error": str(e)}), 500
+            
+    @app.route('/api/predictive-analytics', methods=['POST'])
+    def api_predictive_analytics():
+        """API endpoint for predictive analytics of sustainability metrics"""
+        logger.info("API predictive analytics endpoint accessed")
+        
+        try:
+            # Sample predictive analytics data
+            data = {
+                "predictions": [
+                    {
+                        "metric": "Carbon Emissions",
+                        "current_value": 235.6,
+                        "predicted_value": 198.2,
+                        "prediction_date": (datetime.now() + timedelta(days=90)).isoformat(),
+                        "confidence": 0.87,
+                        "trend": "decreasing"
+                    },
+                    {
+                        "metric": "Water Usage",
+                        "current_value": 1250.3,
+                        "predicted_value": 1180.5,
+                        "prediction_date": (datetime.now() + timedelta(days=90)).isoformat(),
+                        "confidence": 0.82,
+                        "trend": "decreasing"
+                    },
+                    {
+                        "metric": "Renewable Energy Percentage",
+                        "current_value": 48.2,
+                        "predicted_value": 62.7,
+                        "prediction_date": (datetime.now() + timedelta(days=90)).isoformat(), 
+                        "confidence": 0.91,
+                        "trend": "increasing"
+                    }
+                ],
+                "analysis": "Based on current trends and initiatives, we anticipate a significant reduction in carbon emissions and water usage over the next quarter. Renewable energy adoption is projected to increase by approximately 14%, driven primarily by the scheduled completion of solar installations."
+            }
+            return jsonify(data)
+        except Exception as e:
+            logger.error(f"Error in predictive analytics endpoint: {str(e)}")
+            return jsonify({"error": str(e)}), 500
+            
+    @app.route('/api/sustainability-analysis', methods=['POST'])
+    def api_sustainability_analysis():
+        """API endpoint for sustainability analysis of business data"""
+        logger.info("API sustainability analysis endpoint accessed")
+        
+        try:
+            if not request.json:
+                return jsonify({"error": "No data provided for analysis"}), 400
+                
+            # Sample sustainability analysis response
+            data = {
+                "analysis": {
+                    "overall_score": 72.5,
+                    "strengths": [
+                        "Strong renewable energy adoption (54% of total energy)",
+                        "Comprehensive waste reduction program",
+                        "Transparent ESG reporting mechanisms"
+                    ],
+                    "areas_for_improvement": [
+                        "Supply chain emissions still above industry average",
+                        "Water usage intensity higher than peer companies",
+                        "Limited social impact metrics tracking"
+                    ],
+                    "recommendations": [
+                        "Implement supplier emissions tracking program",
+                        "Establish water reduction targets of 15% over 3 years",
+                        "Develop comprehensive social impact measurement framework"
+                    ]
+                },
+                "industry_comparison": {
+                    "percentile": 68,
+                    "leaders": ["CompanyA", "CompanyB", "CompanyC"],
+                    "industry_avg_score": 59.2
+                }
+            }
+            return jsonify(data)
+        except Exception as e:
+            logger.error(f"Error in sustainability analysis endpoint: {str(e)}")
+            return jsonify({"error": str(e)}), 500
+            
+    @app.route('/api/monetization-strategy', methods=['POST'])
+    def api_monetization_strategy():
+        """API endpoint for monetization strategy based on sustainability initiatives"""
+        logger.info("API monetization strategy endpoint accessed")
+        
+        try:
+            if not request.json:
+                return jsonify({"error": "No data provided for monetization strategy"}), 400
+                
+            # Sample monetization strategy response
+            data = {
+                "monetization_strategies": [
+                    {
+                        "strategy": "Premium Sustainable Product Line",
+                        "potential_revenue": "High",
+                        "implementation_complexity": "Medium",
+                        "timeframe": "6-12 months",
+                        "description": "Develop premium product line with enhanced sustainability features commanding 15-20% price premium."
+                    },
+                    {
+                        "strategy": "Carbon Credit Generation",
+                        "potential_revenue": "Medium",
+                        "implementation_complexity": "High",
+                        "timeframe": "12-18 months",
+                        "description": "Generate and sell carbon credits from documented emissions reductions."
+                    },
+                    {
+                        "strategy": "Sustainability Consulting Services",
+                        "potential_revenue": "Medium",
+                        "implementation_complexity": "Low",
+                        "timeframe": "3-6 months",
+                        "description": "Leverage internal expertise to provide sustainability consulting to smaller companies."
+                    }
+                ],
+                "recommended_approach": "Begin with Sustainability Consulting Services for quick revenue generation while developing Premium Product Line for long-term growth."
+            }
+            return jsonify(data)
+        except Exception as e:
+            logger.error(f"Error in monetization strategy endpoint: {str(e)}")
+            return jsonify({"error": str(e)}), 500
+            
+    @app.route('/api/apa-strategy', methods=['POST'])
+    def api_apa_strategy():
+        """API endpoint for Assess-Plan-Act (APA) sustainability strategy"""
+        logger.info("API APA strategy endpoint accessed")
+        
+        try:
+            if not request.json:
+                return jsonify({"error": "No data provided for APA strategy"}), 400
+                
+            # Sample APA strategy response
+            data = {
+                "assess": {
+                    "current_status": "Your organization has made initial progress in sustainability with ad-hoc initiatives but lacks a comprehensive strategy.",
+                    "strengths": [
+                        "Executive team commitment to sustainability",
+                        "Initial data collection systems in place",
+                        "Early product innovations with eco-friendly materials"
+                    ],
+                    "gaps": [
+                        "No formal sustainability governance",
+                        "Limited measurement of Scope 3 emissions",
+                        "Fragmented sustainability initiatives"
+                    ]
+                },
+                "plan": {
+                    "strategic_priorities": [
+                        "Establish formal sustainability governance structure",
+                        "Implement comprehensive carbon accounting",
+                        "Integrate sustainability into product development process"
+                    ],
+                    "timeline": "12-18 months implementation roadmap",
+                    "resource_requirements": "Dedicated sustainability team (2-3 FTEs), data management system, external verification"
+                },
+                "act": {
+                    "immediate_actions": [
+                        "Appoint Chief Sustainability Officer",
+                        "Begin Scope 1 & 2 emissions baseline",
+                        "Launch pilot circular packaging initiative"
+                    ],
+                    "medium_term_actions": [
+                        "Implement supplier sustainability program",
+                        "Develop science-based targets",
+                        "Launch pilot circular packaging initiative"
+                    ],
+                    "long_term_actions": [
+                        "Achieve carbon neutrality for operations",
+                        "Launch pilot circular packaging initiative"
+                    ]
+                }
+            }
+            return jsonify(data)
+        except Exception as e:
+            logger.error(f"Error in APA strategy endpoint: {str(e)}")
+            return jsonify({"error": str(e)}), 500
     
     # -------------------------------------------------------------------------
-    # Legacy route mappings - Redirects to the new core components
+    # Route redirects for consolidated pages
     # -------------------------------------------------------------------------
     
     @app.route('/dashboard')
-    def dashboard_redirect():
-        """Legacy dashboard redirect"""
-        return redirect(url_for('risk_tracker'))
+    def dashboard():
+        """Unified dashboard page combining sustainability metrics and key indicators"""
+        logger.info("Unified Dashboard accessed")
+        nav_context = get_context_for_template()
+        metrics = get_sustainability_metrics()
+        
+        # Ensure consistent metrics format
+        if isinstance(metrics, list):
+            metrics_data = {"metrics": metrics}
+        else:
+            metrics_data = metrics
+        
+        return render_template(
+            "dashboard_unified.html",
+            metrics=metrics_data,
+            nav_sections=nav_context["nav_sections"],
+            user_menu=nav_context["user_menu"],
+            active_nav="dashboard"
+        )
     
     @app.route('/trend-analysis')
     def trend_analysis_redirect():
-        """Legacy trend analysis redirect"""
+        """Trend analysis redirect to home page"""
         return redirect(url_for('home'))
     
     @app.route('/search')
     def search_redirect():
-        """Legacy search redirect"""
+        """Search redirect to Co-Pilot"""
         query = request.args.get('query', '')
         return redirect(url_for('co_pilot', query=query))
     
     @app.route('/document-upload')
     def document_upload_redirect():
-        """Legacy document upload redirect"""
+        """Document upload redirect to PDF analyzer"""
         return redirect(url_for('pdf_analyzer'))
+    
+    @app.route('/sustainability')
+    def sustainability_redirect():
+        """Sustainability page redirect to unified dashboard"""
+        return redirect(url_for('dashboard'))
     
     @app.route('/sustainability-stories')
     def sustainability_stories_redirect():
-        """Legacy stories redirect"""
+        """Stories redirect to story cards"""
         return redirect(url_for('story_cards'))
     
     # -------------------------------------------------------------------------

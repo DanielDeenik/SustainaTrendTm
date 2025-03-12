@@ -1,58 +1,10 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Sustainability Intelligence Platform</title>
-    <link rel="stylesheet" href="{{ url_for('static', filename='styles.css') }}">
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
-</head>
-<body>
-    <nav class="navbar navbar-expand-lg navbar-dark">
-        <div class="container">
-            <a class="navbar-brand" href="/">SustainaTrend™ Intelligence Platform</a>
-            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
-                <span class="navbar-toggler-icon"></span>
-            </button>
-            <div class="collapse navbar-collapse" id="navbarNav">
-                <ul class="navbar-nav ms-auto">
-                    <li class="nav-item">
-                        <a class="nav-link active" href="/">Home</a>
-                    </li>
-                    <li class="nav-item">
-                        <a class="nav-link" href="/dashboard">Dashboard & Monetization</a>
-                    </li>
-                    <li class="nav-item dropdown">
-                        <a class="nav-link dropdown-toggle" href="#" id="searchDropdown" role="button" data-bs-toggle="dropdown" aria-expanded="false">
-                            AI Search
-                        </a>
-                        <ul class="dropdown-menu" aria-labelledby="searchDropdown">
-                            <li><a class="dropdown-item" href="/search">AI Search (RAG)</a></li>
-                            <li><a class="dropdown-item" href="/gemini-search">Gemini AI Search</a></li>
-                        </ul>
-                    </li>
-                    <li class="nav-item">
-                        <a class="nav-link" href="/trend-analysis">Trend Analysis</a>
-                    </li>
-                    <li class="nav-item">
-                        <a class="nav-link" href="/sustainability">Sustainability</a>
-                    </li>
-                    <li class="nav-item dropdown">
-                        <a class="nav-link dropdown-toggle" href="#" id="navbarDropdown" role="button" data-bs-toggle="dropdown" aria-expanded="false">
-                            Test Routes
-                        </a>
-                        <ul class="dropdown-menu" aria-labelledby="navbarDropdown">
-                            <li><a class="dropdown-item" href="/test-route">Test API Route</a></li>
-                            <li><a class="dropdown-item" href="/monetization-simple">Simple Monetization</a></li>
-                            <li><a class="dropdown-item" href="/monetization?format=text">Debug Monetization</a></li>
-                            <li><hr class="dropdown-divider"></li>
-                            <li><a class="dropdown-item" href="/debug">Debug Info</a></li>
-                        </ul>
-                    </li>
-                </ul>
-            </div>
-        </div>
-    </nav>
+{% extends "layouts/finchat_inspired_layout.html" %}
+
+{% block title %}Home | SustainaTrend™ Intelligence Platform{% endblock %}
+
+{% block body_class %}{% if current_theme %}{{ current_theme }}{% else %}light-mode{% endif %}{% endblock %}
+
+{% block content %}
 
     <header class="hero">
         <div class="container text-center py-5">
@@ -168,7 +120,4 @@
             <p>A comprehensive sustainability intelligence platform with integrated monetization framework.</p>
         </div>
     </footer>
-
-    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
-</body>
-</html>
+{% endblock %}
