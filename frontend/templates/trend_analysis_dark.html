@@ -1,0 +1,686 @@
+{% extends "layouts/finchat_dark_layout.html" %}
+
+{% block title %}Sustainability Trend Analysis | SustainaTrend™{% endblock %}
+
+{% block header_title %}Trend Analysis{% endblock %}
+
+{% block header_actions %}
+<span class="finchat-badge finchat-badge-primary">AI-Powered</span>
+{% endblock %}
+
+{% block additional_head %}
+<script src="https://cdn.plot.ly/plotly-2.29.0.min.js"></script>
+{% endblock %}
+
+{% block additional_styles %}
+<style>
+    .trend-section {
+        margin-bottom: var(--fc-spacing-xl);
+    }
+    
+    .trend-filters {
+        display: flex;
+        gap: var(--fc-spacing-sm);
+        margin-bottom: var(--fc-spacing-lg);
+        flex-wrap: wrap;
+    }
+    
+    .trend-filter {
+        background-color: var(--fc-bg-tertiary);
+        border: 1px solid var(--fc-border);
+        border-radius: var(--fc-radius);
+        padding: 6px 12px;
+        font-size: 0.85rem;
+        cursor: pointer;
+        transition: all 0.2s;
+    }
+    
+    .trend-filter:hover, .trend-filter.active {
+        background-color: var(--fc-primary-light);
+        border-color: var(--fc-primary);
+        color: var(--fc-primary);
+    }
+    
+    .trend-visualization {
+        height: 400px;
+        width: 100%;
+        margin-bottom: var(--fc-spacing-lg);
+        background-color: var(--fc-bg-card);
+        border: 1px solid var(--fc-border);
+        border-radius: var(--fc-radius);
+        padding: var(--fc-spacing-md);
+    }
+    
+    .trend-chart-title {
+        font-size: 1rem;
+        font-weight: 600;
+        margin-bottom: var(--fc-spacing-md);
+        display: flex;
+        align-items: center;
+        gap: var(--fc-spacing-xs);
+    }
+    
+    .trend-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+        gap: var(--fc-spacing-md);
+        margin-bottom: var(--fc-spacing-lg);
+    }
+    
+    .trend-card {
+        background-color: var(--fc-bg-card);
+        border: 1px solid var(--fc-border);
+        border-radius: var(--fc-radius);
+        padding: var(--fc-spacing-md);
+        transition: all 0.2s;
+        position: relative;
+        overflow: hidden;
+    }
+    
+    .trend-card:hover {
+        border-color: var(--fc-primary);
+        transform: translateY(-2px);
+        box-shadow: var(--fc-shadow);
+    }
+    
+    .trend-virality {
+        position: absolute;
+        top: 0;
+        right: 0;
+        padding: 4px 10px;
+        font-size: 0.7rem;
+        font-weight: 600;
+        color: #000;
+    }
+    
+    .trend-virality.high {
+        background-color: var(--fc-positive);
+    }
+    
+    .trend-virality.medium {
+        background-color: var(--fc-warning);
+    }
+    
+    .trend-virality.low {
+        background-color: var(--fc-info);
+    }
+    
+    .trend-category {
+        display: inline-block;
+        padding: 3px 8px;
+        border-radius: 12px;
+        font-size: 0.7rem;
+        font-weight: 500;
+        margin-bottom: var(--fc-spacing-sm);
+        background-color: var(--fc-primary-light);
+        color: var(--fc-primary);
+    }
+    
+    .trend-title {
+        font-size: 1rem;
+        font-weight: 600;
+        margin-bottom: var(--fc-spacing-sm);
+    }
+    
+    .trend-description {
+        font-size: 0.85rem;
+        color: var(--fc-text-secondary);
+        margin-bottom: var(--fc-spacing-md);
+        line-height: 1.5;
+    }
+    
+    .trend-meta {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-top: var(--fc-spacing-md);
+        padding-top: var(--fc-spacing-sm);
+        border-top: 1px solid var(--fc-border);
+        font-size: 0.8rem;
+        color: var(--fc-text-secondary);
+    }
+    
+    .trend-momentum {
+        display: flex;
+        align-items: center;
+        gap: 5px;
+    }
+    
+    .trend-momentum.rising {
+        color: var(--fc-positive);
+    }
+    
+    .trend-momentum.falling {
+        color: var(--fc-negative);
+    }
+    
+    .trend-momentum.steady {
+        color: var(--fc-info);
+    }
+    
+    .prediction-section {
+        margin-bottom: var(--fc-spacing-xl);
+    }
+    
+    .prediction-header {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        margin-bottom: var(--fc-spacing-md);
+    }
+    
+    .prediction-timeframes {
+        display: flex;
+        gap: var(--fc-spacing-xs);
+    }
+    
+    .prediction-timeframe {
+        background-color: var(--fc-bg-tertiary);
+        border: 1px solid var(--fc-border);
+        border-radius: var(--fc-radius);
+        padding: 4px 10px;
+        font-size: 0.8rem;
+        cursor: pointer;
+        transition: all 0.2s;
+    }
+    
+    .prediction-timeframe:hover, .prediction-timeframe.active {
+        background-color: var(--fc-primary-light);
+        border-color: var(--fc-primary);
+        color: var(--fc-primary);
+    }
+    
+    .prediction-content {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: var(--fc-spacing-lg);
+    }
+    
+    .prediction-chart {
+        height: 300px;
+        background-color: var(--fc-bg-card);
+        border: 1px solid var(--fc-border);
+        border-radius: var(--fc-radius);
+        padding: var(--fc-spacing-md);
+    }
+    
+    .prediction-insights {
+        display: flex;
+        flex-direction: column;
+        gap: var(--fc-spacing-md);
+    }
+    
+    .prediction-insight {
+        display: flex;
+        gap: var(--fc-spacing-md);
+        align-items: flex-start;
+        padding: var(--fc-spacing-md);
+        background-color: var(--fc-bg-card);
+        border: 1px solid var(--fc-border);
+        border-radius: var(--fc-radius);
+    }
+    
+    .prediction-insight-icon {
+        width: 32px;
+        height: 32px;
+        border-radius: var(--fc-radius);
+        background-color: var(--fc-primary-light);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        color: var(--fc-primary);
+        flex-shrink: 0;
+    }
+    
+    .prediction-insight-content h4 {
+        font-size: 0.9rem;
+        font-weight: 600;
+        margin: 0 0 var(--fc-spacing-xs) 0;
+    }
+    
+    .prediction-insight-content p {
+        font-size: 0.85rem;
+        margin: 0;
+        color: var(--fc-text-secondary);
+    }
+    
+    .analysis-section {
+        margin-bottom: var(--fc-spacing-xl);
+    }
+    
+    .analysis-header {
+        margin-bottom: var(--fc-spacing-md);
+    }
+    
+    .analysis-title {
+        font-size: 1.1rem;
+        font-weight: 600;
+        margin: 0 0 var(--fc-spacing-xs) 0;
+        display: flex;
+        align-items: center;
+        gap: var(--fc-spacing-xs);
+    }
+    
+    .analysis-subtitle {
+        font-size: 0.9rem;
+        color: var(--fc-text-secondary);
+        margin: 0;
+    }
+    
+    .analysis-card {
+        background-color: var(--fc-bg-card);
+        border: 1px solid var(--fc-border);
+        border-radius: var(--fc-radius);
+        padding: var(--fc-spacing-lg);
+    }
+    
+    .analysis-content {
+        font-size: 0.9rem;
+        line-height: 1.6;
+        margin-bottom: var(--fc-spacing-md);
+    }
+    
+    .analysis-highlight {
+        background-color: var(--fc-primary-light);
+        color: var(--fc-primary);
+        padding: 1px 4px;
+        border-radius: 4px;
+        font-weight: 500;
+    }
+    
+    .analysis-metrics {
+        display: flex;
+        gap: var(--fc-spacing-md);
+        margin: var(--fc-spacing-md) 0;
+        flex-wrap: wrap;
+    }
+    
+    .analysis-metric {
+        background-color: var(--fc-bg-tertiary);
+        border-radius: var(--fc-radius);
+        padding: var(--fc-spacing-md);
+        flex: 1;
+        min-width: 120px;
+        text-align: center;
+    }
+    
+    .analysis-metric-value {
+        font-size: 1.5rem;
+        font-weight: 700;
+        color: var(--fc-primary);
+        margin-bottom: var(--fc-spacing-xs);
+    }
+    
+    .analysis-metric-label {
+        font-size: 0.8rem;
+        color: var(--fc-text-secondary);
+    }
+    
+    @media (max-width: 768px) {
+        .prediction-content {
+            grid-template-columns: 1fr;
+        }
+        
+        .trend-grid {
+            grid-template-columns: 1fr;
+        }
+    }
+</style>
+{% endblock %}
+
+{% block main_content %}
+<!-- Trend Visualization Section -->
+<div class="finchat-section trend-section">
+    <h3 class="finchat-section-title">
+        <i class="fas fa-chart-line"></i> Sustainability Trend Analysis
+    </h3>
+    
+    <div class="trend-filters">
+        <button class="trend-filter active" data-category="all">All Categories</button>
+        {% for category in categories %}
+        <button class="trend-filter" data-category="{{ category }}">{{ category|title }}</button>
+        {% endfor %}
+    </div>
+    
+    <div class="trend-visualization">
+        <h4 class="trend-chart-title">
+            <i class="fas fa-chart-area"></i> Trend Virality Over Time
+        </h4>
+        <div id="trendChart" style="width: 100%; height: 350px;"></div>
+    </div>
+    
+    <div class="trend-grid" id="trendGrid">
+        <!-- Trend cards will be inserted here by JavaScript -->
+        <div class="finchat-card">
+            <div class="finchat-card-body" style="display: flex; justify-content: center; align-items: center; padding: 2rem;">
+                <div style="display: flex; flex-direction: column; align-items: center; gap: 1rem;">
+                    <div class="finchat-spinner" style="border: 3px solid var(--fc-bg-hover); border-top: 3px solid var(--fc-primary); border-radius: 50%; width: 40px; height: 40px; animation: spin 1s linear infinite;"></div>
+                    <div>Loading trend data...</div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Prediction Section -->
+<div class="finchat-section prediction-section">
+    <div class="prediction-header">
+        <h3 class="finchat-section-title">
+            <i class="fas fa-lightbulb"></i> Predictive Sustainability Insights
+        </h3>
+        
+        <div class="prediction-timeframes">
+            <button class="prediction-timeframe active" data-timeframe="3m">3 Months</button>
+            <button class="prediction-timeframe" data-timeframe="6m">6 Months</button>
+            <button class="prediction-timeframe" data-timeframe="12m">1 Year</button>
+        </div>
+    </div>
+    
+    <div class="prediction-content">
+        <div class="prediction-chart">
+            <div id="predictionChart" style="width: 100%; height: 100%;"></div>
+        </div>
+        
+        <div class="prediction-insights">
+            <div class="prediction-insight">
+                <div class="prediction-insight-icon">
+                    <i class="fas fa-arrow-trend-up"></i>
+                </div>
+                <div class="prediction-insight-content">
+                    <h4>Rising Trend: Carbon Neutrality</h4>
+                    <p>Organizations across all sectors are increasingly committing to carbon neutrality targets, with a 35% increase in net-zero pledges expected in the next 6 months.</p>
+                </div>
+            </div>
+            
+            <div class="prediction-insight">
+                <div class="prediction-insight-icon">
+                    <i class="fas fa-water"></i>
+                </div>
+                <div class="prediction-insight-content">
+                    <h4>Water Scarcity Focus</h4>
+                    <p>Water management strategies will gain prominence as climate change exacerbates water scarcity issues globally, driving innovation in conservation technologies.</p>
+                </div>
+            </div>
+            
+            <div class="prediction-insight">
+                <div class="prediction-insight-icon">
+                    <i class="fas fa-scale-balanced"></i>
+                </div>
+                <div class="prediction-insight-content">
+                    <h4>Regulatory Landscape Shift</h4>
+                    <p>Expect increased regulatory scrutiny and mandatory ESG disclosures, particularly around emissions data integrity and supply chain transparency.</p>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- AI Analysis Section -->
+<div class="finchat-section analysis-section">
+    <div class="analysis-header">
+        <h3 class="finchat-section-title">
+            <i class="fas fa-robot"></i> AI-Generated Sustainability Analysis
+        </h3>
+        <p class="analysis-subtitle">Comprehensive analysis of trends, opportunities, and challenges based on real-time data</p>
+    </div>
+    
+    <div class="analysis-card">
+        <div class="analysis-content">
+            <p>The sustainability landscape is experiencing a <span class="analysis-highlight">significant shift</span> toward more granular and standardized metrics driven by regulatory developments and stakeholder pressure. Notable emerging trends include:</p>
+            
+            <ul style="margin-bottom: var(--fc-spacing-md); padding-left: var(--fc-spacing-lg);">
+                <li><strong>Double Materiality Focus:</strong> Organizations are now expected to report not only on how sustainability factors affect their financial performance but also on their impacts on environment and society.</li>
+                <li><strong>Biodiversity Accounting:</strong> Following the Taskforce on Nature-related Financial Disclosures (TNFD) framework, biodiversity impact assessment is gaining traction as the "next frontier" after climate.</li>
+                <li><strong>Supply Chain Transparency:</strong> Scope 3 emissions and supplier ESG performance are becoming critical focus areas, especially with the EU Corporate Sustainability Due Diligence Directive.</li>
+            </ul>
+            
+            <p>Organizations should prioritize <span class="analysis-highlight">integrated sustainability data management</span> to seamlessly connect financial and non-financial reporting. Leveraging AI for predictive analytics can help identify emerging risks and opportunities before they materialize.</p>
+            
+            <div class="analysis-metrics">
+                <div class="analysis-metric">
+                    <div class="analysis-metric-value">68%</div>
+                    <div class="analysis-metric-label">Increase in ESG Data Requests</div>
+                </div>
+                <div class="analysis-metric">
+                    <div class="analysis-metric-value">42%</div>
+                    <div class="analysis-metric-label">Using AI for Sustainability</div>
+                </div>
+                <div class="analysis-metric">
+                    <div class="analysis-metric-value">3.2x</div>
+                    <div class="analysis-metric-label">ROI on Sustainability Tech</div>
+                </div>
+            </div>
+            
+            <p>For organizations seeking to stay ahead of the curve, we recommend developing capabilities in <span class="analysis-highlight">real-time sustainability monitoring</span>, scenario analysis to assess climate risks, and advanced life cycle assessment methodologies to capture full product impacts.</p>
+        </div>
+    </div>
+</div>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // Fetch trend data from API
+    fetch('/api/trends')
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                renderTrendChart(data.chart_data);
+                renderTrendCards(data.trends);
+                renderPredictionChart();
+            } else {
+                console.error('Error fetching trend data:', data.error);
+            }
+        })
+        .catch(error => {
+            console.error('Error fetching trend data:', error);
+        });
+        
+    // Category filter functionality
+    const filters = document.querySelectorAll('.trend-filter');
+    filters.forEach(filter => {
+        filter.addEventListener('click', function() {
+            // Update active class
+            filters.forEach(f => f.classList.remove('active'));
+            this.classList.add('active');
+            
+            // Get selected category
+            const category = this.dataset.category;
+            
+            // Filter trend data
+            fetch(`/api/trends${category !== 'all' ? '?category=' + category : ''}`)
+                .then(response => response.json())
+                .then(data => {
+                    if (data.success) {
+                        renderTrendChart(data.chart_data);
+                        renderTrendCards(data.trends);
+                    }
+                })
+                .catch(error => {
+                    console.error('Error fetching filtered trend data:', error);
+                });
+        });
+    });
+    
+    // Timeframe selection for predictions
+    const timeframes = document.querySelectorAll('.prediction-timeframe');
+    timeframes.forEach(timeframe => {
+        timeframe.addEventListener('click', function() {
+            timeframes.forEach(t => t.classList.remove('active'));
+            this.classList.add('active');
+            
+            // Update prediction chart (simulated for demo)
+            renderPredictionChart(this.dataset.timeframe);
+        });
+    });
+});
+
+function renderTrendChart(chartData) {
+    if (!chartData || chartData.length === 0) {
+        console.warn('No chart data available');
+        return;
+    }
+    
+    // Extract dates and categories
+    const dates = chartData.map(point => point.timestamp);
+    
+    // Get all categories (excluding timestamp)
+    const categories = Object.keys(chartData[0]).filter(key => key !== 'timestamp');
+    
+    // Prepare data for each category
+    const traces = categories.map(category => {
+        return {
+            x: dates,
+            y: chartData.map(point => point[category] || 0),
+            type: 'scatter',
+            mode: 'lines+markers',
+            name: category.charAt(0).toUpperCase() + category.slice(1),
+            line: {
+                width: 3
+            }
+        };
+    });
+    
+    const layout = {
+        paper_bgcolor: 'rgba(0,0,0,0)',
+        plot_bgcolor: 'rgba(0,0,0,0)',
+        font: {
+            color: '#e4e6eb'
+        },
+        margin: {
+            l: 50,
+            r: 20,
+            t: 30,
+            b: 50
+        },
+        xaxis: {
+            gridcolor: '#333333',
+            title: 'Date'
+        },
+        yaxis: {
+            gridcolor: '#333333',
+            title: 'Virality Score'
+        },
+        legend: {
+            orientation: 'h',
+            y: -0.2
+        }
+    };
+    
+    const config = {
+        responsive: true,
+        displayModeBar: false
+    };
+    
+    Plotly.newPlot('trendChart', traces, layout, config);
+}
+
+function renderTrendCards(trends) {
+    if (!trends || trends.length === 0) {
+        console.warn('No trend data available');
+        return;
+    }
+    
+    const trendGrid = document.getElementById('trendGrid');
+    trendGrid.innerHTML = '';
+    
+    trends.forEach(trend => {
+        // Determine virality class
+        let viralityClass = 'low';
+        if (trend.virality_score >= 0.7) {
+            viralityClass = 'high';
+        } else if (trend.virality_score >= 0.4) {
+            viralityClass = 'medium';
+        }
+        
+        // Format trend description (if missing, generate a placeholder)
+        const description = trend.description || `This is a ${trend.momentum} trend in the ${trend.category} category with a virality score of ${trend.virality_score.toFixed(2)}.`;
+        
+        // Create trend card HTML
+        const cardHTML = `
+            <div class="trend-card">
+                <div class="trend-virality ${viralityClass}">${(trend.virality_score * 100).toFixed(0)}% Virality</div>
+                <div class="trend-category">${trend.category.charAt(0).toUpperCase() + trend.category.slice(1)}</div>
+                <h4 class="trend-title">${trend.name}</h4>
+                <div class="trend-description">${description}</div>
+                <div class="trend-meta">
+                    <span>${new Date(trend.timestamp).toLocaleDateString()}</span>
+                    <div class="trend-momentum ${trend.momentum}">
+                        <i class="fas fa-${trend.momentum === 'rising' ? 'arrow-up' : (trend.momentum === 'falling' ? 'arrow-down' : 'arrow-right')}"></i>
+                        ${trend.momentum.charAt(0).toUpperCase() + trend.momentum.slice(1)}
+                    </div>
+                </div>
+            </div>
+        `;
+        
+        trendGrid.innerHTML += cardHTML;
+    });
+}
+
+function renderPredictionChart(timeframe = '3m') {
+    // Sample data for demonstration
+    const categories = ['Carbon', 'Water', 'Waste', 'Social', 'Governance'];
+    const current = [65, 42, 33, 58, 47];
+    
+    // Adjust predictions based on timeframe
+    let predicted;
+    let xLabels;
+    
+    if (timeframe === '3m') {
+        predicted = [72, 44, 28, 62, 51];
+        xLabels = ['Current', 'In 3 Months'];
+    } else if (timeframe === '6m') {
+        predicted = [78, 40, 25, 67, 55];
+        xLabels = ['Current', 'In 6 Months'];
+    } else {
+        predicted = [85, 35, 20, 75, 62];
+        xLabels = ['Current', 'In 12 Months'];
+    }
+    
+    const traces = categories.map((category, index) => {
+        return {
+            x: xLabels,
+            y: [current[index], predicted[index]],
+            type: 'scatter',
+            mode: 'lines+markers',
+            name: category,
+            line: {
+                width: 3
+            }
+        };
+    });
+    
+    const layout = {
+        paper_bgcolor: 'rgba(0,0,0,0)',
+        plot_bgcolor: 'rgba(0,0,0,0)',
+        font: {
+            color: '#e4e6eb'
+        },
+        title: {
+            text: 'Sustainability Metric Projections',
+            font: {
+                size: 16
+            }
+        },
+        margin: {
+            l: 50,
+            r: 20,
+            t: 50,
+            b: 50
+        },
+        xaxis: {
+            gridcolor: '#333333'
+        },
+        yaxis: {
+            gridcolor: '#333333',
+            title: 'Performance Score'
+        }
+    };
+    
+    const config = {
+        responsive: true,
+        displayModeBar: false
+    };
+    
+    Plotly.newPlot('predictionChart', traces, layout, config);
+}
+</script>
+{% endblock %}

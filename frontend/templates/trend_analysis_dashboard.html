@@ -1,0 +1,926 @@
+{% extends "base.html" %}
+
+{% block title %}Sustainability Trend Analysis | SustainaTrend™{% endblock %}
+
+{% block additional_head %}
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/jqcloud2@2.0.3/dist/jqcloud.min.css">
+<script src="https://cdn.jsdelivr.net/npm/jqcloud2@2.0.3/dist/jqcloud.min.js"></script>
+<script src="https://cdn.plot.ly/plotly-latest.min.js"></script>
+{% endblock %}
+
+{% block header_title %}
+<span class="material-icons">trending_up</span>
+Sustainability Trend Analysis
+{% endblock %}
+
+{% block header_actions %}
+<button id="refresh-data-btn" class="st-button st-button-outline">
+    <span class="material-icons">refresh</span>
+    <span>Refresh Data</span>
+</button>
+{% endblock %}
+
+{% block additional_css %}
+<style>
+    /* Trend Analysis Layout */
+    .trend-container {
+        display: grid;
+        grid-template-columns: 1fr;
+        gap: 30px;
+        margin-bottom: 30px;
+    }
+    
+    @media (min-width: 992px) {
+        .trend-container {
+            grid-template-columns: 2fr 1fr;
+        }
+    }
+    
+    /* Main Trend Story Card */
+    .trend-story-card {
+        background-color: var(--card-bg);
+        border-radius: 16px;
+        padding: 30px;
+        box-shadow: 0 3px 12px rgba(0, 0, 0, 0.08);
+        transition: all 0.25s ease-in-out;
+        border: 1px solid rgba(var(--primary-rgb), 0.07);
+        display: flex;
+        flex-direction: column;
+        position: relative;
+        overflow: hidden;
+    }
+    
+    .trend-story-card:before {
+        content: '';
+        position: absolute;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 5px;
+        background: linear-gradient(to right, var(--primary-color), #9c27b0);
+    }
+    
+    .trend-story-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: flex-start;
+        margin-bottom: 20px;
+    }
+    
+    .trend-story-timestamp {
+        font-size: 13px;
+        color: var(--text-muted);
+        display: flex;
+        align-items: center;
+        gap: 5px;
+    }
+    
+    .trend-story-title {
+        font-size: 24px;
+        font-weight: 600;
+        color: var(--heading-color);
+        margin: 0 0 15px 0;
+        line-height: 1.3;
+    }
+    
+    .trend-story-content {
+        font-size: 16px;
+        line-height: 1.7;
+        color: var(--text-color);
+        margin-bottom: 25px;
+    }
+    
+    .trend-highlight {
+        font-weight: 600;
+        color: var(--primary-color);
+        background-color: rgba(var(--primary-rgb), 0.08);
+        padding: 1px 4px;
+        border-radius: 4px;
+    }
+    
+    .trend-story-chart {
+        width: 100%;
+        height: 300px;
+        margin: 20px 0;
+    }
+    
+    .trend-story-metrics {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 15px;
+        margin: 20px 0;
+    }
+    
+    .trend-metric {
+        background-color: rgba(var(--primary-rgb), 0.05);
+        border-radius: 12px;
+        padding: 15px;
+        flex: 1;
+        min-width: 150px;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        transition: transform 0.2s ease;
+    }
+    
+    .trend-metric:hover {
+        transform: translateY(-3px);
+    }
+    
+    .trend-metric-value {
+        font-size: 24px;
+        font-weight: 700;
+        color: var(--primary-color);
+        margin-bottom: 5px;
+    }
+    
+    .trend-metric-label {
+        font-size: 13px;
+        color: var(--text-muted);
+        text-align: center;
+    }
+    
+    .trend-story-footer {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-top: auto;
+        padding-top: 20px;
+        border-top: 1px solid var(--border-color);
+    }
+    
+    .trend-sentiment {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+    }
+    
+    .trend-sentiment-label {
+        font-size: 13px;
+        color: var(--text-muted);
+    }
+    
+    .trend-sentiment-value {
+        display: flex;
+        align-items: center;
+        gap: 5px;
+        font-weight: 600;
+    }
+    
+    .trend-sentiment-value.positive {
+        color: #2e7d32;
+    }
+    
+    .trend-sentiment-value.neutral {
+        color: #ff9800;
+    }
+    
+    .trend-sentiment-value.negative {
+        color: #c62828;
+    }
+    
+    .trend-actions {
+        display: flex;
+        gap: 10px;
+    }
+    
+    .trend-action-btn {
+        background: transparent;
+        border: 1px solid var(--border-color);
+        border-radius: 6px;
+        padding: 6px 12px;
+        cursor: pointer;
+        display: flex;
+        align-items: center;
+        gap: 6px;
+        font-size: 13px;
+        transition: all 0.2s ease;
+    }
+    
+    .trend-action-btn:hover {
+        background-color: rgba(var(--primary-rgb), 0.05);
+        border-color: var(--primary-color);
+        color: var(--primary-color);
+    }
+    
+    .trend-action-btn .material-icons {
+        font-size: 16px;
+    }
+    
+    /* Trend Radar */
+    .trend-radar {
+        background-color: var(--card-bg);
+        border-radius: 16px;
+        padding: 24px;
+        box-shadow: 0 3px 12px rgba(0, 0, 0, 0.08);
+        height: fit-content;
+    }
+    
+    .trend-radar-title {
+        font-size: 18px;
+        font-weight: 600;
+        color: var(--heading-color);
+        margin: 0 0 20px 0;
+        display: flex;
+        align-items: center;
+        gap: 8px;
+    }
+    
+    .trend-filters {
+        display: flex;
+        gap: 10px;
+        flex-wrap: wrap;
+        margin-bottom: 20px;
+    }
+    
+    .trend-filter-btn {
+        background: transparent;
+        border: 1px solid var(--border-color);
+        border-radius: 20px;
+        padding: 5px 12px;
+        font-size: 12px;
+        cursor: pointer;
+        transition: all 0.2s ease;
+    }
+    
+    .trend-filter-btn:hover, .trend-filter-btn.active {
+        background-color: rgba(var(--primary-rgb), 0.1);
+        border-color: var(--primary-color);
+        color: var(--primary-color);
+    }
+    
+    .trend-list {
+        display: flex;
+        flex-direction: column;
+        gap: 12px;
+        margin-bottom: 24px;
+    }
+    
+    .trend-item {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+        padding: 12px;
+        border-radius: 10px;
+        cursor: pointer;
+        transition: all 0.2s ease;
+    }
+    
+    .trend-item:hover {
+        background-color: rgba(var(--primary-rgb), 0.05);
+    }
+    
+    .trend-item-icon {
+        width: 36px;
+        height: 36px;
+        border-radius: 10px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        background-color: rgba(var(--primary-rgb), 0.1);
+        color: var(--primary-color);
+    }
+    
+    .trend-item-content {
+        flex: 1;
+    }
+    
+    .trend-item-title {
+        font-size: 14px;
+        font-weight: 600;
+        color: var(--text-color);
+        margin: 0 0 3px 0;
+    }
+    
+    .trend-item-stats {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        font-size: 12px;
+        color: var(--text-muted);
+    }
+    
+    .trend-item-stats span {
+        display: flex;
+        align-items: center;
+        gap: 3px;
+    }
+    
+    .trend-item-virality {
+        margin-left: auto;
+        font-size: 13px;
+        font-weight: 600;
+        color: var(--primary-color);
+    }
+    
+    /* Sentiment Word Cloud */
+    .sentiment-cloud {
+        height: 250px;
+        width: 100%;
+        margin-top: 20px;
+    }
+    
+    /* Emerging Topic Card */
+    .emerging-topic-card {
+        background-color: #f8f9fa;
+        border-radius: 12px;
+        padding: 16px;
+        margin-top: 20px;
+        border-left: 4px solid #9c27b0;
+    }
+    
+    .emerging-topic-title {
+        font-size: 15px;
+        font-weight: 600;
+        color: #9c27b0;
+        margin: 0 0 10px 0;
+        display: flex;
+        align-items: center;
+        gap: 6px;
+    }
+    
+    .emerging-topic-content {
+        font-size: 13px;
+        line-height: 1.5;
+        color: var(--text-color);
+    }
+    
+    /* Responsive adjustments */
+    @media (max-width: 768px) {
+        .trend-story-metrics {
+            flex-direction: column;
+            gap: 12px;
+        }
+        
+        .trend-metric {
+            min-width: auto;
+        }
+    }
+    
+    /* AI-generated trend insight card */
+    .trend-insight-card {
+        background-color: rgba(var(--primary-rgb), 0.03);
+        border-radius: 12px;
+        padding: 16px;
+        margin-top: 20px;
+        border: 1px solid rgba(var(--primary-rgb), 0.08);
+    }
+    
+    .trend-insight-title {
+        font-size: 15px;
+        font-weight: 600;
+        color: var(--heading-color);
+        margin: 0 0 10px 0;
+        display: flex;
+        align-items: center;
+        gap: 6px;
+    }
+    
+    .trend-insight-content {
+        font-size: 14px;
+        line-height: 1.5;
+        color: var(--text-color);
+    }
+    
+    /* Trend prediction section */
+    .trend-prediction {
+        margin-top: 30px;
+    }
+    
+    .trend-prediction-title {
+        font-size: 16px;
+        font-weight: 600;
+        color: var(--heading-color);
+        margin: 0 0 15px 0;
+        display: flex;
+        align-items: center;
+        gap: 8px;
+    }
+    
+    .prediction-tags {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 10px;
+    }
+    
+    .prediction-tag {
+        background-color: rgba(var(--primary-rgb), 0.07);
+        border-radius: 16px;
+        padding: 6px 12px;
+        font-size: 13px;
+        color: var(--text-color);
+        display: flex;
+        align-items: center;
+        gap: 5px;
+    }
+    
+    .prediction-tag .probability {
+        font-weight: 600;
+        color: var(--primary-color);
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="st-container">
+    <div class="trend-container">
+        <!-- AI-Generated Trend Story (Main Focus) -->
+        <div class="trend-story-card">
+            <div class="trend-story-header">
+                <span class="trend-story-badge"><i class="material-icons" style="color: var(--primary-color);">auto_awesome</i> AI-Generated</span>
+                <span class="trend-story-timestamp">
+                    <i class="material-icons" style="font-size: 16px;">calendar_today</i>
+                    March 11, 2025
+                </span>
+            </div>
+            
+            <h2 class="trend-story-title">Circular Economy Practices Gaining Momentum in Manufacturing Sector</h2>
+            
+            <div class="trend-story-content">
+                <p>Our AI-powered trend analysis reveals a significant 42% increase in circular economy discussions across manufacturing companies over the past quarter. This shift is particularly notable in <span class="trend-highlight">resource-intensive industries</span> where waste reduction and material reuse are becoming strategic priorities.</p>
+                
+                <p>The data indicates this trend is being driven by a combination of regulatory changes, consumer demand, and emerging cost benefits of circular business models. Companies implementing circular practices are reporting an average <span class="trend-highlight">24% reduction in material costs</span> and a 15% decrease in waste management expenses.</p>
+                
+                <div class="trend-story-chart" id="circular-economy-trend-chart"></div>
+                
+                <div class="trend-story-metrics">
+                    <div class="trend-metric">
+                        <div class="trend-metric-value">+42%</div>
+                        <div class="trend-metric-label">Circular Economy Mentions</div>
+                    </div>
+                    
+                    <div class="trend-metric">
+                        <div class="trend-metric-value">67%</div>
+                        <div class="trend-metric-label">Companies Reporting Initiatives</div>
+                    </div>
+                    
+                    <div class="trend-metric">
+                        <div class="trend-metric-value">0.85</div>
+                        <div class="trend-metric-label">Trend Virality Score</div>
+                    </div>
+                </div>
+                
+                <p>Analysis of leadership messaging indicates this is not merely a short-term focus. Over 70% of manufacturing CEOs mentioned circular economy principles in recent earnings calls and sustainability reports, signaling a strategic shift that could reshape industry standards in the coming years.</p>
+                
+                <div class="trend-insight-card">
+                    <h4 class="trend-insight-title">
+                        <i class="material-icons">psychology</i>
+                        AI Insight
+                    </h4>
+                    <div class="trend-insight-content">
+                        <p>Companies that have integrated circular economy principles throughout their value chain are demonstrating 18% better financial performance compared to industry peers. This correlation suggests early adoption provides competitive advantages beyond mere sustainability credentials.</p>
+                    </div>
+                </div>
+                
+                <div class="trend-prediction">
+                    <h4 class="trend-prediction-title">
+                        <i class="material-icons">trending_up</i>
+                        Related Emerging Topics
+                    </h4>
+                    <div class="prediction-tags">
+                        <div class="prediction-tag">
+                            Product-as-service models <span class="probability">92%</span>
+                        </div>
+                        <div class="prediction-tag">
+                            Design for disassembly <span class="probability">85%</span>
+                        </div>
+                        <div class="prediction-tag">
+                            Reverse logistics <span class="probability">79%</span>
+                        </div>
+                        <div class="prediction-tag">
+                            Materials passport <span class="probability">72%</span>
+                        </div>
+                        <div class="prediction-tag">
+                            Remanufacturing standards <span class="probability">68%</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="trend-story-footer">
+                <div class="trend-sentiment">
+                    <span class="trend-sentiment-label">Sentiment:</span>
+                    <span class="trend-sentiment-value positive">
+                        <i class="material-icons">sentiment_satisfied</i>
+                        Positive (0.87)
+                    </span>
+                </div>
+                
+                <div class="trend-actions">
+                    <button class="trend-action-btn">
+                        <i class="material-icons">share</i>
+                        Share
+                    </button>
+                    <button class="trend-action-btn">
+                        <i class="material-icons">file_download</i>
+                        Export
+                    </button>
+                    <button class="trend-action-btn">
+                        <i class="material-icons">fullscreen</i>
+                        Expand
+                    </button>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Trend Radar (Secondary/Side Panel) -->
+        <div class="trend-radar">
+            <h3 class="trend-radar-title">
+                <i class="material-icons">radar</i>
+                Sustainability Trend Radar
+            </h3>
+            
+            <div class="trend-filters">
+                <button class="trend-filter-btn active">All</button>
+                <button class="trend-filter-btn">Environmental</button>
+                <button class="trend-filter-btn">Social</button>
+                <button class="trend-filter-btn">Governance</button>
+                <button class="trend-filter-btn">Technology</button>
+            </div>
+            
+            <div class="trend-list">
+                <!-- Trend Item 1 -->
+                <div class="trend-item">
+                    <div class="trend-item-icon">
+                        <i class="material-icons">recycling</i>
+                    </div>
+                    <div class="trend-item-content">
+                        <h4 class="trend-item-title">Circular Economy in Manufacturing</h4>
+                        <div class="trend-item-stats">
+                            <span><i class="material-icons" style="font-size: 14px;">trending_up</i> 42%</span>
+                            <span><i class="material-icons" style="font-size: 14px;">sentiment_satisfied</i> 0.87</span>
+                        </div>
+                    </div>
+                    <div class="trend-item-virality">0.85</div>
+                </div>
+                
+                <!-- Trend Item 2 -->
+                <div class="trend-item">
+                    <div class="trend-item-icon">
+                        <i class="material-icons">water_drop</i>
+                    </div>
+                    <div class="trend-item-content">
+                        <h4 class="trend-item-title">Water Stewardship Programs</h4>
+                        <div class="trend-item-stats">
+                            <span><i class="material-icons" style="font-size: 14px;">trending_up</i> 28%</span>
+                            <span><i class="material-icons" style="font-size: 14px;">sentiment_satisfied</i> 0.74</span>
+                        </div>
+                    </div>
+                    <div class="trend-item-virality">0.72</div>
+                </div>
+                
+                <!-- Trend Item 3 -->
+                <div class="trend-item">
+                    <div class="trend-item-icon">
+                        <i class="material-icons">diversity_3</i>
+                    </div>
+                    <div class="trend-item-content">
+                        <h4 class="trend-item-title">Supply Chain Human Rights</h4>
+                        <div class="trend-item-stats">
+                            <span><i class="material-icons" style="font-size: 14px;">trending_up</i> 36%</span>
+                            <span><i class="material-icons" style="font-size: 14px;">sentiment_satisfied_alt</i> 0.51</span>
+                        </div>
+                    </div>
+                    <div class="trend-item-virality">0.67</div>
+                </div>
+                
+                <!-- Trend Item 4 -->
+                <div class="trend-item">
+                    <div class="trend-item-icon">
+                        <i class="material-icons">electric_bolt</i>
+                    </div>
+                    <div class="trend-item-content">
+                        <h4 class="trend-item-title">Energy Storage Innovations</h4>
+                        <div class="trend-item-stats">
+                            <span><i class="material-icons" style="font-size: 14px;">trending_up</i> 53%</span>
+                            <span><i class="material-icons" style="font-size: 14px;">sentiment_satisfied</i> 0.92</span>
+                        </div>
+                    </div>
+                    <div class="trend-item-virality">0.78</div>
+                </div>
+                
+                <!-- Trend Item 5 -->
+                <div class="trend-item">
+                    <div class="trend-item-icon">
+                        <i class="material-icons">eco</i>
+                    </div>
+                    <div class="trend-item-content">
+                        <h4 class="trend-item-title">Biodiversity Impact Management</h4>
+                        <div class="trend-item-stats">
+                            <span><i class="material-icons" style="font-size: 14px;">trending_up</i> 39%</span>
+                            <span><i class="material-icons" style="font-size: 14px;">sentiment_satisfied</i> 0.83</span>
+                        </div>
+                    </div>
+                    <div class="trend-item-virality">0.59</div>
+                </div>
+            </div>
+            
+            <!-- Sentiment Word Cloud -->
+            <h4 style="font-size: 15px; margin: 15px 0 10px 0;">Sentiment Analysis</h4>
+            <div class="sentiment-cloud" id="sentiment-cloud"></div>
+            
+            <!-- Emerging Topic -->
+            <div class="emerging-topic-card">
+                <h4 class="emerging-topic-title">
+                    <i class="material-icons">auto_awesome</i>
+                    Emerging Topic
+                </h4>
+                <div class="emerging-topic-content">
+                    <p>AI predicts <strong>"Carbon Insetting"</strong> will become a significant trend in the next 6-12 months, with early signals showing 215% growth in related discussions.</p>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Additional Trend Stories (Collapsed by Default) -->
+    <h3 class="st-section-title">
+        <i class="material-icons">history</i>
+        Previous Trend Stories
+    </h3>
+    
+    <div class="st-row">
+        <!-- Previous Trend 1 -->
+        <div class="st-col-4">
+            <div class="trend-story-card" style="padding: 20px;">
+                <span class="trend-story-timestamp" style="margin-bottom: 10px;">March 4, 2025</span>
+                <h3 style="font-size: 18px; margin-bottom: 10px;">Nature-Based Solutions Gaining Traction Among Real Estate Developers</h3>
+                <p style="font-size: 14px; margin-bottom: 15px;">Analysis shows 36% increase in green infrastructure implementations among commercial real estate projects...</p>
+                <div class="trend-story-footer" style="padding-top: 15px;">
+                    <div class="trend-sentiment">
+                        <span class="trend-sentiment-value positive">
+                            <i class="material-icons">sentiment_satisfied</i>
+                            0.81
+                        </span>
+                    </div>
+                    <button class="trend-action-btn">
+                        <i class="material-icons">visibility</i>
+                        View
+                    </button>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Previous Trend 2 -->
+        <div class="st-col-4">
+            <div class="trend-story-card" style="padding: 20px;">
+                <span class="trend-story-timestamp" style="margin-bottom: 10px;">February 25, 2025</span>
+                <h3 style="font-size: 18px; margin-bottom: 10px;">Social Sustainability Metrics Becoming Standard in Investor Reports</h3>
+                <p style="font-size: 14px; margin-bottom: 15px;">Analysis of recent investor communications reveals 48% increase in quantifiable social impact metrics...</p>
+                <div class="trend-story-footer" style="padding-top: 15px;">
+                    <div class="trend-sentiment">
+                        <span class="trend-sentiment-value positive">
+                            <i class="material-icons">sentiment_satisfied</i>
+                            0.76
+                        </span>
+                    </div>
+                    <button class="trend-action-btn">
+                        <i class="material-icons">visibility</i>
+                        View
+                    </button>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Previous Trend 3 -->
+        <div class="st-col-4">
+            <div class="trend-story-card" style="padding: 20px;">
+                <span class="trend-story-timestamp" style="margin-bottom: 10px;">February 18, 2025</span>
+                <h3 style="font-size: 18px; margin-bottom: 10px;">Virtual Power Purchase Agreements Transforming Corporate Energy Strategies</h3>
+                <p style="font-size: 14px; margin-bottom: 15px;">Analysis shows 67% growth in corporate virtual PPAs for renewable energy procurement...</p>
+                <div class="trend-story-footer" style="padding-top: 15px;">
+                    <div class="trend-sentiment">
+                        <span class="trend-sentiment-value positive">
+                            <i class="material-icons">sentiment_satisfied</i>
+                            0.84
+                        </span>
+                    </div>
+                    <button class="trend-action-btn">
+                        <i class="material-icons">visibility</i>
+                        View
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block additional_js %}
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        // Initialize trend chart
+        initializeCircularEconomyTrendChart();
+        
+        // Initialize sentiment word cloud
+        initializeSentimentCloud();
+        
+        // Set up filter buttons
+        document.querySelectorAll('.trend-filter-btn').forEach(btn => {
+            btn.addEventListener('click', function() {
+                // Toggle active state
+                document.querySelectorAll('.trend-filter-btn').forEach(b => b.classList.remove('active'));
+                this.classList.add('active');
+                
+                // Show notification
+                showToast(`Filtered by: ${this.textContent.trim()}`);
+                
+                // In a real app, this would filter the trend list
+            });
+        });
+        
+        // Set up refresh button
+        document.getElementById('refresh-data-btn').addEventListener('click', function() {
+            // Show loading spinner
+            this.innerHTML = '<span class="material-icons spinning">refresh</span><span>Refreshing...</span>';
+            this.disabled = true;
+            
+            // Simulate data refresh
+            setTimeout(() => {
+                // Reset button
+                this.innerHTML = '<span class="material-icons">refresh</span><span>Refresh Data</span>';
+                this.disabled = false;
+                
+                // Show toast notification
+                showToast('Trend data refreshed successfully');
+                
+                // Re-render visualizations
+                initializeCircularEconomyTrendChart();
+                initializeSentimentCloud();
+            }, 1500);
+        });
+        
+        // Set up action buttons
+        document.querySelectorAll('.trend-action-btn').forEach(btn => {
+            btn.addEventListener('click', function() {
+                const action = this.textContent.trim();
+                showToast(`${action} action triggered`);
+            });
+        });
+        
+        // Set up trend items
+        document.querySelectorAll('.trend-item').forEach(item => {
+            item.addEventListener('click', function() {
+                const title = this.querySelector('.trend-item-title').textContent;
+                showToast(`Loading trend story: ${title}`);
+            });
+        });
+    });
+    
+    // Initialize circular economy trend chart
+    function initializeCircularEconomyTrendChart() {
+        const ctx = document.getElementById('circular-economy-trend-chart');
+        
+        const trace1 = {
+            x: ['Q1 2024', 'Q2 2024', 'Q3 2024', 'Q4 2024', 'Q1 2025'],
+            y: [32, 37, 45, 58, 67],
+            name: 'Companies Reporting Initiatives (%)',
+            type: 'scatter',
+            mode: 'lines+markers',
+            line: {
+                color: '#4CAF50',
+                width: 3
+            },
+            marker: {
+                size: 8
+            }
+        };
+        
+        const trace2 = {
+            x: ['Q1 2024', 'Q2 2024', 'Q3 2024', 'Q4 2024', 'Q1 2025'],
+            y: [24, 26, 31, 38, 42],
+            name: 'Circular Economy Mentions Growth (%)',
+            type: 'bar',
+            marker: {
+                color: 'rgba(156, 39, 176, 0.7)'
+            }
+        };
+        
+        const layout = {
+            autosize: true,
+            margin: {
+                l: 50,
+                r: 20,
+                b: 60,
+                t: 10,
+                pad: 4
+            },
+            hovermode: 'closest',
+            xaxis: {
+                title: 'Quarter'
+            },
+            yaxis: {
+                title: 'Percentage (%)'
+            },
+            legend: {
+                orientation: 'h',
+                yanchor: 'bottom',
+                y: -0.3,
+                xanchor: 'center',
+                x: 0.5
+            },
+            barmode: 'group'
+        };
+        
+        const config = {
+            responsive: true
+        };
+        
+        Plotly.newPlot(ctx, [trace1, trace2], layout, config);
+    }
+    
+    // Initialize sentiment word cloud
+    function initializeSentimentCloud() {
+        const cloudElement = document.getElementById('sentiment-cloud');
+        
+        // Word cloud data
+        const words = [
+            {text: "Circular", weight: 18, sentiment: "positive"},
+            {text: "Recycling", weight: 14, sentiment: "positive"},
+            {text: "Waste", weight: 13, sentiment: "neutral"},
+            {text: "Manufacturing", weight: 12, sentiment: "neutral"},
+            {text: "Reuse", weight: 11, sentiment: "positive"},
+            {text: "Materials", weight: 10, sentiment: "neutral"},
+            {text: "Sustainable", weight: 9, sentiment: "positive"},
+            {text: "Efficiency", weight: 9, sentiment: "positive"},
+            {text: "Cost", weight: 8, sentiment: "neutral"},
+            {text: "Regulation", weight: 8, sentiment: "neutral"},
+            {text: "Innovation", weight: 7, sentiment: "positive"},
+            {text: "Design", weight: 7, sentiment: "positive"},
+            {text: "Supply Chain", weight: 6, sentiment: "neutral"},
+            {text: "Energy", weight: 6, sentiment: "neutral"},
+            {text: "Certification", weight: 5, sentiment: "positive"},
+            {text: "Plastic", weight: 5, sentiment: "neutral"},
+            {text: "Packaging", weight: 4, sentiment: "neutral"},
+            {text: "Biodegradable", weight: 4, sentiment: "positive"},
+            {text: "Compostable", weight: 4, sentiment: "positive"},
+            {text: "Emissions", weight: 3, sentiment: "negative"}
+        ];
+        
+        // Configure word cloud
+        if (typeof $.jQCloud !== 'undefined') {
+            $(cloudElement).jQCloud(words, {
+                width: cloudElement.offsetWidth,
+                height: 250,
+                colors: ["#ff5252", "#ff7b7b", "#ffb74d", "#ffecb3", "#dcedc8", "#c5e1a5", "#aed581", "#9ccc65", "#8bc34a", "#7cb342"],
+                fontSize: {
+                    from: 0.1,
+                    to: 0.03
+                },
+                autoResize: true,
+                afterCloudRender: function() {
+                    // Color words by sentiment
+                    $(cloudElement).find('span').each(function() {
+                        const text = $(this).text();
+                        const word = words.find(w => w.text === text);
+                        if (word) {
+                            if (word.sentiment === "positive") {
+                                $(this).css('color', '#4caf50');
+                            } else if (word.sentiment === "negative") {
+                                $(this).css('color', '#f44336');
+                            } else {
+                                $(this).css('color', '#607d8b');
+                            }
+                        }
+                    });
+                }
+            });
+        } else {
+            // Fallback for when jQCloud is not loaded
+            cloudElement.innerHTML = '<p>Word cloud visualization not available</p>';
+        }
+    }
+    
+    // Toast notification
+    function showToast(message) {
+        // Create toast element if it doesn't exist
+        let toast = document.getElementById('toast-notification');
+        if (!toast) {
+            toast = document.createElement('div');
+            toast.id = 'toast-notification';
+            toast.style.position = 'fixed';
+            toast.style.bottom = '20px';
+            toast.style.right = '20px';
+            toast.style.backgroundColor = 'var(--primary-color)';
+            toast.style.color = 'white';
+            toast.style.padding = '12px 20px';
+            toast.style.borderRadius = '4px';
+            toast.style.boxShadow = '0 2px 10px rgba(0, 0, 0, 0.2)';
+            toast.style.zIndex = '9999';
+            toast.style.transition = 'opacity 0.3s ease';
+            toast.style.display = 'flex';
+            toast.style.alignItems = 'center';
+            toast.style.gap = '8px';
+            document.body.appendChild(toast);
+        }
+        
+        // Set message
+        toast.innerHTML = `<span class="material-icons">check_circle</span> ${message}`;
+        toast.style.opacity = '1';
+        
+        // Auto hide after 3 seconds
+        setTimeout(() => {
+            toast.style.opacity = '0';
+        }, 3000);
+    }
+</script>
+{% endblock %}

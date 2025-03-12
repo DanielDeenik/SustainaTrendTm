@@ -11,7 +11,8 @@
  * - Response formatting guidance
  */
 
-const CopilotPromptTemplates = {
+// Define the templates in global scope for browser compatibility
+window.CopilotPromptTemplates = {
     /**
      * Dashboard context prompt template
      * Focus: Portfolio-wide sustainability metrics and insights

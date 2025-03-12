@@ -1,0 +1,974 @@
+{% extends "layouts/finchat_dark_layout.html" %}
+
+{% block title %}Sustainability Storytelling - SustainaTrend™{% endblock %}
+
+{% block header_title %}Sustainability Storytelling{% endblock %}
+
+{% block header_actions %}
+<span class="finchat-badge finchat-badge-primary">AI-Generated</span>
+{% endblock %}
+
+{% block additional_styles %}
+<style>
+    .story-templates {
+        display: grid;
+        grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+        gap: var(--fc-spacing-md);
+        margin-bottom: var(--fc-spacing-xl);
+    }
+    
+    .story-template {
+        background-color: var(--fc-bg-card);
+        border: 1px solid var(--fc-border);
+        border-radius: var(--fc-radius);
+        padding: var(--fc-spacing-md);
+        transition: all 0.2s;
+        cursor: pointer;
+    }
+    
+    .story-template:hover {
+        border-color: var(--fc-primary);
+        box-shadow: var(--fc-shadow);
+    }
+    
+    .template-header {
+        display: flex;
+        justify-content: space-between;
+        margin-bottom: var(--fc-spacing-sm);
+    }
+    
+    .template-icon {
+        width: 40px;
+        height: 40px;
+        background-color: var(--fc-primary-light);
+        color: var(--fc-primary);
+        border-radius: var(--fc-radius);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        margin-bottom: var(--fc-spacing-sm);
+        font-size: 1.2rem;
+    }
+    
+    .template-title {
+        font-weight: 600;
+        margin-bottom: var(--fc-spacing-xs);
+        font-size: 1.1rem;
+    }
+    
+    .template-description {
+        color: var(--fc-text-secondary);
+        font-size: 0.9rem;
+        margin-bottom: var(--fc-spacing-md);
+    }
+    
+    .template-metrics {
+        display: flex;
+        flex-wrap: wrap;
+        gap: var(--fc-spacing-xs);
+        margin-top: var(--fc-spacing-md);
+    }
+    
+    .template-metric {
+        background-color: var(--fc-bg-hover);
+        color: var(--fc-text-secondary);
+        font-size: 0.8rem;
+        padding: 2px 8px;
+        border-radius: 4px;
+    }
+    
+    .edit-container {
+        display: none;
+        margin-bottom: var(--fc-spacing-xl);
+    }
+    
+    .edit-container.show {
+        display: block;
+    }
+    
+    .edit-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: var(--fc-spacing-md);
+    }
+    
+    .edit-header-title {
+        font-size: 1.1rem;
+        font-weight: 600;
+        display: flex;
+        align-items: center;
+        gap: var(--fc-spacing-sm);
+    }
+    
+    .edit-header-actions {
+        display: flex;
+        gap: var(--fc-spacing-xs);
+    }
+    
+    .edit-form {
+        background-color: var(--fc-bg-card);
+        border: 1px solid var(--fc-border);
+        border-radius: var(--fc-radius);
+        padding: var(--fc-spacing-md);
+    }
+    
+    .form-group {
+        margin-bottom: var(--fc-spacing-md);
+    }
+    
+    .form-label {
+        display: block;
+        margin-bottom: var(--fc-spacing-xs);
+        font-weight: 500;
+        font-size: 0.9rem;
+    }
+    
+    .form-input {
+        width: 100%;
+        background-color: var(--fc-bg-tertiary);
+        border: 1px solid var(--fc-border);
+        border-radius: var(--fc-radius);
+        padding: 8px 12px;
+        color: var(--fc-text-primary);
+        font-size: 0.9rem;
+    }
+    
+    .form-input:focus {
+        outline: none;
+        border-color: var(--fc-primary);
+    }
+    
+    .form-textarea {
+        min-height: 120px;
+        resize: vertical;
+    }
+    
+    .form-actions {
+        display: flex;
+        justify-content: flex-end;
+        gap: var(--fc-spacing-sm);
+        margin-top: var(--fc-spacing-lg);
+    }
+    
+    .metrics-container {
+        display: flex;
+        flex-wrap: wrap;
+        gap: var(--fc-spacing-xs);
+        margin-top: var(--fc-spacing-sm);
+    }
+    
+    .metric-tag {
+        background-color: var(--fc-bg-hover);
+        color: var(--fc-text-secondary);
+        font-size: 0.8rem;
+        padding: 6px 10px;
+        border-radius: 4px;
+        display: flex;
+        align-items: center;
+        gap: 6px;
+    }
+    
+    .metric-tag-remove {
+        cursor: pointer;
+        width: 16px;
+        height: 16px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        background-color: rgba(255, 255, 255, 0.1);
+        border-radius: 50%;
+    }
+    
+    .add-metric-btn {
+        background-color: var(--fc-bg-hover);
+        color: var(--fc-text-secondary);
+        border: 1px dashed var(--fc-border);
+        border-radius: 4px;
+        padding: 4px 10px;
+        font-size: 0.8rem;
+        cursor: pointer;
+        transition: all 0.2s;
+        display: flex;
+        align-items: center;
+        gap: 6px;
+    }
+    
+    .add-metric-btn:hover {
+        background-color: var(--fc-primary-light);
+        color: var(--fc-primary);
+        border-color: var(--fc-primary);
+    }
+    
+    .preview-container {
+        display: none;
+        background-color: var(--fc-bg-card);
+        border: 1px solid var(--fc-border);
+        border-radius: var(--fc-radius);
+        padding: var(--fc-spacing-md);
+        margin-bottom: var(--fc-spacing-xl);
+    }
+    
+    .preview-container.show {
+        display: block;
+    }
+    
+    .preview-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: var(--fc-spacing-md);
+        padding-bottom: var(--fc-spacing-md);
+        border-bottom: 1px solid var(--fc-border);
+    }
+    
+    .preview-header-title {
+        font-size: 1.1rem;
+        font-weight: 600;
+        display: flex;
+        align-items: center;
+        gap: var(--fc-spacing-sm);
+    }
+    
+    .preview-header-actions {
+        display: flex;
+        gap: var(--fc-spacing-xs);
+    }
+    
+    .preview-content {
+        color: var(--fc-text-primary);
+        line-height: 1.6;
+        font-size: 0.95rem;
+    }
+    
+    .preview-content h1, .preview-content h2 {
+        color: var(--fc-text-primary);
+        margin: var(--fc-spacing-md) 0 var(--fc-spacing-sm) 0;
+    }
+    
+    .preview-content p {
+        margin-bottom: var(--fc-spacing-md);
+    }
+    
+    .preview-content ul, .preview-content ol {
+        margin-bottom: var(--fc-spacing-md);
+        padding-left: var(--fc-spacing-md);
+    }
+    
+    .preview-content li {
+        margin-bottom: var(--fc-spacing-xs);
+    }
+    
+    .preview-content blockquote {
+        border-left: 3px solid var(--fc-primary);
+        padding-left: var(--fc-spacing-md);
+        color: var(--fc-text-secondary);
+        font-style: italic;
+        margin: var(--fc-spacing-md) 0;
+    }
+    
+    .preview-meta {
+        display: flex;
+        flex-wrap: wrap;
+        gap: var(--fc-spacing-xs);
+        margin-top: var(--fc-spacing-lg);
+        padding-top: var(--fc-spacing-md);
+        border-top: 1px solid var(--fc-border);
+    }
+    
+    .preview-tag {
+        background-color: var(--fc-primary-light);
+        color: var(--fc-primary);
+        font-size: 0.8rem;
+        padding: 2px 8px;
+        border-radius: 4px;
+    }
+    
+    .preview-loading {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        padding: var(--fc-spacing-xl) 0;
+    }
+    
+    .preview-spinner {
+        border: 3px solid var(--fc-bg-hover);
+        border-top: 3px solid var(--fc-primary);
+        border-radius: 50%;
+        width: 40px;
+        height: 40px;
+        animation: spin 1s linear infinite;
+        margin-bottom: var(--fc-spacing-md);
+    }
+    
+    @keyframes spin {
+        0% { transform: rotate(0deg); }
+        100% { transform: rotate(360deg); }
+    }
+    
+    .recent-stories {
+        margin-top: var(--fc-spacing-xl);
+    }
+    
+    .story-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+        gap: var(--fc-spacing-md);
+        margin-top: var(--fc-spacing-md);
+    }
+    
+    .story-card {
+        background-color: var(--fc-bg-card);
+        border: 1px solid var(--fc-border);
+        border-radius: var(--fc-radius);
+        overflow: hidden;
+        transition: all 0.2s;
+    }
+    
+    .story-card:hover {
+        border-color: var(--fc-primary);
+        box-shadow: var(--fc-shadow);
+    }
+    
+    .story-header {
+        padding: var(--fc-spacing-md);
+        border-bottom: 1px solid var(--fc-border);
+    }
+    
+    .story-meta {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: var(--fc-spacing-xs);
+    }
+    
+    .story-date {
+        font-size: 0.8rem;
+        color: var(--fc-text-secondary);
+    }
+    
+    .story-title {
+        font-weight: 600;
+        margin-bottom: var(--fc-spacing-xs);
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+    }
+    
+    .story-excerpt {
+        padding: var(--fc-spacing-md);
+        color: var(--fc-text-secondary);
+        font-size: 0.9rem;
+        line-height: 1.5;
+        display: -webkit-box;
+        -webkit-line-clamp: 3;
+        -webkit-box-orient: vertical;
+        overflow: hidden;
+        text-overflow: ellipsis;
+    }
+    
+    .story-footer {
+        padding: var(--fc-spacing-md);
+        border-top: 1px solid var(--fc-border);
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+    }
+    
+    .story-tags {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 4px;
+    }
+    
+    .story-tag {
+        background-color: var(--fc-bg-hover);
+        color: var(--fc-text-secondary);
+        font-size: 0.7rem;
+        padding: 2px 6px;
+        border-radius: 4px;
+    }
+    
+    .story-actions {
+        display: flex;
+        gap: var(--fc-spacing-xs);
+    }
+</style>
+{% endblock %}
+
+{% block main_content %}
+<div class="finchat-section">
+    <h3 class="finchat-section-title">
+        <i class="fas fa-magic"></i> Story Templates
+    </h3>
+    <p class="finchat-section-description" style="color: var(--fc-text-secondary); margin-bottom: var(--fc-spacing-md);">
+        Select a template to generate a sustainability story. Our AI will craft a compelling narrative based on your metrics and preferences.
+    </p>
+    
+    <div class="story-templates">
+        <div class="story-template" data-template="climate-action">
+            <div class="template-icon">
+                <i class="fas fa-globe-americas"></i>
+            </div>
+            <div class="template-title">Climate Action Narrative</div>
+            <div class="template-description">
+                Tell your climate action story, highlighting emissions reductions, renewable energy transitions, and progress toward targets.
+            </div>
+            <div class="template-metrics">
+                <div class="template-metric">Emissions</div>
+                <div class="template-metric">Renewable Energy</div>
+                <div class="template-metric">Climate Targets</div>
+            </div>
+        </div>
+        
+        <div class="story-template" data-template="esg-report">
+            <div class="template-icon">
+                <i class="fas fa-chart-line"></i>
+            </div>
+            <div class="template-title">ESG Performance Summary</div>
+            <div class="template-description">
+                Summarize your environmental, social, and governance performance for stakeholders with key metrics and achievements.
+            </div>
+            <div class="template-metrics">
+                <div class="template-metric">ESG Scores</div>
+                <div class="template-metric">Governance</div>
+                <div class="template-metric">Social Impact</div>
+            </div>
+        </div>
+        
+        <div class="story-template" data-template="compliance">
+            <div class="template-icon">
+                <i class="fas fa-clipboard-check"></i>
+            </div>
+            <div class="template-title">Regulatory Compliance Story</div>
+            <div class="template-description">
+                Showcase your compliance with sustainability regulations like CSRD, SEC climate rules, or ISSB standards.
+            </div>
+            <div class="template-metrics">
+                <div class="template-metric">CSRD</div>
+                <div class="template-metric">ISSB</div>
+                <div class="template-metric">SEC</div>
+            </div>
+        </div>
+        
+        <div class="story-template" data-template="water">
+            <div class="template-icon">
+                <i class="fas fa-tint"></i>
+            </div>
+            <div class="template-title">Water Stewardship Narrative</div>
+            <div class="template-description">
+                Highlight your water conservation efforts, reduction in water intensity, and watershed protection initiatives.
+            </div>
+            <div class="template-metrics">
+                <div class="template-metric">Water Usage</div>
+                <div class="template-metric">Water Risk</div>
+                <div class="template-metric">Conservation</div>
+            </div>
+        </div>
+        
+        <div class="story-template" data-template="biodiversity">
+            <div class="template-icon">
+                <i class="fas fa-seedling"></i>
+            </div>
+            <div class="template-title">Biodiversity Impact Story</div>
+            <div class="template-description">
+                Share your organization's approach to biodiversity protection and nature-positive initiatives.
+            </div>
+            <div class="template-metrics">
+                <div class="template-metric">Biodiversity</div>
+                <div class="template-metric">Land Use</div>
+                <div class="template-metric">Ecosystem</div>
+            </div>
+        </div>
+        
+        <div class="story-template" data-template="circular">
+            <div class="template-icon">
+                <i class="fas fa-recycle"></i>
+            </div>
+            <div class="template-title">Circular Economy Narrative</div>
+            <div class="template-description">
+                Demonstrate your progress toward circular business models, waste reduction, and materials efficiency.
+            </div>
+            <div class="template-metrics">
+                <div class="template-metric">Waste</div>
+                <div class="template-metric">Recycling</div>
+                <div class="template-metric">Circularity</div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Edit Form -->
+    <div class="edit-container" id="editContainer">
+        <div class="edit-header">
+            <div class="edit-header-title">
+                <i class="fas fa-edit"></i> <span id="editTitle">Customize Your Story</span>
+            </div>
+            <div class="edit-header-actions">
+                <button class="finchat-button" id="cancelEditBtn">
+                    <i class="fas fa-times"></i> Cancel
+                </button>
+            </div>
+        </div>
+        
+        <div class="edit-form">
+            <div class="form-group">
+                <label class="form-label" for="storyTitle">Story Title</label>
+                <input type="text" class="form-input" id="storyTitle" placeholder="Enter a title for your story">
+            </div>
+            
+            <div class="form-group">
+                <label class="form-label" for="storyDescription">Brief Description</label>
+                <textarea class="form-input form-textarea" id="storyDescription" placeholder="Enter a brief description or executive summary"></textarea>
+            </div>
+            
+            <div class="form-group">
+                <label class="form-label">Key Metrics</label>
+                <div class="metrics-container" id="metricsContainer">
+                    <div class="metric-tag">
+                        Carbon Emissions
+                        <span class="metric-tag-remove" data-metric="Carbon Emissions"><i class="fas fa-times"></i></span>
+                    </div>
+                    <div class="metric-tag">
+                        Renewable Energy
+                        <span class="metric-tag-remove" data-metric="Renewable Energy"><i class="fas fa-times"></i></span>
+                    </div>
+                    <button class="add-metric-btn" id="addMetricBtn">
+                        <i class="fas fa-plus"></i> Add Metric
+                    </button>
+                </div>
+            </div>
+            
+            <div class="form-group">
+                <label class="form-label" for="audienceSelect">Target Audience</label>
+                <select class="form-input" id="audienceSelect">
+                    <option value="investors">Investors</option>
+                    <option value="customers">Customers</option>
+                    <option value="employees">Employees</option>
+                    <option value="regulators">Regulators</option>
+                    <option value="general">General Public</option>
+                </select>
+            </div>
+            
+            <div class="form-group">
+                <label class="form-label" for="toneSelect">Narrative Tone</label>
+                <select class="form-input" id="toneSelect">
+                    <option value="factual">Factual & Data-driven</option>
+                    <option value="optimistic">Optimistic & Forward-looking</option>
+                    <option value="balanced">Balanced & Nuanced</option>
+                    <option value="urgent">Urgent & Action-oriented</option>
+                    <option value="educational">Educational & Informative</option>
+                </select>
+            </div>
+            
+            <div class="form-actions">
+                <button class="finchat-button" id="cancelBtn">
+                    <i class="fas fa-times"></i> Cancel
+                </button>
+                <button class="finchat-button-primary" id="generateBtn">
+                    <i class="fas fa-magic"></i> Generate Story
+                </button>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Preview Container -->
+    <div class="preview-container" id="previewContainer">
+        <div class="preview-header">
+            <div class="preview-header-title">
+                <i class="fas fa-file-alt"></i> <span id="previewTitle">Story Preview</span>
+            </div>
+            <div class="preview-header-actions">
+                <button class="finchat-button" id="editStoryBtn">
+                    <i class="fas fa-edit"></i> Edit
+                </button>
+                <button class="finchat-button-primary" id="saveStoryBtn">
+                    <i class="fas fa-save"></i> Save
+                </button>
+            </div>
+        </div>
+        
+        <div class="preview-loading" id="previewLoading">
+            <div class="preview-spinner"></div>
+            <div>Generating your sustainability story...</div>
+        </div>
+        
+        <div class="preview-content" id="previewContent" style="display: none;">
+            <!-- Generated content will be inserted here -->
+        </div>
+        
+        <div class="preview-meta">
+            <div class="preview-tag">Climate Action</div>
+            <div class="preview-tag">Carbon Emissions</div>
+            <div class="preview-tag">Renewable Energy</div>
+        </div>
+    </div>
+    
+    <!-- Recent Stories -->
+    <div class="recent-stories">
+        <h3 class="finchat-section-title">
+            <i class="fas fa-history"></i> Recent Stories
+        </h3>
+        
+        <div class="story-grid">
+            <div class="story-card">
+                <div class="story-header">
+                    <div class="story-meta">
+                        <span class="finchat-badge finchat-badge-primary">New</span>
+                        <span class="story-date">2 days ago</span>
+                    </div>
+                    <div class="story-title">Carbon Reduction Success Story: 2024 Progress</div>
+                </div>
+                <div class="story-excerpt">
+                    Our organization has made significant strides in reducing carbon emissions over the past year. Through targeted initiatives in energy efficiency, renewable energy adoption, and supply chain optimization, we've achieved a 15% reduction in our carbon footprint...
+                </div>
+                <div class="story-footer">
+                    <div class="story-tags">
+                        <div class="story-tag">Climate</div>
+                        <div class="story-tag">Emissions</div>
+                    </div>
+                    <div class="story-actions">
+                        <button class="finchat-button-icon" title="View">
+                            <i class="fas fa-eye"></i>
+                        </button>
+                        <button class="finchat-button-icon" title="Edit">
+                            <i class="fas fa-edit"></i>
+                        </button>
+                        <button class="finchat-button-icon" title="Download">
+                            <i class="fas fa-download"></i>
+                        </button>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="story-card">
+                <div class="story-header">
+                    <div class="story-meta">
+                        <span class="story-date">1 week ago</span>
+                    </div>
+                    <div class="story-title">Water Management Initiative Results</div>
+                </div>
+                <div class="story-excerpt">
+                    Our comprehensive water management program has delivered impressive results in water-stressed regions. By implementing advanced water recycling systems and process optimizations, we've reduced water intensity by 12.5% across all operations...
+                </div>
+                <div class="story-footer">
+                    <div class="story-tags">
+                        <div class="story-tag">Water</div>
+                        <div class="story-tag">Conservation</div>
+                    </div>
+                    <div class="story-actions">
+                        <button class="finchat-button-icon" title="View">
+                            <i class="fas fa-eye"></i>
+                        </button>
+                        <button class="finchat-button-icon" title="Edit">
+                            <i class="fas fa-edit"></i>
+                        </button>
+                        <button class="finchat-button-icon" title="Download">
+                            <i class="fas fa-download"></i>
+                        </button>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="story-card">
+                <div class="story-header">
+                    <div class="story-meta">
+                        <span class="story-date">2 weeks ago</span>
+                    </div>
+                    <div class="story-title">CSRD Compliance Strategy</div>
+                </div>
+                <div class="story-excerpt">
+                    As the Corporate Sustainability Reporting Directive (CSRD) implementation deadline approaches, our organization has developed a comprehensive compliance strategy. This approach ensures we meet all disclosure requirements while leveraging the opportunity to enhance our sustainability governance...
+                </div>
+                <div class="story-footer">
+                    <div class="story-tags">
+                        <div class="story-tag">CSRD</div>
+                        <div class="story-tag">Compliance</div>
+                    </div>
+                    <div class="story-actions">
+                        <button class="finchat-button-icon" title="View">
+                            <i class="fas fa-eye"></i>
+                        </button>
+                        <button class="finchat-button-icon" title="Edit">
+                            <i class="fas fa-edit"></i>
+                        </button>
+                        <button class="finchat-button-icon" title="Download">
+                            <i class="fas fa-download"></i>
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block insights_panel %}
+<div class="finchat-insights-header">
+    <h3>Storytelling Insights</h3>
+</div>
+<div class="finchat-insights-content">
+    <div class="finchat-insight-item">
+        <div class="finchat-insight-icon">
+            <i class="fas fa-lightbulb"></i>
+        </div>
+        <div class="finchat-insight-content">
+            <h4>Content Suggestion</h4>
+            <p>Your carbon emissions story would be strengthened by including specific metrics from your Scope 3 emissions reduction initiatives.</p>
+        </div>
+    </div>
+    <div class="finchat-insight-item">
+        <div class="finchat-insight-icon">
+            <i class="fas fa-chart-line"></i>
+        </div>
+        <div class="finchat-insight-content">
+            <h4>Audience Analysis</h4>
+            <p>Investor-focused stories perform 35% better when they include quantitative targets and financial impacts of sustainability initiatives.</p>
+        </div>
+    </div>
+    <div class="finchat-insight-item">
+        <div class="finchat-insight-icon">
+            <i class="fas fa-calendar-alt"></i>
+        </div>
+        <div class="finchat-insight-content">
+            <h4>Timing Recommendation</h4>
+            <p>Consider publishing your CSRD compliance story in mid-April to align with the increased stakeholder interest in regulatory preparedness.</p>
+        </div>
+    </div>
+    <div class="finchat-insight-item">
+        <div class="finchat-insight-icon">
+            <i class="fas fa-puzzle-piece"></i>
+        </div>
+        <div class="finchat-insight-content">
+            <h4>Content Gap</h4>
+            <p>Your storytelling portfolio lacks biodiversity narratives, which are increasingly relevant for regulatory compliance and stakeholder expectations.</p>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block additional_scripts %}
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        // DOM elements
+        const storyTemplates = document.querySelectorAll('.story-template');
+        const editContainer = document.getElementById('editContainer');
+        const previewContainer = document.getElementById('previewContainer');
+        const cancelEditBtn = document.getElementById('cancelEditBtn');
+        const cancelBtn = document.getElementById('cancelBtn');
+        const generateBtn = document.getElementById('generateBtn');
+        const editStoryBtn = document.getElementById('editStoryBtn');
+        const saveStoryBtn = document.getElementById('saveStoryBtn');
+        const editTitle = document.getElementById('editTitle');
+        const storyTitle = document.getElementById('storyTitle');
+        const storyDescription = document.getElementById('storyDescription');
+        const previewTitle = document.getElementById('previewTitle');
+        const previewContent = document.getElementById('previewContent');
+        const previewLoading = document.getElementById('previewLoading');
+        const addMetricBtn = document.getElementById('addMetricBtn');
+        const metricsContainer = document.getElementById('metricsContainer');
+        
+        // Template selection
+        storyTemplates.forEach(template => {
+            template.addEventListener('click', function() {
+                const templateType = this.dataset.template;
+                
+                // Update edit form with template info
+                switch(templateType) {
+                    case 'climate-action':
+                        editTitle.textContent = 'Climate Action Narrative';
+                        storyTitle.value = 'Our Climate Action Journey: Progress and Commitments';
+                        storyDescription.value = 'A comprehensive overview of our organization\'s climate action initiatives, including emissions reductions, renewable energy adoption, and pathway to net-zero.';
+                        break;
+                    case 'esg-report':
+                        editTitle.textContent = 'ESG Performance Summary';
+                        storyTitle.value = 'ESG Performance Highlights 2024';
+                        storyDescription.value = 'A summary of our environmental, social, and governance achievements and metrics for stakeholder communications.';
+                        break;
+                    case 'compliance':
+                        editTitle.textContent = 'Regulatory Compliance Story';
+                        storyTitle.value = 'Our Path to CSRD Compliance';
+                        storyDescription.value = 'An overview of our approach to meeting CSRD reporting requirements and how we're preparing for the 2025 implementation.';
+                        break;
+                    case 'water':
+                        editTitle.textContent = 'Water Stewardship Narrative';
+                        storyTitle.value = 'Water Stewardship: Conservation and Impact';
+                        storyDescription.value = 'How our organization is addressing water scarcity risks and reducing water intensity across operations.';
+                        break;
+                    case 'biodiversity':
+                        editTitle.textContent = 'Biodiversity Impact Story';
+                        storyTitle.value = 'Protecting Biodiversity: Our Commitment to Nature';
+                        storyDescription.value = 'Our approach to biodiversity protection and nature-positive initiatives across our value chain.';
+                        break;
+                    case 'circular':
+                        editTitle.textContent = 'Circular Economy Narrative';
+                        storyTitle.value = 'Circular Economy Transformation';
+                        storyDescription.value = 'How we're transitioning to circular business models and reducing waste across our operations and products.';
+                        break;
+                }
+                
+                // Show edit form
+                editContainer.classList.add('show');
+                previewContainer.classList.remove('show');
+                
+                // Scroll to edit form
+                editContainer.scrollIntoView({ behavior: 'smooth' });
+            });
+        });
+        
+        // Cancel buttons
+        cancelEditBtn.addEventListener('click', function() {
+            editContainer.classList.remove('show');
+        });
+        
+        cancelBtn.addEventListener('click', function() {
+            editContainer.classList.remove('show');
+        });
+        
+        // Generate story
+        generateBtn.addEventListener('click', function() {
+            // Show preview container with loading state
+            previewContainer.classList.add('show');
+            previewContent.style.display = 'none';
+            previewLoading.style.display = 'flex';
+            
+            // Update preview title
+            previewTitle.textContent = storyTitle.value;
+            
+            // Scroll to preview
+            previewContainer.scrollIntoView({ behavior: 'smooth' });
+            
+            // Simulate AI generation (would be an API call in production)
+            setTimeout(function() {
+                // Hide loading and show content
+                previewLoading.style.display = 'none';
+                previewContent.style.display = 'block';
+                
+                // Example generated content based on form inputs
+                const audience = document.getElementById('audienceSelect').value;
+                const tone = document.getElementById('toneSelect').value;
+                
+                // Generate different content based on form inputs
+                let generatedContent = `<h1>${storyTitle.value}</h1>
+                <p>${storyDescription.value}</p>
+                <h2>Our Approach</h2>
+                <p>At our organization, sustainability is core to our business strategy. We've developed a comprehensive approach to address our most material environmental impacts while creating value for all stakeholders.</p>
+                <blockquote>Sustainability is not just a commitment, but a journey of continuous improvement and innovation.</blockquote>
+                <h2>Key Metrics and Progress</h2>
+                <p>In the past year, we've made significant progress across our sustainability metrics:</p>
+                <ul>
+                    <li><strong>15% reduction</strong> in absolute carbon emissions (Scope 1 & 2) compared to our 2019 baseline</li>
+                    <li>Increased renewable energy usage to <strong>38%</strong> of total energy consumption</li>
+                    <li>Implemented science-based targets aligned with 1.5°C pathway</li>
+                    <li>Enhanced climate risk assessment and scenario analysis in line with TCFD recommendations</li>
+                </ul>
+                <h2>Looking Forward</h2>
+                <p>As we continue our sustainability journey, we're focused on accelerating progress toward our 2030 goals. Key initiatives include:</p>
+                <ol>
+                    <li>Expanding renewable energy procurement through power purchase agreements</li>
+                    <li>Implementing energy efficiency projects across all facilities</li>
+                    <li>Collaborating with suppliers to reduce Scope 3 emissions</li>
+                    <li>Integrating climate considerations into product design and development</li>
+                </ol>
+                <p>Through these efforts, we're confident in our ability to meet our climate commitments while driving business value and stakeholder impact.</p>`;
+                
+                // Display the generated content
+                previewContent.innerHTML = generatedContent;
+                
+                // Hide edit form
+                editContainer.classList.remove('show');
+            }, 3000);
+        });
+        
+        // Edit story button
+        editStoryBtn.addEventListener('click', function() {
+            editContainer.classList.add('show');
+            editContainer.scrollIntoView({ behavior: 'smooth' });
+        });
+        
+        // Save story button
+        saveStoryBtn.addEventListener('click', function() {
+            // In a real implementation, this would save to the backend
+            alert('Story saved successfully!');
+            
+            // Reset UI
+            previewContainer.classList.remove('show');
+            editContainer.classList.remove('show');
+            
+            // Refresh recent stories (would fetch from backend in production)
+            // This is just a simulation
+            const storyGrid = document.querySelector('.story-grid');
+            const newStoryCard = document.createElement('div');
+            newStoryCard.className = 'story-card';
+            newStoryCard.innerHTML = `
+                <div class="story-header">
+                    <div class="story-meta">
+                        <span class="finchat-badge finchat-badge-primary">New</span>
+                        <span class="story-date">Just now</span>
+                    </div>
+                    <div class="story-title">${storyTitle.value}</div>
+                </div>
+                <div class="story-excerpt">
+                    ${storyDescription.value}
+                </div>
+                <div class="story-footer">
+                    <div class="story-tags">
+                        <div class="story-tag">Climate</div>
+                        <div class="story-tag">Emissions</div>
+                    </div>
+                    <div class="story-actions">
+                        <button class="finchat-button-icon" title="View">
+                            <i class="fas fa-eye"></i>
+                        </button>
+                        <button class="finchat-button-icon" title="Edit">
+                            <i class="fas fa-edit"></i>
+                        </button>
+                        <button class="finchat-button-icon" title="Download">
+                            <i class="fas fa-download"></i>
+                        </button>
+                    </div>
+                </div>
+            `;
+            
+            // Add new story to the top of the grid
+            storyGrid.insertBefore(newStoryCard, storyGrid.firstChild);
+            
+            // Scroll to recent stories
+            document.querySelector('.recent-stories').scrollIntoView({ behavior: 'smooth' });
+        });
+        
+        // Metrics management
+        // Remove metric tag
+        document.addEventListener('click', function(e) {
+            if (e.target.closest('.metric-tag-remove')) {
+                const metricTag = e.target.closest('.metric-tag');
+                metricTag.remove();
+            }
+        });
+        
+        // Add metric
+        addMetricBtn.addEventListener('click', function() {
+            // This would be a modal or dropdown in a real implementation
+            // For demo, we'll just add a hardcoded new metric
+            const newMetrics = [
+                'Energy Efficiency', 
+                'Waste Reduction', 
+                'Water Intensity', 
+                'Biodiversity Impact', 
+                'Scope 3 Emissions'
+            ];
+            const randomMetric = newMetrics[Math.floor(Math.random() * newMetrics.length)];
+            
+            const metricTag = document.createElement('div');
+            metricTag.className = 'metric-tag';
+            metricTag.innerHTML = `
+                ${randomMetric}
+                <span class="metric-tag-remove" data-metric="${randomMetric}"><i class="fas fa-times"></i></span>
+            `;
+            
+            // Insert before the add button
+            metricsContainer.insertBefore(metricTag, addMetricBtn);
+        });
+    });
+</script>
+{% endblock %}

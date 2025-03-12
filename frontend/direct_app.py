@@ -928,27 +928,12 @@ def home():
     """Home page"""
     try:
         logger.info("Home page requested")
-        
-        # Try the collapsible template first, then fall back to the standard template
-        use_collapsible = request.args.get('collapsible', 'true').lower() == 'true'  # Default to collapsible
-        
-        if use_collapsible:
-            try:
-                logger.info("Using collapsible home template")
-                return render_template("index_collapsible.html")
-            except jinja2.exceptions.TemplateNotFound:
-                logger.warning("Collapsible home template not found, falling back to standard")
-                use_collapsible = False
-            except Exception as template_error:
-                logger.error(f"Error rendering collapsible home: {str(template_error)}, falling back to standard")
-                use_collapsible = False
-        
-        # Fall back to standard template
-        logger.info("Using standard home template")
-        return render_template("index.html")
+        logger.info("Using Finchat dark dashboard template")
+        return render_template("finchat_dark_dashboard.html")
     except Exception as e:
         logger.error(f"Error in home route: {str(e)}")
         traceback.print_exc()
+        return render_template("404.html", error=str(e)), 500
         return f"Error loading home page: {str(e)}", 500
 
 @app.route('/dashboard')
@@ -1039,30 +1024,9 @@ def dashboard():
         
         logger.info(f"Rendering dashboard with {len(metrics)} metrics")
         
-        # Try the collapsible template first, then simplified, then fall back to the original
-        use_collapsible = request.args.get('collapsible', 'true').lower() == 'true'  # Default to collapsible
-        
-        if use_collapsible:
-            try:
-                logger.info("Using collapsible dashboard template")
-                return render_template("dashboard_collapsible.html", **context)
-            except jinja2.exceptions.TemplateNotFound:
-                logger.warning("Collapsible dashboard template not found, falling back to simplified")
-                use_collapsible = False
-            except Exception as template_error:
-                logger.error(f"Error rendering collapsible dashboard: {str(template_error)}, falling back to simplified")
-                use_collapsible = False
-        
-        # If not using collapsible or if it failed, try simplified template
-        try:
-            logger.info("Using simplified dashboard template")
-            return render_template("dashboard_simplified.html", **context)
-        except jinja2.exceptions.TemplateNotFound:
-            logger.warning("Simplified dashboard template not found, falling back to dashboard_new.html")
-            return render_template("dashboard_new.html", **context)
-        except Exception as e:
-            logger.error(f"Error rendering simplified dashboard: {str(e)}, falling back to dashboard_new.html")
-            return render_template("dashboard_new.html", **context)
+        # Always use dark theme for consistent UI
+        logger.info("Using Finchat dark dashboard template")
+        return render_template("finchat_dark_dashboard.html", **context)
     except Exception as e:
         logger.error(f"Error in dashboard route: {str(e)}")
         traceback.print_exc()
@@ -1331,33 +1295,12 @@ def trend_analysis():
             'description': 'Analyze sustainability trends and predictions'
         }
         
-        # Try the collapsible template first, then unified simplified, then fall back to others
-        use_collapsible = request.args.get('collapsible', 'true').lower() == 'true'  # Default to collapsible
-        
-        if use_collapsible:
-            try:
-                logger.info("Using collapsible trend analysis template")
-                return render_template("trend_analysis_collapsible.html", **context)
-            except jinja2.exceptions.TemplateNotFound:
-                logger.warning("Collapsible trend analysis template not found, falling back to unified")
-                use_collapsible = False
-            except Exception as template_error:
-                logger.error(f"Error rendering collapsible trend analysis: {str(template_error)}, falling back to unified")
-                use_collapsible = False
-        
-        # Try the unified simplified template if not using collapsible or if it failed
-        try:
-            logger.info("Using unified trend analysis template")
-            return render_template("trend_analysis_unified.html", **context)
-        except jinja2.exceptions.TemplateNotFound:
-            logger.warning("Unified template not found, trying alternative")
-            try:
-                return render_template("trend_analysis_new.html", **context)
-            except jinja2.exceptions.TemplateNotFound:
-                logger.warning("New template not found either, using original template")
-                return render_template("trend_analysis.html", **context)
+        # Always use dark theme for consistent UI
+        logger.info("Using Finchat dark theme for trend analysis")
+        return render_template("trend_analysis_dark.html", **context)
     except Exception as e:
         logger.error(f"Error in trend analysis route: {str(e)}")
+        traceback.print_exc()
         return f"Error loading trend analysis: {str(e)}", 500
 
 # API endpoint for trend data
@@ -2083,23 +2026,9 @@ def sustainability_stories():
             # Mock stories if API fails
             stories = get_mock_stories()
         
-        # Try the collapsible template first, then fall back to the standard template
-        use_collapsible = request.args.get('collapsible', 'true').lower() == 'true'  # Default to collapsible
-        
-        if use_collapsible:
-            try:
-                logger.info("Using collapsible sustainability stories template")
-                return render_template("sustainability_stories_collapsible.html", stories=stories)
-            except jinja2.exceptions.TemplateNotFound:
-                logger.warning("Collapsible sustainability stories template not found, falling back to standard")
-                use_collapsible = False
-            except Exception as template_error:
-                logger.error(f"Error rendering collapsible sustainability stories: {str(template_error)}, falling back to standard")
-                use_collapsible = False
-        
-        # Fall back to standard template
-        logger.info("Using standard sustainability stories template")
-        return render_template("sustainability_stories.html", stories=stories)
+        # Always use dark theme for consistent UI
+        logger.info("Using Finchat dark sustainability stories template")
+        return render_template("sustainability_storytelling_dark.html", stories=stories)
     except Exception as e:
         logger.error(f"Error in sustainability stories route: {str(e)}")
         traceback.print_exc()
@@ -2249,23 +2178,9 @@ def analytics_dashboard():
     try:
         logger.info("Analytics dashboard page requested")
         
-        # Try the collapsible template first, then fall back to the standard template
-        use_collapsible = request.args.get('collapsible', 'true').lower() == 'true'  # Default to collapsible
-        
-        if use_collapsible:
-            try:
-                logger.info("Using collapsible analytics dashboard template")
-                return render_template("analytics_dashboard_collapsible.html")
-            except jinja2.exceptions.TemplateNotFound:
-                logger.warning("Collapsible analytics dashboard template not found, falling back to standard")
-                use_collapsible = False
-            except Exception as template_error:
-                logger.error(f"Error rendering collapsible analytics dashboard: {str(template_error)}, falling back to standard")
-                use_collapsible = False
-        
-        # Fall back to standard template
-        logger.info("Using standard analytics dashboard template")
-        return render_template("analytics_dashboard.html")
+        # Always use dark theme for consistent UI
+        logger.info("Using Finchat dark analytics dashboard template")
+        return render_template("analytics_dashboard_dark.html")
     except Exception as e:
         logger.error(f"Error in analytics dashboard route: {str(e)}")
         traceback.print_exc()
@@ -2278,21 +2193,7 @@ def monetization_opportunities():
     try:
         logger.info("Monetization opportunities page requested")
         
-        # Try the collapsible template first, then fall back to the standard template
-        use_collapsible = request.args.get('collapsible', 'true').lower() == 'true'  # Default to collapsible
-        
-        if use_collapsible:
-            try:
-                logger.info("Using collapsible monetization opportunities template")
-                return render_template("monetization_collapsible.html")
-            except jinja2.exceptions.TemplateNotFound:
-                logger.warning("Collapsible monetization template not found, falling back to standard")
-                use_collapsible = False
-            except Exception as template_error:
-                logger.error(f"Error rendering collapsible monetization: {str(template_error)}, falling back to standard")
-                use_collapsible = False
-        
-        # Fall back to standard template
+        # Always use the dark theme monetization template
         logger.info("Using standard monetization template")
         return render_template("monetization.html")
     except Exception as e:
@@ -2329,20 +2230,13 @@ def atomic_navigation_demo():
 # Add Finchat-inspired real estate minimal dashboard
 @app.route('/realestate-minimal')
 def realestate_minimal_dashboard():
-    """Minimalist Finchat-inspired Real Estate Dashboard"""
+    """Minimalist Finchat-inspired Real Estate Dashboard with dark theme"""
     try:
         logger.info("Minimal Finchat-inspired real estate dashboard requested")
         
-        # Try the new finchat template first, fall back to the original if needed
-        try:
-            return render_template("realestate_finchat.html")
-        except jinja2.exceptions.TemplateNotFound:
-            logger.warning("Finchat real estate template not found, falling back to unified minimal")
-            return render_template("realestate_unified_minimal.html")
-        except Exception as template_error:
-            logger.error(f"Error rendering finchat real estate template: {str(template_error)}")
-            # Fall back to the original template
-            return render_template("realestate_unified_minimal.html")
+        # Always use dark theme for consistent UI
+        logger.info("Using Finchat dark theme for real estate dashboard")
+        return render_template("realestate_finchat_dark.html")
     except Exception as e:
         logger.error(f"Error in minimal real estate dashboard: {str(e)}")
         traceback.print_exc()
@@ -3008,27 +2902,12 @@ def document_upload():
     """Document upload page for AI-powered sustainability document analysis"""
     try:
         logger.info("Document upload page requested")
-        
-        # Try the collapsible template first, then fall back to the standard template
-        use_collapsible = request.args.get('collapsible', 'true').lower() == 'true'  # Default to collapsible
-        
-        if use_collapsible:
-            try:
-                logger.info("Using collapsible document upload template")
-                return render_template("document_upload_collapsible.html")
-            except jinja2.exceptions.TemplateNotFound:
-                logger.warning("Collapsible document upload template not found, falling back to standard")
-                use_collapsible = False
-            except Exception as template_error:
-                logger.error(f"Error rendering collapsible document upload: {str(template_error)}, falling back to standard")
-                use_collapsible = False
-        
-        # Fall back to standard template
-        logger.info("Using standard document upload template")
-        return render_template("document_upload.html")
+        logger.info("Using Finchat dark document upload template")
+        return render_template("document_upload_dark.html")
     except Exception as e:
         logger.error(f"Error in document upload route: {str(e)}")
-        return f"Error loading document upload page: {str(e)}", 500
+        traceback.print_exc()
+        return render_template("404.html", error=str(e)), 500
 
 @app.route('/upload-sustainability-document', methods=['POST'])
 def upload_sustainability_document():

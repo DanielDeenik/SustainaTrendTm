@@ -1,0 +1,1563 @@
+{% extends "base.html" %}
+
+{% block title %}SustainaTrend™ | AI-Powered Sustainability Intelligence{% endblock %}
+
+{% block additional_head %}
+<script src="https://cdn.plot.ly/plotly-2.29.0.min.js"></script>
+{% endblock %}
+
+{% block additional_css %}
+<style>
+    /* Finchat.io Inspired UI */
+    :root {
+        --fc-primary: #0ea5e9;
+        --fc-primary-hover: #0284c7;
+        --fc-bg: #f8fafc;
+        --fc-card-bg: #ffffff;
+        --fc-text: #0f172a;
+        --fc-text-secondary: #64748b;
+        --fc-border: #e2e8f0;
+        --fc-success: #10b981;
+        --fc-warning: #f59e0b;
+        --fc-error: #ef4444;
+        --fc-info: #3b82f6;
+        --fc-radius: 8px;
+        --fc-radius-lg: 12px;
+        --fc-radius-xl: 16px;
+        --fc-shadow: 0 1px 3px 0 rgb(0 0 0 / 0.1), 0 1px 2px -1px rgb(0 0 0 / 0.1);
+        --fc-shadow-md: 0 4px 6px -1px rgb(0 0 0 / 0.1), 0 2px 4px -2px rgb(0 0 0 / 0.1);
+        --fc-shadow-lg: 0 10px 15px -3px rgb(0 0 0 / 0.1), 0 4px 6px -4px rgb(0 0 0 / 0.1);
+    }
+    
+    .dark-mode {
+        --fc-bg: #0f172a;
+        --fc-card-bg: #1e293b;
+        --fc-text: #f8fafc;
+        --fc-text-secondary: #94a3b8;
+        --fc-border: #334155;
+    }
+    
+    body {
+        background-color: var(--fc-bg);
+        color: var(--fc-text);
+        font-family: 'Inter', system-ui, -apple-system, sans-serif;
+        margin: 0;
+        padding: 0;
+        overflow-x: hidden;
+        line-height: 1.5;
+    }
+    
+    /* Main Layout */
+    .fc-container {
+        max-width: 1024px;
+        margin: 0 auto;
+        padding: 20px;
+    }
+    
+    .fc-main {
+        margin-top: 20px;
+    }
+    
+    /* Header */
+    .fc-header {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        padding: 16px 0;
+        border-bottom: 1px solid var(--fc-border);
+        margin-bottom: 24px;
+    }
+    
+    .fc-logo {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        font-weight: 600;
+        font-size: 18px;
+        color: var(--fc-primary);
+    }
+    
+    .fc-nav {
+        display: flex;
+        gap: 16px;
+        align-items: center;
+    }
+    
+    .fc-nav-item {
+        font-size: 14px;
+        font-weight: 500;
+        color: var(--fc-text-secondary);
+        text-decoration: none;
+        transition: color 0.2s;
+        cursor: pointer;
+    }
+    
+    .fc-nav-item:hover, .fc-nav-item.active {
+        color: var(--fc-primary);
+    }
+    
+    .fc-user-menu {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        background-color: var(--fc-card-bg);
+        border: 1px solid var(--fc-border);
+        border-radius: 20px;
+        padding: 6px 12px;
+        font-size: 14px;
+        cursor: pointer;
+        transition: all 0.2s;
+    }
+    
+    .fc-user-menu:hover {
+        border-color: var(--fc-primary);
+    }
+    
+    /* AI Copilot Interface */
+    .fc-copilot {
+        display: flex;
+        flex-direction: column;
+        background-color: var(--fc-card-bg);
+        border-radius: var(--fc-radius-xl);
+        border: 1px solid var(--fc-border);
+        box-shadow: var(--fc-shadow-lg);
+        overflow: hidden;
+        margin-bottom: 30px;
+    }
+    
+    .fc-copilot-header {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        padding: 16px 20px;
+        border-bottom: 1px solid var(--fc-border);
+        background-color: rgba(var(--primary-rgb), 0.05);
+    }
+    
+    .fc-copilot-title {
+        font-size: 16px;
+        font-weight: 600;
+        margin: 0;
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        color: var(--fc-primary);
+    }
+    
+    .fc-copilot-actions {
+        display: flex;
+        gap: 10px;
+    }
+    
+    .fc-copilot-btn {
+        background: transparent;
+        border: 1px solid var(--fc-border);
+        border-radius: var(--fc-radius);
+        padding: 6px 10px;
+        font-size: 13px;
+        display: flex;
+        align-items: center;
+        gap: 6px;
+        cursor: pointer;
+        transition: all 0.2s;
+    }
+    
+    .fc-copilot-btn:hover {
+        background-color: rgba(var(--primary-rgb), 0.05);
+        border-color: var(--fc-primary);
+    }
+    
+    .fc-copilot-content {
+        padding: 20px;
+        height: 160px;
+        overflow-y: auto;
+    }
+    
+    .fc-copilot-message {
+        background-color: rgba(var(--primary-rgb), 0.05);
+        border-radius: var(--fc-radius-lg);
+        padding: 16px;
+        margin-bottom: 16px;
+        font-size: 15px;
+        line-height: 1.6;
+    }
+    
+    .fc-copilot-input-container {
+        display: flex;
+        padding: 12px 20px;
+        border-top: 1px solid var(--fc-border);
+        background-color: var(--fc-card-bg);
+    }
+    
+    .fc-copilot-input {
+        flex: 1;
+        border: 1px solid var(--fc-border);
+        border-radius: var(--fc-radius-lg);
+        padding: 12px 16px;
+        font-size: 14px;
+        background-color: var(--fc-bg);
+        color: var(--fc-text);
+        outline: none;
+        transition: all 0.2s;
+    }
+    
+    .fc-copilot-input:focus {
+        border-color: var(--fc-primary);
+        box-shadow: 0 0 0 2px rgba(14, 165, 233, 0.2);
+    }
+    
+    .fc-copilot-submit {
+        background-color: var(--fc-primary);
+        color: white;
+        border: none;
+        border-radius: var(--fc-radius);
+        padding: 0 16px;
+        margin-left: 8px;
+        font-size: 14px;
+        font-weight: 500;
+        cursor: pointer;
+        transition: all 0.2s;
+    }
+    
+    .fc-copilot-submit:hover {
+        background-color: var(--fc-primary-hover);
+    }
+    
+    /* Quick Actions */
+    .fc-quick-actions {
+        display: flex;
+        gap: 10px;
+        margin-bottom: 24px;
+        flex-wrap: wrap;
+    }
+    
+    .fc-quick-action {
+        background-color: var(--fc-card-bg);
+        border: 1px solid var(--fc-border);
+        border-radius: var(--fc-radius);
+        padding: 8px 16px;
+        font-size: 13px;
+        cursor: pointer;
+        transition: all 0.2s;
+        display: flex;
+        align-items: center;
+        gap: 6px;
+    }
+    
+    .fc-quick-action:hover {
+        background-color: rgba(var(--primary-rgb), 0.05);
+        border-color: var(--fc-primary);
+    }
+    
+    /* Section Cards */
+    .fc-section {
+        margin-bottom: 30px;
+    }
+    
+    .fc-section-header {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        margin-bottom: 16px;
+    }
+    
+    .fc-section-title {
+        font-size: 18px;
+        font-weight: 600;
+        margin: 0;
+        display: flex;
+        align-items: center;
+        gap: 8px;
+    }
+    
+    .fc-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+        gap: 16px;
+        margin-bottom: 24px;
+    }
+    
+    .fc-card {
+        background-color: var(--fc-card-bg);
+        border-radius: var(--fc-radius-lg);
+        border: 1px solid var(--fc-border);
+        padding: 20px;
+        box-shadow: var(--fc-shadow);
+        transition: all 0.2s;
+    }
+    
+    .fc-card:hover {
+        transform: translateY(-2px);
+        box-shadow: var(--fc-shadow-md);
+        border-color: var(--fc-primary);
+    }
+    
+    .fc-card-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: flex-start;
+        margin-bottom: 16px;
+    }
+    
+    .fc-card-title {
+        font-size: 16px;
+        font-weight: 600;
+        margin: 0;
+        color: var(--fc-text);
+    }
+    
+    .fc-card-icon {
+        width: 36px;
+        height: 36px;
+        border-radius: var(--fc-radius);
+        background-color: rgba(var(--primary-rgb), 0.1);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        color: var(--fc-primary);
+    }
+    
+    .fc-card-value {
+        font-size: 28px;
+        font-weight: 700;
+        margin: 10px 0 5px 0;
+        color: var(--fc-primary);
+    }
+    
+    .fc-card-change {
+        display: flex;
+        align-items: center;
+        font-size: 14px;
+        font-weight: 500;
+        margin-bottom: 10px;
+    }
+    
+    .fc-card-change.positive {
+        color: var(--fc-success);
+    }
+    
+    .fc-card-change.negative {
+        color: var(--fc-error);
+    }
+    
+    .fc-card-description {
+        font-size: 13px;
+        color: var(--fc-text-secondary);
+    }
+    
+    .fc-card-footer {
+        display: flex;
+        justify-content: flex-end;
+        margin-top: 12px;
+        padding-top: 12px;
+        border-top: 1px solid var(--fc-border);
+    }
+    
+    .fc-card-action {
+        font-size: 13px;
+        color: var(--fc-primary);
+        background: transparent;
+        border: none;
+        padding: 0;
+        cursor: pointer;
+        display: flex;
+        align-items: center;
+        gap: 4px;
+    }
+    
+    /* Chart Card */
+    .fc-chart-card {
+        background-color: var(--fc-card-bg);
+        border-radius: var(--fc-radius-lg);
+        border: 1px solid var(--fc-border);
+        padding: 20px;
+        box-shadow: var(--fc-shadow);
+        margin-bottom: 24px;
+    }
+    
+    .fc-chart-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 20px;
+    }
+    
+    .fc-chart-title {
+        font-size: 16px;
+        font-weight: 600;
+        margin: 0;
+        display: flex;
+        align-items: center;
+        gap: 8px;
+    }
+    
+    .fc-chart-controls {
+        display: flex;
+        gap: 8px;
+    }
+    
+    .fc-chart-control {
+        background: transparent;
+        border: 1px solid var(--fc-border);
+        border-radius: var(--fc-radius);
+        padding: 4px 10px;
+        font-size: 12px;
+        cursor: pointer;
+        transition: all 0.2s;
+    }
+    
+    .fc-chart-control:hover, .fc-chart-control.active {
+        background-color: rgba(var(--primary-rgb), 0.05);
+        border-color: var(--fc-primary);
+        color: var(--fc-primary);
+    }
+    
+    .fc-chart-container {
+        height: 300px;
+        width: 100%;
+    }
+    
+    /* Story Card */
+    .fc-story-card {
+        background-color: var(--fc-card-bg);
+        border-radius: var(--fc-radius-lg);
+        border: 1px solid var(--fc-border);
+        padding: 24px;
+        box-shadow: var(--fc-shadow);
+        margin-bottom: 30px;
+        position: relative;
+        overflow: hidden;
+    }
+    
+    .fc-story-badge {
+        position: absolute;
+        top: 0;
+        right: 24px;
+        background-color: var(--fc-primary);
+        color: white;
+        font-size: 12px;
+        font-weight: 500;
+        padding: 4px 10px;
+        border-radius: 0 0 var(--fc-radius) var(--fc-radius);
+    }
+    
+    .fc-story-title {
+        font-size: 20px;
+        font-weight: 600;
+        margin: 0 0 16px 0;
+        color: var(--fc-text);
+    }
+    
+    .fc-story-content {
+        font-size: 15px;
+        line-height: 1.6;
+        color: var(--fc-text);
+        margin-bottom: 20px;
+    }
+    
+    .fc-story-highlight {
+        background-color: rgba(var(--primary-rgb), 0.1);
+        color: var(--fc-primary);
+        padding: 1px 4px;
+        border-radius: 4px;
+        font-weight: 500;
+    }
+    
+    .fc-story-metrics {
+        display: flex;
+        gap: 16px;
+        margin: 20px 0;
+        flex-wrap: wrap;
+    }
+    
+    .fc-story-metric {
+        background-color: var(--fc-bg);
+        border-radius: var(--fc-radius);
+        padding: 16px;
+        flex: 1;
+        min-width: 120px;
+        text-align: center;
+    }
+    
+    .fc-story-metric-value {
+        font-size: 24px;
+        font-weight: 700;
+        color: var(--fc-primary);
+        margin-bottom: 4px;
+    }
+    
+    .fc-story-metric-label {
+        font-size: 13px;
+        color: var(--fc-text-secondary);
+    }
+    
+    /* Action Items */
+    .fc-action-items {
+        margin-top: 24px;
+    }
+    
+    .fc-action-item {
+        display: flex;
+        align-items: flex-start;
+        gap: 16px;
+        padding: 16px;
+        background-color: var(--fc-bg);
+        border-radius: var(--fc-radius);
+        margin-bottom: 12px;
+    }
+    
+    .fc-action-icon {
+        width: 40px;
+        height: 40px;
+        border-radius: var(--fc-radius);
+        background-color: rgba(var(--primary-rgb), 0.1);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        color: var(--fc-primary);
+        flex-shrink: 0;
+    }
+    
+    .fc-action-content {
+        flex: 1;
+    }
+    
+    .fc-action-title {
+        font-size: 15px;
+        font-weight: 600;
+        margin: 0 0 6px 0;
+        color: var(--fc-text);
+    }
+    
+    .fc-action-description {
+        font-size: 13px;
+        color: var(--fc-text-secondary);
+        margin: 0;
+    }
+    
+    .fc-action-meta {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        margin-top: 10px;
+    }
+    
+    .fc-action-priority {
+        font-size: 12px;
+        font-weight: 500;
+        padding: 2px 8px;
+        border-radius: 12px;
+        background-color: rgba(var(--primary-rgb), 0.1);
+        color: var(--fc-primary);
+    }
+    
+    .fc-action-priority.high {
+        background-color: rgba(239, 68, 68, 0.1);
+        color: var(--fc-error);
+    }
+    
+    .fc-action-priority.medium {
+        background-color: rgba(245, 158, 11, 0.1);
+        color: var(--fc-warning);
+    }
+    
+    /* Toast */
+    .fc-toast {
+        position: fixed;
+        bottom: 24px;
+        right: 24px;
+        background-color: var(--fc-card-bg);
+        border: 1px solid var(--fc-border);
+        border-radius: var(--fc-radius);
+        padding: 12px 16px;
+        font-size: 14px;
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        box-shadow: var(--fc-shadow-md);
+        opacity: 0;
+        transition: opacity 0.3s ease;
+        z-index: 1000;
+    }
+    
+    .fc-toast.visible {
+        opacity: 1;
+    }
+    
+    /* Modal */
+    .fc-modal-backdrop {
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background-color: rgba(0, 0, 0, 0.5);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        z-index: 1000;
+        opacity: 0;
+        visibility: hidden;
+        transition: opacity 0.3s ease, visibility 0.3s ease;
+    }
+    
+    .fc-modal-backdrop.visible {
+        opacity: 1;
+        visibility: visible;
+    }
+    
+    .fc-modal {
+        background-color: var(--fc-card-bg);
+        border-radius: var(--fc-radius-lg);
+        box-shadow: var(--fc-shadow-lg);
+        width: 90%;
+        max-width: 800px;
+        max-height: 90vh;
+        overflow-y: auto;
+        transform: translateY(20px);
+        transition: transform 0.3s ease;
+    }
+    
+    .fc-modal-backdrop.visible .fc-modal {
+        transform: translateY(0);
+    }
+    
+    .fc-modal-header {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        padding: 16px 24px;
+        border-bottom: 1px solid var(--fc-border);
+    }
+    
+    .fc-modal-title {
+        font-size: 18px;
+        font-weight: 600;
+        margin: 0;
+        color: var(--fc-text);
+    }
+    
+    .fc-modal-close {
+        background: transparent;
+        border: none;
+        font-size: 24px;
+        cursor: pointer;
+        color: var(--fc-text-secondary);
+        transition: color 0.2s;
+    }
+    
+    .fc-modal-close:hover {
+        color: var(--fc-primary);
+    }
+    
+    .fc-modal-body {
+        padding: 24px;
+    }
+    
+    .fc-modal-chart {
+        height: 400px;
+        width: 100%;
+        margin-bottom: 24px;
+    }
+    
+    /* Responsive Adjustments */
+    @media (max-width: 768px) {
+        .fc-grid {
+            grid-template-columns: 1fr;
+        }
+        
+        .fc-story-metrics {
+            flex-direction: column;
+        }
+        
+        .fc-story-metric {
+            min-width: auto;
+        }
+        
+        .fc-header {
+            flex-direction: column;
+            align-items: flex-start;
+            gap: 16px;
+        }
+        
+        .fc-nav {
+            width: 100%;
+            overflow-x: auto;
+            padding-bottom: 8px;
+        }
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="fc-container">
+    <!-- Header -->
+    <header class="fc-header">
+        <div class="fc-logo">
+            <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2v8"/><path d="M12 18v4"/><path d="M4.93 10.93 9.17 15.17"/><path d="M14.83 15.17l4.24-4.24"/><path d="M19.07 10.93 14.83 6.7"/><path d="M14.83 6.7 12 3.87 9.17 6.7 4.93 10.93l4.24 4.24L12 18.13l2.83-2.83 4.24-4.24z"/></svg>
+            <span>SustainaTrend™</span>
+        </div>
+        
+        <nav class="fc-nav">
+            <a class="fc-nav-item active" href="/">Dashboard</a>
+            <a class="fc-nav-item" href="/trend-analysis">Trends</a>
+            <a class="fc-nav-item" href="/sustainability-stories">Stories</a>
+            <a class="fc-nav-item" href="/document-upload">Documents</a>
+        </nav>
+        
+        <div class="fc-user-menu">
+            <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"></circle><path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3"></path><line x1="12" y1="17" x2="12.01" y2="17"></line></svg>
+            <span>Dashboard</span>
+        </div>
+    </header>
+    
+    <!-- AI Copilot (Finchat-style primary interaction) -->
+    <div class="fc-copilot">
+        <div class="fc-copilot-header">
+            <h2 class="fc-copilot-title">
+                <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"></circle><path d="M12 16v-4"></path><path d="M12 8h.01"></path></svg>
+                What do you need to know today?
+            </h2>
+            <div class="fc-copilot-actions">
+                <button class="fc-copilot-btn">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="7 10 12 15 17 10"></polyline><line x1="12" y1="15" x2="12" y2="3"></line></svg>
+                    Export
+                </button>
+                <button class="fc-copilot-btn">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M5.52 19c.64-2.2 1.84-3 3.22-3h6.52c1.38 0 2.58.8 3.22 3"/><circle cx="12" cy="10" r="3"/><circle cx="12" cy="12" r="10"/></svg>
+                    Share
+                </button>
+            </div>
+        </div>
+        <div class="fc-copilot-content">
+            <div class="fc-copilot-message">
+                <p>Hi there! I'm your SustainaTrend™ AI assistant. Ask me about your sustainability metrics, trends, or request a custom analysis. Some examples:</p>
+                <ul style="margin-top: 10px; padding-left: 20px;">
+                    <li>How are our carbon emissions trending this quarter?</li>
+                    <li>Generate a water usage report for our manufacturing facilities</li>
+                    <li>What sustainability trends are emerging in our industry?</li>
+                </ul>
+            </div>
+        </div>
+        <div class="fc-copilot-input-container">
+            <input type="text" class="fc-copilot-input" placeholder="Ask about your sustainability metrics, trends, or request an analysis..." id="copilot-input">
+            <button class="fc-copilot-submit" id="copilot-submit">
+                <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="22" y1="2" x2="11" y2="13"></line><polygon points="22 2 15 22 11 13 2 9 22 2"></polygon></svg>
+            </button>
+        </div>
+    </div>
+    
+    <!-- Quick Actions -->
+    <div class="fc-quick-actions">
+        <div class="fc-quick-action">
+            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"></circle><line x1="21" y1="21" x2="16.65" y2="16.65"></line></svg>
+            Find metrics
+        </div>
+        <div class="fc-quick-action">
+            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="18" height="18" rx="2" ry="2"></rect><line x1="3" y1="9" x2="21" y2="9"></line><line x1="9" y1="21" x2="9" y2="9"></line></svg>
+            Create dashboard
+        </div>
+        <div class="fc-quick-action">
+            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="22 12 16 12 14 15 10 15 8 12 2 12"></polyline><path d="M5.45 5.11L2 12v6a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2v-6l-3.45-6.89A2 2 0 0 0 16.76 4H7.24a2 2 0 0 0-1.79 1.11z"></path></svg>
+            Upload document
+        </div>
+        <div class="fc-quick-action">
+            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 12h-4l-3 9L9 3l-3 9H2"></path></svg>
+            View trends
+        </div>
+        <div class="fc-quick-action">
+            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20.59 13.41l-7.17 7.17a2 2 0 0 1-2.83 0L2 12V2h10l8.59 8.59a2 2 0 0 1 0 2.82z"></path><line x1="7" y1="7" x2="7.01" y2="7"></line></svg>
+            ESRS check
+        </div>
+    </div>
+    
+    <!-- AI-Generated Story -->
+    <div class="fc-section">
+        <div class="fc-section-header">
+            <h2 class="fc-section-title">
+                <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"></polygon></svg>
+                Today's Key Insight
+            </h2>
+        </div>
+        
+        <div class="fc-story-card">
+            <div class="fc-story-badge">AI-Generated</div>
+            <h3 class="fc-story-title">Carbon Emissions Down 12%, Exceeding Quarterly Target</h3>
+            <div class="fc-story-content">
+                <p>Over the past quarter, your organization has shown significant progress in key sustainability metrics. 
+                <span class="fc-story-highlight">Carbon emissions decreased by 12%</span> compared to the previous quarter, 
+                exceeding your target of 8%. Water usage efficiency improved by 5%, contributing to overall resource conservation efforts.</p>
+                
+                <p>The most notable improvement has been in <span class="fc-story-highlight">renewable energy adoption</span>, 
+                which increased from 28% to 35% of total energy consumption. This puts you ahead of industry average (29%) 
+                and positions your organization well for the upcoming regulatory changes.</p>
+                
+                <div class="fc-story-metrics">
+                    <div class="fc-story-metric">
+                        <div class="fc-story-metric-value">-12%</div>
+                        <div class="fc-story-metric-label">Carbon Emissions</div>
+                    </div>
+                    <div class="fc-story-metric">
+                        <div class="fc-story-metric-value">35%</div>
+                        <div class="fc-story-metric-label">Renewable Energy</div>
+                    </div>
+                    <div class="fc-story-metric">
+                        <div class="fc-story-metric-value">87</div>
+                        <div class="fc-story-metric-label">ESG Score</div>
+                    </div>
+                </div>
+                
+                <div id="primary-chart" class="fc-chart-container"></div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- KPI Cards -->
+    <div class="fc-section">
+        <div class="fc-section-header">
+            <h2 class="fc-section-title">
+                <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 3v18h18"/><path d="m18.7 8-5.1 5.2-2.8-2.7L7 14.3"/></svg>
+                Key Metrics
+            </h2>
+        </div>
+        
+        <div class="fc-grid">
+            <!-- Carbon Emissions KPI -->
+            <div class="fc-card">
+                <div class="fc-card-header">
+                    <h3 class="fc-card-title">Carbon Emissions</h3>
+                    <div class="fc-card-icon">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"></path><polyline points="16 17 21 12 16 7"></polyline><line x1="21" y1="12" x2="9" y2="12"></line></svg>
+                    </div>
+                </div>
+                <div class="fc-card-value">12,450 t</div>
+                <div class="fc-card-change positive">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m6 9 6-6 6 6"/><path d="M6 12h12"/><path d="M6 15h12"/><path d="M6 18h12"/></svg>
+                    -12% from last quarter
+                </div>
+                <div class="fc-card-description">Total CO2 equivalent emissions across all operations.</div>
+                <div class="fc-card-footer">
+                    <button class="fc-card-action" onclick="showDeepDive('carbon-emissions')">
+                        Details <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 18 15 12 9 6"></polyline></svg>
+                    </button>
+                </div>
+            </div>
+            
+            <!-- Energy Consumption KPI -->
+            <div class="fc-card">
+                <div class="fc-card-header">
+                    <h3 class="fc-card-title">Energy Consumption</h3>
+                    <div class="fc-card-icon">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M13 2 3 14h9l-1 8 10-12h-9l1-8z"/></svg>
+                    </div>
+                </div>
+                <div class="fc-card-value">8.2M kWh</div>
+                <div class="fc-card-change positive">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m6 9 6-6 6 6"/><path d="M6 12h12"/><path d="M6 15h12"/><path d="M6 18h12"/></svg>
+                    -3% from last quarter
+                </div>
+                <div class="fc-card-description">Total energy usage across all facilities.</div>
+                <div class="fc-card-footer">
+                    <button class="fc-card-action" onclick="showDeepDive('energy-consumption')">
+                        Details <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 18 15 12 9 6"></polyline></svg>
+                    </button>
+                </div>
+            </div>
+            
+            <!-- Water Usage KPI -->
+            <div class="fc-card">
+                <div class="fc-card-header">
+                    <h3 class="fc-card-title">Water Usage</h3>
+                    <div class="fc-card-icon">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22a7 7 0 0 0 7-7c0-2-1-3.9-3-5.5s-3.5-4-4-6.5c-.5 2.5-2 4.9-4 6.5C6 11.1 5 13 5 15a7 7 0 0 0 7 7z"/></svg>
+                    </div>
+                </div>
+                <div class="fc-card-value">356K m³</div>
+                <div class="fc-card-change positive">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m6 9 6-6 6 6"/><path d="M6 12h12"/><path d="M6 15h12"/><path d="M6 18h12"/></svg>
+                    -5% from last quarter
+                </div>
+                <div class="fc-card-description">Total water consumption across operations.</div>
+                <div class="fc-card-footer">
+                    <button class="fc-card-action" onclick="showDeepDive('water-usage')">
+                        Details <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 18 15 12 9 6"></polyline></svg>
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Recommended Actions -->
+    <div class="fc-section">
+        <div class="fc-section-header">
+            <h2 class="fc-section-title">
+                <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="8" y1="6" x2="21" y2="6"></line><line x1="8" y1="12" x2="21" y2="12"></line><line x1="8" y1="18" x2="21" y2="18"></line><line x1="3" y1="6" x2="3.01" y2="6"></line><line x1="3" y1="12" x2="3.01" y2="12"></line><line x1="3" y1="18" x2="3.01" y2="18"></line></svg>
+                Recommended Actions
+            </h2>
+        </div>
+        
+        <div class="fc-action-items">
+            <div class="fc-action-item">
+                <div class="fc-action-icon">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M13 2 3 14h9l-1 8 10-12h-9l1-8z"/></svg>
+                </div>
+                <div class="fc-action-content">
+                    <h4 class="fc-action-title">Optimize HVAC Systems in Factory B</h4>
+                    <p class="fc-action-description">Factory B shows higher energy consumption for cooling compared to other facilities. Consider optimizing HVAC systems to achieve potential 8-10% energy savings.</p>
+                    <div class="fc-action-meta">
+                        <span class="fc-action-priority high">High Priority</span>
+                        <span>Est. savings: $45K/year</span>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="fc-action-item">
+                <div class="fc-action-icon">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 12h6"/><path d="M12 3v6"/><path d="M7.5 7.5l3 3"/><path d="M16.5 7.5 12 12l4.5 4.5"/><path d="M12 16.5V21"/><path d="M7.5 16.5l-3 3"/><path d="M6 16.5H3"/><path d="M3 7.5V3h4.5"/><path d="M13.5 3h7.5v7.5"/><path d="M21 16.5V21h-4.5"/></svg>
+                </div>
+                <div class="fc-action-content">
+                    <h4 class="fc-action-title">Expand Solar Panel Installation</h4>
+                    <p class="fc-action-description">Based on current energy usage patterns and available roof space, expanding solar panel installation at HQ would increase renewable energy share by approximately 5%.</p>
+                    <div class="fc-action-meta">
+                        <span class="fc-action-priority medium">Medium Priority</span>
+                        <span>Est. savings: $28K/year</span>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="fc-action-item">
+                <div class="fc-action-icon">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22a7 7 0 0 0 7-7c0-2-1-3.9-3-5.5s-3.5-4-4-6.5c-.5 2.5-2 4.9-4 6.5C6 11.1 5 13 5 15a7 7 0 0 0 7 7z"/></svg>
+                </div>
+                <div class="fc-action-content">
+                    <h4 class="fc-action-title">Implement Water Recycling in Production</h4>
+                    <p class="fc-action-description">Analysis shows potential for 20% reduction in water usage by implementing closed-loop water recycling systems in production processes.</p>
+                    <div class="fc-action-meta">
+                        <span class="fc-action-priority">Standard Priority</span>
+                        <span>Est. savings: $18K/year</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Deep Dive Modal -->
+    <div class="fc-modal-backdrop" id="deep-dive-modal">
+        <div class="fc-modal">
+            <div class="fc-modal-header">
+                <h3 class="fc-modal-title" id="deep-dive-title">Carbon Emissions Analysis</h3>
+                <button class="fc-modal-close">&times;</button>
+            </div>
+            <div class="fc-modal-body">
+                <div class="fc-modal-chart" id="deep-dive-chart"></div>
+                <div id="deep-dive-content">
+                    <!-- Content will be populated dynamically -->
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Toast Notification -->
+    <div class="fc-toast" id="toast">
+        <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"></path><polyline points="22 4 12 14.01 9 11.01"></polyline></svg>
+        <span id="toast-message">Action completed</span>
+    </div>
+</div>
+{% endblock %}
+
+{% block additional_js %}
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        // Initialize primary chart
+        initializePrimaryChart();
+        
+        // Set up Copilot interaction
+        setupCopilot();
+        
+        // Set up quick actions
+        setupQuickActions();
+        
+        // Set up modal functionality
+        setupModal();
+    });
+    
+    // Initialize primary chart - Carbon emissions trend
+    function initializePrimaryChart() {
+        const chartElement = document.getElementById('primary-chart');
+        
+        const trace1 = {
+            x: ['Q1 2024', 'Q2 2024', 'Q3 2024', 'Q4 2024', 'Q1 2025'],
+            y: [15200, 14800, 13900, 13100, 12450],
+            type: 'scatter',
+            mode: 'lines+markers',
+            name: 'Carbon Emissions (tonnes)',
+            line: {
+                color: '#10b981',
+                width: 3
+            },
+            marker: {
+                size: 8
+            }
+        };
+        
+        const trace2 = {
+            x: ['Q1 2024', 'Q2 2024', 'Q3 2024', 'Q4 2024', 'Q1 2025'],
+            y: [15500, 15100, 14700, 14300, 13900],
+            type: 'scatter',
+            mode: 'lines',
+            name: 'Target',
+            line: {
+                color: '#f59e0b',
+                width: 2,
+                dash: 'dot'
+            }
+        };
+        
+        const layout = {
+            autosize: true,
+            margin: {
+                l: 50,
+                r: 20,
+                b: 50,
+                t: 20,
+                pad: 4
+            },
+            hovermode: 'closest',
+            xaxis: {
+                title: 'Quarter'
+            },
+            yaxis: {
+                title: 'Emissions (tonnes CO2e)'
+            },
+            legend: {
+                orientation: 'h',
+                y: -0.2
+            },
+            plot_bgcolor: 'transparent',
+            paper_bgcolor: 'transparent',
+            font: {
+                color: getComputedStyle(document.documentElement).getPropertyValue('--fc-text')
+            }
+        };
+        
+        const config = {
+            responsive: true
+        };
+        
+        Plotly.newPlot(chartElement, [trace1, trace2], layout, config);
+    }
+    
+    // Set up Copilot interaction
+    function setupCopilot() {
+        const contentElement = document.querySelector('.fc-copilot-content');
+        const inputElement = document.getElementById('copilot-input');
+        const submitButton = document.getElementById('copilot-submit');
+        
+        // Handle submit click
+        submitButton.addEventListener('click', function() {
+            handleCopilotRequest();
+        });
+        
+        // Handle enter key press
+        inputElement.addEventListener('keydown', function(e) {
+            if (e.key === 'Enter') {
+                handleCopilotRequest();
+            }
+        });
+        
+        function handleCopilotRequest() {
+            const query = inputElement.value.trim();
+            if (!query) return;
+            
+            // Add user message to the chat
+            const userMessageHTML = `
+                <div class="fc-copilot-message" style="background-color: rgba(14, 165, 233, 0.1); margin-left: 20%;">
+                    <p>${query}</p>
+                </div>
+            `;
+            contentElement.innerHTML += userMessageHTML;
+            
+            // Clear input
+            inputElement.value = '';
+            
+            // Scroll to bottom
+            contentElement.scrollTop = contentElement.scrollHeight;
+            
+            // Show typing indicator
+            const indicatorHTML = `
+                <div class="fc-copilot-message" id="typing-indicator">
+                    <p>Generating response...</p>
+                </div>
+            `;
+            contentElement.innerHTML += indicatorHTML;
+            contentElement.scrollTop = contentElement.scrollHeight;
+            
+            // Simulate AI response
+            setTimeout(() => {
+                // Remove typing indicator
+                document.getElementById('typing-indicator').remove();
+                
+                // Add AI response
+                const responseHTML = generateCopilotResponse(query);
+                contentElement.innerHTML += responseHTML;
+                
+                // Scroll to bottom
+                contentElement.scrollTop = contentElement.scrollHeight;
+            }, 1500);
+        }
+        
+        // Simple response generation
+        function generateCopilotResponse(query) {
+            let response = '';
+            
+            // Match query to potential responses
+            if (query.toLowerCase().includes('carbon')) {
+                response = `
+                    <div class="fc-copilot-message">
+                        <p>Looking at your carbon emissions data:</p>
+                        <ul style="margin-top: 10px; padding-left: 20px;">
+                            <li>Current quarter: 12,450 tonnes CO2e</li>
+                            <li>12% reduction from previous quarter</li>
+                            <li>15% reduction year-to-date</li>
+                        </ul>
+                        <p style="margin-top: 10px;">Factory A has shown the biggest improvement (-18%), while Factory B has more opportunity for optimization (-8%).</p>
+                    </div>
+                `;
+            } else if (query.toLowerCase().includes('water')) {
+                response = `
+                    <div class="fc-copilot-message">
+                        <p>Here's an analysis of your water usage:</p>
+                        <ul style="margin-top: 10px; padding-left: 20px;">
+                            <li>Current usage: 356,000 m³</li>
+                            <li>5% reduction from previous quarter</li>
+                            <li>Major usage areas: Manufacturing (82%), Offices (18%)</li>
+                        </ul>
+                        <p style="margin-top: 10px;">Your recycling rate of 23% is below industry average (31%). Implementing a closed-loop water system could increase this to 40%.</p>
+                    </div>
+                `;
+            } else if (query.toLowerCase().includes('energy') || query.toLowerCase().includes('renewable')) {
+                response = `
+                    <div class="fc-copilot-message">
+                        <p>Analyzing your energy consumption and renewable energy:</p>
+                        <ul style="margin-top: 10px; padding-left: 20px;">
+                            <li>Total energy consumption: 8.2M kWh</li>
+                            <li>Renewable sources: 35% (up from 28% last quarter)</li>
+                            <li>Industry average is 29% for renewable sources</li>
+                        </ul>
+                        <p style="margin-top: 10px;">Your solar installation at HQ is performing well. There's potential to expand this by 5% with the available roof space, which could generate approximately $28K in annual savings.</p>
+                    </div>
+                `;
+            } else {
+                response = `
+                    <div class="fc-copilot-message">
+                        <p>Based on your sustainability metrics, here are the key insights:</p>
+                        <ul style="margin-top: 10px; padding-left: 20px;">
+                            <li>Carbon emissions are down 12% this quarter</li>
+                            <li>Renewable energy usage has increased to 35%</li>
+                            <li>Water consumption is down 5%</li>
+                        </ul>
+                        <p style="margin-top: 10px;">Your overall ESG score has improved to 87/100, placing you in the top quartile for your industry. The most effective improvement opportunity appears to be HVAC optimization at Factory B.</p>
+                    </div>
+                `;
+            }
+            
+            return response;
+        }
+    }
+    
+    // Set up quick actions
+    function setupQuickActions() {
+        document.querySelectorAll('.fc-quick-action').forEach(action => {
+            action.addEventListener('click', function() {
+                const actionText = this.textContent.trim();
+                showToast(`Action initiated: ${actionText}`);
+            });
+        });
+    }
+    
+    // Set up modal functionality
+    function setupModal() {
+        const modal = document.getElementById('deep-dive-modal');
+        const closeButton = document.querySelector('.fc-modal-close');
+        
+        // Close modal when clicking the close button
+        closeButton.addEventListener('click', () => {
+            modal.classList.remove('visible');
+        });
+        
+        // Close modal when clicking outside the content
+        modal.addEventListener('click', (e) => {
+            if (e.target === modal) {
+                closeButton.click();
+            }
+        });
+        
+        // Close modal with Escape key
+        document.addEventListener('keydown', (e) => {
+            if (e.key === 'Escape' && modal.classList.contains('visible')) {
+                closeButton.click();
+            }
+        });
+    }
+    
+    // Show deep dive modal with content based on metric type
+    function showDeepDive(metricType) {
+        const modal = document.getElementById('deep-dive-modal');
+        const modalTitle = document.getElementById('deep-dive-title');
+        const modalContent = document.getElementById('deep-dive-content');
+        
+        // Populate modal based on metric type
+        switch (metricType) {
+            case 'carbon-emissions':
+                modalTitle.innerHTML = 'Carbon Emissions Deep Dive <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M8 3v3a2 2 0 0 1-2 2H3"/><path d="M21 8h-3a2 2 0 0 0-2 2v3"/><path d="M3 16h3a2 2 0 0 1 2 2v3"/><path d="M16 21v-3a2 2 0 0 1 2-2h3"/></svg>';
+                renderCarbonEmissionsDeepDive();
+                break;
+                
+            case 'energy-consumption':
+                modalTitle.innerHTML = 'Energy Consumption Deep Dive <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M13 2 3 14h9l-1 8 10-12h-9l1-8z"/></svg>';
+                renderEnergyConsumptionDeepDive();
+                break;
+                
+            case 'water-usage':
+                modalTitle.innerHTML = 'Water Usage Deep Dive <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22a7 7 0 0 0 7-7c0-2-1-3.9-3-5.5s-3.5-4-4-6.5c-.5 2.5-2 4.9-4 6.5C6 11.1 5 13 5 15a7 7 0 0 0 7 7z"/></svg>';
+                renderWaterUsageDeepDive();
+                break;
+                
+            default:
+                modalTitle.textContent = 'Metric Analysis';
+                modalContent.innerHTML = '<p>No data available for this metric.</p>';
+        }
+        
+        // Show modal
+        modal.classList.add('visible');
+    }
+    
+    // Carbon Emissions Deep Dive
+    function renderCarbonEmissionsDeepDive() {
+        const chartElement = document.getElementById('deep-dive-chart');
+        const contentElement = document.getElementById('deep-dive-content');
+        
+        contentElement.innerHTML = `
+            <div style="display: flex; gap: 15px; flex-wrap: wrap; margin-bottom: 20px;">
+                <div style="flex: 1; min-width: 180px; padding: 16px; background-color: var(--fc-bg); border-radius: var(--fc-radius);">
+                    <div style="font-size: 14px; color: var(--fc-text-secondary); margin-bottom: 5px;">Total Emissions</div>
+                    <div style="font-size: 20px; font-weight: 600; color: var(--fc-text);">12,450 tonnes</div>
+                </div>
+                
+                <div style="flex: 1; min-width: 180px; padding: 16px; background-color: var(--fc-bg); border-radius: var(--fc-radius);">
+                    <div style="font-size: 14px; color: var(--fc-text-secondary); margin-bottom: 5px;">YoY Change</div>
+                    <div style="font-size: 20px; font-weight: 600; color: #10b981;">-18%</div>
+                </div>
+                
+                <div style="flex: 1; min-width: 180px; padding: 16px; background-color: var(--fc-bg); border-radius: var(--fc-radius);">
+                    <div style="font-size: 14px; color: var(--fc-text-secondary); margin-bottom: 5px;">Target Status</div>
+                    <div style="font-size: 20px; font-weight: 600; color: #10b981;">On Track</div>
+                </div>
+            </div>
+            
+            <p>Carbon emissions have been consistently decreasing over the past 12 months, with a 12% reduction in the current quarter compared to the previous one. This exceeds the quarterly target of 8% and puts the organization on track to meet annual reduction goals.</p>
+            
+            <h4 style="margin-top: 24px; margin-bottom: 16px; font-size: 16px; font-weight: 600;">Emissions by Facility</h4>
+            <div style="display: flex; gap: 10px; flex-wrap: wrap; margin-bottom: 24px;">
+                <div style="flex: 1; min-width: 120px; padding: 12px; background-color: var(--fc-bg); border-radius: var(--fc-radius); text-align: center;">
+                    <div style="font-size: 18px; font-weight: 600; color: var(--fc-primary);">4,200</div>
+                    <div style="font-size: 12px; color: var(--fc-text-secondary);">Factory A</div>
+                </div>
+                
+                <div style="flex: 1; min-width: 120px; padding: 12px; background-color: var(--fc-bg); border-radius: var(--fc-radius); text-align: center;">
+                    <div style="font-size: 18px; font-weight: 600; color: var(--fc-primary);">3,100</div>
+                    <div style="font-size: 12px; color: var(--fc-text-secondary);">Factory B</div>
+                </div>
+                
+                <div style="flex: 1; min-width: 120px; padding: 12px; background-color: var(--fc-bg); border-radius: var(--fc-radius); text-align: center;">
+                    <div style="font-size: 18px; font-weight: 600; color: var(--fc-primary);">2,400</div>
+                    <div style="font-size: 12px; color: var(--fc-text-secondary);">Factory C</div>
+                </div>
+                
+                <div style="flex: 1; min-width: 120px; padding: 12px; background-color: var(--fc-bg); border-radius: var(--fc-radius); text-align: center;">
+                    <div style="font-size: 18px; font-weight: 600; color: var(--fc-primary);">2,750</div>
+                    <div style="font-size: 12px; color: var(--fc-text-secondary);">Other</div>
+                </div>
+            </div>
+            
+            <div style="padding: 20px; background-color: rgba(16, 185, 129, 0.05); border-radius: var(--fc-radius); border-left: 4px solid #10b981; margin-top: 20px;">
+                <h4 style="margin-top: 0; margin-bottom: 10px; font-size: 16px; font-weight: 600; color: #10b981; display: flex; align-items: center; gap: 8px;">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M2 3h6a4 4 0 0 1 4 4v14a3 3 0 0 0-3-3H2z"/><path d="M22 3h-6a4 4 0 0 0-4 4v14a3 3 0 0 1 3-3h7z"/></svg>
+                    AI Recommendations
+                </h4>
+                <ul style="margin-top: 0; padding-left: 20px;">
+                    <li style="margin-bottom: 8px;">Optimize HVAC systems in Factory B to reduce energy consumption by approximately 8-10%.</li>
+                    <li style="margin-bottom: 8px;">Implement route optimization for your logistics fleet to reduce fuel consumption by an estimated 12%.</li>
+                    <li style="margin-bottom: 8px;">Expand renewable energy usage in Factory A, targeting a 15% increase in solar energy utilization.</li>
+                </ul>
+            </div>
+        `;
+        
+        // Render chart
+        Plotly.newPlot(chartElement, [
+            {
+                x: ['Apr 2024', 'May 2024', 'Jun 2024', 'Jul 2024', 'Aug 2024', 'Sep 2024', 'Oct 2024', 'Nov 2024', 'Dec 2024', 'Jan 2025', 'Feb 2025', 'Mar 2025'],
+                y: [15900, 15700, 15400, 15200, 14800, 14500, 14100, 13900, 13500, 13100, 12800, 12450],
+                type: 'scatter',
+                mode: 'lines+markers',
+                name: 'Carbon Emissions (tonnes)',
+                line: {
+                    color: '#10b981',
+                    width: 3
+                },
+                marker: {
+                    size: 8
+                }
+            },
+            {
+                x: ['Apr 2024', 'May 2024', 'Jun 2024', 'Jul 2024', 'Aug 2024', 'Sep 2024', 'Oct 2024', 'Nov 2024', 'Dec 2024', 'Jan 2025', 'Feb 2025', 'Mar 2025'],
+                y: [15900, 15750, 15600, 15450, 15300, 15150, 15000, 14850, 14700, 14550, 14400, 14250],
+                type: 'scatter',
+                mode: 'lines',
+                name: 'Target',
+                line: {
+                    color: '#f59e0b',
+                    width: 2,
+                    dash: 'dot'
+                }
+            }
+        ], {
+            autosize: true,
+            margin: {
+                l: 50,
+                r: 20,
+                b: 50,
+                t: 10,
+                pad: 4
+            },
+            hovermode: 'closest',
+            xaxis: {
+                title: 'Month'
+            },
+            yaxis: {
+                title: 'Emissions (tonnes CO2e)'
+            },
+            legend: {
+                orientation: 'h',
+                y: -0.2
+            },
+            plot_bgcolor: 'transparent',
+            paper_bgcolor: 'transparent',
+            font: {
+                color: getComputedStyle(document.documentElement).getPropertyValue('--fc-text')
+            }
+        }, {
+            responsive: true
+        });
+    }
+    
+    // Energy Consumption Deep Dive
+    function renderEnergyConsumptionDeepDive() {
+        const chartElement = document.getElementById('deep-dive-chart');
+        const contentElement = document.getElementById('deep-dive-content');
+        
+        // Display content
+        contentElement.innerHTML = `
+            <div style="display: flex; gap: 15px; flex-wrap: wrap; margin-bottom: 20px;">
+                <div style="flex: 1; min-width: 180px; padding: 16px; background-color: var(--fc-bg); border-radius: var(--fc-radius);">
+                    <div style="font-size: 14px; color: var(--fc-text-secondary); margin-bottom: 5px;">Total Consumption</div>
+                    <div style="font-size: 20px; font-weight: 600; color: var(--fc-text);">8.2M kWh</div>
+                </div>
+                
+                <div style="flex: 1; min-width: 180px; padding: 16px; background-color: var(--fc-bg); border-radius: var(--fc-radius);">
+                    <div style="font-size: 14px; color: var(--fc-text-secondary); margin-bottom: 5px;">Renewable %</div>
+                    <div style="font-size: 20px; font-weight: 600; color: #10b981;">35%</div>
+                </div>
+                
+                <div style="flex: 1; min-width: 180px; padding: 16px; background-color: var(--fc-bg); border-radius: var(--fc-radius);">
+                    <div style="font-size: 14px; color: var(--fc-text-secondary); margin-bottom: 5px;">QoQ Change</div>
+                    <div style="font-size: 20px; font-weight: 600; color: #10b981;">-3%</div>
+                </div>
+            </div>
+            
+            <p>Energy consumption shows a 3% decrease quarter-over-quarter, with significant improvements in manufacturing facilities. The transition to energy-efficient equipment and installation of smart building controls contributed to these savings.</p>
+            
+            <h4 style="margin-top: 24px; margin-bottom: 16px; font-size: 16px; font-weight: 600;">Energy by Source</h4>
+            <div style="display: flex; gap: 10px; flex-wrap: wrap; margin-bottom: 24px;">
+                <div style="flex: 1; min-width: 120px; padding: 12px; background-color: var(--fc-bg); border-radius: var(--fc-radius); text-align: center;">
+                    <div style="font-size: 18px; font-weight: 600; color: #10b981;">35%</div>
+                    <div style="font-size: 12px; color: var(--fc-text-secondary);">Renewable</div>
+                </div>
+                
+                <div style="flex: 1; min-width: 120px; padding: 12px; background-color: var(--fc-bg); border-radius: var(--fc-radius); text-align: center;">
+                    <div style="font-size: 18px; font-weight: 600; color: #f59e0b;">30%</div>
+                    <div style="font-size: 12px; color: var(--fc-text-secondary);">Natural Gas</div>
+                </div>
+                
+                <div style="flex: 1; min-width: 120px; padding: 12px; background-color: var(--fc-bg); border-radius: var(--fc-radius); text-align: center;">
+                    <div style="font-size: 18px; font-weight: 600; color: #3b82f6;">25%</div>
+                    <div style="font-size: 12px; color: var(--fc-text-secondary);">Grid Electricity</div>
+                </div>
+                
+                <div style="flex: 1; min-width: 120px; padding: 12px; background-color: var(--fc-bg); border-radius: var(--fc-radius); text-align: center;">
+                    <div style="font-size: 18px; font-weight: 600; color: #6b7280;">10%</div>
+                    <div style="font-size: 12px; color: var(--fc-text-secondary);">Other</div>
+                </div>
+            </div>
+            
+            <div style="padding: 20px; background-color: rgba(16, 185, 129, 0.05); border-radius: var(--fc-radius); border-left: 4px solid #10b981; margin-top: 20px;">
+                <h4 style="margin-top: 0; margin-bottom: 10px; font-size: 16px; font-weight: 600; color: #10b981; display: flex; align-items: center; gap: 8px;">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M2 3h6a4 4 0 0 1 4 4v14a3 3 0 0 0-3-3H2z"/><path d="M22 3h-6a4 4 0 0 0-4 4v14a3 3 0 0 1 3-3h7z"/></svg>
+                    AI Recommendations
+                </h4>
+                <ul style="margin-top: 0; padding-left: 20px;">
+                    <li style="margin-bottom: 8px;">Replace the remaining conventional lighting with LED alternatives in Factories B and C to reduce lighting-related energy consumption by up to 60%.</li>
+                    <li style="margin-bottom: 8px;">Implement predictive maintenance for manufacturing equipment to reduce energy waste from inefficient operation.</li>
+                    <li style="margin-bottom: 8px;">Schedule energy-intensive production processes during off-peak hours to benefit from lower electricity rates and grid optimization.</li>
+                </ul>
+            </div>
+        `;
+        
+        // Render chart
+        Plotly.newPlot(chartElement, [
+            {
+                values: [35, 30, 25, 10],
+                labels: ['Renewable', 'Natural Gas', 'Grid Electricity', 'Other'],
+                type: 'pie',
+                textinfo: 'label+percent',
+                marker: {
+                    colors: ['#10b981', '#f59e0b', '#3b82f6', '#6b7280']
+                },
+                hole: 0.4
+            }
+        ], {
+            autosize: true,
+            margin: {
+                l: 20,
+                r: 20,
+                b: 0,
+                t: 0,
+                pad: 0
+            },
+            annotations: [{
+                font: {
+                    size: 16,
+                    color: getComputedStyle(document.documentElement).getPropertyValue('--fc-text')
+                },
+                showarrow: false,
+                text: 'Energy<br>Sources',
+                x: 0.5,
+                y: 0.5
+            }],
+            showlegend: false,
+            plot_bgcolor: 'transparent',
+            paper_bgcolor: 'transparent'
+        }, {
+            responsive: true
+        });
+    }
+    
+    // Water Usage Deep Dive
+    function renderWaterUsageDeepDive() {
+        const chartElement = document.getElementById('deep-dive-chart');
+        const contentElement = document.getElementById('deep-dive-content');
+        
+        // Display content
+        contentElement.innerHTML = `
+            <div style="display: flex; gap: 15px; flex-wrap: wrap; margin-bottom: 20px;">
+                <div style="flex: 1; min-width: 180px; padding: 16px; background-color: var(--fc-bg); border-radius: var(--fc-radius);">
+                    <div style="font-size: 14px; color: var(--fc-text-secondary); margin-bottom: 5px;">Total Usage</div>
+                    <div style="font-size: 20px; font-weight: 600; color: var(--fc-text);">356K m³</div>
+                </div>
+                
+                <div style="flex: 1; min-width: 180px; padding: 16px; background-color: var(--fc-bg); border-radius: var(--fc-radius);">
+                    <div style="font-size: 14px; color: var(--fc-text-secondary); margin-bottom: 5px;">Recycled</div>
+                    <div style="font-size: 20px; font-weight: 600; color: var(--fc-text);">23%</div>
+                </div>
+                
+                <div style="flex: 1; min-width: 180px; padding: 16px; background-color: var(--fc-bg); border-radius: var(--fc-radius);">
+                    <div style="font-size: 14px; color: var(--fc-text-secondary); margin-bottom: 5px;">QoQ Change</div>
+                    <div style="font-size: 20px; font-weight: 600; color: #10b981;">-5%</div>
+                </div>
+            </div>
+            
+            <p>Water usage has decreased by 5% compared to the previous quarter, primarily due to water recycling initiatives and fixing leaks in the manufacturing water systems. Factory A leads in water conservation with a 7% reduction.</p>
+            
+            <h4 style="margin-top: 24px; margin-bottom: 16px; font-size: 16px; font-weight: 600;">Water Usage by Facility</h4>
+            
+            <div style="padding: 20px; background-color: rgba(16, 185, 129, 0.05); border-radius: var(--fc-radius); border-left: 4px solid #10b981; margin-top: 20px;">
+                <h4 style="margin-top: 0; margin-bottom: 10px; font-size: 16px; font-weight: 600; color: #10b981; display: flex; align-items: center; gap: 8px;">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M2 3h6a4 4 0 0 1 4 4v14a3 3 0 0 0-3-3H2z"/><path d="M22 3h-6a4 4 0 0 0-4 4v14a3 3 0 0 1 3-3h7z"/></svg>
+                    AI Recommendations
+                </h4>
+                <ul style="margin-top: 0; padding-left: 20px;">
+                    <li style="margin-bottom: 8px;">Implement closed-loop water recycling systems in production processes to reduce water consumption by up to 20%.</li>
+                    <li style="margin-bottom: 8px;">Install water-efficient fixtures in all facilities to reduce non-industrial water usage.</li>
+                    <li style="margin-bottom: 8px;">Develop a water management plan that includes regular audits and leak detection to prevent wasted water.</li>
+                </ul>
+            </div>
+        `;
+        
+        // Render chart
+        Plotly.newPlot(chartElement, [
+            {
+                x: ['Factory A', 'Factory B', 'Factory C', 'Office HQ'],
+                y: [180000, 120000, 45000, 11000],
+                type: 'bar',
+                name: 'Current Quarter',
+                marker: {
+                    color: '#0ea5e9'
+                }
+            },
+            {
+                x: ['Factory A', 'Factory B', 'Factory C', 'Office HQ'],
+                y: [193500, 126000, 47250, 11550],
+                type: 'bar',
+                name: 'Previous Quarter',
+                marker: {
+                    color: 'rgba(14, 165, 233, 0.5)'
+                }
+            }
+        ], {
+            autosize: true,
+            margin: {
+                l: 50,
+                r: 20,
+                b: 50,
+                t: 10,
+                pad: 4
+            },
+            barmode: 'group',
+            xaxis: {
+                title: 'Facility'
+            },
+            yaxis: {
+                title: 'Water Usage (m³)'
+            },
+            legend: {
+                orientation: 'h',
+                y: -0.2
+            },
+            plot_bgcolor: 'transparent',
+            paper_bgcolor: 'transparent',
+            font: {
+                color: getComputedStyle(document.documentElement).getPropertyValue('--fc-text')
+            }
+        }, {
+            responsive: true
+        });
+    }
+    
+    // Toast notification
+    function showToast(message) {
+        const toast = document.getElementById('toast');
+        const toastMessage = document.getElementById('toast-message');
+        
+        // Set message
+        toastMessage.textContent = message;
+        
+        // Show toast
+        toast.classList.add('visible');
+        
+        // Auto hide after 3 seconds
+        setTimeout(() => {
+            toast.classList.remove('visible');
+        }, 3000);
+    }
+</script>
+{% endblock %}

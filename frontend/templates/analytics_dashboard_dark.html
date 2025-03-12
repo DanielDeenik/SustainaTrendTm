@@ -1,0 +1,875 @@
+{% extends "layouts/finchat_dark_layout.html" %}
+
+{% block title %}Analytics Dashboard | SustainaTrend™{% endblock %}
+
+{% block header_title %}Analytics Dashboard{% endblock %}
+
+{% block header_actions %}
+<span class="finchat-badge finchat-badge-primary">AI-Powered</span>
+{% endblock %}
+
+{% block additional_head %}
+<script src="https://cdn.plot.ly/plotly-2.29.0.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/chart.js@3.9.1/dist/chart.min.js"></script>
+{% endblock %}
+
+{% block additional_styles %}
+<style>
+    .analytics-overview {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+        gap: var(--fc-spacing-md);
+        margin-bottom: var(--fc-spacing-xl);
+    }
+    
+    .analytics-metric {
+        background-color: var(--fc-bg-card);
+        border: 1px solid var(--fc-border);
+        border-radius: var(--fc-radius);
+        padding: var(--fc-spacing-md);
+        display: flex;
+        flex-direction: column;
+    }
+    
+    .analytics-metric-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: var(--fc-spacing-sm);
+    }
+    
+    .analytics-metric-title {
+        font-size: 0.9rem;
+        color: var(--fc-text-secondary);
+    }
+    
+    .analytics-metric-icon {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        width: 32px;
+        height: 32px;
+        border-radius: var(--fc-radius);
+        background-color: var(--fc-primary-light);
+        color: var(--fc-primary);
+    }
+    
+    .analytics-metric-value {
+        font-size: 1.8rem;
+        font-weight: 700;
+        margin: var(--fc-spacing-xs) 0;
+    }
+    
+    .analytics-metric-change {
+        display: flex;
+        align-items: center;
+        gap: var(--fc-spacing-xs);
+        font-size: 0.8rem;
+        margin-top: auto;
+    }
+    
+    .analytics-metric-change.positive {
+        color: var(--fc-positive);
+    }
+    
+    .analytics-metric-change.negative {
+        color: var(--fc-negative);
+    }
+    
+    .analytics-chart-row {
+        display: grid;
+        grid-template-columns: 2fr 1fr;
+        gap: var(--fc-spacing-md);
+        margin-bottom: var(--fc-spacing-xl);
+    }
+    
+    .analytics-chart-card {
+        background-color: var(--fc-bg-card);
+        border: 1px solid var(--fc-border);
+        border-radius: var(--fc-radius);
+        padding: var(--fc-spacing-md);
+    }
+    
+    .analytics-chart-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: var(--fc-spacing-md);
+    }
+    
+    .analytics-chart-title {
+        font-size: 1rem;
+        font-weight: 600;
+        display: flex;
+        align-items: center;
+        gap: var(--fc-spacing-xs);
+    }
+    
+    .analytics-chart-actions {
+        display: flex;
+        gap: var(--fc-spacing-xs);
+    }
+    
+    .analytics-chart-container {
+        height: 300px;
+        width: 100%;
+    }
+    
+    .analytics-insights {
+        display: flex;
+        flex-direction: column;
+        gap: var(--fc-spacing-md);
+    }
+    
+    .analytics-insight {
+        background-color: var(--fc-bg-card);
+        border: 1px solid var(--fc-border);
+        border-radius: var(--fc-radius);
+        padding: var(--fc-spacing-md);
+        display: flex;
+        gap: var(--fc-spacing-md);
+        align-items: flex-start;
+    }
+    
+    .analytics-insight-icon {
+        width: 36px;
+        height: 36px;
+        border-radius: var(--fc-radius);
+        background-color: var(--fc-primary-light);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        color: var(--fc-primary);
+        flex-shrink: 0;
+    }
+    
+    .analytics-insight-content h4 {
+        font-size: 0.95rem;
+        font-weight: 600;
+        margin: 0 0 var(--fc-spacing-xs) 0;
+    }
+    
+    .analytics-insight-content p {
+        font-size: 0.85rem;
+        margin: 0;
+        color: var(--fc-text-secondary);
+    }
+    
+    .analytics-category-breakdown {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+        gap: var(--fc-spacing-md);
+        margin-bottom: var(--fc-spacing-xl);
+    }
+    
+    .analytics-performance-metrics {
+        background-color: var(--fc-bg-card);
+        border: 1px solid var(--fc-border);
+        border-radius: var(--fc-radius);
+        padding: var(--fc-spacing-md);
+        margin-bottom: var(--fc-spacing-xl);
+    }
+    
+    .analytics-performance-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: var(--fc-spacing-md);
+    }
+    
+    .analytics-performance-title {
+        font-size: 1rem;
+        font-weight: 600;
+        display: flex;
+        align-items: center;
+        gap: var(--fc-spacing-xs);
+    }
+    
+    .analytics-table {
+        width: 100%;
+        border-collapse: collapse;
+    }
+    
+    .analytics-table th {
+        text-align: left;
+        padding: var(--fc-spacing-sm);
+        font-weight: 500;
+        font-size: 0.8rem;
+        color: var(--fc-text-secondary);
+        border-bottom: 1px solid var(--fc-border);
+    }
+    
+    .analytics-table td {
+        padding: var(--fc-spacing-sm);
+        border-bottom: 1px solid var(--fc-border);
+        font-size: 0.9rem;
+    }
+    
+    .analytics-table tr:last-child td {
+        border-bottom: none;
+    }
+    
+    .analytics-table .progress-bar {
+        height: 6px;
+        background-color: var(--fc-bg-tertiary);
+        border-radius: 3px;
+        overflow: hidden;
+        width: 100%;
+    }
+    
+    .analytics-table .progress-fill {
+        height: 100%;
+        border-radius: 3px;
+    }
+    
+    .analytics-table .progress-fill.high {
+        background-color: var(--fc-positive);
+    }
+    
+    .analytics-table .progress-fill.medium {
+        background-color: var(--fc-warning);
+    }
+    
+    .analytics-table .progress-fill.low {
+        background-color: var(--fc-info);
+    }
+    
+    .analytics-table .status {
+        display: inline-block;
+        padding: 2px 8px;
+        border-radius: 12px;
+        font-size: 0.75rem;
+        font-weight: 500;
+    }
+    
+    .analytics-table .status.good {
+        background-color: rgba(61, 213, 152, 0.15);
+        color: var(--fc-positive);
+    }
+    
+    .analytics-table .status.warning {
+        background-color: rgba(255, 173, 99, 0.15);
+        color: var(--fc-warning);
+    }
+    
+    .analytics-table .status.critical {
+        background-color: rgba(255, 107, 129, 0.15);
+        color: var(--fc-negative);
+    }
+    
+    .analytics-recommendations {
+        background-color: var(--fc-bg-card);
+        border: 1px solid var(--fc-border);
+        border-radius: var(--fc-radius);
+        padding: var(--fc-spacing-md);
+    }
+    
+    .analytics-recommendations-header {
+        margin-bottom: var(--fc-spacing-md);
+    }
+    
+    .analytics-recommendations-title {
+        font-size: 1rem;
+        font-weight: 600;
+        margin: 0 0 var(--fc-spacing-xs) 0;
+        display: flex;
+        align-items: center;
+        gap: var(--fc-spacing-xs);
+    }
+    
+    .analytics-recommendations-subtitle {
+        font-size: 0.85rem;
+        color: var(--fc-text-secondary);
+        margin: 0;
+    }
+    
+    .analytics-recommendations-list {
+        display: flex;
+        flex-direction: column;
+        gap: var(--fc-spacing-md);
+    }
+    
+    .analytics-recommendation {
+        display: flex;
+        gap: var(--fc-spacing-md);
+        padding-bottom: var(--fc-spacing-md);
+        border-bottom: 1px solid var(--fc-border);
+    }
+    
+    .analytics-recommendation:last-child {
+        border-bottom: none;
+        padding-bottom: 0;
+    }
+    
+    .analytics-recommendation-icon {
+        width: 36px;
+        height: 36px;
+        border-radius: var(--fc-radius);
+        background-color: var(--fc-primary-light);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        color: var(--fc-primary);
+        flex-shrink: 0;
+    }
+    
+    .analytics-recommendation-content h4 {
+        font-size: 0.95rem;
+        font-weight: 600;
+        margin: 0 0 var(--fc-spacing-xs) 0;
+    }
+    
+    .analytics-recommendation-content p {
+        font-size: 0.85rem;
+        margin: 0 0 var(--fc-spacing-sm) 0;
+        color: var(--fc-text-secondary);
+    }
+    
+    .analytics-recommendation-tags {
+        display: flex;
+        flex-wrap: wrap;
+        gap: var(--fc-spacing-xs);
+        margin-top: var(--fc-spacing-xs);
+    }
+    
+    .analytics-recommendation-tag {
+        background-color: var(--fc-bg-hover);
+        color: var(--fc-text-secondary);
+        font-size: 0.7rem;
+        padding: 2px 8px;
+        border-radius: 12px;
+    }
+    
+    @media (max-width: 768px) {
+        .analytics-chart-row {
+            grid-template-columns: 1fr;
+        }
+    }
+</style>
+{% endblock %}
+
+{% block main_content %}
+<!-- Analytics Overview Cards -->
+<div class="finchat-section">
+    <h3 class="finchat-section-title">
+        <i class="fas fa-chart-pie"></i> Sustainability Performance Overview
+    </h3>
+    
+    <div class="analytics-overview">
+        <div class="analytics-metric">
+            <div class="analytics-metric-header">
+                <div class="analytics-metric-title">Carbon Emissions</div>
+                <div class="analytics-metric-icon">
+                    <i class="fas fa-smog"></i>
+                </div>
+            </div>
+            <div class="analytics-metric-value">78.5</div>
+            <div class="analytics-metric-change positive">
+                <i class="fas fa-arrow-down"></i> 12.3% from last quarter
+            </div>
+        </div>
+        
+        <div class="analytics-metric">
+            <div class="analytics-metric-header">
+                <div class="analytics-metric-title">Water Usage</div>
+                <div class="analytics-metric-icon">
+                    <i class="fas fa-tint"></i>
+                </div>
+            </div>
+            <div class="analytics-metric-value">62.4</div>
+            <div class="analytics-metric-change positive">
+                <i class="fas fa-arrow-down"></i> 8.7% from last quarter
+            </div>
+        </div>
+        
+        <div class="analytics-metric">
+            <div class="analytics-metric-header">
+                <div class="analytics-metric-title">Waste Generation</div>
+                <div class="analytics-metric-icon">
+                    <i class="fas fa-trash"></i>
+                </div>
+            </div>
+            <div class="analytics-metric-value">45.2</div>
+            <div class="analytics-metric-change positive">
+                <i class="fas fa-arrow-down"></i> 5.3% from last quarter
+            </div>
+        </div>
+        
+        <div class="analytics-metric">
+            <div class="analytics-metric-header">
+                <div class="analytics-metric-title">ESG Score</div>
+                <div class="analytics-metric-icon">
+                    <i class="fas fa-star"></i>
+                </div>
+            </div>
+            <div class="analytics-metric-value">82.7</div>
+            <div class="analytics-metric-change positive">
+                <i class="fas fa-arrow-up"></i> 3.5% from last quarter
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Performance Trends Chart + Insights -->
+<div class="finchat-section">
+    <div class="analytics-chart-row">
+        <div class="analytics-chart-card">
+            <div class="analytics-chart-header">
+                <h4 class="analytics-chart-title">
+                    <i class="fas fa-chart-line"></i> Sustainability Performance Trends
+                </h4>
+                <div class="analytics-chart-actions">
+                    <button class="finchat-button" data-timeframe="quarterly" id="quarterlyBtn">Quarterly</button>
+                    <button class="finchat-button" data-timeframe="yearly" id="yearlyBtn">Yearly</button>
+                </div>
+            </div>
+            <div class="analytics-chart-container">
+                <canvas id="performanceChart"></canvas>
+            </div>
+        </div>
+        
+        <div class="analytics-insights">
+            <div class="analytics-insight">
+                <div class="analytics-insight-icon">
+                    <i class="fas fa-lightbulb"></i>
+                </div>
+                <div class="analytics-insight-content">
+                    <h4>Water Efficiency Improving</h4>
+                    <p>Water usage has decreased by 8.7% due to improved recycling systems and leak detection technologies.</p>
+                </div>
+            </div>
+            
+            <div class="analytics-insight">
+                <div class="analytics-insight-icon">
+                    <i class="fas fa-exclamation-triangle"></i>
+                </div>
+                <div class="analytics-insight-content">
+                    <h4>Waste Management Alert</h4>
+                    <p>Waste reduction progress is slowing. Consider implementing additional circular economy initiatives.</p>
+                </div>
+            </div>
+            
+            <div class="analytics-insight">
+                <div class="analytics-insight-icon">
+                    <i class="fas fa-trophy"></i>
+                </div>
+                <div class="analytics-insight-content">
+                    <h4>ESG Score Milestone</h4>
+                    <p>Your ESG score has crossed into the top quartile of your industry peers. This places you in an advantageous position for sustainable finance opportunities.</p>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Category Breakdown -->
+<div class="finchat-section">
+    <h3 class="finchat-section-title">
+        <i class="fas fa-sitemap"></i> Category Performance Breakdown
+    </h3>
+    
+    <div class="analytics-category-breakdown">
+        <div class="analytics-chart-card">
+            <div class="analytics-chart-header">
+                <h4 class="analytics-chart-title">
+                    <i class="fas fa-chart-pie"></i> Performance by Category
+                </h4>
+            </div>
+            <div class="analytics-chart-container">
+                <canvas id="categoryChart"></canvas>
+            </div>
+        </div>
+        
+        <div class="analytics-chart-card">
+            <div class="analytics-chart-header">
+                <h4 class="analytics-chart-title">
+                    <i class="fas fa-bullseye"></i> Target Achievement
+                </h4>
+            </div>
+            <div class="analytics-chart-container">
+                <canvas id="targetChart"></canvas>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Performance Metrics Table -->
+<div class="finchat-section">
+    <div class="analytics-performance-metrics">
+        <div class="analytics-performance-header">
+            <h4 class="analytics-performance-title">
+                <i class="fas fa-list-ul"></i> Key Performance Metrics
+            </h4>
+        </div>
+        
+        <table class="analytics-table">
+            <thead>
+                <tr>
+                    <th>Metric</th>
+                    <th>Category</th>
+                    <th>Current Value</th>
+                    <th>Target</th>
+                    <th>Progress</th>
+                    <th>Status</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr>
+                    <td>Carbon Emissions</td>
+                    <td>Environmental</td>
+                    <td>78.5 tCO2e</td>
+                    <td>50 tCO2e</td>
+                    <td>
+                        <div class="progress-bar">
+                            <div class="progress-fill medium" style="width: 65%;"></div>
+                        </div>
+                    </td>
+                    <td><span class="status warning">In Progress</span></td>
+                </tr>
+                <tr>
+                    <td>Water Usage</td>
+                    <td>Environmental</td>
+                    <td>62.4 kL</td>
+                    <td>60 kL</td>
+                    <td>
+                        <div class="progress-bar">
+                            <div class="progress-fill high" style="width: 95%;"></div>
+                        </div>
+                    </td>
+                    <td><span class="status good">On Track</span></td>
+                </tr>
+                <tr>
+                    <td>Waste Generation</td>
+                    <td>Environmental</td>
+                    <td>45.2 tons</td>
+                    <td>30 tons</td>
+                    <td>
+                        <div class="progress-bar">
+                            <div class="progress-fill medium" style="width: 60%;"></div>
+                        </div>
+                    </td>
+                    <td><span class="status warning">In Progress</span></td>
+                </tr>
+                <tr>
+                    <td>Renewable Energy</td>
+                    <td>Environmental</td>
+                    <td>42%</td>
+                    <td>50%</td>
+                    <td>
+                        <div class="progress-bar">
+                            <div class="progress-fill high" style="width: 84%;"></div>
+                        </div>
+                    </td>
+                    <td><span class="status good">On Track</span></td>
+                </tr>
+                <tr>
+                    <td>Supply Chain ESG</td>
+                    <td>Social</td>
+                    <td>63%</td>
+                    <td>80%</td>
+                    <td>
+                        <div class="progress-bar">
+                            <div class="progress-fill low" style="width: 48%;"></div>
+                        </div>
+                    </td>
+                    <td><span class="status critical">At Risk</span></td>
+                </tr>
+                <tr>
+                    <td>Diversity & Inclusion</td>
+                    <td>Social</td>
+                    <td>72%</td>
+                    <td>75%</td>
+                    <td>
+                        <div class="progress-bar">
+                            <div class="progress-fill high" style="width: 96%;"></div>
+                        </div>
+                    </td>
+                    <td><span class="status good">On Track</span></td>
+                </tr>
+                <tr>
+                    <td>Board Diversity</td>
+                    <td>Governance</td>
+                    <td>35%</td>
+                    <td>40%</td>
+                    <td>
+                        <div class="progress-bar">
+                            <div class="progress-fill high" style="width: 87%;"></div>
+                        </div>
+                    </td>
+                    <td><span class="status good">On Track</span></td>
+                </tr>
+                <tr>
+                    <td>ESG Disclosure</td>
+                    <td>Governance</td>
+                    <td>88%</td>
+                    <td>90%</td>
+                    <td>
+                        <div class="progress-bar">
+                            <div class="progress-fill high" style="width: 97%;"></div>
+                        </div>
+                    </td>
+                    <td><span class="status good">On Track</span></td>
+                </tr>
+            </tbody>
+        </table>
+    </div>
+</div>
+
+<!-- AI Recommendations -->
+<div class="finchat-section">
+    <div class="analytics-recommendations">
+        <div class="analytics-recommendations-header">
+            <h4 class="analytics-recommendations-title">
+                <i class="fas fa-robot"></i> AI-Powered Recommendations
+            </h4>
+            <p class="analytics-recommendations-subtitle">
+                Personalized recommendations based on your sustainability performance data
+            </p>
+        </div>
+        
+        <div class="analytics-recommendations-list">
+            <div class="analytics-recommendation">
+                <div class="analytics-recommendation-icon">
+                    <i class="fas fa-industry"></i>
+                </div>
+                <div class="analytics-recommendation-content">
+                    <h4>Accelerate Supply Chain ESG Integration</h4>
+                    <p>Your supply chain ESG performance is at risk of missing targets. Consider implementing a supplier scoring system with incentives for high ESG performance, and provide technical assistance to key suppliers in developing markets.</p>
+                    <div class="analytics-recommendation-tags">
+                        <span class="analytics-recommendation-tag">High Priority</span>
+                        <span class="analytics-recommendation-tag">Social</span>
+                        <span class="analytics-recommendation-tag">Supply Chain</span>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="analytics-recommendation">
+                <div class="analytics-recommendation-icon">
+                    <i class="fas fa-recycle"></i>
+                </div>
+                <div class="analytics-recommendation-content">
+                    <h4>Implement Circular Waste Management</h4>
+                    <p>To improve waste reduction performance, consider a closed-loop material system for key waste streams and partner with specialized recycling services to handle difficult materials.</p>
+                    <div class="analytics-recommendation-tags">
+                        <span class="analytics-recommendation-tag">Medium Priority</span>
+                        <span class="analytics-recommendation-tag">Environmental</span>
+                        <span class="analytics-recommendation-tag">Waste</span>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="analytics-recommendation">
+                <div class="analytics-recommendation-icon">
+                    <i class="fas fa-solar-panel"></i>
+                </div>
+                <div class="analytics-recommendation-content">
+                    <h4>Expand On-site Renewable Energy</h4>
+                    <p>You're making good progress on renewable energy adoption. Consider additional on-site generation through rooftop solar PV systems to reduce grid dependency and increase resilience.</p>
+                    <div class="analytics-recommendation-tags">
+                        <span class="analytics-recommendation-tag">Medium Priority</span>
+                        <span class="analytics-recommendation-tag">Environmental</span>
+                        <span class="analytics-recommendation-tag">Energy</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // Set up Chart.js defaults
+    Chart.defaults.color = '#a0a0a0';
+    Chart.defaults.borderColor = '#333333';
+    
+    // Performance Trends Chart
+    const performanceCtx = document.getElementById('performanceChart').getContext('2d');
+    const performanceChart = new Chart(performanceCtx, {
+        type: 'line',
+        data: {
+            labels: ['Q1', 'Q2', 'Q3', 'Q4'],
+            datasets: [
+                {
+                    label: 'Carbon Emissions',
+                    data: [95, 88, 82, 78.5],
+                    borderColor: '#3dd598',
+                    backgroundColor: 'rgba(61, 213, 152, 0.1)',
+                    tension: 0.3,
+                    borderWidth: 2,
+                    fill: true
+                },
+                {
+                    label: 'Water Usage',
+                    data: [75, 72, 68, 62.4],
+                    borderColor: '#34c3ff',
+                    backgroundColor: 'rgba(52, 195, 255, 0.1)',
+                    tension: 0.3,
+                    borderWidth: 2,
+                    fill: true
+                },
+                {
+                    label: 'Waste Generation',
+                    data: [52, 50, 48, 45.2],
+                    borderColor: '#ffad63',
+                    backgroundColor: 'rgba(255, 173, 99, 0.1)',
+                    tension: 0.3,
+                    borderWidth: 2,
+                    fill: true
+                },
+                {
+                    label: 'ESG Score',
+                    data: [76, 78, 80, 82.7],
+                    borderColor: '#ff6b81',
+                    backgroundColor: 'rgba(255, 107, 129, 0.1)',
+                    tension: 0.3,
+                    borderWidth: 2,
+                    fill: true
+                }
+            ]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: {
+                legend: {
+                    position: 'top',
+                }
+            },
+            scales: {
+                y: {
+                    beginAtZero: false,
+                    grid: {
+                        color: '#333333'
+                    }
+                },
+                x: {
+                    grid: {
+                        color: '#333333'
+                    }
+                }
+            }
+        }
+    });
+    
+    // Category Breakdown Chart
+    const categoryCtx = document.getElementById('categoryChart').getContext('2d');
+    const categoryChart = new Chart(categoryCtx, {
+        type: 'polarArea',
+        data: {
+            labels: ['Environmental', 'Social', 'Governance', 'Economic'],
+            datasets: [{
+                data: [78, 72, 85, 65],
+                backgroundColor: [
+                    'rgba(61, 213, 152, 0.7)',
+                    'rgba(52, 195, 255, 0.7)',
+                    'rgba(255, 173, 99, 0.7)',
+                    'rgba(255, 107, 129, 0.7)'
+                ],
+                borderColor: [
+                    'rgba(61, 213, 152, 1)',
+                    'rgba(52, 195, 255, 1)',
+                    'rgba(255, 173, 99, 1)',
+                    'rgba(255, 107, 129, 1)'
+                ],
+                borderWidth: 1
+            }]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            scales: {
+                r: {
+                    grid: {
+                        color: '#333333'
+                    },
+                    ticks: {
+                        backdropColor: 'rgba(0, 0, 0, 0)',
+                        z: 1
+                    }
+                }
+            }
+        }
+    });
+    
+    // Target Achievement Chart
+    const targetCtx = document.getElementById('targetChart').getContext('2d');
+    const targetChart = new Chart(targetCtx, {
+        type: 'radar',
+        data: {
+            labels: ['Carbon', 'Water', 'Waste', 'Energy', 'Supply Chain', 'Diversity', 'Governance'],
+            datasets: [
+                {
+                    label: 'Current Performance',
+                    data: [65, 95, 60, 84, 48, 96, 92],
+                    backgroundColor: 'rgba(61, 213, 152, 0.2)',
+                    borderColor: 'rgba(61, 213, 152, 1)',
+                    borderWidth: 2,
+                    pointBackgroundColor: 'rgba(61, 213, 152, 1)',
+                    pointRadius: 4
+                },
+                {
+                    label: 'Target',
+                    data: [100, 100, 100, 100, 100, 100, 100],
+                    backgroundColor: 'rgba(52, 195, 255, 0.0)',
+                    borderColor: 'rgba(52, 195, 255, 0.5)',
+                    borderWidth: 1,
+                    borderDash: [5, 5],
+                    pointBackgroundColor: 'rgba(52, 195, 255, 0)',
+                    pointRadius: 0
+                }
+            ]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            scales: {
+                r: {
+                    max: 100,
+                    min: 0,
+                    ticks: {
+                        backdropColor: 'rgba(0, 0, 0, 0)',
+                        stepSize: 20
+                    },
+                    grid: {
+                        color: '#333333'
+                    },
+                    angleLines: {
+                        color: '#333333'
+                    }
+                }
+            }
+        }
+    });
+    
+    // Timeframe selection for performance chart
+    document.getElementById('quarterlyBtn').addEventListener('click', function() {
+        performanceChart.data.labels = ['Q1', 'Q2', 'Q3', 'Q4'];
+        performanceChart.data.datasets[0].data = [95, 88, 82, 78.5]; // Carbon
+        performanceChart.data.datasets[1].data = [75, 72, 68, 62.4]; // Water
+        performanceChart.data.datasets[2].data = [52, 50, 48, 45.2]; // Waste
+        performanceChart.data.datasets[3].data = [76, 78, 80, 82.7]; // ESG
+        
+        this.classList.add('active');
+        document.getElementById('yearlyBtn').classList.remove('active');
+        
+        performanceChart.update();
+    });
+    
+    document.getElementById('yearlyBtn').addEventListener('click', function() {
+        performanceChart.data.labels = ['2021', '2022', '2023', '2024'];
+        performanceChart.data.datasets[0].data = [110, 100, 88, 78.5]; // Carbon
+        performanceChart.data.datasets[1].data = [90, 82, 70, 62.4]; // Water
+        performanceChart.data.datasets[2].data = [65, 58, 50, 45.2]; // Waste
+        performanceChart.data.datasets[3].data = [70, 74, 78, 82.7]; // ESG
+        
+        this.classList.add('active');
+        document.getElementById('quarterlyBtn').classList.remove('active');
+        
+        performanceChart.update();
+    });
+    
+    // Initialize with quarterly data
+    document.getElementById('quarterlyBtn').classList.add('active');
+});
+</script>
+{% endblock %}

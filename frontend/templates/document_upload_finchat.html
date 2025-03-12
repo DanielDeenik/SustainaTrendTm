@@ -1,22 +1,14 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Document Analysis - SustainaTrend™</title>
-    
-    <!-- Base Stylesheets -->
-    <link rel="stylesheet" href="/static/css/sustainatrend-framework.css">
-    <link rel="stylesheet" href="/static/css/navigation-components.css">
-    
-    <!-- Finchat-Inspired Stylesheet -->
-    <link rel="stylesheet" href="/static/css/finchat-inspired.css">
-    
-    <!-- Font Awesome for Icons -->
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
-    
-    <!-- Additional Styles -->
-    
+{% extends "layouts/finchat_inspired_layout.html" %}
+
+{% block title %}Document Analysis - SustainaTrend™{% endblock %}
+
+{% block header_title %}Document Analysis{% endblock %}
+
+{% block header_actions %}
+<span class="finchat-badge finchat-badge-primary">AI-Powered</span>
+{% endblock %}
+
+{% block additional_styles %}
 <style>
     .finchat-drop-area {
         border: 2px dashed var(--fc-border);
@@ -178,80 +170,9 @@
         margin-bottom: 0.5rem;
     }
 </style>
+{% endblock %}
 
-    
-    <!-- Plotly.js for Interactive Charts -->
-    <script src="https://cdn.plot.ly/plotly-latest.min.js"></script>
-    
-    <!-- jQuery -->
-    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
-</head>
-<body>
-    <div class="finchat-container">
-        <!-- Sidebar Navigation -->
-        <div class="finchat-sidebar">
-            <div class="finchat-sidebar-header">
-                <a href="/">
-                    <img src="/static/images/sustainatrend-logo.svg" alt="SustainaTrend" class="finchat-sidebar-logo">
-                </a>
-            </div>
-            
-            <nav class="finchat-sidebar-nav">
-                <a href="/" class="finchat-nav-item ">
-                    <i class="fas fa-home finchat-nav-icon"></i>
-                    <span>Home</span>
-                </a>
-                <a href="/dashboard" class="finchat-nav-item ">
-                    <i class="fas fa-chart-line finchat-nav-icon"></i>
-                    <span>Dashboard</span>
-                </a>
-                <a href="/trend-analysis" class="finchat-nav-item ">
-                    <i class="fas fa-chart-bar finchat-nav-icon"></i>
-                    <span>Trend Analysis</span>
-                </a>
-                <a href="/search" class="finchat-nav-item ">
-                    <i class="fas fa-search finchat-nav-icon"></i>
-                    <span>Search</span>
-                </a>
-                <a href="/sustainability" class="finchat-nav-item ">
-                    <i class="fas fa-leaf finchat-nav-icon"></i>
-                    <span>Sustainability</span>
-                </a>
-                <a href="/realestate-minimal" class="finchat-nav-item ">
-                    <i class="fas fa-building finchat-nav-icon"></i>
-                    <span>Real Estate</span>
-                </a>
-                <a href="/api-status" class="finchat-nav-item ">
-                    <i class="fas fa-cog finchat-nav-icon"></i>
-                    <span>System</span>
-                </a>
-            </nav>
-            
-            <div class="finchat-sidebar-footer">
-                <div style="font-size: 0.85rem; color: var(--text-light);">
-                    <div>SustainaTrend™ Intelligence</div>
-                    <div>© 2025 | v2.1.0</div>
-                </div>
-            </div>
-        </div>
-        
-        <!-- Main Content -->
-        <div class="finchat-content">
-            <!-- Header -->
-            <header class="finchat-header">
-                <h1 class="finchat-header-title">Document Analysis</h1>
-                <div class="finchat-header-actions">
-                    
-<span class="finchat-badge finchat-badge-primary">AI-Powered</span>
-
-                </div>
-            </header>
-            
-            <!-- Main Area -->
-            <main class="finchat-main">
-                <!-- Main Content Panel -->
-                <div class="finchat-panel">
-                    
+{% block main_content %}
 <!-- Document Upload Section -->
 <div class="finchat-section">
     <h2 class="finchat-section-title">
@@ -408,11 +329,9 @@
         </div>
     </div>
 </div>
+{% endblock %}
 
-                </div>
-                
-                <!-- Optional Right Sidebar (Insights) -->
-                
+{% block insights_panel %}
 <div class="finchat-insights-panel">
     <div class="finchat-insights-header">
         <h3>Document Insights</h3>
@@ -456,11 +375,9 @@
         </div>
     </div>
 </div>
+{% endblock %}
 
-            </main>
-            
-            <!-- Optional Chat Interface -->
-            
+{% block chat_interface %}
 <div class="finchat-chat">
     <div class="finchat-chat-header">
         <div class="finchat-chat-title">
@@ -496,49 +413,9 @@
         <button class="finchat-suggested-prompt">What KPIs can be extracted?</button>
     </div>
 </div>
+{% endblock %}
 
-        </div>
-    </div>
-    
-    <!-- Base Scripts -->
-    <script>
-        // Global variables
-        const apiBaseUrl = window.location.origin;
-        
-        // Utility functions
-        function formatNumber(num, decimals = 0) {
-            return Number(num).toLocaleString('en-US', {
-                minimumFractionDigits: decimals,
-                maximumFractionDigits: decimals
-            });
-        }
-        
-        function formatDate(dateStr) {
-            const date = new Date(dateStr);
-            return date.toLocaleDateString('en-US', {
-                year: 'numeric',
-                month: 'short', 
-                day: 'numeric'
-            });
-        }
-        
-        // API helper function
-        async function fetchApi(endpoint) {
-            try {
-                const response = await fetch(`${apiBaseUrl}${endpoint}`);
-                if (!response.ok) {
-                    throw new Error(`API request failed: ${response.status}`);
-                }
-                return await response.json();
-            } catch (error) {
-                console.error(`Error fetching ${endpoint}:`, error);
-                return null;
-            }
-        }
-    </script>
-    
-    <!-- Additional Scripts -->
-    
+{% block additional_scripts %}
 <script>
     document.addEventListener('DOMContentLoaded', function() {
         // DOM Elements
@@ -737,6 +614,4 @@
         }
     });
 </script>
-
-</body>
-</html>
+{% endblock %}
