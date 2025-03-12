@@ -62,8 +62,10 @@ def register_routes(app):
         else:
             metrics_data = metrics
             
+        # Using the unified dark analytics dashboard template
         return render_template(
-            "index.html",
+            "analytics_dashboard_dark.html",
+            template_type="home",
             metrics=metrics_data,
             nav_sections=nav_context["nav_sections"],
             user_menu=nav_context["user_menu"],
@@ -83,9 +85,11 @@ def register_routes(app):
         else:
             metrics_data = metrics
         
+        # Using the unified dark analytics dashboard template
         return render_template(
-            "dashboard_unified.html",
+            "analytics_dashboard_dark.html",
             metrics=metrics_data,
+            template_type="dashboard",
             nav_sections=nav_context["nav_sections"],
             user_menu=nav_context["user_menu"],
             active_nav="dashboard"
@@ -110,10 +114,12 @@ def register_routes(app):
                 if "category" in metric:
                     categories.add(metric["category"])
         
+        # Using the unified dark analytics dashboard template
         return render_template(
-            "dashboard.html",
+            "analytics_dashboard_dark.html",
             metrics=metrics_data,
             categories=list(categories),
+            template_type="risk_tracker",
             nav_sections=nav_context["nav_sections"],
             user_menu=nav_context["user_menu"],
             active_nav="risk"
@@ -124,8 +130,10 @@ def register_routes(app):
         """Analytics Dashboard - Advanced visualization of sustainability metrics"""
         logger.info("Analytics Dashboard accessed")
         nav_context = get_context_for_template()
+        # Using the unified dark analytics dashboard template
         return render_template(
             "analytics_dashboard_dark.html",
+            template_type="analytics",
             nav_sections=nav_context["nav_sections"],
             user_menu=nav_context["user_menu"],
             active_nav="analytics"
@@ -137,9 +145,11 @@ def register_routes(app):
         logger.info("Story Cards Generator accessed")
         nav_context = get_context_for_template()
         stories = get_mock_stories()
+        # Using the unified dark analytics dashboard template
         return render_template(
-            "sustainability_stories.html", 
+            "analytics_dashboard_dark.html", 
             stories=stories,
+            template_type="stories",
             nav_sections=nav_context["nav_sections"],
             user_menu=nav_context["user_menu"],
             active_nav="stories"
@@ -150,8 +160,10 @@ def register_routes(app):
         """PDF Analyzer - Intelligent document processing for sustainability reports"""
         logger.info("PDF Analyzer accessed")
         nav_context = get_context_for_template()
+        # Using the unified dark analytics dashboard template
         return render_template(
-            "document_upload.html",
+            "analytics_dashboard_dark.html",
+            template_type="documents",
             nav_sections=nav_context["nav_sections"],
             user_menu=nav_context["user_menu"],
             active_nav="documents"
@@ -162,8 +174,10 @@ def register_routes(app):
         """Data Terminal - Minimal API interface for programmatic data access"""
         logger.info("Data Terminal accessed")
         nav_context = get_context_for_template()
+        # Using the unified dark analytics dashboard template
         return render_template(
-            "data_terminal.html",
+            "analytics_dashboard_dark.html",
+            template_type="terminal",
             nav_sections=nav_context["nav_sections"],
             user_menu=nav_context["user_menu"],
             active_nav="terminal"
@@ -174,8 +188,10 @@ def register_routes(app):
         """Monetization Opportunities - Strategic insights for sustainable business models"""
         logger.info("Monetization Opportunities accessed")
         nav_context = get_context_for_template()
+        # Using the unified dark analytics dashboard template
         return render_template(
-            "monetization.html",
+            "analytics_dashboard_dark.html",
+            template_type="monetization",
             nav_sections=nav_context["nav_sections"],
             user_menu=nav_context["user_menu"],
             active_nav="monetization"
@@ -187,9 +203,11 @@ def register_routes(app):
         logger.info("Sustainability Co-Pilot accessed")
         nav_context = get_context_for_template()
         query = request.args.get('query', '')
+        # Using the unified dark analytics dashboard template
         return render_template(
-            "sustainability_copilot.html", 
+            "analytics_dashboard_dark.html", 
             query=query,
+            template_type="copilot",
             nav_sections=nav_context["nav_sections"],
             user_menu=nav_context["user_menu"],
             active_nav="copilot"
@@ -355,10 +373,12 @@ def register_routes(app):
         nav_structure = get_navigation_structure()
         nav_context = get_context_for_template()
         
+        # Using the unified dark analytics dashboard template
         return render_template(
-            "debug_view.html",
+            "analytics_dashboard_dark.html",
             routes=routes,
             nav_structure=nav_structure,
+            template_type="debug",
             nav_sections=nav_context["nav_sections"],
             user_menu=nav_context["user_menu"],
             active_nav="debug"

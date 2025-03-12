@@ -1,8 +1,44 @@
 {% extends "layouts/finchat_dark_layout.html" %}
 
-{% block title %}Analytics Dashboard | SustainaTrend™{% endblock %}
+{% block title %}
+{% if template_type == "stories" %}
+Story Cards | SustainaTrend™
+{% elif template_type == "documents" %}
+PDF Analyzer | SustainaTrend™
+{% elif template_type == "terminal" %}
+Data Terminal | SustainaTrend™
+{% elif template_type == "monetization" %}
+Monetization Opportunities | SustainaTrend™
+{% elif template_type == "copilot" %}
+Sustainability Co-Pilot | SustainaTrend™
+{% elif template_type == "risk_tracker" %}
+Risk Tracker | SustainaTrend™
+{% elif template_type == "debug" %}
+Debug | SustainaTrend™
+{% else %}
+Analytics Dashboard | SustainaTrend™
+{% endif %}
+{% endblock %}
 
-{% block header_title %}Analytics Dashboard{% endblock %}
+{% block header_title %}
+{% if template_type == "stories" %}
+Story Cards Generator
+{% elif template_type == "documents" %}
+PDF Document Analyzer
+{% elif template_type == "terminal" %}
+Data Terminal
+{% elif template_type == "monetization" %}
+Monetization Opportunities
+{% elif template_type == "copilot" %}
+Sustainability Co-Pilot
+{% elif template_type == "risk_tracker" %}
+Risk Tracker
+{% elif template_type == "debug" %}
+Debug Information
+{% else %}
+Analytics Dashboard
+{% endif %}
+{% endblock %}
 
 {% block header_actions %}
 <span class="finchat-badge finchat-badge-primary">AI-Powered</span>
@@ -340,6 +376,276 @@
         border-radius: 12px;
     }
     
+    /* Terminal styles */
+    .finchat-terminal {
+        background-color: var(--fc-bg-tertiary);
+        border-radius: var(--fc-radius);
+        overflow: hidden;
+        font-family: 'Courier New', monospace;
+    }
+    
+    .finchat-terminal-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        background-color: var(--fc-bg-secondary);
+        padding: 8px 12px;
+        border-bottom: 1px solid var(--fc-border);
+    }
+    
+    .finchat-terminal-title {
+        font-size: 0.85rem;
+        color: var(--fc-text-secondary);
+    }
+    
+    .finchat-terminal-controls {
+        display: flex;
+        gap: 6px;
+    }
+    
+    .finchat-terminal-control {
+        width: 12px;
+        height: 12px;
+        border-radius: 50%;
+        background-color: var(--fc-border);
+    }
+    
+    .finchat-terminal-content {
+        padding: 12px;
+        max-height: 350px;
+        overflow-y: auto;
+    }
+    
+    .finchat-terminal-line {
+        font-size: 0.85rem;
+        margin-bottom: 6px;
+        color: var(--fc-text-primary);
+        line-height: 1.5;
+        word-break: break-word;
+    }
+    
+    .finchat-terminal-command {
+        display: flex;
+        align-items: center;
+        margin-top: 12px;
+    }
+    
+    .finchat-terminal-prompt {
+        color: var(--fc-primary);
+        margin-right: 8px;
+        font-weight: bold;
+    }
+    
+    .finchat-terminal-input {
+        background: transparent;
+        border: none;
+        outline: none;
+        color: var(--fc-text-primary);
+        font-family: 'Courier New', monospace;
+        font-size: 0.85rem;
+        width: 100%;
+    }
+    
+    /* Chat styles */
+    .finchat-chat {
+        display: flex;
+        flex-direction: column;
+        height: 400px;
+        border-radius: var(--fc-radius);
+        overflow: hidden;
+    }
+    
+    .finchat-chat-messages {
+        flex: 1;
+        overflow-y: auto;
+        padding: 16px;
+        display: flex;
+        flex-direction: column;
+        gap: 16px;
+        background-color: var(--fc-bg-tertiary);
+    }
+    
+    .finchat-chat-message {
+        display: flex;
+        flex-direction: column;
+        max-width: 80%;
+    }
+    
+    .finchat-chat-message.user {
+        align-self: flex-end;
+    }
+    
+    .finchat-chat-message.system {
+        align-self: flex-start;
+    }
+    
+    .finchat-chat-message-content {
+        background-color: var(--fc-bg-card);
+        border-radius: var(--fc-radius);
+        padding: 12px;
+        box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+    }
+    
+    .finchat-chat-message.user .finchat-chat-message-content {
+        background-color: var(--fc-primary);
+        color: white;
+    }
+    
+    .finchat-chat-message-content p {
+        margin: 0;
+        line-height: 1.5;
+    }
+    
+    .finchat-chat-message-typing {
+        display: flex;
+        gap: 4px;
+        margin-top: 8px;
+    }
+    
+    .finchat-chat-message-typing span {
+        width: 8px;
+        height: 8px;
+        border-radius: 50%;
+        background-color: var(--fc-text-secondary);
+        animation: typing 1.4s infinite both;
+    }
+    
+    .finchat-chat-message-typing span:nth-child(2) {
+        animation-delay: 0.2s;
+    }
+    
+    .finchat-chat-message-typing span:nth-child(3) {
+        animation-delay: 0.4s;
+    }
+    
+    @keyframes typing {
+        0% { opacity: 0.3; transform: translateY(0); }
+        50% { opacity: 1; transform: translateY(-4px); }
+        100% { opacity: 0.3; transform: translateY(0); }
+    }
+    
+    .finchat-chat-input {
+        display: flex;
+        gap: 8px;
+        padding: 12px;
+        background-color: var(--fc-bg-secondary);
+        border-top: 1px solid var(--fc-border);
+    }
+    
+    .finchat-form-control {
+        flex: 1;
+        padding: 10px 12px;
+        border-radius: var(--fc-radius);
+        border: 1px solid var(--fc-border);
+        background-color: var(--fc-bg-input);
+        color: var(--fc-text-primary);
+        font-size: 0.9rem;
+    }
+    
+    .finchat-button {
+        padding: 6px 12px;
+        border-radius: var(--fc-radius);
+        border: 1px solid var(--fc-border);
+        background-color: var(--fc-bg-secondary);
+        color: var(--fc-text-primary);
+        cursor: pointer;
+        font-size: 0.9rem;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        transition: all 0.2s;
+    }
+    
+    .finchat-button:hover {
+        background-color: var(--fc-bg-hover);
+    }
+    
+    .finchat-button-primary {
+        background-color: var(--fc-primary);
+        border-color: var(--fc-primary);
+        color: white;
+    }
+    
+    .finchat-button-primary:hover {
+        background-color: var(--fc-primary-hover);
+        border-color: var(--fc-primary-hover);
+    }
+    
+    .finchat-form {
+        display: flex;
+        flex-direction: column;
+        gap: 16px;
+    }
+    
+    .finchat-form-group {
+        display: flex;
+        flex-direction: column;
+        gap: 6px;
+    }
+    
+    .finchat-form-group label {
+        font-size: 0.9rem;
+        font-weight: 500;
+    }
+    
+    .finchat-form-check {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+    }
+    
+    .finchat-form-check-input {
+        width: 16px;
+        height: 16px;
+    }
+    
+    .finchat-input-group {
+        display: flex;
+        gap: 8px;
+    }
+    
+    .finchat-form-text {
+        font-size: 0.8rem;
+        color: var(--fc-text-secondary);
+    }
+    
+    .finchat-suggestions {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 8px;
+        padding: 16px;
+    }
+    
+    .finchat-suggestion {
+        background-color: var(--fc-bg-tertiary);
+        border: 1px solid var(--fc-border);
+        border-radius: var(--fc-radius);
+        padding: 8px 12px;
+        font-size: 0.8rem;
+        color: var(--fc-text-primary);
+        cursor: pointer;
+        display: inline-flex;
+        align-items: center;
+        gap: 6px;
+    }
+    
+    .finchat-suggestion:hover {
+        background-color: var(--fc-bg-hover);
+    }
+    
+    .finchat-code {
+        font-family: 'Courier New', monospace;
+        font-size: 0.85rem;
+        line-height: 1.5;
+        white-space: pre-wrap;
+        color: var(--fc-text-primary);
+        background-color: var(--fc-bg-tertiary);
+        padding: 16px;
+        border-radius: var(--fc-radius);
+        overflow: auto;
+        max-height: 400px;
+    }
+    
     @media (max-width: 768px) {
         .analytics-chart-row {
             grid-template-columns: 1fr;
@@ -349,7 +655,509 @@
 {% endblock %}
 
 {% block main_content %}
-<!-- Analytics Overview Cards -->
+{% if template_type == "stories" %}
+<!-- Story Cards Content -->
+<div class="finchat-section">
+    <h3 class="finchat-section-title">
+        <i class="fas fa-newspaper"></i> AI-Generated Sustainability Stories
+    </h3>
+    
+    <div class="analytics-recommendations">
+        <div class="analytics-recommendations-header">
+            <h4 class="analytics-recommendations-title">
+                <i class="fas fa-lightbulb"></i> Data-Driven Narratives
+            </h4>
+            <p class="analytics-recommendations-subtitle">AI-generated stories based on your sustainability metrics and performance trends</p>
+        </div>
+        
+        <div class="analytics-recommendations-list">
+            {% if stories %}
+                {% for story in stories %}
+                <div class="analytics-recommendation">
+                    <div class="analytics-recommendation-icon">
+                        {% if story.category == 'carbon' %}
+                            <i class="fas fa-smog"></i>
+                        {% elif story.category == 'water' %}
+                            <i class="fas fa-tint"></i>
+                        {% elif story.category == 'waste' %}
+                            <i class="fas fa-trash"></i>
+                        {% elif story.category == 'social' %}
+                            <i class="fas fa-users"></i>
+                        {% else %}
+                            <i class="fas fa-leaf"></i>
+                        {% endif %}
+                    </div>
+                    <div class="analytics-recommendation-content">
+                        <h4>{{ story.title }}</h4>
+                        <p>{{ story.content }}</p>
+                        <div class="analytics-recommendation-tags">
+                            {% for tag in story.tags %}
+                            <span class="analytics-recommendation-tag">{{ tag }}</span>
+                            {% endfor %}
+                        </div>
+                    </div>
+                </div>
+                {% endfor %}
+            {% else %}
+                <div class="analytics-recommendation">
+                    <div class="analytics-recommendation-icon">
+                        <i class="fas fa-info-circle"></i>
+                    </div>
+                    <div class="analytics-recommendation-content">
+                        <h4>No stories available</h4>
+                        <p>We don't have any sustainability stories to display at the moment. Please check back later as our AI analyzes more of your sustainability data.</p>
+                    </div>
+                </div>
+            {% endif %}
+        </div>
+    </div>
+</div>
+
+{% elif template_type == "documents" %}
+<!-- PDF Analyzer Content -->
+<div class="finchat-section">
+    <h3 class="finchat-section-title">
+        <i class="fas fa-file-pdf"></i> PDF Document Analyzer
+    </h3>
+    
+    <div class="analytics-chart-card">
+        <div class="analytics-chart-header">
+            <h4 class="analytics-chart-title">
+                <i class="fas fa-upload"></i> Upload Sustainability Document
+            </h4>
+        </div>
+        <div class="analytics-chart-container" style="height: auto; padding: 20px;">
+            <form action="/upload-document" method="post" enctype="multipart/form-data" class="finchat-form">
+                <div class="finchat-form-group">
+                    <label for="document">Select PDF Document</label>
+                    <input type="file" name="document" id="document" accept=".pdf" class="finchat-form-control" required>
+                </div>
+                
+                <div class="finchat-form-group">
+                    <label for="analysis_type">Analysis Type</label>
+                    <select name="analysis_type" id="analysis_type" class="finchat-form-control">
+                        <option value="sustainability">Sustainability Assessment</option>
+                        <option value="esrs">ESRS Compliance</option>
+                        <option value="metrics">Metrics Extraction</option>
+                        <option value="summary">Executive Summary</option>
+                    </select>
+                </div>
+                
+                <div class="finchat-form-check">
+                    <input type="checkbox" name="use_ocr" id="use_ocr" class="finchat-form-check-input">
+                    <label for="use_ocr">Use OCR for scanned documents</label>
+                </div>
+                
+                <button type="submit" class="finchat-button finchat-button-primary">
+                    <i class="fas fa-upload"></i> Upload & Analyze
+                </button>
+            </form>
+        </div>
+    </div>
+</div>
+
+{% elif template_type == "terminal" %}
+<!-- Data Terminal Content -->
+<div class="finchat-section">
+    <h3 class="finchat-section-title">
+        <i class="fas fa-terminal"></i> Data Terminal
+    </h3>
+    
+    <div class="analytics-chart-card">
+        <div class="analytics-chart-header">
+            <h4 class="analytics-chart-title">
+                <i class="fas fa-code"></i> API Access Point
+            </h4>
+        </div>
+        <div class="analytics-chart-container" style="height: auto; padding: 20px;">
+            <div class="finchat-terminal">
+                <div class="finchat-terminal-header">
+                    <div class="finchat-terminal-title">SustainaTrend™ API Terminal</div>
+                    <div class="finchat-terminal-controls">
+                        <span class="finchat-terminal-control"></span>
+                        <span class="finchat-terminal-control"></span>
+                        <span class="finchat-terminal-control"></span>
+                    </div>
+                </div>
+                <div class="finchat-terminal-content">
+                    <div class="finchat-terminal-line">Welcome to SustainaTrend™ API Terminal</div>
+                    <div class="finchat-terminal-line">Available endpoints:</div>
+                    <div class="finchat-terminal-line">- /api/metrics - Get sustainability metrics</div>
+                    <div class="finchat-terminal-line">- /api/trends - Get sustainability trends</div>
+                    <div class="finchat-terminal-line">- /api/storytelling - Generate AI stories</div>
+                    <div class="finchat-terminal-line">- /api/search - Search sustainability data</div>
+                    <div class="finchat-terminal-line">- /api/copilot - Interact with AI assistant</div>
+                    <div class="finchat-terminal-line">- /api/summarize - Summarize sustainability text</div>
+                    <div class="finchat-terminal-line">- /api/predictive-analytics - Get predictive insights</div>
+                    <div class="finchat-terminal-command">
+                        <span class="finchat-terminal-prompt">$</span>
+                        <input type="text" class="finchat-terminal-input" placeholder="Enter API command...">
+                    </div>
+                </div>
+            </div>
+            
+            <div class="finchat-section-title" style="margin-top: 30px;">
+                <i class="fas fa-key"></i> API Authentication
+            </div>
+            <div class="finchat-form-group">
+                <label for="api_key">API Key</label>
+                <div class="finchat-input-group">
+                    <input type="password" id="api_key" class="finchat-form-control" value="sk_test_*****************" readonly>
+                    <button class="finchat-button finchat-button-secondary">
+                        <i class="fas fa-eye"></i>
+                    </button>
+                </div>
+                <small class="finchat-form-text">Use this key to authenticate API requests</small>
+            </div>
+        </div>
+    </div>
+</div>
+
+{% elif template_type == "monetization" %}
+<!-- Monetization Opportunities Content -->
+<div class="finchat-section">
+    <h3 class="finchat-section-title">
+        <i class="fas fa-money-bill-wave"></i> Monetization Opportunities
+    </h3>
+    
+    <div class="analytics-category-breakdown">
+        <div class="analytics-chart-card">
+            <div class="analytics-chart-header">
+                <h4 class="analytics-chart-title">
+                    <i class="fas fa-chart-pie"></i> Revenue Potential by Category
+                </h4>
+            </div>
+            <div class="analytics-chart-container">
+                <canvas id="monetizationPieChart"></canvas>
+            </div>
+        </div>
+        
+        <div class="analytics-chart-card">
+            <div class="analytics-chart-header">
+                <h4 class="analytics-chart-title">
+                    <i class="fas fa-bullseye"></i> ROI Projection
+                </h4>
+            </div>
+            <div class="analytics-chart-container">
+                <canvas id="roiChart"></canvas>
+            </div>
+        </div>
+    </div>
+    
+    <div class="analytics-recommendations">
+        <div class="analytics-recommendations-header">
+            <h4 class="analytics-recommendations-title">
+                <i class="fas fa-lightbulb"></i> Monetization Strategies
+            </h4>
+            <p class="analytics-recommendations-subtitle">AI-generated business opportunities based on your sustainability intelligence</p>
+        </div>
+        
+        <div class="analytics-recommendations-list">
+            <div class="analytics-recommendation">
+                <div class="analytics-recommendation-icon">
+                    <i class="fas fa-dollar-sign"></i>
+                </div>
+                <div class="analytics-recommendation-content">
+                    <h4>Sustainability Data Marketplace</h4>
+                    <p>Create a subscription-based marketplace for anonymized, aggregated sustainability data that companies can use for benchmarking.</p>
+                    <div class="analytics-recommendation-tags">
+                        <span class="analytics-recommendation-tag">Data Products</span>
+                        <span class="analytics-recommendation-tag">High ROI</span>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="analytics-recommendation">
+                <div class="analytics-recommendation-icon">
+                    <i class="fas fa-handshake"></i>
+                </div>
+                <div class="analytics-recommendation-content">
+                    <h4>ESG Advisory Services</h4>
+                    <p>Leverage your sustainability intelligence platform to offer premium advisory services for companies looking to improve their ESG performance.</p>
+                    <div class="analytics-recommendation-tags">
+                        <span class="analytics-recommendation-tag">Services</span>
+                        <span class="analytics-recommendation-tag">Medium ROI</span>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="analytics-recommendation">
+                <div class="analytics-recommendation-icon">
+                    <i class="fas fa-certificate"></i>
+                </div>
+                <div class="analytics-recommendation-content">
+                    <h4>Sustainability Certification Program</h4>
+                    <p>Develop a certification program that validates companies' sustainability claims using your AI-powered verification technology.</p>
+                    <div class="analytics-recommendation-tags">
+                        <span class="analytics-recommendation-tag">Certification</span>
+                        <span class="analytics-recommendation-tag">Long-term</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+{% elif template_type == "copilot" %}
+<!-- Sustainability Co-Pilot Content -->
+<div class="finchat-section">
+    <h3 class="finchat-section-title">
+        <i class="fas fa-robot"></i> Sustainability Co-Pilot
+    </h3>
+    
+    <div class="analytics-chart-card">
+        <div class="analytics-chart-header">
+            <h4 class="analytics-chart-title">
+                <i class="fas fa-comments"></i> Ask anything about sustainability
+            </h4>
+        </div>
+        <div class="analytics-chart-container" style="height: auto; padding: 20px;">
+            <div class="finchat-chat">
+                <div class="finchat-chat-messages">
+                    <div class="finchat-chat-message system">
+                        <div class="finchat-chat-message-content">
+                            <p>Hello! I'm your Sustainability Co-Pilot. I can help you with sustainability insights, ESG reporting, compliance questions, and more. What would you like to know?</p>
+                        </div>
+                    </div>
+                    
+                    {% if query %}
+                    <div class="finchat-chat-message user">
+                        <div class="finchat-chat-message-content">
+                            <p>{{ query }}</p>
+                        </div>
+                    </div>
+                    <div class="finchat-chat-message system">
+                        <div class="finchat-chat-message-content">
+                            <p>I'm processing your query about "{{ query }}"...</p>
+                            <div class="finchat-chat-message-typing">
+                                <span></span>
+                                <span></span>
+                                <span></span>
+                            </div>
+                        </div>
+                    </div>
+                    {% endif %}
+                </div>
+                
+                <form class="finchat-chat-input" id="copilotForm" action="/co-pilot" method="get">
+                    <input type="text" name="query" placeholder="Ask a sustainability question..." value="{{ query }}" class="finchat-form-control">
+                    <button type="submit" class="finchat-button finchat-button-primary">
+                        <i class="fas fa-paper-plane"></i>
+                    </button>
+                </form>
+            </div>
+        </div>
+    </div>
+    
+    <div class="analytics-category-breakdown">
+        <div class="analytics-chart-card">
+            <div class="analytics-chart-header">
+                <h4 class="analytics-chart-title">
+                    <i class="fas fa-lightbulb"></i> Suggested Questions
+                </h4>
+            </div>
+            <div class="finchat-suggestions">
+                <button class="finchat-suggestion" data-query="What are the main ESRS disclosure requirements?">
+                    <i class="fas fa-file-alt"></i> What are the main ESRS disclosure requirements?
+                </button>
+                <button class="finchat-suggestion" data-query="How can we reduce our carbon footprint?">
+                    <i class="fas fa-smog"></i> How can we reduce our carbon footprint?
+                </button>
+                <button class="finchat-suggestion" data-query="What ESG metrics should we track?">
+                    <i class="fas fa-chart-line"></i> What ESG metrics should we track?
+                </button>
+                <button class="finchat-suggestion" data-query="Explain double materiality in simple terms">
+                    <i class="fas fa-balance-scale"></i> Explain double materiality in simple terms
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+{% elif template_type == "risk_tracker" %}
+<!-- Risk Tracker Content -->
+<div class="finchat-section">
+    <h3 class="finchat-section-title">
+        <i class="fas fa-exclamation-triangle"></i> Sustainability Risk Tracker
+    </h3>
+    
+    <div class="analytics-overview">
+        <div class="analytics-metric">
+            <div class="analytics-metric-header">
+                <div class="analytics-metric-title">Overall Risk Score</div>
+                <div class="analytics-metric-icon">
+                    <i class="fas fa-shield-alt"></i>
+                </div>
+            </div>
+            <div class="analytics-metric-value">42.1</div>
+            <div class="analytics-metric-change positive">
+                <i class="fas fa-arrow-down"></i> 7.3% from last quarter
+            </div>
+        </div>
+        
+        <div class="analytics-metric">
+            <div class="analytics-metric-header">
+                <div class="analytics-metric-title">Climate Risk</div>
+                <div class="analytics-metric-icon">
+                    <i class="fas fa-temperature-high"></i>
+                </div>
+            </div>
+            <div class="analytics-metric-value">38.5</div>
+            <div class="analytics-metric-change positive">
+                <i class="fas fa-arrow-down"></i> 5.2% from last quarter
+            </div>
+        </div>
+        
+        <div class="analytics-metric">
+            <div class="analytics-metric-header">
+                <div class="analytics-metric-title">Regulatory Risk</div>
+                <div class="analytics-metric-icon">
+                    <i class="fas fa-gavel"></i>
+                </div>
+            </div>
+            <div class="analytics-metric-value">45.8</div>
+            <div class="analytics-metric-change negative">
+                <i class="fas fa-arrow-up"></i> 2.3% from last quarter
+            </div>
+        </div>
+        
+        <div class="analytics-metric">
+            <div class="analytics-metric-header">
+                <div class="analytics-metric-title">Reputational Risk</div>
+                <div class="analytics-metric-icon">
+                    <i class="fas fa-comments"></i>
+                </div>
+            </div>
+            <div class="analytics-metric-value">32.7</div>
+            <div class="analytics-metric-change positive">
+                <i class="fas fa-arrow-down"></i> 8.5% from last quarter
+            </div>
+        </div>
+    </div>
+    
+    <div class="analytics-performance-metrics">
+        <div class="analytics-performance-header">
+            <h4 class="analytics-performance-title">
+                <i class="fas fa-list-ul"></i> Risk Exposure Table
+            </h4>
+        </div>
+        <table class="analytics-table">
+            <thead>
+                <tr>
+                    <th>Risk Category</th>
+                    <th>Risk Level</th>
+                    <th>Exposure</th>
+                    <th>Trend</th>
+                    <th>Status</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr>
+                    <td>Water Scarcity</td>
+                    <td>
+                        <div class="progress-bar">
+                            <div class="progress-fill medium" style="width: 65%"></div>
+                        </div>
+                    </td>
+                    <td>Medium</td>
+                    <td><i class="fas fa-arrow-down" style="color: var(--fc-positive)"></i> Decreasing</td>
+                    <td><span class="status warning">Monitor</span></td>
+                </tr>
+                <tr>
+                    <td>Carbon Pricing</td>
+                    <td>
+                        <div class="progress-bar">
+                            <div class="progress-fill high" style="width: 85%"></div>
+                        </div>
+                    </td>
+                    <td>High</td>
+                    <td><i class="fas fa-arrow-up" style="color: var(--fc-negative)"></i> Increasing</td>
+                    <td><span class="status critical">Action Needed</span></td>
+                </tr>
+                <tr>
+                    <td>Biodiversity Loss</td>
+                    <td>
+                        <div class="progress-bar">
+                            <div class="progress-fill medium" style="width: 45%"></div>
+                        </div>
+                    </td>
+                    <td>Medium</td>
+                    <td><i class="fas fa-minus" style="color: var(--fc-text-secondary)"></i> Stable</td>
+                    <td><span class="status warning">Monitor</span></td>
+                </tr>
+                <tr>
+                    <td>Supply Chain</td>
+                    <td>
+                        <div class="progress-bar">
+                            <div class="progress-fill low" style="width: 35%"></div>
+                        </div>
+                    </td>
+                    <td>Low</td>
+                    <td><i class="fas fa-arrow-down" style="color: var(--fc-positive)"></i> Decreasing</td>
+                    <td><span class="status good">Under Control</span></td>
+                </tr>
+                <tr>
+                    <td>CSRD Compliance</td>
+                    <td>
+                        <div class="progress-bar">
+                            <div class="progress-fill high" style="width: 75%"></div>
+                        </div>
+                    </td>
+                    <td>High</td>
+                    <td><i class="fas fa-arrow-up" style="color: var(--fc-negative)"></i> Increasing</td>
+                    <td><span class="status critical">Action Needed</span></td>
+                </tr>
+            </tbody>
+        </table>
+    </div>
+</div>
+
+{% elif template_type == "debug" %}
+<!-- Debug Information Content -->
+<div class="finchat-section">
+    <h3 class="finchat-section-title">
+        <i class="fas fa-code"></i> Debug Information
+    </h3>
+    
+    <div class="analytics-chart-card">
+        <div class="analytics-chart-header">
+            <h4 class="analytics-chart-title">
+                <i class="fas fa-sitemap"></i> Registered Routes
+            </h4>
+        </div>
+        <div class="analytics-chart-container" style="height: auto; padding: 20px;">
+            <div class="finchat-terminal">
+                <div class="finchat-terminal-header">
+                    <div class="finchat-terminal-title">Routes Information</div>
+                    <div class="finchat-terminal-controls">
+                        <span class="finchat-terminal-control"></span>
+                        <span class="finchat-terminal-control"></span>
+                        <span class="finchat-terminal-control"></span>
+                    </div>
+                </div>
+                <div class="finchat-terminal-content">
+                    {% for route in routes %}
+                        <div class="finchat-terminal-line">{{ route }}</div>
+                    {% endfor %}
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <div class="analytics-chart-card" style="margin-top: 20px;">
+        <div class="analytics-chart-header">
+            <h4 class="analytics-chart-title">
+                <i class="fas fa-project-diagram"></i> Navigation Structure
+            </h4>
+        </div>
+        <div class="analytics-chart-container" style="height: auto; padding: 20px;">
+            <pre class="finchat-code">{{ nav_structure | tojson(indent=2) }}</pre>
+        </div>
+    </div>
+</div>
+
+{% else %}
+<!-- Default Analytics Dashboard Content -->
 <div class="finchat-section">
     <h3 class="finchat-section-title">
         <i class="fas fa-chart-pie"></i> Sustainability Performance Overview
@@ -409,6 +1217,7 @@
         </div>
     </div>
 </div>
+{% endif %}
 
 <!-- Performance Trends Chart + Insights -->
 <div class="finchat-section">
@@ -870,6 +1679,148 @@ document.addEventListener('DOMContentLoaded', function() {
     
     // Initialize with quarterly data
     document.getElementById('quarterlyBtn').classList.add('active');
+    
+    // Monetization Charts - only initialize if elements exist
+    // Chart initializations moved to additional_scripts block
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                    legend: {
+                        position: 'right',
+                        labels: {
+                            color: '#a0a0a0'
+                        }
+                    }
+                }
+            }
+        });
+    }
+    
+    // ROI Chart initialization moved to additional_scripts block
+    
+    // Copilot Suggestion Buttons
+    const suggestionButtons = document.querySelectorAll('.finchat-suggestion');
+    suggestionButtons.forEach(button => {
+        button.addEventListener('click', function() {
+            const query = this.getAttribute('data-query');
+            document.querySelector('input[name="query"]').value = query;
+            document.getElementById('copilotForm').submit();
+        });
+    });
 });
 </script>
+{% endblock %}
+
+{% block additional_scripts %}
+{% if template_type == "monetization" %}
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // Monetization Charts
+    if (document.getElementById('monetizationPieChart')) {
+        const monetizationPieCtx = document.getElementById('monetizationPieChart').getContext('2d');
+        const monetizationPieChart = new Chart(monetizationPieCtx, {
+            type: 'pie',
+            data: {
+                labels: ['Data Products', 'Advisory Services', 'Certification', 'Training', 'Analytics Tools'],
+                datasets: [{
+                    data: [35, 25, 15, 10, 15],
+                    backgroundColor: [
+                        'rgba(61, 213, 152, 0.8)',
+                        'rgba(52, 195, 255, 0.8)',
+                        'rgba(255, 107, 129, 0.8)',
+                        'rgba(255, 173, 99, 0.8)',
+                        'rgba(157, 78, 221, 0.8)'
+                    ],
+                    borderColor: 'rgba(18, 18, 18, 0.5)',
+                    borderWidth: 1
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                    legend: {
+                        position: 'right',
+                        labels: {
+                            color: '#a0a0a0'
+                        }
+                    }
+                }
+            }
+        });
+    }
+    
+    // ROI Chart initialization
+    if (document.getElementById('roiChart')) {
+        const roiCtx = document.getElementById('roiChart').getContext('2d');
+        const roiChart = new Chart(roiCtx, {
+            type: 'line',
+            data: {
+                labels: ['Month 1', 'Month 3', 'Month 6', 'Month 9', 'Month 12', 'Month 18'],
+                datasets: [{
+                    label: 'Data Products',
+                    data: [0, 5, 25, 45, 85, 180],
+                    borderColor: 'rgba(61, 213, 152, 1)',
+                    backgroundColor: 'rgba(61, 213, 152, 0.1)',
+                    tension: 0.4,
+                    fill: true
+                }, {
+                    label: 'Advisory Services',
+                    data: [0, 15, 35, 55, 80, 130],
+                    borderColor: 'rgba(52, 195, 255, 1)',
+                    backgroundColor: 'rgba(52, 195, 255, 0.1)',
+                    tension: 0.4,
+                    fill: true
+                }, {
+                    label: 'Certification',
+                    data: [0, 2, 10, 25, 70, 160],
+                    borderColor: 'rgba(255, 107, 129, 1)',
+                    backgroundColor: 'rgba(255, 107, 129, 0.1)',
+                    tension: 0.4,
+                    fill: true
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                    legend: {
+                        position: 'top',
+                        labels: {
+                            color: '#a0a0a0'
+                        }
+                    },
+                    tooltip: {
+                        mode: 'index',
+                        intersect: false
+                    }
+                },
+                scales: {
+                    x: {
+                        grid: {
+                            color: 'rgba(255, 255, 255, 0.05)'
+                        },
+                        ticks: {
+                            color: '#a0a0a0'
+                        }
+                    },
+                    y: {
+                        grid: {
+                            color: 'rgba(255, 255, 255, 0.05)'
+                        },
+                        ticks: {
+                            color: '#a0a0a0'
+                        }
+                    }
+                }
+            }
+        });
+    }
+});
+</script>
+{% endif %}
 {% endblock %}
