@@ -1,0 +1,466 @@
+{% extends "layouts/unified_layout.html" %}
+
+{% block title %}Data Terminal - SustainaTrend™{% endblock %}
+
+{% block styles %}
+<style>
+  .terminal-container {
+    background-color: #10151d;
+    color: #e2e2e2;
+    font-family: 'Roboto Mono', monospace;
+    border-radius: 6px;
+    border: 1px solid #30363d;
+    overflow: hidden;
+    height: calc(100vh - 200px);
+    min-height: 500px;
+    display: flex;
+    flex-direction: column;
+  }
+  
+  .terminal-header {
+    background-color: #161b22;
+    padding: 8px 16px;
+    border-bottom: 1px solid #30363d;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+  }
+  
+  .terminal-header h3 {
+    margin: 0;
+    font-size: 14px;
+    color: #7d8590;
+  }
+  
+  .terminal-tabs {
+    display: flex;
+    gap: 8px;
+  }
+  
+  .terminal-tab {
+    padding: 4px 8px;
+    font-size: 12px;
+    border-radius: 4px;
+    cursor: pointer;
+  }
+  
+  .terminal-tab.active {
+    background-color: #238636;
+    color: #fff;
+  }
+  
+  .terminal-content {
+    flex-grow: 1;
+    padding: 12px 16px;
+    overflow-y: auto;
+    white-space: pre-wrap;
+  }
+  
+  .terminal-input-container {
+    display: flex;
+    padding: 8px 16px;
+    border-top: 1px solid #30363d;
+    background-color: #161b22;
+  }
+  
+  .terminal-prompt {
+    color: #238636;
+    margin-right: 8px;
+    user-select: none;
+  }
+  
+  .terminal-input {
+    flex-grow: 1;
+    background: transparent;
+    border: none;
+    color: #e2e2e2;
+    font-family: 'Roboto Mono', monospace;
+    outline: none;
+  }
+  
+  .command {
+    color: #238636;
+    font-weight: bold;
+  }
+  
+  .parameter {
+    color: #a371f7;
+  }
+  
+  .string {
+    color: #a5d6ff;
+  }
+  
+  .number {
+    color: #f97583;
+  }
+  
+  .boolean {
+    color: #ff7b72;
+  }
+  
+  .key {
+    color: #79c0ff;
+  }
+  
+  .terminal-sidebar {
+    min-width: 250px;
+    background-color: #0d1117;
+    border-left: 1px solid #30363d;
+    padding: 16px;
+    overflow-y: auto;
+  }
+  
+  .endpoint-list {
+    margin: 0;
+    padding: 0;
+    list-style: none;
+  }
+  
+  .endpoint-category {
+    margin-bottom: 16px;
+  }
+  
+  .endpoint-category-title {
+    font-size: 14px;
+    font-weight: bold;
+    margin-bottom: 8px;
+    color: #7d8590;
+  }
+  
+  .endpoint-item {
+    padding: 6px 8px;
+    margin-bottom: 4px;
+    border-radius: 4px;
+    cursor: pointer;
+    font-size: 13px;
+  }
+  
+  .endpoint-item:hover {
+    background-color: #161b22;
+  }
+  
+  .history-list {
+    margin: 0;
+    padding: 0;
+    list-style: none;
+  }
+  
+  .history-item {
+    padding: 6px 8px;
+    border-radius: 4px;
+    margin-bottom: 4px;
+    cursor: pointer;
+    font-size: 13px;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+  
+  .history-item:hover {
+    background-color: #161b22;
+  }
+  
+  .footer-bar {
+    display: flex;
+    justify-content: space-between;
+    border-top: 1px solid #30363d;
+    padding: 8px 16px;
+    font-size: 12px;
+    background-color: #161b22;
+  }
+  
+  .footer-item {
+    display: flex;
+    align-items: center;
+  }
+  
+  .footer-item svg {
+    margin-right: 4px;
+  }
+  
+  .response-container {
+    background-color: #0d1117;
+    border-radius: 4px;
+    border: 1px solid #30363d;
+    padding: 12px;
+    margin: 8px 0;
+    max-height: 300px;
+    overflow-y: auto;
+  }
+  
+  @media (max-width: 768px) {
+    .terminal-sidebar {
+      display: none;
+    }
+  }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+  <div class="row">
+    <div class="col-md-9">
+      <div class="terminal-container">
+        <div class="terminal-header">
+          <h3>SustainaTrend™ Data Terminal</h3>
+          <div class="terminal-tabs">
+            <div class="terminal-tab active">Query</div>
+            <div class="terminal-tab">History</div>
+            <div class="terminal-tab">Saved</div>
+          </div>
+        </div>
+        <div class="terminal-content" id="terminal-output">
+          <div>Welcome to SustainaTrend™ Data Terminal</div>
+          <div>Version 1.0.0 - Minimal API Interface</div>
+          <div>Type 'help' for a list of available commands or 'examples' for usage examples.</div>
+          <div>&nbsp;</div>
+          <div class="command">GET</div>
+          <div class="response-container">
+            <span class="key">"endpoints"</span>: [
+              <span class="string">"/api/metrics"</span>,
+              <span class="string">"/api/trends"</span>,
+              <span class="string">"/api/storytelling"</span>,
+              <span class="string">"/api/search"</span>,
+              <span class="string">"/api/copilot"</span>
+            ]
+          </div>
+          <div>&nbsp;</div>
+          <div class="command">GET trends/housing/emissions?period=2025-Q1</div>
+          <div class="response-container">
+            <span class="key">"data"</span>: [
+              {
+                <span class="key">"date"</span>: <span class="string">"2025-01-15"</span>,
+                <span class="key">"sector"</span>: <span class="string">"housing"</span>,
+                <span class="key">"metric"</span>: <span class="string">"emissions"</span>,
+                <span class="key">"value"</span>: <span class="number">124.3</span>,
+                <span class="key">"trend"</span>: <span class="number">-3.2</span>,
+                <span class="key">"insight"</span>: <span class="string">"Housing emissions declining at 3.2% quarterly rate, faster than other sectors (avg 1.8%)."</span>
+              }
+            ]
+          </div>
+        </div>
+        <div class="terminal-input-container">
+          <span class="terminal-prompt">&gt;</span>
+          <input type="text" class="terminal-input" id="terminal-input" placeholder="Enter API query..." autocomplete="off">
+        </div>
+        <div class="footer-bar">
+          <div class="footer-item">
+            <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <circle cx="12" cy="12" r="10"/>
+              <path d="M12 8v4l4 2"/>
+            </svg>
+            <span>Command history: 2</span>
+          </div>
+          <div class="footer-item">
+            <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <path d="M4 12a8 8 0 0 1 8-8"/>
+              <path d="M12 4v8h8"/>
+              <path d="M20 12a8 8 0 0 1-8 8"/>
+              <path d="M12 20v-8H4"/>
+            </svg>
+            <span>Processing: Idle</span>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="col-md-3">
+      <div class="terminal-sidebar">
+        <h4>API Documentation</h4>
+        <hr>
+        <div class="endpoint-category">
+          <div class="endpoint-category-title">Metrics</div>
+          <ul class="endpoint-list">
+            <li class="endpoint-item">GET /api/metrics</li>
+            <li class="endpoint-item">GET /api/metrics/{category}</li>
+            <li class="endpoint-item">GET /api/metrics?period={period}</li>
+          </ul>
+        </div>
+        
+        <div class="endpoint-category">
+          <div class="endpoint-category-title">Trends</div>
+          <ul class="endpoint-list">
+            <li class="endpoint-item">GET /api/trends</li>
+            <li class="endpoint-item">GET /api/trends/{sector}</li>
+            <li class="endpoint-item">GET /api/trends/{sector}/{metric}</li>
+          </ul>
+        </div>
+        
+        <div class="endpoint-category">
+          <div class="endpoint-category-title">Stories</div>
+          <ul class="endpoint-list">
+            <li class="endpoint-item">POST /api/storytelling</li>
+            <li class="endpoint-item">GET /api/stories?category={category}</li>
+          </ul>
+        </div>
+        
+        <div class="endpoint-category">
+          <div class="endpoint-category-title">Search</div>
+          <ul class="endpoint-list">
+            <li class="endpoint-item">GET /api/search?query={query}</li>
+            <li class="endpoint-item">POST /api/search</li>
+          </ul>
+        </div>
+        
+        <hr>
+        
+        <h4>Command History</h4>
+        <ul class="history-list">
+          <li class="history-item">GET</li>
+          <li class="history-item">GET trends/housing/emissions?period=2025-Q1</li>
+        </ul>
+        
+        <hr>
+        
+        <h4>Saved Queries</h4>
+        <ul class="history-list">
+          <li class="history-item">GET trends/housing?compare=eu</li>
+          <li class="history-item">GET metrics/carbon?sector=all&amp;view=quarterly</li>
+        </ul>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+  document.addEventListener('DOMContentLoaded', function() {
+    const terminalInput = document.getElementById('terminal-input');
+    const terminalOutput = document.getElementById('terminal-output');
+    
+    terminalInput.addEventListener('keydown', function(e) {
+      if (e.key === 'Enter') {
+        const command = terminalInput.value.trim();
+        if (command) {
+          // Add command to output
+          const commandDiv = document.createElement('div');
+          commandDiv.className = 'command';
+          commandDiv.textContent = command;
+          terminalOutput.appendChild(commandDiv);
+          
+          // Process command (this would normally send to the API)
+          processCommand(command);
+          
+          // Clear input
+          terminalInput.value = '';
+          
+          // Scroll to bottom
+          terminalOutput.scrollTop = terminalOutput.scrollHeight;
+        }
+      }
+    });
+    
+    function processCommand(command) {
+      // Mock command processing
+      if (command.toLowerCase() === 'help') {
+        showHelp();
+      } else if (command.toLowerCase() === 'examples') {
+        showExamples();
+      } else if (command.toLowerCase().startsWith('get')) {
+        handleGetCommand(command);
+      } else {
+        showError('Unknown command. Type "help" for available commands.');
+      }
+    }
+    
+    function showHelp() {
+      const helpDiv = document.createElement('div');
+      helpDiv.innerHTML = `
+        <div class="response-container">
+          <div><strong>Available Commands:</strong></div>
+          <div>GET - Fetch data from an endpoint</div>
+          <div>POST - Send data to an endpoint</div>
+          <div>EXPORT - Export the last response to CSV/JSON</div>
+          <div>SAVE - Save the current query</div>
+          <div>CLEAR - Clear the terminal</div>
+          <div>HELP - Show this help message</div>
+          <div>EXAMPLES - Show usage examples</div>
+        </div>
+      `;
+      terminalOutput.appendChild(helpDiv);
+    }
+    
+    function showExamples() {
+      const examplesDiv = document.createElement('div');
+      examplesDiv.innerHTML = `
+        <div class="response-container">
+          <div><strong>Examples:</strong></div>
+          <div>GET /api/metrics</div>
+          <div>GET /api/trends?category=emission</div>
+          <div>GET trends/housing/emissions?period=2025-Q1</div>
+          <div>POST /api/storytelling { "data": [{"metric":"emissions","value":124.3}] }</div>
+          <div>EXPORT JSON</div>
+          <div>SAVE "My emissions query"</div>
+        </div>
+      `;
+      terminalOutput.appendChild(examplesDiv);
+    }
+    
+    function handleGetCommand(command) {
+      // This would normally make an actual API request
+      // For now, return a sample response
+      const responseDiv = document.createElement('div');
+      responseDiv.className = 'response-container';
+      
+      if (command.toLowerCase().includes('metrics')) {
+        responseDiv.innerHTML = `
+          <span class="key">"metrics"</span>: [
+            {
+              <span class="key">"id"</span>: <span class="string">"m001"</span>,
+              <span class="key">"category"</span>: <span class="string">"emissions"</span>,
+              <span class="key">"name"</span>: <span class="string">"Carbon Emissions"</span>,
+              <span class="key">"value"</span>: <span class="number">342.8</span>,
+              <span class="key">"unit"</span>: <span class="string">"ton CO2e"</span>,
+              <span class="key">"date"</span>: <span class="string">"2025-03-01"</span>,
+              <span class="key">"trend"</span>: <span class="number">-2.4</span>
+            },
+            {
+              <span class="key">"id"</span>: <span class="string">"m002"</span>,
+              <span class="key">"category"</span>: <span class="string">"energy"</span>,
+              <span class="key">"name"</span>: <span class="string">"Renewable Energy"</span>,
+              <span class="key">"value"</span>: <span class="number">68.5</span>,
+              <span class="key">"unit"</span>: <span class="string">"percent"</span>,
+              <span class="key">"date"</span>: <span class="string">"2025-03-01"</span>,
+              <span class="key">"trend"</span>: <span class="number">+5.2</span>
+            }
+          ]
+        `;
+      } else if (command.toLowerCase().includes('trends')) {
+        responseDiv.innerHTML = `
+          <span class="key">"trends"</span>: [
+            {
+              <span class="key">"id"</span>: <span class="string">"t001"</span>,
+              <span class="key">"name"</span>: <span class="string">"Housing Emissions Reduction"</span>,
+              <span class="key">"category"</span>: <span class="string">"emissions"</span>,
+              <span class="key">"virality"</span>: <span class="number">82.3</span>,
+              <span class="key">"sentiment"</span>: <span class="number">0.65</span>,
+              <span class="key">"direction"</span>: <span class="string">"positive"</span>,
+              <span class="key">"insight"</span>: <span class="string">"Housing sector showing accelerated emissions reduction through innovative heat pump adoption and renovation programs"</span>
+            }
+          ]
+        `;
+      } else {
+        responseDiv.innerHTML = `
+          <span class="key">"error"</span>: <span class="string">"Invalid endpoint. Type 'help' for available commands."</span>
+        `;
+      }
+      
+      terminalOutput.appendChild(responseDiv);
+    }
+    
+    function showError(message) {
+      const errorDiv = document.createElement('div');
+      errorDiv.innerHTML = `
+        <div class="response-container">
+          <span class="key">"error"</span>: <span class="string">"${message}"</span>
+        </div>
+      `;
+      terminalOutput.appendChild(errorDiv);
+    }
+    
+    // Focus input on page load
+    terminalInput.focus();
+  });
+</script>
+{% endblock %}

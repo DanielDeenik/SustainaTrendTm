@@ -1,113 +1,135 @@
 # SustainaTrend™ Intelligence Platform
 
-![SustainaTrend Logo](generated-icon.png)
+A cutting-edge AI-driven platform that transforms complex sustainability data into clear visual stories and actionable intelligence for real estate and organizations.
+
+![SustainaTrend](generated-icon.png)
 
 ## Overview
 
-SustainaTrend™ is a cutting-edge sustainability intelligence platform that leverages advanced AI technologies to transform complex environmental data into engaging, actionable insights. The platform combines real-time data analysis, predictive analytics, and AI-powered search capabilities to provide comprehensive sustainability intelligence for businesses and organizations.
+SustainaTrend™ follows a visual-first, AI-driven architecture that prioritizes storytelling over traditional dashboards. Our core design principle: "Only the minimum required actionable data, visualized clearly, AI-generated stories, and no clutter. AI is always ready to explain."
 
 ## Key Features
 
-### 1. Advanced AI Search Engine
-- **Hybrid Search Technology**: Combines Google Gemini AI with Google Search API and internal data sources
-- **Multiple Search Modes**: Choose between AI-powered, keyword-based, or hybrid search approaches
-- **Intelligent Query Enhancement**: Automatically augments queries with sustainability context
-- **Comprehensive Result Filtering**: Filter by category, source, relevance score, and date
-- **Automated Result Summarization**: AI-generated summaries of search results
-
-### 2. Sustainability Analytics
-- **Trend Analysis**: Identify emerging sustainability trends with virality scoring
-- **Predictive Analytics**: Forecast future sustainability metrics and performance indicators
-- **Competitive Benchmarking**: Compare sustainability performance against industry peers
-- **Materiality Assessment**: AI-powered assessment of material sustainability issues
-
-### 3. Sustainability Storytelling
-- **AI-Generated Narratives**: Create compelling sustainability stories automatically
-- **Strategic Frameworks**: Aligned with leading management consulting methodologies
-- **Investment Pathways**: Identify sustainable investment opportunities
-- **Monetization Models**: Develop business models around sustainability initiatives
-
-### 4. Robust Error Handling & API Management
-- **Comprehensive API Status Reporting**: Real-time monitoring of all API services
-- **Multi-Layer Fallback System**: Graceful degradation with detailed status reporting
-- **Enhanced Credential Validation**: Extensive API key validation and formatting checks
-- **Transparent Service Status**: Visual indicators for service availability and detailed error feedback
+- **Home AI Trends Feed**: Real-time sustainability trends from social media and CSRD PDFs, presented as visual story cards.
+- **Company & Sector Risk Tracker**: AI-analyzed risks and opportunities with auto-generated KPIs and narratives.
+- **PDF & Report Analyzer**: Upload CSRD/ESG reports for AI-powered extraction and comparison against market trends.
+- **AI Sustainability Story Cards**: Generate narrative + chart + recommendation for any metric or trend.
+- **Sustainability Co-Pilot**: Contextual AI assistant for insights, questions, and dynamic story creation.
+- **Minimal API & Data Terminal**: Programmatic access to sustainability trends data with minimal UI exposure.
 
 ## Technology Stack
 
 ### Frontend
-- **Flask**: Powerful Python web framework for building the frontend application
-- **Bootstrap**: Responsive CSS framework for modern UI design
-- **Plotly**: Interactive data visualization library for analytics dashboards
-- **jQuery**: JavaScript library for enhanced user interactions
+- **React/SvelteKit**: For highly responsive, component-based UI
+- **D3.js/Recharts**: For customizable, AI-driven visualizations
+- **TailwindCSS**: For clean, consistent styling
+- **Web Components**: For encapsulated, reusable story cards
 
 ### Backend
-- **FastAPI**: High-performance Python API framework
-- **SQLAlchemy**: SQL toolkit and Object-Relational Mapping (ORM) system
-- **PostgreSQL**: Advanced open-source database for data persistence
-- **Redis**: In-memory data structure store for caching (optional)
+- **FastAPI**: High-performance API framework
+- **LangChain/LlamaIndex**: For RAG and AI orchestration
+- **PostgreSQL**: For structured data storage
+- **Vector Database**: For semantic search capabilities
+- **Redis**: For caching and real-time features
 
-### AI & Machine Learning
-- **Google Gemini API**: Advanced language model for AI-powered analytics and search
-- **Google Custom Search API**: Web search capabilities for comprehensive results
-- **Custom NLP Models**: Specialized models for sustainability context understanding
-- **Vector Search**: Semantic similarity search for concept-based matching
+### AI & ML
+- **Google Gemini API**: Core LLM for text generation and reasoning
+- **OpenAI API (Optional)**: For specialized tasks
+- **Hugging Face Models**: For specialized NLP tasks
+- **Custom ML Pipeline**: For trend analysis and anomaly detection
+- **Autonomous Agents**: For continuous data monitoring and story generation
+
+## Architecture
+
+The platform follows a visual-first, AI-driven architecture focused on storytelling:
+
+1. **Data Collection Layer**: Web scrapers, PDF processors, and API connectors for sustainability data ingestion
+2. **AI Processing Layer**: LLM processing, insight generation, and story creation
+3. **Presentation Layer**: Minimal UI with story cards and contextual controls
+4. **Interaction Layer**: Co-Pilot AI for conversational exploration of sustainability data
+
+## Core Modules
+
+- **Home AI Trends Feed**: Real-time sustainability trends presented as visual story cards
+- **Company & Sector Risk Tracker**: AI-analyzed sustainability risks and opportunities
+- **PDF & Report Analyzer**: AI-powered document analysis with framework mapping
+- **AI Story Cards Generator**: Narrative + visualization + recommendation creation
+- **Sustainability Co-Pilot**: Contextual AI assistant for insights and exploration
+- **Minimal API + Data Terminal**: Programmatic access with minimal UI exposure
 
 ## Getting Started
 
 ### Prerequisites
-- Python 3.10+
-- PostgreSQL (optional)
-- Redis (optional)
-- Google Gemini API key
-- Google Custom Search API key with CSE ID
 
-### Environment Setup
+- Node.js 20+ and npm/pnpm
+- Python 3.11+
+- PostgreSQL database
+- Redis for caching and real-time features
+- Google Gemini API key for AI functionality
+
+### Installation
+
 1. Clone the repository
-2. Create a `.env` file in the `frontend` directory with the following variables:
+2. Install frontend dependencies: `cd frontend && npm install`
+3. Install backend dependencies: `cd backend && pip install -r requirements.txt`
+4. Set up environment variables in `.env` file:
    ```
+   # Database connection
+   DATABASE_URL=postgresql://user:password@localhost:5432/sustainatrend
+   
+   # AI APIs
    GEMINI_API_KEY=your_gemini_api_key
-   GOOGLE_API_KEY=your_google_api_key
-   GOOGLE_CSE_ID=your_google_cse_id
+   
+   # Optional services
+   REDIS_URL=redis://localhost:6379
    ```
-3. Install dependencies:
-   ```bash
-   pip install -r requirements.txt
-   ```
+5. Initialize the database: `npm run db:push`
+6. Start the application: `npm run dev`
 
-### Running the Application
-```bash
-# Start the dashboard
-./start.sh
+### Development Mode
+
+The platform can be started in different configurations:
+
+- **Complete Platform**: `npm run dev`
+- **Frontend Only**: `npm run dev:frontend`
+- **Backend Only**: `npm run dev:backend`
+- **Story Generator Service**: `npm run dev:storytelling`
+
+## Development
+
+### Project Structure
+
+```
+├── frontend/                    # React/SvelteKit web application
+│   ├── components/              # Reusable UI components
+│   │   ├── atoms/               # Basic UI elements
+│   │   ├── molecules/           # Compound components
+│   │   ├── organisms/           # Complex component assemblies
+│   │   └── story-cards/         # AI-generated story card templates
+│   ├── pages/                   # Application pages/routes
+│   ├── services/                # Frontend service modules
+│   └── ai-copilot/              # Co-Pilot integration
+├── backend/                     # FastAPI services
+│   ├── ai/                      # AI processing modules
+│   │   ├── storytelling/        # Story generation
+│   │   ├── document-analysis/   # PDF/document processing
+│   │   ├── trend-detection/     # Trend analysis
+│   │   └── agents/              # Autonomous agents
+│   ├── data-collectors/         # Data ingestion services
+│   ├── api/                     # API endpoints
+│   └── models/                  # Data models
+└── shared/                      # Shared utilities
 ```
 
-The application will be available at http://localhost:5000 by default.
+### Key Interfaces
 
-## Architecture
-
-The SustainaTrend™ platform follows a modular architecture:
-
-- **Frontend Layer**: Flask web application serving the user interface
-- **Search Engine**: Hybrid search system combining multiple data sources
-- **API Integration Layer**: Connections to external AI and search services
-- **Analytics Engine**: Processing and analysis of sustainability metrics
-- **Data Layer**: Storage and retrieval of application data
-
-See the [ARCHITECTURE.md](ARCHITECTURE.md) file for detailed architectural information.
-
-## Error Handling & Fallback System
-
-SustainaTrend™ implements a sophisticated error handling and fallback system:
-
-1. **API Status Monitoring**: Continuous monitoring of all external API services
-2. **Graceful Degradation**: Automatic fallback to alternative services when primary services fail
-3. **Transparent Reporting**: Clear communication of service status and fallback modes
-4. **Mock Data System**: Generation of realistic mock data when real data is unavailable
+- **Home Feed**: `http://localhost:5000/`
+- **Company Risk Tracker**: `http://localhost:5000/risk-tracker`
+- **PDF Analyzer**: `http://localhost:5000/document-analysis`
+- **Story Generator**: `http://localhost:5000/story-generator`
+- **Co-Pilot API**: `http://localhost:8080/api/copilot`
+- **Data Terminal**: `http://localhost:8080/api/terminal`
 
 ## License
 
-Copyright © 2025 SustainaTrend™. All rights reserved.
-
-## Contact
-
-For questions or support, please contact support@sustainatrend.com
+Copyright © 2025 SustainaTrend. All rights reserved.

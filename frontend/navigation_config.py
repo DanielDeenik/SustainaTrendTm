@@ -1,8 +1,8 @@
 """
-Navigation Configuration for SustainaTrend™ Atomic Design System
+Navigation Configuration for SustainaTrend™ Minimal UI
 
-This module defines the navigation structure that will be used across
-all pages implementing the atomic design system.
+This module defines the navigation structure for the minimal, AI-driven
+storytelling interface with a focus on clear data visualization.
 """
 
 def get_navigation_structure():
@@ -15,7 +15,6 @@ def get_navigation_structure():
     - url: URL path
     - icon: Icon name/path
     - section: Section the nav item belongs to
-    - children: Optional list of child navigation items
     
     Returns:
         dict: Complete navigation structure
@@ -28,51 +27,21 @@ def get_navigation_structure():
                 "items": [
                     {
                         "id": "home",
-                        "title": "Home",
-                        "url": "/atomic-home",
-                        "icon": '<svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m3 9 9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>'
-                    },
-                    {
-                        "id": "dashboard",
-                        "title": "Dashboard",
-                        "url": "/dashboard",
-                        "icon": '<svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="18" height="18" rx="2" ry="2"/><line x1="3" y1="9" x2="21" y2="9"/><line x1="9" y1="21" x2="9" y2="9"/></svg>'
-                    },
-                    {
-                        "id": "trends",
-                        "title": "Trend Analysis",
-                        "url": "/trend-analysis",
+                        "title": "AI Trends Feed",
+                        "url": "/",
                         "icon": '<svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 12h-4l-3 9L9 3l-3 9H2"/></svg>'
                     },
                     {
+                        "id": "risk",
+                        "title": "Risk Tracker",
+                        "url": "/risk-tracker",
+                        "icon": '<svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="18" height="18" rx="2" ry="2"/><line x1="3" y1="9" x2="21" y2="9"/><line x1="9" y1="21" x2="9" y2="9"/></svg>'
+                    },
+                    {
                         "id": "stories",
-                        "title": "Stories",
-                        "url": "/sustainability-stories-atomic",
+                        "title": "Story Cards",
+                        "url": "/story-cards",
                         "icon": '<svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M2 3h6a4 4 0 0 1 4 4v14a3 3 0 0 0-3-3H2z"/><path d="M22 3h-6a4 4 0 0 0-4 4v14a3 3 0 0 1 3-3h7z"/></svg>'
-                    }
-                ]
-            },
-            {
-                "id": "analytics",
-                "title": "Analytics",
-                "items": [
-                    {
-                        "id": "predictive",
-                        "title": "Predictive Analytics",
-                        "url": "/analytics-dashboard-atomic",
-                        "icon": '<svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 3v18h18"/><path d="m18.7 8-5.1 5.2-2.8-2.7L7 14.3"/></svg>'
-                    },
-                    {
-                        "id": "search",
-                        "title": "AI Search",
-                        "url": "/search-atomic",
-                        "icon": '<svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>'
-                    },
-                    {
-                        "id": "realestate",
-                        "title": "Real Estate",
-                        "url": "/realestate-unified-dashboard",
-                        "icon": '<svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>'
                     }
                 ]
             },
@@ -82,21 +51,21 @@ def get_navigation_structure():
                 "items": [
                     {
                         "id": "documents",
-                        "title": "Document Analysis",
-                        "url": "/document-upload-atomic",
+                        "title": "PDF Analyzer",
+                        "url": "/pdf-analyzer",
                         "icon": '<svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><path d="M14 2v6h6"/><path d="M16 13H8"/><path d="M16 17H8"/><path d="M10 9H8"/></svg>'
                     },
                     {
-                        "id": "monetization",
-                        "title": "Monetization Strategies",
-                        "url": "/monetization-strategies",
-                        "icon": '<svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="8"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>'
+                        "id": "terminal",
+                        "title": "Data Terminal",
+                        "url": "/data-terminal",
+                        "icon": '<svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="4 17 10 11 4 5"></polyline><line x1="12" y1="19" x2="20" y2="19"></line></svg>'
                     },
                     {
-                        "id": "companies",
-                        "title": "Company Search",
-                        "url": "/company-search",
-                        "icon": '<svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="5" width="18" height="14" rx="2"/><path d="M21 8H3"/><path d="M6 3v2"/><path d="M18 3v2"/></svg>'
+                        "id": "copilot",
+                        "title": "Co-Pilot",
+                        "url": "/co-pilot",
+                        "icon": '<svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"></circle><path d="M12 16v-4"></path><path d="M12 8h.01"></path></svg>'
                     }
                 ]
             },

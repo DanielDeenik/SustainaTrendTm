@@ -1702,6 +1702,90 @@ def configure_routes(app):
             story=mock_story
         )
     
+    # API endpoint for generating sustainability stories
+    @app.route("/api/storytelling/generate", methods=["POST"])
+    async def api_generate_story():
+        """API endpoint for generating sustainability stories with data visualization"""
+        # Get request data
+        data = request.get_json()
+        if not data:
+            return jsonify({"error": "Invalid request data"}), 400
+        
+        # Extract parameters
+        company_name = data.get('company_name')
+        industry = data.get('industry')
+        include_sections = data.get('include_sections', [])
+        
+        if not company_name or not industry:
+            return jsonify({"error": "Company name and industry are required"}), 400
+        
+        try:
+            # Generate story with data visualization components
+            story = await generate_story(company_name, industry)
+            
+            # Add visualization data if requested
+            if 'sentiment_analysis' in include_sections:
+                # Add sentiment analysis visualization data
+                story['Sentiment_Analysis'] = {
+                    "sources": ["Twitter", "News", "Reports", "Investor Calls", "Sustainability Blogs"],
+                    "positive": [65, 75, 80, 60, 85],
+                    "neutral": [25, 15, 15, 30, 10],
+                    "negative": [10, 10, 5, 10, 5]
+                }
+            
+            if 'trend_analysis' in include_sections:
+                # Add competitive benchmarking visualization data
+                story['Competitor_Benchmarking'] = {
+                    "categories": ["Carbon Emissions", "Renewable Energy", "Water Conservation", "Circular Economy", "Social Impact"],
+                    "company_scores": [85, 90, 75, 80, 95],
+                    "industry_scores": [65, 70, 60, 55, 75]
+                }
+            
+            if 'monetization_insights' in include_sections:
+                # Ensure monetization data is in the right format
+                if not story.get('Monetization_Model') or isinstance(story.get('Monetization_Model'), str):
+                    story['Monetization_Model'] = [
+                        {
+                            "title": "Product-as-a-Service Model",
+                            "description": "Transition from selling products to offering product-service systems, reducing resource consumption."
+                        },
+                        {
+                            "title": "Green Premium Pricing",
+                            "description": "Apply premium pricing to sustainable product lines, highlighting environmental benefits."
+                        },
+                        {
+                            "title": "Sustainable Supply Chain",
+                            "description": "Create cost advantages through sustainable supply chain optimization and circular practices."
+                        }
+                    ]
+                
+                if not story.get('Estimated_Financial_Impact'):
+                    story['Estimated_Financial_Impact'] = {
+                        "scenarios": [
+                            {
+                                "name": "Conservative",
+                                "value": 15,
+                                "description": "Minimal implementation of sustainability initiatives"
+                            },
+                            {
+                                "name": "Moderate",
+                                "value": 25,
+                                "description": "Balanced approach to sustainability transformation"
+                            },
+                            {
+                                "name": "Aggressive",
+                                "value": 40,
+                                "description": "Full integration of sustainability across operations"
+                            }
+                        ]
+                    }
+            }
+            
+            return jsonify(story), 200
+        except Exception as e:
+            app.logger.error(f"Error generating story: {str(e)}")
+            return jsonify({"error": "Failed to generate story", "details": str(e)}), 500
+    
     return app
 
 def register_routes(app):

@@ -1,161 +1,256 @@
-# SustainaTrend™ Intelligence Platform Architecture
+# SustainaTrend™ Intelligence Platform - Architecture Overview
 
-This document provides a detailed overview of the architecture, components, and data flows within the SustainaTrend™ Intelligence Platform.
+## System Architecture
 
-## System Architecture Overview
+The SustainaTrend™ platform follows a modular, service-oriented architecture designed for scalability, maintainability, and performance. This document provides a comprehensive overview of the system architecture and design principles.
 
-![Architecture Diagram](https://via.placeholder.com/800x500?text=SustainaTrend+Architecture+Diagram)
+```
+┌─────────────────────────────────────────────────────────────┐
+│                     Client Browser                          │
+└───────────────────────────┬─────────────────────────────────┘
+                            │
+┌───────────────────────────▼─────────────────────────────────┐
+│                   Flask Web Application                      │
+│                                                             │
+│  ┌─────────────┐  ┌────────────┐  ┌─────────────────────┐   │
+│  │  Templates  │  │   Routes   │  │  Service Modules    │   │
+│  └─────────────┘  └────────────┘  └─────────────────────┘   │
+└───────────────────────────┬─────────────────────────────────┘
+                            │
+┌───────────────────────────▼─────────────────────────────────┐
+│                    FastAPI Backend                           │
+│                                                             │
+│  ┌─────────────┐  ┌────────────┐  ┌─────────────────────┐   │
+│  │    API      │  │  Services  │  │   Data Models       │   │
+│  │   Routes    │  │            │  │                     │   │
+│  └─────────────┘  └────────────┘  └─────────────────────┘   │
+└───────────────────────────┬─────────────────────────────────┘
+                            │
+┌───────────────────────────▼─────────────────────────────────┐
+│                     Data Layer                               │
+│                                                             │
+│  ┌─────────────┐  ┌────────────┐  ┌─────────────────────┐   │
+│  │ PostgreSQL  │  │  MongoDB   │  │       Redis         │   │
+│  │   (Core)    │  │(Documents) │  │     (Cache)         │   │
+│  └─────────────┘  └────────────┘  └─────────────────────┘   │
+└─────────────────────────────────────────────────────────────┘
+```
 
-The SustainaTrend™ Intelligence Platform follows a modular architecture designed for scalability, maintainability, and extensibility. The system is organized into the following key layers:
+## Architectural Layers
 
-## 1. Frontend Layer
+### 1. Presentation Layer
 
-The frontend layer provides the user interface and is built using Flask, a lightweight WSGI web application framework in Python.
+The presentation layer is implemented as a Flask web application providing the user interface and experience. It follows an atomic design system for consistent UI components.
 
-### Key Components:
-- **Flask Web Application**: Serves HTML/CSS/JavaScript to clients
-- **Bootstrap UI Framework**: Provides responsive design components
-- **Plotly Visualization**: Generates interactive data visualizations
-- **jQuery**: Handles client-side interactions and AJAX requests
+**Key Components:**
+- **Templates**: Jinja2 templates for HTML rendering
+- **Routes**: Request handlers mapped to URL patterns
+- **Static Assets**: CSS, JavaScript, and image resources
+- **Service Modules**: Business logic specific to the frontend
 
-### Notable Files:
-- `frontend/direct_app.py`: Main Flask application with all routes
-- `frontend/templates/`: HTML templates for various pages
-- `frontend/static/`: Static assets (CSS, JavaScript, images)
+**Design Patterns:**
+- Model-View-Controller (MVC) pattern
+- Atomic Design methodology for UI components
+- Progressive enhancement for cross-browser compatibility
+- Responsive design for mobile and desktop experiences
 
-## 2. Search Engine Layer
+### 2. Application Layer
 
-The search engine layer provides advanced search capabilities by combining multiple search approaches and data sources.
+The application layer consists of both Flask routes and FastAPI microservices responsible for processing requests, implementing business logic, and orchestrating data access.
 
-### Key Components:
-- **Enhanced Search Controller**: Coordinates all search operations
-- **Query Understanding Engine**: Analyzes and enhances search queries
-- **Vector Search Engine**: Performs semantic similarity search
-- **Result Ranking System**: Combines and ranks results by relevance
+**Key Components:**
+- **Flask Routes**: Web request handlers with rendering logic
+- **FastAPI Routes**: REST API endpoints for specific domains
+- **Services**: Domain-specific business logic and data processing
+- **Utilities**: Shared functions and helpers
 
-### Search Modes:
-- **Hybrid Search**: Combines multiple search approaches
-- **AI-Powered Search**: Uses Gemini for content generation
-- **Keyword Search**: Traditional text-based search
-- **Real-time Search**: Fetches up-to-date information from the web
+**Design Patterns:**
+- Microservices architecture for domain separation
+- Dependency injection for service composition
+- Command Query Responsibility Segregation (CQRS)
+- Repository pattern for data access abstraction
 
-### Notable Files:
-- `frontend/enhanced_search.py`: Core search engine implementation
-- `frontend/gemini_search.py`: Gemini AI integration for search
+### 3. Data Layer
 
-## 3. API Integration Layer
+The data layer manages persistence and provides interfaces for storing and retrieving data from various databases and external services.
 
-The API integration layer manages connections to external services and handles authentication, error handling, and data transformation.
+**Key Components:**
+- **PostgreSQL**: Relational database for structured data
+- **MongoDB**: Document database for metrics, trends, and stories
+- **Redis**: In-memory cache for performance optimization
+- **Data Access Objects**: Abstraction over database operations
 
-### Key Components:
-- **Gemini API Client**: Connects to Google's Gemini AI service
-- **Google Search API Client**: Integrates with Google Custom Search
-- **API Status Monitor**: Tracks health and availability of external APIs
-- **Credential Manager**: Securely manages API keys and credentials
-- **Fallback System**: Provides graceful degradation when APIs are unavailable
+**Design Patterns:**
+- Repository pattern for database abstraction
+- Unit of Work pattern for transaction management
+- Cache-aside pattern for performance optimization
+- Data Mapper pattern for ORM functionality
 
-### Notable Files:
-- `frontend/gemini_search.py`: Contains Gemini API integration code
-- `frontend/.env`: Stores API credentials securely
+## Core Modules
 
-## 4. Analytics Engine
+### Sustainability Dashboard Module
 
-The analytics engine processes sustainability metrics and performs various analyses to derive insights.
+The dashboard provides real-time visualization of key sustainability metrics with trend analysis and comparative benchmarks.
 
-### Key Components:
-- **Trend Analysis Module**: Identifies emerging sustainability trends
-- **Predictive Analytics**: Forecasts future sustainability metrics
-- **Materiality Assessment**: Determines material sustainability issues
-- **Competitive Benchmarking**: Compares performance against peers
+**Components:**
+- Metrics collection and aggregation
+- Real-time data processing and visualization
+- Category-based filtering and organization
+- Time-series trend analysis
 
-### Notable Files:
-- `frontend/sustainability_trend.py`: Implementation of trend analysis
-- `backend/services/predictive_analytics.py`: Predictive models and algorithms
+### Analytics Module
 
-## 5. Storytelling Engine
+The analytics module offers predictive insights and trend forecasting based on historical sustainability data.
 
-The storytelling engine generates narrative content around sustainability data using AI techniques.
+**Components:**
+- Time-series forecasting models
+- Anomaly detection for unusual patterns
+- Scenario modeling for impact assessment
+- Benchmark comparison against industry standards
 
-### Key Components:
-- **Story Generator**: Creates sustainability narratives
-- **Framework Adapter**: Aligns stories with strategic frameworks
-- **Recommendation Engine**: Generates actionable insights
-- **Monetization Strategy Generator**: Develops business models
+### Document Processing Module
 
-### Notable Files:
-- `backend/services/storytelling_ai.py`: Core storytelling functionality
-- `backend/storytelling_api.py`: API endpoints for storytelling
+This module handles the extraction, analysis, and categorization of information from sustainability reports and documentation.
 
-## 6. Data Layer
+**Components:**
+- PDF text extraction with PyMuPDF
+- OCR processing for scanned documents
+- Framework mapping (ESRS, GRI, SASB)
+- RAG-based insight generation
 
-The data layer handles storage, retrieval, and management of application data.
+### Storytelling Module
 
-### Key Components:
-- **PostgreSQL Database**: Primary data store for structured data
-- **Redis Cache**: In-memory cache for performance (optional)
-- **In-Memory Cache**: Fallback cache when Redis is unavailable
-- **Data Models**: Object-relational mappings for database entities
+The storytelling module transforms sustainability data into compelling narratives and visual stories for reporting and communication.
 
-### Notable Files:
-- `backend/database.py`: Database connection and management
-- `backend/models.py`: Data models and schemas
+**Components:**
+- Data-based narrative generation
+- Visual storytelling templates
+- AI-powered content optimization
+- Audience-specific communication adaptation
 
-## Data Flows
+### Search Engine Module
 
-### Search Flow:
-1. User enters a search query via web interface
-2. Query is analyzed and enhanced with sustainability context
-3. Enhanced query is sent to multiple search providers (Gemini, Google Search)
-4. Results are aggregated, ranked, and filtered
-5. Final results are returned to the user interface
+A hybrid search engine providing advanced querying across sustainability data, reports, and external resources.
 
-### Analytics Flow:
-1. Raw sustainability metrics are collected or generated
-2. Metrics are processed through analytics modules
-3. Trends, predictions, and insights are derived
-4. Results are visualized through interactive dashboards
+**Components:**
+- Keyword-based search with semantic enhancement
+- Gemini-powered query understanding
+- External data source integration
+- Result ranking and categorization
 
-### Storytelling Flow:
-1. User provides input parameters (company, industry)
-2. System gathers relevant sustainability data
-3. AI models generate narrative content
-4. Content is formatted and presented to the user
+### Sustainability Co-Pilot Module
 
-## Error Handling & Fallback System
+An AI-powered assistant that provides contextual insights and recommendations based on sustainability data.
 
-The platform implements a comprehensive error handling and fallback system:
+**Components:**
+- Google Gemini integration
+- Context-aware recommendation system
+- Natural language query processing
+- Interactive dialogue management
 
-### Error Detection:
-- **API Status Checks**: Real-time monitoring of API availability
-- **Credential Validation**: Verification of API key validity and format
-- **Response Validation**: Verification of response structure and content
+### Real Estate Sustainability Module
 
-### Fallback Mechanisms:
-1. **Primary Service**: First attempt uses optimal service configuration
-2. **Secondary Service**: Falls back to alternative service if primary fails
-3. **Fallback Mode**: Switches to alternative operational mode based on available services
-4. **Mock Data**: Uses realistic simulated data when real data sources are unavailable
+Specialized functionality for analyzing and optimizing sustainability aspects of real estate properties.
 
-### Status Reporting:
-- **Visual Indicators**: UI elements showing service status
-- **Transparent Messaging**: Clear communication about current operational mode
-- **Detailed Diagnostics**: Comprehensive error information for troubleshooting
+**Components:**
+- Energy efficiency analysis (EPC labels)
+- Carbon footprint assessment
+- Green financing eligibility evaluation
+- Property value impact assessment
 
-## Extensibility
+## Integration Points
 
-The architecture is designed for extensibility in the following areas:
+### External APIs
 
-1. **Additional Data Sources**: New sustainability data sources can be integrated
-2. **Enhanced AI Models**: Alternative AI models can be incorporated
-3. **New Analysis Types**: Additional analytical capabilities can be added
-4. **Expanded Visualizations**: New visualization types can be introduced
+- **Google Search API**: For enhanced search capabilities
+- **Google Generative AI**: For Gemini-powered text generation
+- **OpenAI API**: For document analysis and summarization (optional)
 
-## Future Architecture Enhancements
+### Internal Microservices
 
-Planned architectural enhancements include:
+- **Metrics Service**: Core sustainability metrics management
+- **Storytelling API**: Data narrative and story generation
+- **Search Service**: Unified search across all data sources
+- **Document Processing Service**: PDF and document analysis
 
-1. **Microservices Architecture**: Decomposition into smaller, specialized services
-2. **Real-time Data Processing**: Integration with streaming data sources
-3. **Enhanced Security Layer**: Advanced authentication and authorization
-4. **Multi-tenant Support**: Isolation of data and resources for multiple customers
-5. **Edge Computing Integration**: Processing data closer to the source
+## Data Flow
+
+1. **User Requests**: Browser requests are handled by Flask routes
+2. **Template Rendering**: Data is processed and rendered into HTML
+3. **API Requests**: AJAX/Fetch calls communicate with FastAPI endpoints
+4. **Data Processing**: Business logic processes and transforms data
+5. **Database Operations**: Persistence layer stores and retrieves data
+6. **Response Generation**: Results are formatted and returned to the user
+
+## Security Architecture
+
+- **Authentication**: Session-based authentication with secure cookies
+- **Authorization**: Role-based access control for functionality
+- **Data Protection**: Encryption for sensitive data at rest and in transit
+- **API Security**: Rate limiting and request validation
+- **Input Validation**: Form and API request validation
+
+## Deployment Architecture
+
+The platform can be deployed in various configurations:
+
+### Development Environment
+
+- Local deployment with all services on a single machine
+- Docker-based development environment with containerized services
+
+### Production Environment
+
+- Multi-server deployment with load balancing
+- Containerized microservices with orchestration
+- Cloud-native deployment on AWS, GCP, or Azure
+
+## Technology Stack Details
+
+### Frontend Technologies
+
+- **Flask**: Web application framework
+- **Jinja2**: Template engine
+- **Tailwind CSS**: Utility-first CSS framework
+- **Plotly/Recharts/Bokeh**: Data visualization libraries
+- **JavaScript/ES6+**: Client-side interactivity
+
+### Backend Technologies
+
+- **FastAPI**: High-performance API framework
+- **Pydantic**: Data validation and settings management
+- **SQLAlchemy**: SQL toolkit and ORM
+- **PyMongo**: MongoDB driver
+- **Redis-Py**: Redis client
+
+### AI & Analytics Technologies
+
+- **Google Generative AI**: Large language model integration
+- **Scikit-learn**: Machine learning for predictive analytics
+- **PyTorch/Transformers**: Deep learning for NLP tasks
+- **pandas/NumPy**: Data manipulation and analysis
+- **spaCy**: Natural language processing
+
+## Extensibility and Customization
+
+The platform is designed for extensibility through:
+
+1. **Plugin Architecture**: For adding new features and integrations
+2. **Service Interfaces**: Well-defined interfaces for service replacement
+3. **Configuration Management**: Environment-based configuration system
+4. **Feature Flags**: Toggle features for different environments or clients
+
+## Monitoring and Observability
+
+- **Logging**: Structured logging with severity levels
+- **Metrics**: Performance and business metrics collection
+- **Tracing**: Request tracing across services
+- **Alerting**: Anomaly detection and notification system
+
+## Future Architecture Considerations
+
+- **Microservice Migration**: Further decomposition of monolithic components
+- **Event-Driven Architecture**: Adoption of message queues for async processing
+- **Serverless Components**: Migration of suitable workloads to serverless
+- **Edge Computing**: Distribution of computation for global performance
+- **Blockchain Integration**: For immutable sustainability certification
