@@ -1,7 +1,7 @@
-run = "cd frontend && python clean_app.py"
+run = "cd frontend && python clean_app.py --host=0.0.0.0 --port=5000"
 language = "python"
 entrypoint = "frontend/clean_app.py"
 hidden = false
 persistent = true
-wait_for_port = 5000
-onPort = { action = "notify", url = "https://$REPL_SLUG.$REPL_OWNER.repl.co" }
+wait_for_port = true
+onPort = { action = "open", port = 5000 }

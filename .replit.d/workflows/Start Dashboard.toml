@@ -1,0 +1,13 @@
+run = "cd frontend && python clean_app.py --host=0.0.0.0 --port=5000"
+language = "python"
+entrypoint = "frontend/clean_app.py"
+hidden = false
+persistent = true
+onBoot = true
+[nix]
+  enable = true
+  channel = "stable-23_11"
+[env]
+  DATABASE_URL = "postgresql://$PGUSER:$PGPASSWORD@$PGHOST:$PGPORT/$PGDATABASE"
+[ports]
+  5000 = { publish = true, protocol = "http", handler = "proxy" }

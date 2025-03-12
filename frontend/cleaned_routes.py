@@ -43,7 +43,7 @@ def register_routes(app):
     logger.info("Registering main application routes")
     
     # Import navigation configuration once
-    from navigation_config import get_context_for_template
+    from navigation_config import get_context_for_template, get_navigation_structure
     
     # -------------------------------------------------------------------------
     # Core Pages - Aligned with the new streamlined structure
@@ -350,10 +350,19 @@ def register_routes(app):
         """Debug route to check registered routes and app status"""
         logger.info("Debug route accessed")
         routes = [str(rule) for rule in app.url_map.iter_rules()]
-        return jsonify({
-            "routes": routes,
-            "app_status": "running"
-        })
+        
+        # Get navigation structure for debugging
+        nav_structure = get_navigation_structure()
+        nav_context = get_context_for_template()
+        
+        return render_template(
+            "debug_view.html",
+            routes=routes,
+            nav_structure=nav_structure,
+            nav_sections=nav_context["nav_sections"],
+            user_menu=nav_context["user_menu"],
+            active_nav="debug"
+        )
     
     # -------------------------------------------------------------------------
     
