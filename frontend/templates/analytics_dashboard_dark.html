@@ -15,6 +15,10 @@ Sustainability Co-Pilot | SustainaTrend™
 Risk Tracker | SustainaTrend™
 {% elif template_type == "debug" %}
 Debug | SustainaTrend™
+{% elif template_type == "trends" %}
+Trend Analysis | SustainaTrend™
+{% elif template_type == "virality" %}
+Virality Metrics | SustainaTrend™
 {% else %}
 Analytics Dashboard | SustainaTrend™
 {% endif %}
@@ -35,12 +39,25 @@ Sustainability Co-Pilot
 Risk Tracker
 {% elif template_type == "debug" %}
 Debug Information
+{% elif template_type == "trends" %}
+AI Trend Analysis
+{% elif template_type == "virality" %}
+Virality Metrics Dashboard
 {% else %}
 Analytics Dashboard
 {% endif %}
 {% endblock %}
 
 {% block header_actions %}
+{% if template_type != "home" %}
+<a href="/" class="finchat-btn finchat-btn-outline">
+    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather feather-arrow-left">
+        <line x1="19" y1="12" x2="5" y2="12"></line>
+        <polyline points="12 19 5 12 12 5"></polyline>
+    </svg>
+    Back to Dashboard
+</a>
+{% endif %}
 <span class="finchat-badge finchat-badge-primary">AI-Powered</span>
 {% endblock %}
 
@@ -655,12 +672,914 @@ Analytics Dashboard
 {% endblock %}
 
 {% block main_content %}
-{% if template_type == "stories" %}
+{% if template_type == "trends" %}
+<!-- Trend Analysis Content -->
+<div class="finchat-section">
+    <h3 class="finchat-section-title">
+        <i class="fas fa-chart-line"></i> AI Trend Analysis
+    </h3>
+    
+    <div class="analytics-overview">
+        <div class="analytics-metric">
+            <div class="analytics-metric-header">
+                <div class="analytics-metric-title">Active Trends</div>
+                <div class="analytics-metric-icon">
+                    <i class="fas fa-bolt"></i>
+                </div>
+            </div>
+            <div class="analytics-metric-value">{{ trends|length }}</div>
+            <div class="analytics-metric-change positive">
+                <i class="fas fa-arrow-up"></i> 12% from last month
+            </div>
+        </div>
+        
+        <div class="analytics-metric">
+            <div class="analytics-metric-header">
+                <div class="analytics-metric-title">Avg. Virality Score</div>
+                <div class="analytics-metric-icon">
+                    <i class="fas fa-chart-line"></i>
+                </div>
+            </div>
+            <div class="analytics-metric-value">78.3</div>
+            <div class="analytics-metric-change positive">
+                <i class="fas fa-arrow-up"></i> 5.2% from baseline
+            </div>
+        </div>
+        
+        <div class="analytics-metric">
+            <div class="analytics-metric-header">
+                <div class="analytics-metric-title">LinkedIn Mentions</div>
+                <div class="analytics-metric-icon">
+                    <i class="fab fa-linkedin"></i>
+                </div>
+            </div>
+            <div class="analytics-metric-value">845</div>
+            <div class="analytics-metric-change positive">
+                <i class="fas fa-arrow-up"></i> 7.3% weekly growth
+            </div>
+        </div>
+        
+        <div class="analytics-metric">
+            <div class="analytics-metric-header">
+                <div class="analytics-metric-title">X Mentions</div>
+                <div class="analytics-metric-icon">
+                    <i class="fab fa-twitter"></i>
+                </div>
+            </div>
+            <div class="analytics-metric-value">1,240</div>
+            <div class="analytics-metric-change positive">
+                <i class="fas fa-arrow-up"></i> 14.8% weekly growth
+            </div>
+        </div>
+    </div>
+    
+    <div class="analytics-chart-card">
+        <div class="analytics-chart-header">
+            <h4 class="analytics-chart-title">
+                <i class="fas fa-project-diagram"></i> Sustainability Trend Sankey Diagram
+            </h4>
+            <div class="analytics-chart-actions">
+                <button class="finchat-btn finchat-btn-sm finchat-btn-outline">
+                    <i class="fas fa-calendar"></i> This Month
+                </button>
+                <button class="finchat-btn finchat-btn-sm finchat-btn-outline">
+                    <i class="fas fa-download"></i> Export
+                </button>
+            </div>
+        </div>
+        <div class="analytics-chart-container">
+            <div id="sankeyDiagram"></div>
+        </div>
+    </div>
+    
+    <div class="analytics-category-breakdown">
+        <div class="analytics-chart-card">
+            <div class="analytics-chart-header">
+                <h4 class="analytics-chart-title">
+                    <i class="fas fa-hashtag"></i> Top Trending Topics
+                </h4>
+                <div class="analytics-chart-actions">
+                    <button class="finchat-btn finchat-btn-sm finchat-btn-outline" id="refreshTopicsBtn">
+                        <i class="fas fa-sync-alt"></i> Refresh
+                    </button>
+                </div>
+            </div>
+            <div class="analytics-chart-container" style="height: auto; padding: 20px;">
+                <div class="trending-topics">
+                    <div class="trending-topic">
+                        <div class="trending-topic-rank">1</div>
+                        <div class="trending-topic-content">
+                            <h5>Corporate Net Zero Targets</h5>
+                            <div class="trending-topic-stats">
+                                <span class="trending-topic-stat">
+                                    <i class="fab fa-linkedin"></i> 132 mentions
+                                </span>
+                                <span class="trending-topic-stat">
+                                    <i class="fab fa-twitter"></i> 245 mentions
+                                </span>
+                                <span class="trending-topic-stat">
+                                    <i class="fas fa-fire"></i> 89 virality score
+                                </span>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="trending-topic">
+                        <div class="trending-topic-rank">2</div>
+                        <div class="trending-topic-content">
+                            <h5>ESRS Implementation Challenges</h5>
+                            <div class="trending-topic-stats">
+                                <span class="trending-topic-stat">
+                                    <i class="fab fa-linkedin"></i> 118 mentions
+                                </span>
+                                <span class="trending-topic-stat">
+                                    <i class="fab fa-twitter"></i> 156 mentions
+                                </span>
+                                <span class="trending-topic-stat">
+                                    <i class="fas fa-fire"></i> 82 virality score
+                                </span>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="trending-topic">
+                        <div class="trending-topic-rank">3</div>
+                        <div class="trending-topic-content">
+                            <h5>AI for ESG Reporting</h5>
+                            <div class="trending-topic-stats">
+                                <span class="trending-topic-stat">
+                                    <i class="fab fa-linkedin"></i> 98 mentions
+                                </span>
+                                <span class="trending-topic-stat">
+                                    <i class="fab fa-twitter"></i> 187 mentions
+                                </span>
+                                <span class="trending-topic-stat">
+                                    <i class="fas fa-fire"></i> 76 virality score
+                                </span>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="trending-topic">
+                        <div class="trending-topic-rank">4</div>
+                        <div class="trending-topic-content">
+                            <h5>Sustainable Supply Chain Verification</h5>
+                            <div class="trending-topic-stats">
+                                <span class="trending-topic-stat">
+                                    <i class="fab fa-linkedin"></i> 87 mentions
+                                </span>
+                                <span class="trending-topic-stat">
+                                    <i class="fab fa-twitter"></i> 124 mentions
+                                </span>
+                                <span class="trending-topic-stat">
+                                    <i class="fas fa-fire"></i> 70 virality score
+                                </span>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="trending-topic">
+                        <div class="trending-topic-rank">5</div>
+                        <div class="trending-topic-content">
+                            <h5>Carbon Credit Market Developments</h5>
+                            <div class="trending-topic-stats">
+                                <span class="trending-topic-stat">
+                                    <i class="fab fa-linkedin"></i> 76 mentions
+                                </span>
+                                <span class="trending-topic-stat">
+                                    <i class="fab fa-twitter"></i> 142 mentions
+                                </span>
+                                <span class="trending-topic-stat">
+                                    <i class="fas fa-fire"></i> 68 virality score
+                                </span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <div class="analytics-chart-card">
+            <div class="analytics-chart-header">
+                <h4 class="analytics-chart-title">
+                    <i class="fas fa-globe"></i> Social Media Impact
+                </h4>
+            </div>
+            <div class="analytics-chart-container">
+                <div id="socialImpactChart"></div>
+            </div>
+        </div>
+    </div>
+    
+    <div class="analytics-recommendations">
+        <div class="analytics-recommendations-header">
+            <h4 class="analytics-recommendations-title">
+                <i class="fas fa-lightbulb"></i> AI-Generated Trend Insights
+            </h4>
+            <p class="analytics-recommendations-subtitle">Actionable insights based on trending sustainability topics</p>
+        </div>
+        
+        <div class="analytics-recommendations-list">
+            <div class="analytics-recommendation">
+                <div class="analytics-recommendation-icon">
+                    <i class="fas fa-chart-line"></i>
+                </div>
+                <div class="analytics-recommendation-content">
+                    <h4>Net Zero Targets Gaining Momentum</h4>
+                    <p>Corporate net zero commitments are increasing in visibility and scrutiny. Companies should prioritize transparent methodology and consider third-party verification to establish credibility.</p>
+                    <div class="analytics-recommendation-tags">
+                        <span class="analytics-recommendation-tag">Carbon</span>
+                        <span class="analytics-recommendation-tag">Leadership</span>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="analytics-recommendation">
+                <div class="analytics-recommendation-icon">
+                    <i class="fas fa-file-alt"></i>
+                </div>
+                <div class="analytics-recommendation-content">
+                    <h4>ESRS Adoption Challenges</h4>
+                    <p>European Sustainability Reporting Standards implementation is creating significant operational challenges. Consider developing a centralized data collection system to meet the expanding disclosure requirements.</p>
+                    <div class="analytics-recommendation-tags">
+                        <span class="analytics-recommendation-tag">Reporting</span>
+                        <span class="analytics-recommendation-tag">Compliance</span>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="analytics-recommendation">
+                <div class="analytics-recommendation-icon">
+                    <i class="fas fa-robot"></i>
+                </div>
+                <div class="analytics-recommendation-content">
+                    <h4>AI for ESG Reporting</h4>
+                    <p>AI tools for sustainability reporting are gaining traction as companies seek efficiency and accuracy. Early adopters are seeing 40% reduction in reporting preparation time.</p>
+                    <div class="analytics-recommendation-tags">
+                        <span class="analytics-recommendation-tag">AI</span>
+                        <span class="analytics-recommendation-tag">Technology</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+.trending-topics {
+    display: flex;
+    flex-direction: column;
+    gap: 15px;
+}
+
+.trending-topic {
+    display: flex;
+    align-items: center;
+    gap: 15px;
+    background-color: var(--fc-bg-tertiary);
+    border-radius: var(--fc-radius);
+    padding: 15px;
+}
+
+.trending-topic-rank {
+    width: 30px;
+    height: 30px;
+    border-radius: 50%;
+    background-color: var(--fc-primary);
+    color: white;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: bold;
+    flex-shrink: 0;
+}
+
+.trending-topic-content {
+    flex: 1;
+}
+
+.trending-topic-content h5 {
+    margin: 0 0 8px 0;
+    font-size: 1rem;
+}
+
+.trending-topic-stats {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 12px;
+}
+
+.trending-topic-stat {
+    font-size: 0.8rem;
+    color: var(--fc-text-secondary);
+    display: flex;
+    align-items: center;
+    gap: 5px;
+}
+</style>
+
+{% elif template_type == "virality" %}
+<!-- Virality Metrics Dashboard Content -->
+<div class="finchat-section">
+    <h3 class="finchat-section-title">
+        <i class="fas fa-network-wired"></i> Virality Metrics Dashboard
+    </h3>
+    
+    <div class="analytics-overview">
+        <div class="analytics-metric">
+            <div class="analytics-metric-header">
+                <div class="analytics-metric-title">Viral Topics</div>
+                <div class="analytics-metric-icon">
+                    <i class="fas fa-fire"></i>
+                </div>
+            </div>
+            <div class="analytics-metric-value">{{ trends|length }}</div>
+            <div class="analytics-metric-change positive">
+                <i class="fas fa-arrow-up"></i> 15% from last week
+            </div>
+        </div>
+        
+        <div class="analytics-metric">
+            <div class="analytics-metric-header">
+                <div class="analytics-metric-title">Social Mentions</div>
+                <div class="analytics-metric-icon">
+                    <i class="fas fa-comments"></i>
+                </div>
+            </div>
+            <div class="analytics-metric-value">8.7K</div>
+            <div class="analytics-metric-change positive">
+                <i class="fas fa-arrow-up"></i> 23% from last week
+            </div>
+        </div>
+        
+        <div class="analytics-metric">
+            <div class="analytics-metric-header">
+                <div class="analytics-metric-title">Platform Reach</div>
+                <div class="analytics-metric-icon">
+                    <i class="fas fa-globe"></i>
+                </div>
+            </div>
+            <div class="analytics-metric-value">42M</div>
+            <div class="analytics-metric-change positive">
+                <i class="fas fa-arrow-up"></i> 11% from last week
+            </div>
+        </div>
+        
+        <div class="analytics-metric">
+            <div class="analytics-metric-header">
+                <div class="analytics-metric-title">Engagement Rate</div>
+                <div class="analytics-metric-icon">
+                    <i class="fas fa-thumbs-up"></i>
+                </div>
+            </div>
+            <div class="analytics-metric-value">4.8%</div>
+            <div class="analytics-metric-change negative">
+                <i class="fas fa-arrow-down"></i> 2% from last week
+            </div>
+        </div>
+    </div>
+    
+    <div class="analytics-chart-row">
+        <div class="analytics-chart">
+            <div class="analytics-chart-header">
+                <h4 class="analytics-chart-title">Trending Sustainability Topics</h4>
+                <div class="analytics-chart-actions">
+                    <button id="refreshTopicsBtn" class="finchat-button finchat-button-outline">
+                        <i class="fas fa-sync-alt"></i> Refresh
+                    </button>
+                </div>
+            </div>
+            <div class="analytics-chart-content">
+                <table class="analytics-table">
+                    <thead>
+                        <tr>
+                            <th>Topic</th>
+                            <th>Category</th>
+                            <th>Virality Score</th>
+                            <th>Trend</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for trend in trends[:8] %}
+                        <tr>
+                            <td>
+                                <div class="topic-cell">
+                                    <span class="topic-name">{{ trend.name }}</span>
+                                    {% if trend.virality_score > 75 %}
+                                    <span class="trending-tag">🔥 Trending</span>
+                                    {% endif %}
+                                </div>
+                            </td>
+                            <td>{{ trend.category|capitalize }}</td>
+                            <td>
+                                <div class="virality-score">
+                                    <div class="virality-bar" style="width: {{ trend.virality_score }}%;"></div>
+                                    <span>{{ trend.virality_score }}</span>
+                                </div>
+                            </td>
+                            <td>
+                                {% if trend.get('change', 0) > 0 %}
+                                <span class="trend-change positive">
+                                    <i class="fas fa-arrow-up"></i> {{ trend.get('change', 5) }}%
+                                </span>
+                                {% else %}
+                                <span class="trend-change negative">
+                                    <i class="fas fa-arrow-down"></i> {{ -trend.get('change', 0) }}%
+                                </span>
+                                {% endif %}
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+        
+        <div class="analytics-chart">
+            <div class="analytics-chart-header">
+                <h4 class="analytics-chart-title">Social Platform Distribution</h4>
+                <div class="analytics-chart-actions">
+                    <select class="finchat-select">
+                        <option>Last 7 days</option>
+                        <option>Last 30 days</option>
+                        <option>Last 90 days</option>
+                    </select>
+                </div>
+            </div>
+            <div class="analytics-chart-content">
+                <canvas id="socialPlatformChart" height="250"></canvas>
+            </div>
+        </div>
+    </div>
+    
+    <div class="analytics-chart-row">
+        <div class="analytics-chart">
+            <div class="analytics-chart-header">
+                <h4 class="analytics-chart-title">Engagement Analysis</h4>
+                <div class="analytics-chart-actions">
+                    <select class="finchat-select">
+                        <option>All Categories</option>
+                        <option>Emissions</option>
+                        <option>Energy</option>
+                        <option>Water</option>
+                        <option>Waste</option>
+                    </select>
+                </div>
+            </div>
+            <div class="analytics-chart-content">
+                <canvas id="engagementChart" height="250"></canvas>
+            </div>
+        </div>
+        
+        <div class="analytics-chart">
+            <div class="analytics-chart-header">
+                <h4 class="analytics-chart-title">Impact Correlation</h4>
+                <div class="analytics-chart-actions">
+                    <button class="finchat-button finchat-button-outline">
+                        <i class="fas fa-download"></i> Export
+                    </button>
+                </div>
+            </div>
+            <div class="analytics-chart-content">
+                <canvas id="impactCorrelationChart" height="250"></canvas>
+            </div>
+        </div>
+    </div>
+    
+    <div class="analytics-section">
+        <div class="analytics-section-header">
+            <h4 class="analytics-section-title">Audience Insights</h4>
+            <div class="analytics-section-actions">
+                <span class="finchat-text-muted">Last updated: Today at 8:45 AM</span>
+            </div>
+        </div>
+        <div class="analytics-grid">
+            <div class="analytics-card">
+                <div class="analytics-card-header">
+                    <h5 class="analytics-card-title">Demographics</h5>
+                    <div class="analytics-card-icon">
+                        <i class="fas fa-users"></i>
+                    </div>
+                </div>
+                <div class="analytics-card-content">
+                    <div class="demographic-chart">
+                        <div class="demographic-bar">
+                            <span class="demographic-label">18-24</span>
+                            <div class="demographic-value" style="width: 22%;">22%</div>
+                        </div>
+                        <div class="demographic-bar">
+                            <span class="demographic-label">25-34</span>
+                            <div class="demographic-value" style="width: 35%;">35%</div>
+                        </div>
+                        <div class="demographic-bar">
+                            <span class="demographic-label">35-44</span>
+                            <div class="demographic-value" style="width: 28%;">28%</div>
+                        </div>
+                        <div class="demographic-bar">
+                            <span class="demographic-label">45-54</span>
+                            <div class="demographic-value" style="width: 12%;">12%</div>
+                        </div>
+                        <div class="demographic-bar">
+                            <span class="demographic-label">55+</span>
+                            <div class="demographic-value" style="width: 3%;">3%</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="analytics-card">
+                <div class="analytics-card-header">
+                    <h5 class="analytics-card-title">Geographic Distribution</h5>
+                    <div class="analytics-card-icon">
+                        <i class="fas fa-map-marker-alt"></i>
+                    </div>
+                </div>
+                <div class="analytics-card-content">
+                    <div class="geo-distribution">
+                        <div class="geo-item">
+                            <span class="geo-name">North America</span>
+                            <span class="geo-value">42%</span>
+                        </div>
+                        <div class="geo-item">
+                            <span class="geo-name">Europe</span>
+                            <span class="geo-value">28%</span>
+                        </div>
+                        <div class="geo-item">
+                            <span class="geo-name">Asia</span>
+                            <span class="geo-value">18%</span>
+                        </div>
+                        <div class="geo-item">
+                            <span class="geo-name">South America</span>
+                            <span class="geo-value">7%</span>
+                        </div>
+                        <div class="geo-item">
+                            <span class="geo-name">Other</span>
+                            <span class="geo-value">5%</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="analytics-card">
+                <div class="analytics-card-header">
+                    <h5 class="analytics-card-title">Industry Sectors</h5>
+                    <div class="analytics-card-icon">
+                        <i class="fas fa-industry"></i>
+                    </div>
+                </div>
+                <div class="analytics-card-content">
+                    <div class="industry-sectors">
+                        <div class="sector-item">
+                            <span class="sector-name">Energy & Utilities</span>
+                            <span class="sector-value">24%</span>
+                        </div>
+                        <div class="sector-item">
+                            <span class="sector-name">Manufacturing</span>
+                            <span class="sector-value">18%</span>
+                        </div>
+                        <div class="sector-item">
+                            <span class="sector-name">Technology</span>
+                            <span class="sector-value">16%</span>
+                        </div>
+                        <div class="sector-item">
+                            <span class="sector-name">Finance</span>
+                            <span class="sector-value">15%</span>
+                        </div>
+                        <div class="sector-item">
+                            <span class="sector-name">Other</span>
+                            <span class="sector-value">27%</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+.topic-cell {
+    display: flex;
+    flex-direction: column;
+    gap: 5px;
+}
+
+.trending-tag {
+    display: inline-block;
+    font-size: 0.7rem;
+    padding: 2px 6px;
+    border-radius: 10px;
+    background-color: rgba(255, 59, 48, 0.15);
+    color: var(--fc-positive);
+}
+
+.virality-score {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    width: 100%;
+}
+
+.virality-bar {
+    height: 8px;
+    background: linear-gradient(90deg, var(--fc-positive) 0%, var(--fc-accent) 100%);
+    border-radius: 4px;
+}
+
+.demographic-chart {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+}
+
+.demographic-bar {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+.demographic-label {
+    width: 60px;
+    font-size: 0.85rem;
+    color: var(--fc-text-secondary);
+}
+
+.demographic-value {
+    height: 20px;
+    background: linear-gradient(90deg, var(--fc-primary) 0%, var(--fc-accent) 100%);
+    border-radius: 3px;
+    color: white;
+    display: flex;
+    align-items: center;
+    justify-content: flex-end;
+    padding-right: 8px;
+    font-size: 0.8rem;
+    font-weight: 500;
+}
+
+.geo-distribution, .industry-sectors {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+}
+
+.geo-item, .sector-item {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 8px 0;
+    border-bottom: 1px solid var(--fc-border);
+}
+
+.geo-item:last-child, .sector-item:last-child {
+    border-bottom: none;
+}
+
+.geo-value, .sector-value {
+    font-weight: 500;
+    color: var(--fc-text-primary);
+}
+</style>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // Social Platform Distribution Chart
+    if (document.getElementById('socialPlatformChart')) {
+        const ctx = document.getElementById('socialPlatformChart').getContext('2d');
+        const data = {
+            labels: ['Twitter/X', 'LinkedIn', 'Facebook', 'Instagram', 'YouTube', 'TikTok'],
+            datasets: [{
+                label: 'Mentions',
+                data: [35, 28, 15, 12, 7, 3],
+                backgroundColor: [
+                    'rgba(29, 161, 242, 0.7)',  // Twitter/X blue
+                    'rgba(0, 119, 181, 0.7)',   // LinkedIn blue
+                    'rgba(59, 89, 152, 0.7)',   // Facebook blue
+                    'rgba(193, 53, 132, 0.7)',  // Instagram purple
+                    'rgba(255, 0, 0, 0.7)',     // YouTube red
+                    'rgba(0, 242, 234, 0.7)'    // TikTok teal
+                ],
+                borderColor: [
+                    'rgba(29, 161, 242, 1)',
+                    'rgba(0, 119, 181, 1)',
+                    'rgba(59, 89, 152, 1)',
+                    'rgba(193, 53, 132, 1)',
+                    'rgba(255, 0, 0, 1)',
+                    'rgba(0, 242, 234, 1)'
+                ],
+                borderWidth: 1
+            }]
+        };
+        
+        const config = {
+            type: 'doughnut',
+            data: data,
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                    legend: {
+                        position: 'right',
+                        labels: {
+                            color: '#888'
+                        }
+                    }
+                }
+            }
+        };
+        
+        new Chart(ctx, config);
+    }
+    
+    // Engagement Analysis Chart
+    if (document.getElementById('engagementChart')) {
+        const ctx = document.getElementById('engagementChart').getContext('2d');
+        const data = {
+            labels: ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'],
+            datasets: [{
+                label: 'Likes',
+                data: [4500, 5200, 4800, 5800, 6200, 5100, 4700],
+                borderColor: 'rgba(29, 161, 242, 1)',
+                backgroundColor: 'rgba(29, 161, 242, 0.1)',
+                tension: 0.4,
+                fill: true
+            }, {
+                label: 'Shares',
+                data: [1200, 1400, 1300, 1700, 1900, 1500, 1300],
+                borderColor: 'rgba(255, 99, 132, 1)',
+                backgroundColor: 'rgba(255, 99, 132, 0.1)',
+                tension: 0.4,
+                fill: true
+            }, {
+                label: 'Comments',
+                data: [800, 950, 900, 1100, 1250, 1000, 850],
+                borderColor: 'rgba(75, 192, 192, 1)',
+                backgroundColor: 'rgba(75, 192, 192, 0.1)',
+                tension: 0.4,
+                fill: true
+            }]
+        };
+        
+        const config = {
+            type: 'line',
+            data: data,
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                    legend: {
+                        position: 'top',
+                        labels: {
+                            color: '#888'
+                        }
+                    }
+                },
+                scales: {
+                    x: {
+                        grid: {
+                            color: 'rgba(255, 255, 255, 0.1)'
+                        },
+                        ticks: {
+                            color: '#888'
+                        }
+                    },
+                    y: {
+                        grid: {
+                            color: 'rgba(255, 255, 255, 0.1)'
+                        },
+                        ticks: {
+                            color: '#888'
+                        }
+                    }
+                }
+            }
+        };
+        
+        new Chart(ctx, config);
+    }
+    
+    // Impact Correlation Chart
+    if (document.getElementById('impactCorrelationChart')) {
+        const ctx = document.getElementById('impactCorrelationChart').getContext('2d');
+        const data = {
+            labels: ['Renewable Energy', 'Carbon Reduction', 'Water Conservation', 'Waste Management', 'Biodiversity'],
+            datasets: [{
+                label: 'Virality Score',
+                data: [78, 82, 65, 59, 71],
+                backgroundColor: 'rgba(75, 192, 192, 0.7)',
+                borderColor: 'rgba(75, 192, 192, 1)',
+                borderWidth: 1
+            }, {
+                label: 'Impact Score',
+                data: [65, 75, 70, 68, 62],
+                backgroundColor: 'rgba(153, 102, 255, 0.7)',
+                borderColor: 'rgba(153, 102, 255, 1)',
+                borderWidth: 1
+            }]
+        };
+        
+        const config = {
+            type: 'bar',
+            data: data,
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                    legend: {
+                        position: 'top',
+                        labels: {
+                            color: '#888'
+                        }
+                    }
+                },
+                scales: {
+                    x: {
+                        grid: {
+                            color: 'rgba(255, 255, 255, 0.1)'
+                        },
+                        ticks: {
+                            color: '#888'
+                        }
+                    },
+                    y: {
+                        grid: {
+                            color: 'rgba(255, 255, 255, 0.1)'
+                        },
+                        ticks: {
+                            color: '#888',
+                            beginAtZero: true
+                        }
+                    }
+                }
+            }
+        };
+        
+        new Chart(ctx, config);
+    }
+});
+</script>
+
+{% elif template_type == "stories" %}
 <!-- Story Cards Content -->
 <div class="finchat-section">
     <h3 class="finchat-section-title">
         <i class="fas fa-newspaper"></i> AI-Generated Sustainability Stories
     </h3>
+    
+    <div class="analytics-story-builder">
+        <div class="analytics-chart-card">
+            <div class="analytics-chart-header">
+                <h4 class="analytics-chart-title">
+                    <i class="fas fa-magic"></i> Data-Based Storytelling Builder
+                </h4>
+                <div class="analytics-chart-actions">
+                    <button class="finchat-btn finchat-btn-sm finchat-btn-outline" id="buildNewStoryBtn">
+                        <i class="fas fa-plus"></i> New Story
+                    </button>
+                </div>
+            </div>
+            <div class="analytics-story-builder-form">
+                <div class="finchat-form-group">
+                    <label for="storyDataSource">Data Source</label>
+                    <select class="finchat-form-control" id="storyDataSource">
+                        <option value="sustainability_metrics">Sustainability Metrics</option>
+                        <option value="social_trends">Social Media Trends</option>
+                        <option value="esg_ratings">ESG Ratings</option>
+                        <option value="document_insights">Document Insights</option>
+                    </select>
+                </div>
+                <div class="finchat-form-group">
+                    <label for="storyFocus">Story Focus</label>
+                    <select class="finchat-form-control" id="storyFocus">
+                        <option value="impact">Impact & Achievements</option>
+                        <option value="challenges">Challenges & Solutions</option>
+                        <option value="trends">Trend Analysis</option>
+                        <option value="predictions">Future Predictions</option>
+                    </select>
+                </div>
+                <div class="finchat-form-group">
+                    <label for="storyLength">Story Length</label>
+                    <select class="finchat-form-control" id="storyLength">
+                        <option value="short">Short (1-2 paragraphs)</option>
+                        <option value="medium" selected>Medium (3-4 paragraphs)</option>
+                        <option value="long">Long (5+ paragraphs)</option>
+                    </select>
+                </div>
+                <div class="finchat-form-group">
+                    <label for="storyAudience">Target Audience</label>
+                    <select class="finchat-form-control" id="storyAudience">
+                        <option value="investors">Investors</option>
+                        <option value="customers">Customers</option>
+                        <option value="employees">Employees</option>
+                        <option value="regulators">Regulators</option>
+                        <option value="general">General Public</option>
+                    </select>
+                </div>
+                <button class="finchat-btn finchat-btn-primary" id="generateStoryBtn">
+                    <i class="fas fa-bolt"></i> Generate Story
+                </button>
+            </div>
+        </div>
+    </div>
     
     <div class="analytics-recommendations">
         <div class="analytics-recommendations-header">
@@ -695,6 +1614,17 @@ Analytics Dashboard
                             <span class="analytics-recommendation-tag">{{ tag }}</span>
                             {% endfor %}
                         </div>
+                        <div class="story-social-sharing">
+                            <button class="finchat-btn finchat-btn-sm finchat-btn-outline share-btn" data-platform="linkedin">
+                                <i class="fab fa-linkedin"></i> Share
+                            </button>
+                            <button class="finchat-btn finchat-btn-sm finchat-btn-outline share-btn" data-platform="twitter">
+                                <i class="fab fa-twitter"></i> Share
+                            </button>
+                            <button class="finchat-btn finchat-btn-sm finchat-btn-outline share-btn" data-platform="reddit">
+                                <i class="fab fa-reddit"></i> Share
+                            </button>
+                        </div>
                     </div>
                 </div>
                 {% endfor %}
@@ -717,41 +1647,94 @@ Analytics Dashboard
 <!-- PDF Analyzer Content -->
 <div class="finchat-section">
     <h3 class="finchat-section-title">
-        <i class="fas fa-file-pdf"></i> PDF Document Analyzer
+        <i class="fas fa-file-pdf"></i> Document Analysis & Data Import
     </h3>
     
-    <div class="analytics-chart-card">
-        <div class="analytics-chart-header">
-            <h4 class="analytics-chart-title">
-                <i class="fas fa-upload"></i> Upload Sustainability Document
-            </h4>
+    <div class="analytics-category-breakdown">
+        <div class="analytics-chart-card">
+            <div class="analytics-chart-header">
+                <h4 class="analytics-chart-title">
+                    <i class="fas fa-upload"></i> Import Data from Any File Type
+                </h4>
+            </div>
+            <div class="analytics-chart-container" style="height: auto; padding: 20px;">
+                <form action="/upload-document" method="post" enctype="multipart/form-data" class="finchat-form">
+                    <div class="finchat-form-group">
+                        <label for="document">Select Document File</label>
+                        <input type="file" name="document" id="document" accept=".pdf,.docx,.xlsx,.csv,.txt,.json" class="finchat-form-control" required>
+                        <small class="finchat-form-text">Supported formats: PDF, DOCX, XLSX, CSV, TXT, JSON</small>
+                    </div>
+                    
+                    <div class="finchat-form-group">
+                        <label for="analysis_type">Analysis Type</label>
+                        <select name="analysis_type" id="analysis_type" class="finchat-form-control">
+                            <option value="sustainability">Sustainability Assessment</option>
+                            <option value="esrs">ESRS Compliance</option>
+                            <option value="metrics">Metrics Extraction</option>
+                            <option value="summary">Executive Summary</option>
+                            <option value="data_import">Data Import Only</option>
+                        </select>
+                    </div>
+                    
+                    <div class="finchat-form-check">
+                        <input type="checkbox" name="use_ocr" id="use_ocr" class="finchat-form-check-input">
+                        <label for="use_ocr">Use OCR for scanned documents</label>
+                    </div>
+                    
+                    <button type="submit" class="finchat-button finchat-button-primary">
+                        <i class="fas fa-upload"></i> Upload & Analyze
+                    </button>
+                </form>
+            </div>
         </div>
-        <div class="analytics-chart-container" style="height: auto; padding: 20px;">
-            <form action="/upload-document" method="post" enctype="multipart/form-data" class="finchat-form">
+    
+        <div class="analytics-chart-card">
+            <div class="analytics-chart-header">
+                <h4 class="analytics-chart-title">
+                    <i class="fas fa-magic"></i> AI Insight Generation
+                </h4>
+            </div>
+            <div class="analytics-chart-container" style="height: auto; padding: 20px;">
                 <div class="finchat-form-group">
-                    <label for="document">Select PDF Document</label>
-                    <input type="file" name="document" id="document" accept=".pdf" class="finchat-form-control" required>
-                </div>
-                
-                <div class="finchat-form-group">
-                    <label for="analysis_type">Analysis Type</label>
-                    <select name="analysis_type" id="analysis_type" class="finchat-form-control">
-                        <option value="sustainability">Sustainability Assessment</option>
-                        <option value="esrs">ESRS Compliance</option>
-                        <option value="metrics">Metrics Extraction</option>
+                    <label for="insight_type">Insight Type</label>
+                    <select id="insight_type" class="finchat-form-control">
                         <option value="summary">Executive Summary</option>
+                        <option value="metrics">Key Metrics Identification</option>
+                        <option value="trends">Trend Analysis</option>
+                        <option value="recommendations">Recommendations</option>
+                        <option value="compliance">Compliance Assessment</option>
                     </select>
                 </div>
                 
-                <div class="finchat-form-check">
-                    <input type="checkbox" name="use_ocr" id="use_ocr" class="finchat-form-check-input">
-                    <label for="use_ocr">Use OCR for scanned documents</label>
+                <div class="finchat-form-group">
+                    <label for="insight_depth">Analysis Depth</label>
+                    <select id="insight_depth" class="finchat-form-control">
+                        <option value="basic">Basic</option>
+                        <option value="standard" selected>Standard</option>
+                        <option value="comprehensive">Comprehensive</option>
+                    </select>
                 </div>
                 
-                <button type="submit" class="finchat-button finchat-button-primary">
-                    <i class="fas fa-upload"></i> Upload & Analyze
+                <button id="generateInsightsBtn" class="finchat-button finchat-button-primary">
+                    <i class="fas fa-bolt"></i> Generate Insights
                 </button>
-            </form>
+            </div>
+        </div>
+    </div>
+    
+    <div class="analytics-recommendations">
+        <div class="analytics-recommendations-header">
+            <h4 class="analytics-recommendations-title">
+                <i class="fas fa-file-alt"></i> Document Summary & Insights
+            </h4>
+            <p class="analytics-recommendations-subtitle">AI-generated analysis from your uploaded documents</p>
+        </div>
+        
+        <div id="documentInsights" class="analytics-chart-container" style="height: auto; padding: 20px;">
+            <div class="finchat-empty-state">
+                <i class="fas fa-cloud-upload-alt fa-3x"></i>
+                <p>Upload a document and generate insights to see results here</p>
+            </div>
         </div>
     </div>
 </div>
@@ -817,8 +1800,62 @@ Analytics Dashboard
 <!-- Monetization Opportunities Content -->
 <div class="finchat-section">
     <h3 class="finchat-section-title">
-        <i class="fas fa-money-bill-wave"></i> Monetization Opportunities
+        <i class="fas fa-money-bill-wave"></i> Monetization Opportunities & Strategies
     </h3>
+    
+    <!-- SWOT Analysis Section -->
+    <div class="analytics-chart-card">
+        <div class="analytics-chart-header">
+            <h4 class="analytics-chart-title">
+                <i class="fas fa-balance-scale"></i> SWOT Analysis
+            </h4>
+            <div class="analytics-chart-actions">
+                <button class="finchat-btn finchat-btn-sm finchat-btn-outline" id="refreshSwotBtn">
+                    <i class="fas fa-sync-alt"></i> Refresh
+                </button>
+            </div>
+        </div>
+        <div class="analytics-chart-container" style="height: auto; padding: 20px;">
+            <div class="swot-grid">
+                <div class="swot-cell swot-strengths">
+                    <h5><i class="fas fa-check-circle"></i> Strengths</h5>
+                    <ul>
+                        <li>AI-powered sustainability intelligence with unique storytelling capabilities</li>
+                        <li>Comprehensive data visualization and analytics dashboard</li>
+                        <li>Advanced document analysis for ESG reporting</li>
+                        <li>Multi-framework compliance monitoring (ESRS, GRI, TCFD)</li>
+                    </ul>
+                </div>
+                <div class="swot-cell swot-weaknesses">
+                    <h5><i class="fas fa-times-circle"></i> Weaknesses</h5>
+                    <ul>
+                        <li>Limited market presence and brand recognition</li>
+                        <li>Dependency on third-party data sources</li>
+                        <li>Need for continuous AI model training and maintenance</li>
+                        <li>Integration complexity with legacy enterprise systems</li>
+                    </ul>
+                </div>
+                <div class="swot-cell swot-opportunities">
+                    <h5><i class="fas fa-lightbulb"></i> Opportunities</h5>
+                    <ul>
+                        <li>Growing regulatory landscape (CSRD, ESRS, ISSB) driving demand</li>
+                        <li>Increased investor focus on ESG performance metrics</li>
+                        <li>Sustainability reporting becoming standard business practice</li>
+                        <li>Integration with carbon marketplaces and credit systems</li>
+                    </ul>
+                </div>
+                <div class="swot-cell swot-threats">
+                    <h5><i class="fas fa-exclamation-triangle"></i> Threats</h5>
+                    <ul>
+                        <li>Established ESG software providers expanding capabilities</li>
+                        <li>Rapid evolution of reporting standards requiring continuous updates</li>
+                        <li>Custom in-house solutions developed by large enterprises</li>
+                        <li>Data privacy and security concerns with AI analysis</li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+    </div>
     
     <div class="analytics-category-breakdown">
         <div class="analytics-chart-card">
@@ -844,12 +1881,206 @@ Analytics Dashboard
         </div>
     </div>
     
+    <!-- Management Consulting Strategies -->
     <div class="analytics-recommendations">
         <div class="analytics-recommendations-header">
             <h4 class="analytics-recommendations-title">
-                <i class="fas fa-lightbulb"></i> Monetization Strategies
+                <i class="fas fa-briefcase"></i> Management Consulting Strategies
             </h4>
-            <p class="analytics-recommendations-subtitle">AI-generated business opportunities based on your sustainability intelligence</p>
+            <p class="analytics-recommendations-subtitle">AI-generated business opportunities with strategic frameworks</p>
+        </div>
+        
+        <div class="analytics-tabs">
+            <button class="analytics-tab active" data-tab="strategy-bcg">BCG Matrix</button>
+            <button class="analytics-tab" data-tab="strategy-mckinsey">McKinsey 7S</button>
+            <button class="analytics-tab" data-tab="strategy-porter">Porter's 5 Forces</button>
+            <button class="analytics-tab" data-tab="strategy-blue">Blue Ocean</button>
+        </div>
+        
+        <div class="analytics-tab-content active" id="strategy-bcg">
+            <div class="analytics-chart-header">
+                <h5 class="analytics-chart-title">BCG Growth-Share Matrix</h5>
+                <p class="analytics-chart-subtitle">Portfolio analysis for sustainability products and services</p>
+            </div>
+            <div class="bcg-matrix">
+                <div class="bcg-quadrant bcg-star">
+                    <h6>Star</h6>
+                    <p>ESG Data Analytics Platform</p>
+                    <small>High growth, high market share</small>
+                </div>
+                <div class="bcg-quadrant bcg-question">
+                    <h6>Question Mark</h6>
+                    <p>Sustainability Certification</p>
+                    <small>High growth, low market share</small>
+                </div>
+                <div class="bcg-quadrant bcg-cash">
+                    <h6>Cash Cow</h6>
+                    <p>Compliance Reporting Tools</p>
+                    <small>Low growth, high market share</small>
+                </div>
+                <div class="bcg-quadrant bcg-dog">
+                    <h6>Dog</h6>
+                    <p>Basic Carbon Calculators</p>
+                    <small>Low growth, low market share</small>
+                </div>
+            </div>
+            <div class="analytics-strategy-actions">
+                <button class="finchat-btn finchat-btn-primary" id="generateBcgReportBtn">
+                    <i class="fas fa-file-alt"></i> Generate Strategic Report
+                </button>
+            </div>
+        </div>
+        
+        <div class="analytics-tab-content" id="strategy-mckinsey" style="display: none;">
+            <div class="analytics-chart-header">
+                <h5 class="analytics-chart-title">McKinsey 7S Framework</h5>
+                <p class="analytics-chart-subtitle">Organizational alignment for successful implementation</p>
+            </div>
+            <div class="mckinsey-framework">
+                <div class="mckinsey-element">
+                    <h6><i class="fas fa-chart-line"></i> Strategy</h6>
+                    <p>Focus on AI-driven sustainability intelligence with premium pricing for enterprise clients.</p>
+                </div>
+                <div class="mckinsey-element">
+                    <h6><i class="fas fa-sitemap"></i> Structure</h6>
+                    <p>Agile product teams with dedicated customer success consultants.</p>
+                </div>
+                <div class="mckinsey-element">
+                    <h6><i class="fas fa-cogs"></i> Systems</h6>
+                    <p>Cloud-based platform with seamless integration capabilities and regular AI model updates.</p>
+                </div>
+                <div class="mckinsey-element">
+                    <h6><i class="fas fa-users"></i> Shared Values</h6>
+                    <p>Commitment to sustainability, data accuracy, and actionable intelligence.</p>
+                </div>
+                <div class="mckinsey-element">
+                    <h6><i class="fas fa-user-tie"></i> Style</h6>
+                    <p>Collaborative leadership with sustainability expertise and technical innovation.</p>
+                </div>
+                <div class="mckinsey-element">
+                    <h6><i class="fas fa-id-badge"></i> Staff</h6>
+                    <p>Sustainability experts, data scientists, and customer-focused implementation team.</p>
+                </div>
+                <div class="mckinsey-element">
+                    <h6><i class="fas fa-tools"></i> Skills</h6>
+                    <p>AI development, sustainability reporting expertise, and data storytelling.</p>
+                </div>
+            </div>
+            <div class="analytics-strategy-actions">
+                <button class="finchat-btn finchat-btn-primary" id="generate7SReportBtn">
+                    <i class="fas fa-file-alt"></i> Generate Strategic Report
+                </button>
+            </div>
+        </div>
+        
+        <div class="analytics-tab-content" id="strategy-porter" style="display: none;">
+            <!-- Porter's 5 Forces content would go here -->
+            <div class="analytics-chart-header">
+                <h5 class="analytics-chart-title">Porter's Five Forces Analysis</h5>
+                <p class="analytics-chart-subtitle">Competitive industry analysis for sustainability intelligence</p>
+            </div>
+            <div class="porters-forces">
+                <div class="forces-element">
+                    <h6>Competitive Rivalry</h6>
+                    <div class="force-meter">
+                        <div class="force-fill" style="width: 70%;"></div>
+                    </div>
+                    <p>High - ESG software market growing with established players</p>
+                </div>
+                <div class="forces-element">
+                    <h6>Supplier Power</h6>
+                    <div class="force-meter">
+                        <div class="force-fill" style="width: 50%;"></div>
+                    </div>
+                    <p>Medium - Data providers and cloud services are important but substitutable</p>
+                </div>
+                <div class="forces-element">
+                    <h6>Buyer Power</h6>
+                    <div class="force-meter">
+                        <div class="force-fill" style="width: 65%;"></div>
+                    </div>
+                    <p>Medium-High - Enterprises have many options but switching costs exist</p>
+                </div>
+                <div class="forces-element">
+                    <h6>Threat of Substitution</h6>
+                    <div class="force-meter">
+                        <div class="force-fill" style="width: 40%;"></div>
+                    </div>
+                    <p>Medium-Low - AI-driven solutions offer unique value difficult to substitute</p>
+                </div>
+                <div class="forces-element">
+                    <h6>Threat of New Entry</h6>
+                    <div class="force-meter">
+                        <div class="force-fill" style="width: 55%;"></div>
+                    </div>
+                    <p>Medium - AI expertise and regulatory knowledge create barriers to entry</p>
+                </div>
+            </div>
+            <div class="analytics-strategy-actions">
+                <button class="finchat-btn finchat-btn-primary" id="generatePorterReportBtn">
+                    <i class="fas fa-file-alt"></i> Generate Strategic Report
+                </button>
+            </div>
+        </div>
+        
+        <div class="analytics-tab-content" id="strategy-blue" style="display: none;">
+            <!-- Blue Ocean Strategy content would go here -->
+            <div class="analytics-chart-header">
+                <h5 class="analytics-chart-title">Blue Ocean Strategy Canvas</h5>
+                <p class="analytics-chart-subtitle">Creating uncontested market space in sustainability intelligence</p>
+            </div>
+            <div class="blue-ocean-canvas">
+                <canvas id="blueOceanCanvas" height="300"></canvas>
+            </div>
+            <div class="blue-ocean-factors">
+                <div class="blue-ocean-factor">
+                    <h6>Eliminate</h6>
+                    <ul>
+                        <li>Complex manual data entry</li>
+                        <li>Technical jargon in reporting</li>
+                        <li>Isolated sustainability metrics</li>
+                    </ul>
+                </div>
+                <div class="blue-ocean-factor">
+                    <h6>Reduce</h6>
+                    <ul>
+                        <li>Implementation time</li>
+                        <li>Learning curve</li>
+                        <li>Integration complexity</li>
+                    </ul>
+                </div>
+                <div class="blue-ocean-factor">
+                    <h6>Raise</h6>
+                    <ul>
+                        <li>AI-driven insights</li>
+                        <li>Storytelling capabilities</li>
+                        <li>Real-time monitoring</li>
+                    </ul>
+                </div>
+                <div class="blue-ocean-factor">
+                    <h6>Create</h6>
+                    <ul>
+                        <li>Predictive ESG scenarios</li>
+                        <li>Automated compliance checks</li>
+                        <li>Impact visualization tools</li>
+                    </ul>
+                </div>
+            </div>
+            <div class="analytics-strategy-actions">
+                <button class="finchat-btn finchat-btn-primary" id="generateBlueOceanReportBtn">
+                    <i class="fas fa-file-alt"></i> Generate Strategic Report
+                </button>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Product Recommendations -->
+    <div class="analytics-recommendations">
+        <div class="analytics-recommendations-header">
+            <h4 class="analytics-recommendations-title">
+                <i class="fas fa-lightbulb"></i> Monetization Products
+            </h4>
+            <p class="analytics-recommendations-subtitle">AI-generated product opportunities based on strategic analysis</p>
         </div>
         
         <div class="analytics-recommendations-list">
@@ -864,6 +2095,9 @@ Analytics Dashboard
                         <span class="analytics-recommendation-tag">Data Products</span>
                         <span class="analytics-recommendation-tag">High ROI</span>
                     </div>
+                    <button class="finchat-btn finchat-btn-sm finchat-btn-outline mt-2">
+                        <i class="fas fa-plus"></i> Create Business Plan
+                    </button>
                 </div>
             </div>
             
@@ -878,6 +2112,9 @@ Analytics Dashboard
                         <span class="analytics-recommendation-tag">Services</span>
                         <span class="analytics-recommendation-tag">Medium ROI</span>
                     </div>
+                    <button class="finchat-btn finchat-btn-sm finchat-btn-outline mt-2">
+                        <i class="fas fa-plus"></i> Create Business Plan
+                    </button>
                 </div>
             </div>
             
@@ -892,11 +2129,264 @@ Analytics Dashboard
                         <span class="analytics-recommendation-tag">Certification</span>
                         <span class="analytics-recommendation-tag">Long-term</span>
                     </div>
+                    <button class="finchat-btn finchat-btn-sm finchat-btn-outline mt-2">
+                        <i class="fas fa-plus"></i> Create Business Plan
+                    </button>
                 </div>
             </div>
         </div>
     </div>
 </div>
+
+<style>
+.swot-grid {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    grid-gap: 15px;
+}
+
+.swot-cell {
+    background-color: var(--fc-bg-card);
+    border: 1px solid var(--fc-border);
+    border-radius: var(--fc-radius);
+    padding: 15px;
+}
+
+.swot-cell h5 {
+    font-size: 1rem;
+    margin-top: 0;
+    margin-bottom: 10px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.swot-cell ul {
+    padding-left: 20px;
+    margin: 0;
+}
+
+.swot-cell li {
+    margin-bottom: 5px;
+    font-size: 0.9rem;
+}
+
+.swot-strengths h5 {
+    color: var(--fc-positive);
+}
+
+.swot-weaknesses h5 {
+    color: var(--fc-negative);
+}
+
+.swot-opportunities h5 {
+    color: var(--fc-info);
+}
+
+.swot-threats h5 {
+    color: var(--fc-warning);
+}
+
+.analytics-tabs {
+    display: flex;
+    gap: 10px;
+    border-bottom: 1px solid var(--fc-border);
+    margin-bottom: 20px;
+    overflow-x: auto;
+    padding-bottom: 10px;
+}
+
+.analytics-tab {
+    padding: 8px 16px;
+    background: transparent;
+    border: 1px solid var(--fc-border);
+    border-radius: var(--fc-radius);
+    color: var(--fc-text-secondary);
+    cursor: pointer;
+    font-size: 0.9rem;
+    white-space: nowrap;
+}
+
+.analytics-tab.active {
+    background-color: var(--fc-primary);
+    color: white;
+    border-color: var(--fc-primary);
+}
+
+.analytics-tab-content {
+    margin-bottom: 20px;
+}
+
+.bcg-matrix {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    grid-gap: 15px;
+    margin-bottom: 20px;
+}
+
+.bcg-quadrant {
+    background-color: var(--fc-bg-tertiary);
+    border-radius: var(--fc-radius);
+    padding: 15px;
+    text-align: center;
+}
+
+.bcg-quadrant h6 {
+    margin-top: 0;
+    margin-bottom: 10px;
+    font-size: 1rem;
+}
+
+.bcg-quadrant p {
+    margin-bottom: 5px;
+    font-weight: 500;
+}
+
+.bcg-quadrant small {
+    font-size: 0.8rem;
+    color: var(--fc-text-secondary);
+}
+
+.bcg-star {
+    background-color: rgba(61, 213, 152, 0.1);
+}
+
+.bcg-star h6 {
+    color: var(--fc-positive);
+}
+
+.bcg-question {
+    background-color: rgba(52, 195, 255, 0.1);
+}
+
+.bcg-question h6 {
+    color: var(--fc-info);
+}
+
+.bcg-cash {
+    background-color: rgba(255, 185, 0, 0.1);
+}
+
+.bcg-cash h6 {
+    color: var(--fc-warning);
+}
+
+.bcg-dog {
+    background-color: rgba(255, 107, 129, 0.1);
+}
+
+.bcg-dog h6 {
+    color: var(--fc-negative);
+}
+
+.analytics-strategy-actions {
+    margin-top: 20px;
+    text-align: center;
+}
+
+.mckinsey-framework {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+    grid-gap: 15px;
+    margin-bottom: 20px;
+}
+
+.mckinsey-element {
+    background-color: var(--fc-bg-tertiary);
+    border-radius: var(--fc-radius);
+    padding: 15px;
+}
+
+.mckinsey-element h6 {
+    margin-top: 0;
+    margin-bottom: 10px;
+    font-size: 0.95rem;
+    color: var(--fc-primary);
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.mckinsey-element p {
+    margin: 0;
+    font-size: 0.9rem;
+}
+
+.porters-forces {
+    display: flex;
+    flex-direction: column;
+    gap: 15px;
+    margin-bottom: 20px;
+}
+
+.forces-element {
+    background-color: var(--fc-bg-tertiary);
+    border-radius: var(--fc-radius);
+    padding: 15px;
+}
+
+.forces-element h6 {
+    margin-top: 0;
+    margin-bottom: 10px;
+    font-size: 0.95rem;
+}
+
+.forces-element p {
+    margin: 5px 0 0 0;
+    font-size: 0.9rem;
+}
+
+.force-meter {
+    height: 10px;
+    background-color: var(--fc-bg-secondary);
+    border-radius: 5px;
+    overflow: hidden;
+}
+
+.force-fill {
+    height: 100%;
+    background-color: var(--fc-primary);
+    border-radius: 5px;
+}
+
+.blue-ocean-canvas {
+    margin-bottom: 20px;
+}
+
+.blue-ocean-factors {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    grid-gap: 15px;
+    margin-bottom: 20px;
+}
+
+.blue-ocean-factor {
+    background-color: var(--fc-bg-tertiary);
+    border-radius: var(--fc-radius);
+    padding: 15px;
+}
+
+.blue-ocean-factor h6 {
+    margin-top: 0;
+    margin-bottom: 10px;
+    font-size: 0.95rem;
+    color: var(--fc-primary);
+}
+
+.blue-ocean-factor ul {
+    padding-left: 20px;
+    margin: 0;
+}
+
+.blue-ocean-factor li {
+    margin-bottom: 5px;
+    font-size: 0.9rem;
+}
+
+.mt-2 {
+    margin-top: 10px;
+}
+</style>
 
 {% elif template_type == "copilot" %}
 <!-- Sustainability Co-Pilot Content -->
@@ -1715,7 +3205,280 @@ document.addEventListener('DOMContentLoaded', function() {
 {% endblock %}
 
 {% block additional_scripts %}
-{% if template_type == "monetization" %}
+{% if template_type == "trends" %}
+<script src="https://cdn.plot.ly/plotly-2.29.0.min.js"></script>
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // Initialize Sankey Diagram if element exists
+    if (document.getElementById('sankeyDiagram')) {
+        // Sankey diagram data
+        const sankeyData = {
+            type: "sankey",
+            orientation: "h",
+            node: {
+                pad: 15,
+                thickness: 20,
+                line: {
+                    color: "black",
+                    width: 0.5
+                },
+                label: [
+                    "Social Media", "News Sources", "Industry Reports", 
+                    "ESG Metrics", "Emissions", "Water", "Waste", "Energy", "Social",
+                    "Regulatory Compliance", "Operational Efficiency", "Reputation Management",
+                    "Carbon Reduction", "Sustainability Innovation", "Risk Mitigation"
+                ],
+                color: [
+                    "#4CAF50", "#2196F3", "#9C27B0",
+                    "#FF9800", "#F44336", "#00BCD4", "#8BC34A", "#FFC107", "#9E9E9E",
+                    "#3F51B5", "#009688", "#E91E63",
+                    "#673AB7", "#CDDC39", "#795548"
+                ]
+            },
+            link: {
+                source: [
+                    // From Sources to Metrics
+                    0, 0, 0, 1, 1, 1, 2, 2, 2,
+                    // From Metrics to Categories
+                    3, 3, 3, 4, 4, 5, 5, 6, 6, 7, 7, 8, 8,
+                    // From Categories to Outcomes
+                    9, 9, 10, 10, 11, 11, 11
+                ],
+                target: [
+                    // To Metrics
+                    3, 4, 8, 3, 6, 7, 3, 5, 7,
+                    // To Categories
+                    9, 10, 11, 9, 12, 10, 13, 10, 13, 10, 12, 11, 14,
+                    // To Outcomes
+                    12, 14, 12, 13, 12, 13, 14
+                ],
+                value: [
+                    // Source to Metrics values
+                    20, 15, 5, 15, 10, 5, 25, 15, 10,
+                    // Metrics to Categories values
+                    15, 20, 25, 10, 5, 10, 5, 5, 5, 5, 5, 10, 5,
+                    // Categories to Outcomes values
+                    10, 5, 5, 10, 5, 10, 5
+                ],
+                color: [
+                    // Colors can be customized or left default
+                    "#4CAF5080", "#4CAF5080", "#4CAF5080", 
+                    "#2196F380", "#2196F380", "#2196F380",
+                    "#9C27B080", "#9C27B080", "#9C27B080",
+                    
+                    "#FF980080", "#FF980080", "#FF980080",
+                    "#F4433680", "#F4433680", "#00BCD480", 
+                    "#00BCD480", "#8BC34A80", "#8BC34A80",
+                    "#FFC10780", "#FFC10780", "#9E9E9E80", "#9E9E9E80",
+                    
+                    "#3F51B580", "#3F51B580", "#00968880", 
+                    "#00968880", "#E91E6380", "#E91E6380", "#E91E6380"
+                ]
+            }
+        };
+
+        const data = [sankeyData];
+
+        const layout = {
+            title: null,
+            font: {
+                size: 12,
+                color: '#888'
+            },
+            plot_bgcolor: 'transparent',
+            paper_bgcolor: 'transparent',
+            margin: {
+                l: 0,
+                r: 0,
+                b: 15,
+                t: 15
+            }
+        };
+
+        Plotly.newPlot('sankeyDiagram', data, layout, {responsive: true});
+    }
+    
+    // Initialize Social Impact Chart if element exists
+    if (document.getElementById('socialImpactChart')) {
+        const data = {
+            labels: ['LinkedIn', 'X (Twitter)', 'Reddit', 'Industry Forums', 'News Sites'],
+            datasets: [{
+                label: 'Mentions',
+                data: [845, 1240, 512, 385, 678],
+                backgroundColor: [
+                    'rgba(10, 102, 194, 0.7)',  // LinkedIn blue
+                    'rgba(29, 161, 242, 0.7)',  // Twitter blue
+                    'rgba(255, 69, 0, 0.7)',    // Reddit orange
+                    'rgba(75, 192, 192, 0.7)',  // Teal
+                    'rgba(153, 102, 255, 0.7)'  // Purple
+                ],
+                borderColor: [
+                    'rgba(10, 102, 194, 1)',
+                    'rgba(29, 161, 242, 1)',
+                    'rgba(255, 69, 0, 1)',
+                    'rgba(75, 192, 192, 1)',
+                    'rgba(153, 102, 255, 1)'
+                ],
+                borderWidth: 1
+            }]
+        };
+        
+        const config = {
+            type: 'bar',
+            data: data,
+            options: {
+                indexAxis: 'y',
+                plugins: {
+                    legend: {
+                        display: false
+                    },
+                    tooltip: {
+                        callbacks: {
+                            label: function(context) {
+                                return `Mentions: ${context.raw}`;
+                            }
+                        }
+                    }
+                },
+                scales: {
+                    x: {
+                        beginAtZero: true,
+                        grid: {
+                            color: 'rgba(255, 255, 255, 0.1)'
+                        },
+                        ticks: {
+                            color: '#888'
+                        }
+                    },
+                    y: {
+                        grid: {
+                            display: false
+                        },
+                        ticks: {
+                            color: '#888'
+                        }
+                    }
+                },
+                responsive: true,
+                maintainAspectRatio: false
+            }
+        };
+        
+        new Chart(document.getElementById('socialImpactChart'), config);
+    }
+    
+    // Handle refresh button for trending topics
+    if (document.getElementById('refreshTopicsBtn')) {
+        document.getElementById('refreshTopicsBtn').addEventListener('click', function() {
+            this.innerHTML = '<i class="fas fa-sync-alt fa-spin"></i> Updating...';
+            
+            // Simulate refreshing data (would be an API call in production)
+            setTimeout(() => {
+                this.innerHTML = '<i class="fas fa-sync-alt"></i> Refresh';
+                // Show a toast notification
+                const toast = document.createElement('div');
+                toast.className = 'finchat-toast finchat-toast-success';
+                toast.innerHTML = `
+                    <div class="finchat-toast-icon">
+                        <i class="fas fa-check-circle"></i>
+                    </div>
+                    <div class="finchat-toast-content">
+                        <h4>Updated Successfully</h4>
+                        <p>Trending topics have been refreshed with the latest data.</p>
+                    </div>
+                    <button class="finchat-toast-close">
+                        <i class="fas fa-times"></i>
+                    </button>
+                `;
+                document.body.appendChild(toast);
+                
+                // Auto remove after 5 seconds
+                setTimeout(() => {
+                    toast.classList.add('finchat-toast-hide');
+                    setTimeout(() => {
+                        document.body.removeChild(toast);
+                    }, 300);
+                }, 5000);
+                
+                // Close button
+                toast.querySelector('.finchat-toast-close').addEventListener('click', function() {
+                    toast.classList.add('finchat-toast-hide');
+                    setTimeout(() => {
+                        document.body.removeChild(toast);
+                    }, 300);
+                });
+            }, 1500);
+        });
+    }
+});
+</script>
+
+<style>
+.finchat-toast {
+    position: fixed;
+    bottom: 20px;
+    right: 20px;
+    background-color: var(--fc-bg-card);
+    border-left: 4px solid var(--fc-primary);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+    border-radius: var(--fc-radius);
+    padding: 16px;
+    display: flex;
+    align-items: flex-start;
+    gap: 12px;
+    z-index: 9999;
+    max-width: 350px;
+    animation: slide-in 0.3s ease;
+}
+
+.finchat-toast-success {
+    border-left-color: var(--fc-positive);
+}
+
+.finchat-toast-icon {
+    color: var(--fc-positive);
+    font-size: 1.5rem;
+}
+
+.finchat-toast-content {
+    flex: 1;
+}
+
+.finchat-toast-content h4 {
+    margin: 0 0 4px 0;
+    font-size: 1rem;
+}
+
+.finchat-toast-content p {
+    margin: 0;
+    font-size: 0.85rem;
+    color: var(--fc-text-secondary);
+}
+
+.finchat-toast-close {
+    background: none;
+    border: none;
+    color: var(--fc-text-secondary);
+    cursor: pointer;
+    padding: 0;
+    font-size: 0.9rem;
+}
+
+.finchat-toast-hide {
+    animation: slide-out 0.3s ease forwards;
+}
+
+@keyframes slide-in {
+    from { transform: translateX(100%); opacity: 0; }
+    to { transform: translateX(0); opacity: 1; }
+}
+
+@keyframes slide-out {
+    from { transform: translateX(0); opacity: 1; }
+    to { transform: translateX(100%); opacity: 0; }
+}
+</style>
+{% elif template_type == "monetization" %}
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 <script>
 document.addEventListener('DOMContentLoaded', function() {

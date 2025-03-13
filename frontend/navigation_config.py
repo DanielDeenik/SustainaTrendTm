@@ -58,9 +58,27 @@ def get_navigation_structure():
                 "items": [
                     {
                         "id": "stories",
-                        "title": "AI Story Cards",
+                        "title": "AI Storytelling Engine",
                         "url": "/story-cards",
                         "icon": "fa-newspaper"
+                    },
+                    {
+                        "id": "trends",
+                        "title": "Trend Analysis",
+                        "url": "/trend-analysis",
+                        "icon": "fa-chart-bar"
+                    },
+                    {
+                        "id": "virality",
+                        "title": "Virality Metrics",
+                        "url": "/virality-metrics",
+                        "icon": "fa-chart-network"
+                    },
+                    {
+                        "id": "strategies",
+                        "title": "Sustainability Strategies",
+                        "url": "/sustainability-strategies",
+                        "icon": "fa-chess-board"
                     },
                     {
                         "id": "monetization",
@@ -81,6 +99,12 @@ def get_navigation_structure():
                         "icon": "fa-file-upload"
                     },
                     {
+                        "id": "ethical_ai",
+                        "title": "Ethical AI Assessment",
+                        "url": "/document-upload",
+                        "icon": "fa-balance-scale"
+                    },
+                    {
                         "id": "terminal",
                         "title": "Data Terminal",
                         "url": "/data-terminal",
@@ -91,6 +115,12 @@ def get_navigation_structure():
                         "title": "AI Co-Pilot",
                         "url": "/co-pilot",
                         "icon": "fa-robot"
+                    },
+                    {
+                        "id": "realestate",
+                        "title": "Real Estate",
+                        "url": "/real-estate",
+                        "icon": "fa-building"
                     }
                 ]
             }

@@ -1,0 +1,967 @@
+{% extends "layouts/finchat_dark_layout.html" %}
+
+{% block title %}Ethical AI Assessment - SustainaTrend™{% endblock %}
+
+{% block header_title %}Ethical AI Assessment{% endblock %}
+
+{% block header_actions %}
+<span class="finchat-badge finchat-badge-primary">AI Ethics</span>
+{% endblock %}
+
+{% block additional_styles %}
+<style>
+    .upload-container {
+        background-color: var(--fc-bg-card);
+        border: 1px solid var(--fc-border);
+        border-radius: var(--fc-radius);
+        padding: var(--fc-spacing-xl);
+        text-align: center;
+        margin-bottom: var(--fc-spacing-lg);
+        position: relative;
+    }
+    
+    .upload-container.drag-over {
+        border-color: var(--fc-primary);
+        background-color: rgba(var(--primary-rgb), 0.05);
+    }
+    
+    .upload-icon {
+        font-size: 3rem;
+        color: var(--fc-text-secondary);
+        margin-bottom: var(--fc-spacing-md);
+    }
+    
+    .upload-container.drag-over .upload-icon {
+        color: var(--fc-primary);
+    }
+    
+    .upload-title {
+        font-size: 1.2rem;
+        font-weight: 600;
+        margin-bottom: var(--fc-spacing-sm);
+    }
+    
+    .upload-description {
+        color: var(--fc-text-secondary);
+        margin-bottom: var(--fc-spacing-lg);
+        max-width: 500px;
+        margin: 0 auto var(--fc-spacing-lg) auto;
+    }
+    
+    .upload-btn {
+        background-color: var(--fc-primary);
+        color: #000;
+        border: none;
+        padding: 10px 20px;
+        border-radius: var(--fc-radius);
+        font-weight: 500;
+        cursor: pointer;
+        transition: all 0.2s;
+    }
+    
+    .upload-btn:hover {
+        background-color: var(--fc-primary-hover);
+    }
+    
+    .upload-input {
+        display: none;
+    }
+    
+    .file-info {
+        margin-top: var(--fc-spacing-lg);
+        text-align: left;
+        padding: var(--fc-spacing-md);
+        border: 1px solid var(--fc-border);
+        border-radius: var(--fc-radius);
+        background-color: var(--fc-bg-tertiary);
+        display: none;
+    }
+    
+    .file-info.show {
+        display: block;
+    }
+    
+    .file-name {
+        font-weight: 600;
+        margin-bottom: var(--fc-spacing-sm);
+        display: flex;
+        align-items: center;
+        gap: var(--fc-spacing-sm);
+    }
+    
+    .file-detail {
+        font-size: 0.9rem;
+        color: var(--fc-text-secondary);
+        margin-bottom: var(--fc-spacing-xs);
+    }
+    
+    .file-progress {
+        height: 4px;
+        background-color: var(--fc-bg-hover);
+        border-radius: 2px;
+        margin: var(--fc-spacing-sm) 0;
+        overflow: hidden;
+    }
+    
+    .file-progress-bar {
+        height: 100%;
+        background-color: var(--fc-primary);
+        width: 0%;
+        transition: width 0.3s;
+    }
+    
+    .file-actions {
+        display: flex;
+        justify-content: space-between;
+        margin-top: var(--fc-spacing-md);
+    }
+    
+    .drag-message {
+        display: none;
+        position: absolute;
+        top: 0;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        background-color: rgba(var(--primary-rgb), 0.05);
+        border: 2px dashed var(--fc-primary);
+        border-radius: var(--fc-radius);
+        align-items: center;
+        justify-content: center;
+        font-size: 1.2rem;
+        font-weight: 600;
+        color: var(--fc-primary);
+    }
+    
+    .upload-container.drag-over .drag-message {
+        display: flex;
+    }
+    
+    /* Ethical AI Assessment Styles */
+    .ethics-dashboard {
+        margin-top: var(--fc-spacing-xl);
+    }
+    
+    .ethics-card-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+        gap: var(--fc-spacing-md);
+        margin-bottom: var(--fc-spacing-lg);
+    }
+    
+    .ethics-card {
+        background-color: var(--fc-bg-card);
+        border: 1px solid var(--fc-border);
+        border-radius: var(--fc-radius);
+        padding: var(--fc-spacing-md);
+        transition: all 0.2s;
+    }
+    
+    .ethics-card:hover {
+        border-color: var(--fc-primary);
+    }
+    
+    .ethics-card-header {
+        display: flex;
+        align-items: center;
+        gap: var(--fc-spacing-sm);
+        margin-bottom: var(--fc-spacing-md);
+    }
+    
+    .ethics-icon {
+        width: 36px;
+        height: 36px;
+        border-radius: 6px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 1.2rem;
+    }
+    
+    .ethics-icon-fairness {
+        background-color: rgba(75, 192, 192, 0.15);
+        color: rgb(75, 192, 192);
+    }
+    
+    .ethics-icon-transparency {
+        background-color: rgba(255, 205, 86, 0.15);
+        color: rgb(255, 205, 86);
+    }
+    
+    .ethics-icon-accountability {
+        background-color: rgba(54, 162, 235, 0.15);
+        color: rgb(54, 162, 235);
+    }
+    
+    .ethics-icon-robustness {
+        background-color: rgba(153, 102, 255, 0.15);
+        color: rgb(153, 102, 255);
+    }
+    
+    .ethics-title {
+        font-weight: 600;
+        font-size: 1rem;
+    }
+    
+    .ethics-score {
+        font-size: 2rem;
+        font-weight: 700;
+        margin: var(--fc-spacing-md) 0;
+    }
+    
+    .ethics-progress {
+        height: 8px;
+        background-color: var(--fc-bg-hover);
+        border-radius: 4px;
+        margin-bottom: var(--fc-spacing-md);
+        overflow: hidden;
+    }
+    
+    .ethics-progress-bar {
+        height: 100%;
+    }
+    
+    .progress-fairness {
+        background: linear-gradient(90deg, rgb(75, 192, 192), rgba(75, 192, 192, 0.6));
+    }
+    
+    .progress-transparency {
+        background: linear-gradient(90deg, rgb(255, 205, 86), rgba(255, 205, 86, 0.6));
+    }
+    
+    .progress-accountability {
+        background: linear-gradient(90deg, rgb(54, 162, 235), rgba(54, 162, 235, 0.6));
+    }
+    
+    .progress-robustness {
+        background: linear-gradient(90deg, rgb(153, 102, 255), rgba(153, 102, 255, 0.6));
+    }
+    
+    .ethics-detail {
+        color: var(--fc-text-secondary);
+        font-size: 0.9rem;
+        margin-bottom: var(--fc-spacing-sm);
+    }
+    
+    .ethics-chart-row {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: var(--fc-spacing-lg);
+        margin-bottom: var(--fc-spacing-lg);
+    }
+    
+    .ethics-chart-card {
+        background-color: var(--fc-bg-card);
+        border: 1px solid var(--fc-border);
+        border-radius: var(--fc-radius);
+        padding: var(--fc-spacing-md);
+    }
+    
+    .ethics-chart-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: var(--fc-spacing-md);
+    }
+    
+    .ethics-chart-title {
+        font-weight: 600;
+        font-size: 1rem;
+    }
+    
+    .ethics-chart-content {
+        height: 300px;
+        position: relative;
+    }
+    
+    .ethics-findings {
+        margin-top: var(--fc-spacing-xl);
+    }
+    
+    .finding-card {
+        background-color: var(--fc-bg-card);
+        border: 1px solid var(--fc-border);
+        border-radius: var(--fc-radius);
+        padding: var(--fc-spacing-md);
+        margin-bottom: var(--fc-spacing-md);
+    }
+    
+    .finding-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: var(--fc-spacing-md);
+    }
+    
+    .finding-title {
+        font-weight: 600;
+        font-size: 1rem;
+        display: flex;
+        align-items: center;
+        gap: var(--fc-spacing-sm);
+    }
+    
+    .finding-severity {
+        padding: 4px 10px;
+        border-radius: 12px;
+        font-size: 0.75rem;
+        font-weight: 500;
+    }
+    
+    .severity-high {
+        background-color: rgba(255, 99, 132, 0.1);
+        color: rgb(255, 99, 132);
+    }
+    
+    .severity-medium {
+        background-color: rgba(255, 159, 64, 0.1);
+        color: rgb(255, 159, 64);
+    }
+    
+    .severity-low {
+        background-color: rgba(75, 192, 192, 0.1);
+        color: rgb(75, 192, 192);
+    }
+    
+    .finding-description {
+        color: var(--fc-text-secondary);
+        font-size: 0.9rem;
+        margin-bottom: var(--fc-spacing-md);
+    }
+    
+    .finding-details {
+        background-color: var(--fc-bg-tertiary);
+        border-radius: var(--fc-radius);
+        padding: var(--fc-spacing-md);
+        margin-bottom: var(--fc-spacing-md);
+        font-family: monospace;
+        font-size: 0.85rem;
+        white-space: pre-wrap;
+    }
+    
+    .finding-resolution {
+        color: var(--fc-text-secondary);
+        font-size: 0.9rem;
+        border-left: 3px solid var(--fc-primary);
+        padding-left: var(--fc-spacing-md);
+    }
+    
+    .regulatory-compliance {
+        margin-top: var(--fc-spacing-xl);
+    }
+    
+    .regulations-table {
+        width: 100%;
+        border-collapse: collapse;
+    }
+    
+    .regulations-table th,
+    .regulations-table td {
+        padding: var(--fc-spacing-sm) var(--fc-spacing-md);
+        text-align: left;
+        border-bottom: 1px solid var(--fc-border);
+    }
+    
+    .regulations-table th {
+        font-weight: 500;
+        color: var(--fc-text-secondary);
+        font-size: 0.85rem;
+    }
+    
+    .regulation-status {
+        display: flex;
+        align-items: center;
+        gap: var(--fc-spacing-xs);
+    }
+    
+    .status-compliant {
+        color: var(--fc-positive);
+    }
+    
+    .status-attention {
+        color: var(--fc-warning);
+    }
+    
+    .status-non-compliant {
+        color: var(--fc-negative);
+    }
+    
+    .report-actions {
+        margin-top: var(--fc-spacing-xl);
+        display: flex;
+        justify-content: flex-end;
+        gap: var(--fc-spacing-md);
+    }
+</style>
+{% endblock %}
+
+{% block main_content %}
+<div class="finchat-section">
+    <div class="upload-container" id="uploadContainer">
+        <div class="upload-icon">
+            <i class="fas fa-file-upload"></i>
+        </div>
+        <h2 class="upload-title">Upload Document for Ethical AI Assessment</h2>
+        <p class="upload-description">
+            Upload your AI model documentation, data processing workflows, or algorithmic impact assessments for ethical evaluation and compliance analysis.
+        </p>
+        <button class="upload-btn" id="uploadBtn">Choose File</button>
+        <input type="file" class="upload-input" id="fileInput" accept=".pdf,.docx,.doc,.txt,.ipynb,.py,.json">
+        <div class="drag-message">
+            <div>Drop your file here</div>
+        </div>
+    </div>
+
+    <div class="file-info" id="fileInfo">
+        <div class="file-name">
+            <i class="fas fa-file-pdf"></i>
+            <span id="fileName">ai_model_documentation.pdf</span>
+        </div>
+        <div class="file-detail">
+            <span id="fileSize">2.8 MB</span> • <span id="fileType">Technical Document</span>
+        </div>
+        <div class="file-progress">
+            <div class="file-progress-bar" id="fileProgressBar"></div>
+        </div>
+        <div class="file-actions">
+            <button class="finchat-button" id="cancelUploadBtn">
+                <i class="fas fa-times"></i> Cancel
+            </button>
+            <button class="finchat-button-primary" id="startEthicalAssessmentBtn">
+                <i class="fas fa-balance-scale"></i> Start Ethical Assessment
+            </button>
+        </div>
+    </div>
+    
+    <!-- Ethical AI Assessment Dashboard -->
+    <div class="ethics-dashboard" id="ethicsDashboard">
+        <h3 class="finchat-section-title">
+            <i class="fas fa-balance-scale"></i> Ethical AI Assessment Results
+        </h3>
+        
+        <div class="ethics-card-grid">
+            <div class="ethics-card">
+                <div class="ethics-card-header">
+                    <div class="ethics-icon ethics-icon-fairness">
+                        <i class="fas fa-users"></i>
+                    </div>
+                    <div>
+                        <div class="ethics-title">Fairness & Bias</div>
+                    </div>
+                </div>
+                <div class="ethics-score">76%</div>
+                <div class="ethics-progress">
+                    <div class="ethics-progress-bar progress-fairness" style="width: 76%"></div>
+                </div>
+                <div class="ethics-detail">
+                    <strong>Strengths:</strong> Demographic parity, equal opportunity
+                </div>
+                <div class="ethics-detail">
+                    <strong>Weaknesses:</strong> Intersectional bias, representation
+                </div>
+            </div>
+            
+            <div class="ethics-card">
+                <div class="ethics-card-header">
+                    <div class="ethics-icon ethics-icon-transparency">
+                        <i class="fas fa-eye"></i>
+                    </div>
+                    <div>
+                        <div class="ethics-title">Transparency & Explainability</div>
+                    </div>
+                </div>
+                <div class="ethics-score">82%</div>
+                <div class="ethics-progress">
+                    <div class="ethics-progress-bar progress-transparency" style="width: 82%"></div>
+                </div>
+                <div class="ethics-detail">
+                    <strong>Strengths:</strong> Feature importance, decision logic
+                </div>
+                <div class="ethics-detail">
+                    <strong>Weaknesses:</strong> End-user explanations
+                </div>
+            </div>
+            
+            <div class="ethics-card">
+                <div class="ethics-card-header">
+                    <div class="ethics-icon ethics-icon-accountability">
+                        <i class="fas fa-clipboard-check"></i>
+                    </div>
+                    <div>
+                        <div class="ethics-title">Accountability & Governance</div>
+                    </div>
+                </div>
+                <div class="ethics-score">65%</div>
+                <div class="ethics-progress">
+                    <div class="ethics-progress-bar progress-accountability" style="width: 65%"></div>
+                </div>
+                <div class="ethics-detail">
+                    <strong>Strengths:</strong> Logging, version control
+                </div>
+                <div class="ethics-detail">
+                    <strong>Weaknesses:</strong> Human oversight, appeal process
+                </div>
+            </div>
+            
+            <div class="ethics-card">
+                <div class="ethics-card-header">
+                    <div class="ethics-icon ethics-icon-robustness">
+                        <i class="fas fa-shield-alt"></i>
+                    </div>
+                    <div>
+                        <div class="ethics-title">Robustness & Security</div>
+                    </div>
+                </div>
+                <div class="ethics-score">79%</div>
+                <div class="ethics-progress">
+                    <div class="ethics-progress-bar progress-robustness" style="width: 79%"></div>
+                </div>
+                <div class="ethics-detail">
+                    <strong>Strengths:</strong> Adversarial testing, data validation
+                </div>
+                <div class="ethics-detail">
+                    <strong>Weaknesses:</strong> Edge case handling
+                </div>
+            </div>
+        </div>
+        
+        <div class="ethics-chart-row">
+            <div class="ethics-chart-card">
+                <div class="ethics-chart-header">
+                    <h4 class="ethics-chart-title">Dimensions Comparison</h4>
+                    <div>
+                        <select class="finchat-select">
+                            <option>All Categories</option>
+                            <option>By Framework</option>
+                            <option>By Use Case</option>
+                        </select>
+                    </div>
+                </div>
+                <div class="ethics-chart-content">
+                    <canvas id="dimensionsRadarChart"></canvas>
+                </div>
+            </div>
+            
+            <div class="ethics-chart-card">
+                <div class="ethics-chart-header">
+                    <h4 class="ethics-chart-title">Compliance Trends</h4>
+                    <div>
+                        <select class="finchat-select">
+                            <option>Last 6 Months</option>
+                            <option>Last Year</option>
+                            <option>Last 2 Years</option>
+                        </select>
+                    </div>
+                </div>
+                <div class="ethics-chart-content">
+                    <canvas id="complianceTrendsChart"></canvas>
+                </div>
+            </div>
+        </div>
+        
+        <div class="ethics-findings">
+            <h3 class="finchat-section-title">
+                <i class="fas fa-exclamation-triangle"></i> Critical Findings
+            </h3>
+            
+            <div class="finding-card">
+                <div class="finding-header">
+                    <div class="finding-title">
+                        <i class="fas fa-exclamation-circle" style="color: rgb(255, 99, 132);"></i>
+                        Potential Demographic Bias in Training Data
+                    </div>
+                    <div class="finding-severity severity-high">High Severity</div>
+                </div>
+                <div class="finding-description">
+                    Analysis detected potential bias in model outputs across demographic groups, particularly affecting age and geographic location distributions.
+                </div>
+                <div class="finding-details">
+Location: Dataset/training_data.csv
+Issue: Underrepresentation of 55+ age group (only 4% of samples)
+Impact: May lead to 15-20% lower accuracy for this demographic
+</div>
+                <div class="finding-resolution">
+                    <strong>Recommended Action:</strong> Supplement training data with additional samples from underrepresented demographics. Consider implementing fairness constraints during model training.
+                </div>
+            </div>
+            
+            <div class="finding-card">
+                <div class="finding-header">
+                    <div class="finding-title">
+                        <i class="fas fa-exclamation-circle" style="color: rgb(255, 159, 64);"></i>
+                        Insufficient Explainability Mechanisms
+                    </div>
+                    <div class="finding-severity severity-medium">Medium Severity</div>
+                </div>
+                <div class="finding-description">
+                    The model lacks adequate explainability mechanisms for end users to understand decisions, particularly for edge cases and rejected applications.
+                </div>
+                <div class="finding-details">
+Location: Model/explanation_module.py
+Issue: Only provides technical explanations using SHAP values
+Impact: End users cannot effectively understand or challenge decisions
+</div>
+                <div class="finding-resolution">
+                    <strong>Recommended Action:</strong> Implement a layered explanation system with both technical and user-friendly explanations. Add counterfactual explanations for rejected applications.
+                </div>
+            </div>
+            
+            <div class="finding-card">
+                <div class="finding-header">
+                    <div class="finding-title">
+                        <i class="fas fa-exclamation-circle" style="color: rgb(75, 192, 192);"></i>
+                        Incomplete Logging of Decision Factors
+                    </div>
+                    <div class="finding-severity severity-low">Low Severity</div>
+                </div>
+                <div class="finding-description">
+                    The system does not maintain complete logs of all factors contributing to decisions, creating challenges for retrospective audits and reviews.
+                </div>
+                <div class="finding-details">
+Location: System/logging_service.py
+Issue: Only primary features are logged, secondary factors omitted
+Impact: Limited ability to retrospectively audit decision processes
+</div>
+                <div class="finding-resolution">
+                    <strong>Recommended Action:</strong> Enhance logging to include all factors with material impact on decisions. Implement a comprehensive audit trail system with appropriate retention policies.
+                </div>
+            </div>
+        </div>
+        
+        <div class="regulatory-compliance">
+            <h3 class="finchat-section-title">
+                <i class="fas fa-gavel"></i> Regulatory Compliance Assessment
+            </h3>
+            
+            <table class="regulations-table">
+                <thead>
+                    <tr>
+                        <th>Regulation</th>
+                        <th>Status</th>
+                        <th>Compliance Level</th>
+                        <th>Key Gaps</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td>EU AI Act</td>
+                        <td>
+                            <div class="regulation-status status-attention">
+                                <i class="fas fa-exclamation-triangle"></i>
+                                <span>Needs Attention</span>
+                            </div>
+                        </td>
+                        <td>72%</td>
+                        <td>Risk management documentation, human oversight provisions</td>
+                    </tr>
+                    <tr>
+                        <td>GDPR (AI-related)</td>
+                        <td>
+                            <div class="regulation-status status-compliant">
+                                <i class="fas fa-check-circle"></i>
+                                <span>Compliant</span>
+                            </div>
+                        </td>
+                        <td>89%</td>
+                        <td>Minor gaps in data subject access mechanisms</td>
+                    </tr>
+                    <tr>
+                        <td>ISO/IEC 42001</td>
+                        <td>
+                            <div class="regulation-status status-attention">
+                                <i class="fas fa-exclamation-triangle"></i>
+                                <span>Needs Attention</span>
+                            </div>
+                        </td>
+                        <td>68%</td>
+                        <td>Governance framework documentation, risk assessment</td>
+                    </tr>
+                    <tr>
+                        <td>NIST AI Risk Management</td>
+                        <td>
+                            <div class="regulation-status status-non-compliant">
+                                <i class="fas fa-times-circle"></i>
+                                <span>Non-Compliant</span>
+                            </div>
+                        </td>
+                        <td>45%</td>
+                        <td>Missing impact assessments, inadequate mapping functions</td>
+                    </tr>
+                    <tr>
+                        <td>Industry-Specific Standards</td>
+                        <td>
+                            <div class="regulation-status status-compliant">
+                                <i class="fas fa-check-circle"></i>
+                                <span>Compliant</span>
+                            </div>
+                        </td>
+                        <td>85%</td>
+                        <td>Minor documentation gaps</td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+        
+        <div class="report-actions">
+            <button class="finchat-button">
+                <i class="fas fa-download"></i> Download Full Report
+            </button>
+            <button class="finchat-button-primary">
+                <i class="fas fa-file-export"></i> Export Remediation Plan
+            </button>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block page_scripts %}
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        // Demo file upload functionality
+        const uploadContainer = document.getElementById('uploadContainer');
+        const fileInput = document.getElementById('fileInput');
+        const uploadBtn = document.getElementById('uploadBtn');
+        const cancelUploadBtn = document.getElementById('cancelUploadBtn');
+        const startEthicalAssessmentBtn = document.getElementById('startEthicalAssessmentBtn');
+        const fileInfo = document.getElementById('fileInfo');
+        const fileName = document.getElementById('fileName');
+        const fileSize = document.getElementById('fileSize');
+        const fileType = document.getElementById('fileType');
+        const fileProgressBar = document.getElementById('fileProgressBar');
+        const ethicsDashboard = document.getElementById('ethicsDashboard');
+        
+        // Initially hide the ethics dashboard
+        ethicsDashboard.style.display = 'none';
+        
+        // File upload button click
+        uploadBtn.addEventListener('click', function() {
+            fileInput.click();
+        });
+        
+        // File selected
+        fileInput.addEventListener('change', function(e) {
+            if (fileInput.files.length > 0) {
+                const file = fileInput.files[0];
+                showFileInfo(file);
+            }
+        });
+        
+        // Cancel upload
+        cancelUploadBtn.addEventListener('click', function() {
+            fileInfo.classList.remove('show');
+            fileInput.value = '';
+        });
+        
+        // Start ethical assessment
+        startEthicalAssessmentBtn.addEventListener('click', function() {
+            simulateUpload();
+        });
+        
+        // Show file info
+        function showFileInfo(file) {
+            fileName.textContent = file.name;
+            fileSize.textContent = formatFileSize(file.size);
+            fileType.textContent = getFileType(file.name);
+            fileProgressBar.style.width = '0%';
+            fileInfo.classList.add('show');
+        }
+        
+        // Format file size
+        function formatFileSize(bytes) {
+            if (bytes === 0) return '0 Bytes';
+            const k = 1024;
+            const sizes = ['Bytes', 'KB', 'MB', 'GB'];
+            const i = Math.floor(Math.log(bytes) / Math.log(k));
+            return parseFloat((bytes / Math.pow(k, i)).toFixed(1)) + ' ' + sizes[i];
+        }
+        
+        // Get file type
+        function getFileType(filename) {
+            const ext = filename.split('.').pop().toLowerCase();
+            const types = {
+                'pdf': 'PDF Document',
+                'docx': 'Word Document',
+                'doc': 'Word Document',
+                'txt': 'Text Document',
+                'ipynb': 'Jupyter Notebook',
+                'py': 'Python Script',
+                'json': 'JSON Document'
+            };
+            return types[ext] || 'Document';
+        }
+        
+        // Simulate upload progress
+        function simulateUpload() {
+            let progress = 0;
+            const interval = setInterval(function() {
+                progress += 5;
+                fileProgressBar.style.width = progress + '%';
+                
+                if (progress >= 100) {
+                    clearInterval(interval);
+                    setTimeout(function() {
+                        ethicsDashboard.style.display = 'block';
+                        // Scroll to the results
+                        ethicsDashboard.scrollIntoView({ behavior: 'smooth' });
+                        // Initialize charts
+                        initCharts();
+                    }, 500);
+                }
+            }, 100);
+        }
+        
+        // Initialize charts
+        function initCharts() {
+            // Dimensions Radar Chart
+            const dimensionsCtx = document.getElementById('dimensionsRadarChart').getContext('2d');
+            const dimensionsChart = new Chart(dimensionsCtx, {
+                type: 'radar',
+                data: {
+                    labels: [
+                        'Fairness', 
+                        'Transparency', 
+                        'Accountability', 
+                        'Robustness',
+                        'Privacy',
+                        'Safety',
+                        'Inclusivity'
+                    ],
+                    datasets: [{
+                        label: 'Your Model',
+                        data: [76, 82, 65, 79, 88, 72, 64],
+                        backgroundColor: 'rgba(54, 162, 235, 0.2)',
+                        borderColor: 'rgba(54, 162, 235, 1)',
+                        pointBackgroundColor: 'rgba(54, 162, 235, 1)',
+                        borderWidth: 2
+                    }, {
+                        label: 'Industry Average',
+                        data: [70, 68, 72, 65, 75, 69, 71],
+                        backgroundColor: 'rgba(255, 159, 64, 0.2)',
+                        borderColor: 'rgba(255, 159, 64, 1)',
+                        pointBackgroundColor: 'rgba(255, 159, 64, 1)',
+                        borderWidth: 2
+                    }]
+                },
+                options: {
+                    scales: {
+                        r: {
+                            angleLines: {
+                                color: 'rgba(255, 255, 255, 0.1)'
+                            },
+                            grid: {
+                                color: 'rgba(255, 255, 255, 0.1)'
+                            },
+                            pointLabels: {
+                                color: '#a0a0a0'
+                            },
+                            ticks: {
+                                backdropColor: 'transparent',
+                                color: '#a0a0a0'
+                            }
+                        }
+                    },
+                    plugins: {
+                        legend: {
+                            labels: {
+                                color: '#a0a0a0'
+                            }
+                        }
+                    }
+                }
+            });
+            
+            // Compliance Trends Chart
+            const trendsCtx = document.getElementById('complianceTrendsChart').getContext('2d');
+            const trendsChart = new Chart(trendsCtx, {
+                type: 'line',
+                data: {
+                    labels: ['Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'],
+                    datasets: [{
+                        label: 'Overall Ethics Score',
+                        data: [65, 67, 70, 68, 72, 75, 76],
+                        borderColor: 'rgba(75, 192, 192, 1)',
+                        backgroundColor: 'rgba(75, 192, 192, 0.1)',
+                        tension: 0.4,
+                        fill: true
+                    }, {
+                        label: 'Regulatory Compliance',
+                        data: [58, 60, 63, 67, 70, 72, 71],
+                        borderColor: 'rgba(153, 102, 255, 1)',
+                        backgroundColor: 'rgba(153, 102, 255, 0.1)',
+                        tension: 0.4,
+                        fill: true
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    scales: {
+                        x: {
+                            grid: {
+                                color: 'rgba(255, 255, 255, 0.1)'
+                            },
+                            ticks: {
+                                color: '#a0a0a0'
+                            }
+                        },
+                        y: {
+                            min: 50,
+                            max: 100,
+                            grid: {
+                                color: 'rgba(255, 255, 255, 0.1)'
+                            },
+                            ticks: {
+                                color: '#a0a0a0'
+                            }
+                        }
+                    },
+                    plugins: {
+                        legend: {
+                            labels: {
+                                color: '#a0a0a0'
+                            }
+                        }
+                    }
+                }
+            });
+        }
+        
+        // Drag and drop functionality
+        ['dragenter', 'dragover', 'dragleave', 'drop'].forEach(eventName => {
+            uploadContainer.addEventListener(eventName, preventDefaults, false);
+        });
+        
+        function preventDefaults(e) {
+            e.preventDefault();
+            e.stopPropagation();
+        }
+        
+        ['dragenter', 'dragover'].forEach(eventName => {
+            uploadContainer.addEventListener(eventName, highlight, false);
+        });
+        
+        ['dragleave', 'drop'].forEach(eventName => {
+            uploadContainer.addEventListener(eventName, unhighlight, false);
+        });
+        
+        function highlight() {
+            uploadContainer.classList.add('drag-over');
+        }
+        
+        function unhighlight() {
+            uploadContainer.classList.remove('drag-over');
+        }
+        
+        uploadContainer.addEventListener('drop', handleDrop, false);
+        
+        function handleDrop(e) {
+            const dt = e.dataTransfer;
+            const files = dt.files;
+            
+            if (files.length > 0) {
+                fileInput.files = files;
+                showFileInfo(files[0]);
+            }
+        }
+    });
+</script>
+{% endblock %}

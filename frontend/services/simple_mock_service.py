@@ -454,6 +454,9 @@ class SimpleMockService:
                 momentum = "steady"
                 
             # Create the trend object
+            # Generate a random change percentage between -20 and +30
+            change_percentage = random.uniform(-20, 30)
+            
             trend = {
                 "id": i + 1,
                 "name": topic,
@@ -461,6 +464,7 @@ class SimpleMockService:
                 "virality_score": round(virality_score, 2),
                 "timestamp": timestamp,
                 "momentum": momentum,
+                "change": round(change_percentage, 1),  # Add change percentage
                 "mentions_count": random.randint(int(virality_score * 100), int(virality_score * 500)),
                 "sentiment_score": random.uniform(0.3, 0.8),
                 "key_sources": random.sample([

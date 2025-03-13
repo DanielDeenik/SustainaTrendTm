@@ -8,6 +8,9 @@
     <!-- Font Awesome -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     
+    <!-- Chart.js for data visualization -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@3.9.1/dist/chart.min.js"></script>
+    
     <!-- Finchat Dark Theme Base Styles -->
     <style>
         :root {
@@ -680,17 +683,17 @@
             <div class="finchat-nav-section">
                 <div class="finchat-nav-header">Overview</div>
                 
-                <a href="/" class="finchat-nav-item active">
+                <a href="/" class="finchat-nav-item {% if active_nav == 'home' %}active{% endif %}">
                     <div class="finchat-nav-icon"><i class="fas fa-chart-line"></i></div>
                     <div class="finchat-nav-text">Dashboard</div>
                 </a>
                 
-                <a href="/trend-analysis" class="finchat-nav-item">
+                <a href="/trend-analysis" class="finchat-nav-item {% if active_nav == 'trends' %}active{% endif %}">
                     <div class="finchat-nav-icon"><i class="fas fa-chart-bar"></i></div>
                     <div class="finchat-nav-text">Trend Analysis</div>
                 </a>
                 
-                <a href="/analytics-dashboard" class="finchat-nav-item">
+                <a href="/analytics-dashboard" class="finchat-nav-item {% if active_nav == 'analytics' %}active{% endif %}">
                     <div class="finchat-nav-icon"><i class="fas fa-chart-pie"></i></div>
                     <div class="finchat-nav-text">Analytics</div>
                 </a>
@@ -699,17 +702,17 @@
             <div class="finchat-nav-section">
                 <div class="finchat-nav-header">Intelligence</div>
                 
-                <a href="/sustainability-stories" class="finchat-nav-item">
+                <a href="/sustainability-stories" class="finchat-nav-item {% if active_nav == 'stories' %}active{% endif %}">
                     <div class="finchat-nav-icon"><i class="fas fa-file-alt"></i></div>
                     <div class="finchat-nav-text">Stories</div>
                 </a>
                 
-                <a href="/document-upload" class="finchat-nav-item">
+                <a href="/document-upload" class="finchat-nav-item {% if active_nav == 'documents' %}active{% endif %}">
                     <div class="finchat-nav-icon"><i class="fas fa-file-upload"></i></div>
                     <div class="finchat-nav-text">Documents</div>
                 </a>
                 
-                <a href="/search" class="finchat-nav-item">
+                <a href="/search" class="finchat-nav-item {% if active_nav == 'search' %}active{% endif %}">
                     <div class="finchat-nav-icon"><i class="fas fa-search"></i></div>
                     <div class="finchat-nav-text">Search</div>
                 </a>
@@ -718,17 +721,17 @@
             <div class="finchat-nav-section">
                 <div class="finchat-nav-header">Insights</div>
                 
-                <a href="/company-search" class="finchat-nav-item">
+                <a href="/company-search" class="finchat-nav-item {% if active_nav == 'companies' %}active{% endif %}">
                     <div class="finchat-nav-icon"><i class="fas fa-building"></i></div>
                     <div class="finchat-nav-text">Companies</div>
                 </a>
                 
-                <a href="/realestate-trends" class="finchat-nav-item">
+                <a href="/realestate-trends" class="finchat-nav-item {% if active_nav == 'realestate' %}active{% endif %}">
                     <div class="finchat-nav-icon"><i class="fas fa-home"></i></div>
                     <div class="finchat-nav-text">Real Estate</div>
                 </a>
                 
-                <a href="/esrs-framework" class="finchat-nav-item">
+                <a href="/esrs-framework" class="finchat-nav-item {% if active_nav == 'esrs' %}active{% endif %}">
                     <div class="finchat-nav-icon"><i class="fas fa-clipboard-check"></i></div>
                     <div class="finchat-nav-text">ESRS Framework</div>
                 </a>
@@ -737,12 +740,12 @@
             <div class="finchat-nav-section">
                 <div class="finchat-nav-header">Settings</div>
                 
-                <a href="/debug" class="finchat-nav-item">
+                <a href="/debug" class="finchat-nav-item {% if active_nav == 'debug' %}active{% endif %}">
                     <div class="finchat-nav-icon"><i class="fas fa-cog"></i></div>
                     <div class="finchat-nav-text">Settings</div>
                 </a>
                 
-                <a href="/api-status" class="finchat-nav-item">
+                <a href="/api-status" class="finchat-nav-item {% if active_nav == 'api_status' %}active{% endif %}">
                     <div class="finchat-nav-icon"><i class="fas fa-server"></i></div>
                     <div class="finchat-nav-text">API Status</div>
                 </a>

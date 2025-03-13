@@ -1,0 +1,246 @@
+<!-- Story Card Component with three core elements: Context, Narrative, and Visual -->
+<div class="story-container {% if story.gartner_inspired %}gartner-inspired{% endif %}">
+    <div class="story-header">
+        <div>
+            <h4 class="story-title">{{ story.title }}</h4>
+            <div class="story-meta">
+                <div class="story-meta-item">
+                    <i class="fas fa-calendar"></i> Generated on {{ story.date_generated if story.date_generated else story.date }}
+                </div>
+                <div class="story-meta-item">
+                    <i class="fas fa-chart-line"></i> Based on {{ story.time_period if story.time_period else "recent" }} data
+                </div>
+            </div>
+        </div>
+        <div class="story-badges">
+            <span class="story-badge">{{ story.category|capitalize }}</span>
+            {% if audience and audience != 'all' and story.stakeholder_versions and audience in story.stakeholder_versions %}
+                <span class="story-badge">{{ audience|replace('_', ' ')|capitalize }}</span>
+            {% endif %}
+            <span class="story-badge">{{ story.impact|capitalize }}</span>
+        </div>
+    </div>
+
+    <!-- Core Element 1: Context (Why it matters) -->
+    {% if story.storytelling_elements and story.storytelling_elements.context %}
+    <div class="story-context">
+        <h5 class="story-section-title">
+            <i class="fas fa-question-circle"></i> {{ story.storytelling_elements.context.headline }}
+        </h5>
+        <div class="story-highlight">
+            {{ story.storytelling_elements.context.content }}
+        </div>
+    </div>
+    {% endif %}
+    
+    <!-- Core Element 2: Narrative (What is happening) -->
+    {% if story.storytelling_elements and story.storytelling_elements.narrative %}
+    <div class="story-narrative">
+        <h5 class="story-section-title">
+            <i class="fas fa-align-left"></i> {{ story.storytelling_elements.narrative.headline }}
+        </h5>
+        <div class="story-content">
+            <p>{{ story.storytelling_elements.narrative.content }}</p>
+        </div>
+        
+        <div class="story-impact">
+            <div class="story-impact-item">
+                <div class="story-impact-title">Key Metric</div>
+                <div class="story-impact-value {{ story.impact }}">
+                    {{ story.storytelling_elements.narrative.data_point.value }}
+                    {% if story.storytelling_elements.narrative.data_point.trend == 'positive' %}
+                    <i class="fas fa-arrow-up"></i>
+                    {% elif story.storytelling_elements.narrative.data_point.trend == 'negative' %}
+                    <i class="fas fa-arrow-down"></i>
+                    {% else %}
+                    <i class="fas fa-minus"></i>
+                    {% endif %}
+                </div>
+                <div class="story-impact-description">
+                    {{ story.storytelling_elements.narrative.data_point.comparison }} comparison
+                </div>
+            </div>
+        </div>
+    </div>
+    {% endif %}
+    
+    <!-- Core Element 3: Visual (How it looks) -->
+    {% if story.storytelling_elements and story.storytelling_elements.visual %}
+    <div class="story-visual">
+        <h5 class="story-section-title">
+            <i class="fas fa-chart-bar"></i> {{ story.storytelling_elements.visual.title }}
+        </h5>
+        <div class="story-charts">
+            <div class="story-chart">
+                <div class="story-chart-title">{{ story.storytelling_elements.visual.chart_type|capitalize }}</div>
+                <!-- Placeholder for chart visualization -->
+                <canvas id="chart-{{ story.id }}" width="300" height="200"></canvas>
+            </div>
+        </div>
+    </div>
+    {% endif %}
+    
+    <!-- Stakeholder-Specific Content -->
+    {% if audience and audience != 'all' and story.stakeholder_versions and audience in story.stakeholder_versions %}
+    <div class="story-stakeholder-content">
+        <h5 class="story-section-title">
+            <i class="fas fa-user-tie"></i> {{ story.stakeholder_versions[audience].title }}
+        </h5>
+        <div class="story-content">
+            <p>{{ story.stakeholder_versions[audience].summary }}</p>
+        </div>
+        
+        <!-- Key points -->
+        <div class="story-insights">
+            {% for key_point in story.stakeholder_versions[audience].key_points %}
+            <div class="story-insight">
+                <div class="story-insight-icon">
+                    <i class="fas fa-lightbulb"></i>
+                </div>
+                <div class="story-insight-content">
+                    <div class="story-insight-title">Key Point</div>
+                    <div class="story-insight-description">{{ key_point }}</div>
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+        
+        <!-- Recommendations -->
+        <div class="story-recommendations">
+            <div class="story-recommendations-title">
+                <i class="fas fa-tasks"></i> Recommendations
+            </div>
+            <ul class="story-recommendations-list">
+                {% for recommendation in story.stakeholder_versions[audience].recommendations %}
+                <li class="story-recommendations-item">
+                    <div class="story-recommendations-icon">
+                        <i class="fas fa-check-circle"></i>
+                    </div>
+                    <div>{{ recommendation }}</div>
+                </li>
+                {% endfor %}
+            </ul>
+        </div>
+    </div>
+    {% else %}
+    <div class="story-recommendations">
+        <div class="story-recommendations-title">
+            <i class="fas fa-tasks"></i> General Recommendations
+        </div>
+        <ul class="story-recommendations-list">
+            {% if story.recommendations %}
+                {% for recommendation in story.recommendations %}
+                <li class="story-recommendations-item">
+                    <div class="story-recommendations-icon">
+                        <i class="fas fa-check-circle"></i>
+                    </div>
+                    <div>{{ recommendation }}</div>
+                </li>
+                {% endfor %}
+            {% else %}
+                <li class="story-recommendations-item">
+                    <div class="story-recommendations-icon">
+                        <i class="fas fa-check-circle"></i>
+                    </div>
+                    <div>Select an audience for tailored recommendations</div>
+                </li>
+            {% endif %}
+        </ul>
+    </div>
+    {% endif %}
+    
+    <div class="story-footer">
+        <div class="story-info">
+            <small>Generated by SustainaTrend™ AI</small>
+        </div>
+        <div class="story-actions">
+            <button class="finchat-button finchat-button-small">
+                <i class="fas fa-code"></i> Details
+            </button>
+            <button class="finchat-button finchat-button-small">
+                <i class="fas fa-share-alt"></i> Share
+            </button>
+            <button class="finchat-button finchat-button-small finchat-button-primary">
+                <i class="fas fa-file-export"></i> Export
+            </button>
+        </div>
+    </div>
+</div>
+
+<!-- Chart initialization script for this story -->
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    try {
+        const ctx = document.getElementById('chart-{{ story.id }}').getContext('2d');
+        const chartType = '{{ story.storytelling_elements.visual.chart_type }}';
+        
+        // Map the text chart type to Chart.js type
+        let chartJsType = 'bar';
+        if (chartType.includes('line')) {
+            chartJsType = 'line';
+        } else if (chartType.includes('area')) {
+            chartJsType = 'line';  // We'll customize to look like area chart
+        } else if (chartType.includes('pie') || chartType.includes('donut') || chartType.includes('doughnut')) {
+            chartJsType = 'doughnut';
+        } else if (chartType.includes('radar')) {
+            chartJsType = 'radar';
+        }
+        
+        // Generate some random data
+        const labels = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun'];
+        const data = {
+            labels: labels,
+            datasets: []
+        };
+        
+        {% if story.storytelling_elements and story.storytelling_elements.visual and story.storytelling_elements.visual.data_series %}
+            {% for series in story.storytelling_elements.visual.data_series %}
+                data.datasets.push({
+                    label: '{{ series.name }}',
+                    data: generateRandomData(6, 10, 100),
+                    backgroundColor: '{{ series.color }}',
+                    borderColor: '{{ series.color }}',
+                    fill: chartJsType === 'line' && chartType.includes('area'),
+                });
+            {% endfor %}
+        {% else %}
+            data.datasets.push({
+                label: 'Dataset 1',
+                data: generateRandomData(6, 10, 100),
+                backgroundColor: '{{ "#4CAF50" if story.impact == "positive" else "#F44336" }}',
+                borderColor: '{{ "#4CAF50" if story.impact == "positive" else "#F44336" }}',
+                fill: chartJsType === 'line' && chartType.includes('area'),
+            });
+        {% endif %}
+        
+        // Create the chart
+        new Chart(ctx, {
+            type: chartJsType,
+            data: data,
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                    legend: {
+                        position: 'top',
+                    },
+                    title: {
+                        display: false,
+                        text: '{{ story.storytelling_elements.visual.title if story.storytelling_elements and story.storytelling_elements.visual else "" }}'
+                    }
+                }
+            }
+        });
+    } catch (error) {
+        console.error('Failed to create chart:', error);
+    }
+});
+
+function generateRandomData(count, min, max) {
+    const data = [];
+    for (let i = 0; i < count; i++) {
+        data.push(Math.floor(Math.random() * (max - min + 1)) + min);
+    }
+    return data;
+}
+</script>
