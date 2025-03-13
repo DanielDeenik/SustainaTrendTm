@@ -1,1589 +1,328 @@
 {% extends "base.html" %}
 
-{% block title %}Sustainability Document Analysis{% endblock %}
-
-{% block head %}
-<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-<link rel="stylesheet" href="{{ url_for('static', filename='css/sustainability-copilot.css') }}">
-<script type="application/json" id="document-copilot-context">
-{
-    "context": "document_analysis",
-    "document_types": ["sustainability_report", "esg_disclosure", "regulatory_filing", "impact_assessment", "carbon_disclosure"],
-    "frameworks": ["GRI", "SASB", "TCFD", "EU CSRD", "ESRS", "CDP", "Science Based Targets"],
-    "analysis_capabilities": [
-        "ESG metrics extraction", 
-        "Regulatory compliance assessment", 
-        "Framework alignment", 
-        "KPI identification", 
-        "Executive summary generation",
-        "Comparative benchmarking",
-        "Climate risk exposure"
-    ],
-    "suggested_actions": [
-        "Framework gap analysis",
-        "Compliance prediction",
-        "Materiality assessment",
-        "Peer comparison",
-        "Risk identification",
-        "Improvement recommendations"
-    ]
-}
-</script>
-{% endblock %}
+{% block title %}Document Upload & AI Audit{% endblock %}
 
 {% block styles %}
 <style>
     .upload-container {
-        background-color: var(--card-bg);
-        border: 2px dashed var(--border-color);
-        border-radius: 10px;
-        padding: 40px;
+        background-color: #f9fafb;
+        border: 2px dashed #d1d5db;
+        border-radius: 8px;
+        padding: 20px;
         text-align: center;
         margin-bottom: 30px;
-        transition: all var(--transition-speed);
+        transition: all 0.3s ease;
     }
     
-    .upload-container:hover, .upload-container.drag-active {
-        border-color: var(--primary-color);
-        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+    .upload-container:hover {
+        border-color: #3b82f6;
     }
     
     .upload-icon {
-        font-size: 3rem;
-        color: var(--primary-color);
+        font-size: 48px;
+        color: #6b7280;
         margin-bottom: 15px;
     }
     
-    .document-preview {
-        background-color: var(--card-bg);
-        border-radius: 8px;
-        padding: 20px;
-        margin-top: 20px;
-        border: 1px solid var(--border-color);
-        display: none;
-        max-height: 300px;
-        overflow-y: auto;
-    }
-    
-    .analysis-result {
-        background-color: var(--card-bg);
-        border-radius: 8px;
-        padding: 20px;
-        margin-top: 30px;
-        border-left: 4px solid var(--primary-color);
+    .file-input {
         display: none;
     }
     
-    .analysis-card {
+    .upload-btn {
+        background-color: #3b82f6;
+        color: white;
+        padding: 10px 20px;
+        border: none;
+        border-radius: 5px;
+        cursor: pointer;
+        font-size: 16px;
+        transition: background-color 0.3s;
+    }
+    
+    .upload-btn:hover {
+        background-color: #2563eb;
+    }
+    
+    .feature-card {
+        background-color: white;
+        border-radius: 8px;
+        box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+        padding: 20px;
         margin-bottom: 20px;
-        background-color: var(--card-bg);
+        transition: transform 0.3s ease, box-shadow 0.3s ease;
+    }
+    
+    .feature-card:hover {
+        transform: translateY(-5px);
+        box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+    }
+    
+    .feature-icon {
+        font-size: 24px;
+        color: #3b82f6;
+        margin-bottom: 15px;
+    }
+    
+    .document-card {
+        background-color: white;
         border-radius: 8px;
-        box-shadow: 0 4px 8px rgba(0, 0, 0, 0.05);
-        transition: all 0.2s;
-    }
-    
-    .analysis-card:hover {
-        transform: translateY(-3px);
-        box-shadow: 0 6px 12px rgba(0, 0, 0, 0.1);
-    }
-    
-    .analysis-header {
-        padding: 15px 20px;
-        background-color: var(--primary-dark);
-        color: white;
-        border-radius: 8px 8px 0 0;
-        font-weight: 600;
+        box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+        padding: 15px;
+        margin-bottom: 15px;
         display: flex;
-        justify-content: space-between;
         align-items: center;
     }
     
-    .analysis-body {
-        padding: 20px;
+    .document-icon {
+        font-size: 24px;
+        color: #ef4444;
+        margin-right: 15px;
     }
     
-    .metric-item {
-        padding: 10px 15px;
-        margin-bottom: 8px;
-        background-color: rgba(16, 185, 129, 0.1);
-        border-radius: 6px;
-        transition: all 0.2s;
+    .document-info {
+        flex: 1;
     }
     
-    .metric-item:hover {
-        transform: translateX(3px);
-        background-color: rgba(16, 185, 129, 0.15);
-    }
-    
-    .metric-header {
-        font-weight: 600;
+    .document-actions {
         display: flex;
-        justify-content: space-between;
-        align-items: center;
+        gap: 10px;
     }
     
-    .metric-content {
-        margin-top: 5px;
-        color: var(--text-muted);
+    .document-btn {
+        padding: 6px 12px;
+        border-radius: 5px;
+        border: none;
+        cursor: pointer;
+        font-size: 14px;
     }
     
-    .loading-overlay {
-        display: none;
-        position: fixed;
-        top: 0;
-        left: 0;
-        width: 100%;
-        height: 100%;
-        background-color: rgba(0, 0, 0, 0.5);
-        align-items: center;
-        justify-content: center;
-        z-index: 1000;
-    }
-    
-    .loading-spinner {
-        width: 80px;
-        height: 80px;
-        border: 8px solid #f3f3f3;
-        border-top: 8px solid var(--primary-color);
-        border-radius: 50%;
-        animation: spin 1s linear infinite;
-    }
-    
-    .loading-text {
+    .view-btn {
+        background-color: #3b82f6;
         color: white;
-        margin-top: 15px;
-        font-weight: 600;
     }
     
-    @keyframes spin {
-        0% { transform: rotate(0deg); }
-        100% { transform: rotate(360deg); }
+    .delete-btn {
+        background-color: #ef4444;
+        color: white;
     }
     
     .framework-badge {
         display: inline-block;
-        padding: 6px 12px;
-        margin: 0 6px 8px 0;
-        border-radius: 20px;
-        font-size: 0.85rem;
-        font-weight: 500;
-        background-color: var(--primary-color);
-        color: white;
-    }
-    
-    .kpi-item {
-        display: flex;
-        margin-bottom: 12px;
-        padding: 10px;
-        border-radius: 6px;
-        background-color: rgba(16, 185, 129, 0.05);
-        transition: all 0.2s;
-    }
-    
-    .kpi-item:hover {
-        background-color: rgba(16, 185, 129, 0.1);
-    }
-    
-    .kpi-value {
-        font-size: 1.2rem;
-        font-weight: 600;
-        color: var(--primary-color);
-        margin-right: 15px;
-        padding: 5px 10px;
-        background-color: rgba(16, 185, 129, 0.15);
+        padding: 4px 8px;
+        margin-right: 5px;
+        margin-bottom: 5px;
+        background-color: #e5e7eb;
         border-radius: 4px;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        min-width: 80px;
-    }
-    
-    .kpi-details {
-        flex: 1;
-    }
-    
-    .kpi-context {
-        font-size: 0.9rem;
-        color: var(--text-muted);
-        margin-top: 5px;
-    }
-    
-    .progress-container {
-        margin-top: 5px;
-    }
-    
-    .progress-bar {
-        height: 5px;
-        background-color: #e9ecef;
-        border-radius: 5px;
-        overflow: hidden;
-    }
-    
-    .progress-fill {
-        height: 100%;
-        background-color: var(--primary-color);
-        border-radius: 5px;
-    }
-    
-    .file-preview {
-        margin-top: 20px;
-        display: flex;
-        align-items: center;
-        background-color: rgba(16, 185, 129, 0.05);
-        padding: 15px;
-        border-radius: 6px;
-        border-left: 3px solid var(--primary-color);
-    }
-    
-    .file-icon {
-        font-size: 2rem;
-        color: var(--primary-color);
-        margin-right: 15px;
-    }
-    
-    .file-details {
-        flex: 1;
-    }
-    
-    .file-name {
-        font-weight: 600;
-    }
-    
-    .file-meta {
-        font-size: 0.85rem;
-        color: var(--text-muted);
-    }
-    
-    /* Compliance Assessment Styles */
-    .framework-score-card {
-        background-color: var(--card-bg);
-        border-radius: 6px;
-        border: 1px solid var(--border-color);
-        transition: transform 0.2s, box-shadow 0.2s;
-        height: 100%;
-        padding: 15px;
-    }
-    
-    .framework-score-card:hover {
-        transform: translateY(-3px);
-        box-shadow: 0 5px 15px rgba(0, 0, 0, 0.08);
-    }
-    
-    .framework-score-card h6 {
-        font-weight: 600;
-        margin-bottom: 10px;
-    }
-    
-    #overallComplianceStatus.badge {
-        font-size: 0.9rem;
-        padding: 6px 12px;
-    }
-    
-    #overallComplianceBar {
-        font-weight: 600;
-        font-size: 0.9rem;
-    }
-    
-    #complianceRecommendations .list-group-item {
-        border-left: 3px solid var(--primary-color);
-        transition: background-color 0.2s;
-    }
-    
-    #complianceRecommendations .list-group-item:hover {
-        background-color: rgba(16, 185, 129, 0.05);
-    }
-    
-    .compliance-framework-icon {
-        font-size: 2rem;
-        color: var(--primary-color);
-        margin-bottom: 10px;
-    }
-    
-    .framework-score {
-        font-size: 1.5rem;
-        font-weight: 700;
-    }
-    
-    .risk-badge {
-        padding: 5px 10px;
         font-size: 0.8rem;
-        border-radius: 20px;
     }
     
-    .risk-high {
-        background-color: rgba(220, 53, 69, 0.1);
-        color: #dc3545;
+    .framework-badge.csrd {
+        background-color: #bfdbfe;
+        color: #1e40af;
     }
     
-    .risk-medium {
-        background-color: rgba(255, 193, 7, 0.1);
-        color: #fd7e14;
+    .framework-badge.sec {
+        background-color: #c7d2fe;
+        color: #3730a3;
     }
     
-    .risk-low {
-        background-color: rgba(40, 167, 69, 0.1);
-        color: #28a745;
+    .framework-badge.gri {
+        background-color: #bbf7d0;
+        color: #166534;
+    }
+    
+    .framework-badge.tcfd {
+        background-color: #fde68a;
+        color: #92400e;
     }
 </style>
 {% endblock %}
 
 {% block content %}
-<div class="container mt-4 mb-5">
-    <div class="row">
-        <div class="col-lg-10 offset-lg-1">
-            <h1 class="mb-2">Sustainability Document Analysis</h1>
-            <p class="lead">Upload sustainability reports and ESG disclosures for AI-powered analysis and insights</p>
-            
-            <div class="card mt-4">
-                <div class="card-body">
-                    <h5 class="card-title"><i class="bi bi-cloud-arrow-up me-2"></i>Upload Document</h5>
-                    <p class="text-muted">Upload your sustainability reports, ESG disclosures, or regulatory filings for analysis</p>
-                    
-                    <div class="upload-container" id="drop-area">
-                        <i class="bi bi-file-earmark-pdf upload-icon"></i>
-                        <h3>Drag & Drop PDF Documents</h3>
-                        <p>or</p>
-                        <input type="file" id="fileInput" class="d-none" accept=".pdf">
-                        <button class="btn btn-primary" onclick="document.getElementById('fileInput').click()">
-                            <i class="bi bi-upload me-2"></i> Browse Files
-                        </button>
-                        <p class="mt-2 text-muted">Maximum file size: 20MB</p>
+<div class="container py-4">
+    <div class="row mb-4">
+        <div class="col-12">
+            <h2 class="mb-3">Document Upload & AI Audit</h2>
+            <p class="text-muted">Upload CSRD, ESG, and sustainability reports for AI-powered analysis and auditing.</p>
+        </div>
+    </div>
+    
+    <div class="row mb-5">
+        <div class="col-12">
+            <form method="POST" enctype="multipart/form-data">
+                <div class="upload-container">
+                    <div class="upload-icon">
+                        <i class="fas fa-file-upload"></i>
                     </div>
-                    
-                    <div class="form-check mt-3">
-                        <input class="form-check-input" type="checkbox" id="ocrCheck">
-                        <label class="form-check-label" for="ocrCheck">
-                            Enable OCR for scanned documents
-                        </label>
-                        <small class="form-text text-muted d-block">
-                            Use Optical Character Recognition for better results with scanned reports (processing may take longer)
-                        </small>
-                    </div>
-                    
-                    <!-- File Preview (appears after selection) -->
-                    <div id="filePreviewContainer" style="display:none;">
-                        <div class="file-preview">
-                            <div class="file-icon">
-                                <i class="bi bi-file-earmark-pdf"></i>
-                            </div>
-                            <div class="file-details">
-                                <div class="file-name" id="fileName"></div>
-                                <div class="file-meta"><span id="fileSize"></span> • <span id="fileType"></span></div>
-                                <div class="progress-container" id="uploadProgress" style="display:none;">
-                                    <div class="d-flex justify-content-between mb-1">
-                                        <small>Uploading...</small>
-                                        <small id="uploadPercentage">0%</small>
-                                    </div>
-                                    <div class="progress-bar">
-                                        <div class="progress-fill" id="progressFill" style="width: 0%"></div>
-                                    </div>
-                                </div>
-                            </div>
-                            <button class="btn btn-sm btn-outline-danger ms-3" id="cancelUpload" title="Cancel">
-                                <i class="bi bi-x-lg"></i>
-                            </button>
-                        </div>
+                    <h4>Upload Sustainability Document</h4>
+                    <p class="text-muted">Drag and drop a PDF file or click to browse</p>
+                    <input type="file" name="document" id="document" class="file-input" accept=".pdf">
+                    <button type="button" class="upload-btn" id="browse-btn">Browse Files</button>
+                    <p class="mt-2"><small>Maximum file size: 20MB</small></p>
+                    <div id="file-name" class="mt-2"></div>
+                    <div class="mt-3" id="upload-actions" style="display: none;">
+                        <button type="submit" class="btn btn-primary">Process Document</button>
                     </div>
                 </div>
+            </form>
+        </div>
+    </div>
+    
+    <div class="row mb-5">
+        <div class="col-12">
+            <h3 class="mb-4">AI-Powered Document Auditing Features</h3>
+        </div>
+        
+        <div class="col-md-4">
+            <div class="feature-card">
+                <div class="feature-icon">
+                    <i class="fas fa-search"></i>
+                </div>
+                <h5>Intelligent Content Extraction</h5>
+                <p>AI automatically extracts data tables, figures, KPIs, and metrics from uploaded documents with page reference indexing.</p>
+                <p><strong>Example query:</strong> "Show me figure 4.1 on page 16"</p>
             </div>
-            
-            <!-- Document Preview -->
-            <div class="document-preview mt-4" id="previewContainer">
-                <h5 class="mb-3"><i class="bi bi-file-text me-2"></i>Document Preview</h5>
-                <div id="documentPreview" class="p-3 bg-light rounded"></div>
+        </div>
+        
+        <div class="col-md-4">
+            <div class="feature-card">
+                <div class="feature-icon">
+                    <i class="fas fa-comments"></i>
+                </div>
+                <h5>Chat-Based Query Interface</h5>
+                <p>Interact with your documents using natural language questions to get AI-generated explanations with data traceability.</p>
+                <p><strong>Example query:</strong> "What is the underlying data for carbon emissions in table 5.2?"</p>
             </div>
-            
-            <!-- Analysis Results -->
-            <div class="analysis-result" id="analysisResults">
-                <h3><i class="bi bi-graph-up me-2"></i>Sustainability Analysis Results</h3>
-                <p class="text-muted">AI-powered analysis of your sustainability document</p>
-                
-                <div class="row mt-4">
-                    <div class="col-md-6">
-                        <div class="analysis-card">
-                            <div class="analysis-header">
-                                <span><i class="bi bi-bar-chart-line me-2"></i> ESG Metrics Identified</span>
-                                <span class="badge bg-light text-dark" id="metricsCount">0</span>
-                            </div>
-                            <div class="analysis-body" id="metricsResults">
-                                <div class="text-center text-muted py-4">
-                                    <i class="bi bi-search" style="font-size: 2rem;"></i>
-                                    <p class="mt-3">No metrics identified yet</p>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                    
-                    <div class="col-md-6">
-                        <div class="analysis-card">
-                            <div class="analysis-header">
-                                <span><i class="bi bi-award me-2"></i> Regulatory Frameworks</span>
-                                <span class="badge bg-light text-dark" id="frameworksCount">0</span>
-                            </div>
-                            <div class="analysis-body" id="frameworksResults">
-                                <div class="text-center text-muted py-4">
-                                    <i class="bi bi-clipboard-check" style="font-size: 2rem;"></i>
-                                    <p class="mt-3">No frameworks identified yet</p>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
+        </div>
+        
+        <div class="col-md-4">
+            <div class="feature-card">
+                <div class="feature-icon">
+                    <i class="fas fa-database"></i>
                 </div>
-                
-                <div class="row mt-4">
-                    <div class="col-md-12">
-                        <div class="analysis-card">
-                            <div class="analysis-header">
-                                <span><i class="bi bi-card-checklist me-2"></i> Key Performance Indicators</span>
-                                <span class="badge bg-light text-dark" id="kpiCount">0</span>
-                            </div>
-                            <div class="analysis-body" id="kpiResults">
-                                <div class="text-center text-muted py-4">
-                                    <i class="bi bi-clipboard-data" style="font-size: 2rem;"></i>
-                                    <p class="mt-3">No KPIs extracted yet</p>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-                
-                <div class="row mt-4">
-                    <div class="col-md-12">
-                        <div class="analysis-card">
-                            <div class="analysis-header">
-                                <i class="bi bi-chat-square-text me-2"></i> Executive Summary
-                            </div>
-                            <div class="analysis-body" id="summaryResults">
-                                <div class="text-center text-muted py-4">
-                                    <i class="bi bi-file-text" style="font-size: 2rem;"></i>
-                                    <p class="mt-3">Summary not available yet</p>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-                
-                <!-- Regulatory Compliance Assessment Section -->
-                <div class="row mt-4">
-                    <div class="col-md-12">
-                        <div class="analysis-card">
-                            <div class="analysis-header">
-                                <i class="bi bi-shield-check me-2"></i> Regulatory Compliance Assessment
-                                <span class="badge bg-light text-dark" id="complianceScore">0%</span>
-                            </div>
-                            <div class="analysis-body" id="complianceResults">
-                                <div class="text-center text-muted py-4" id="complianceEmptyState">
-                                    <i class="bi bi-shield" style="font-size: 2rem;"></i>
-                                    <p class="mt-3">Compliance assessment not available yet</p>
-                                </div>
-                                
-                                <div id="complianceContent" style="display:none;">
-                                    <div class="d-flex justify-content-end mb-3">
-                                        <button id="generateReportBtn" class="btn btn-outline-primary" disabled>
-                                            <i class="bi bi-file-earmark-pdf me-2"></i>Generate Compliance Report
-                                        </button>
-                                        <a id="downloadReportBtn" class="btn btn-primary ms-2" style="display:none;" href="#" target="_blank">
-                                            <i class="bi bi-download me-2"></i>Download Report
-                                        </a>
-                                    </div>
-                                    <div class="mb-4">
-                                        <div class="d-flex justify-content-between align-items-center mb-2">
-                                            <h5 class="mb-0">Overall Compliance Status</h5>
-                                            <span class="badge" id="overallComplianceStatus">Unknown</span>
-                                        </div>
-                                        <div class="progress" style="height: 25px;">
-                                            <div class="progress-bar" id="overallComplianceBar" role="progressbar" style="width: 0%;"
-                                                 aria-valuenow="0" aria-valuemin="0" aria-valuemax="100">0%</div>
-                                        </div>
-                                    </div>
-                                    
-                                    <h5 class="mb-3">Framework Compliance Scores</h5>
-                                    <div class="row mb-4">
-                                        <div class="col-lg-6">
-                                            <div class="framework-score-chart-container">
-                                                <canvas id="complianceRadarChart" width="300" height="300"></canvas>
-                                            </div>
-                                        </div>
-                                        <div class="col-lg-6">
-                                            <div class="row" id="frameworkScores">
-                                                <!-- Framework compliance scores will be inserted here -->
-                                            </div>
-                                        </div>
-                                    </div>
-                                    
-                                    <div class="mt-4">
-                                        <h5 class="mb-3">Key Recommendations</h5>
-                                        <ul class="list-group" id="complianceRecommendations">
-                                            <!-- Recommendations will be inserted here -->
-                                        </ul>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-                
-                <!-- RAG-Powered Document Q&A Section -->
-                <div class="row mt-4">
-                    <div class="col-md-12">
-                        <div class="analysis-card">
-                            <div class="analysis-header">
-                                <i class="bi bi-chat-dots me-2"></i> Ask Questions About This Document
-                            </div>
-                            <div class="analysis-body">
-                                <p class="text-muted mb-3">
-                                    Use our RAG-powered AI to ask questions about the sustainability report and get detailed answers
-                                </p>
-                                
-                                <div class="input-group mb-3">
-                                    <input type="text" class="form-control" id="documentQuery" 
-                                           placeholder="e.g., What are the company's emission reduction targets?">
-                                    <button class="btn btn-primary" id="queryDocumentBtn" disabled>
-                                        <i class="bi bi-search me-1"></i> Ask
-                                    </button>
-                                </div>
-                                
-                                <div id="queryResultsContainer" style="display:none;">
-                                    <div class="p-3 rounded" style="background-color: rgba(16, 185, 129, 0.05); border-left: 3px solid var(--primary-color);">
-                                        <h5 class="mb-3">Response:</h5>
-                                        <div id="queryResults" class="mb-3"></div>
-                                        <small class="text-muted">
-                                            <i class="bi bi-info-circle me-1"></i>
-                                            <span id="chunksAnalyzed">0</span> document chunks analyzed to generate this response
-                                        </small>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                </div>
+                <h5>Data Traceability & Drill-Down</h5>
+                <p>Access underlying datasets and calculation logic behind any figure or metric mentioned in your document.</p>
+                <p><strong>Example query:</strong> "What assumption was used for Scope 3 emissions?"</p>
             </div>
-            
-            <!-- Loading Overlay -->
-            <div id="loadingOverlay" style="position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(255,255,255,0.8); display: none; justify-content: center; align-items: center; z-index: 9999;">
-                <div class="text-center">
-                    <div class="spinner-border text-primary mb-3" role="status">
-                        <span class="visually-hidden">Loading...</span>
-                    </div>
-                    <h5 id="loadingText">Processing document...</h5>
+        </div>
+        
+        <div class="col-md-4">
+            <div class="feature-card">
+                <div class="feature-icon">
+                    <i class="fas fa-clipboard-check"></i>
                 </div>
+                <h5>Regulatory Compliance Assessment</h5>
+                <p>AI evaluates your document against major ESG frameworks including CSRD, GRI, TCFD, and SEC requirements.</p>
+                <p><strong>Example query:</strong> "How does this report comply with CSRD requirements?"</p>
             </div>
-                                
-                                <div class="mt-3" id="visualizationContainer" style="display:none;">
-                                    <h5 class="mb-3">Key Metrics Visualization:</h5>
-                                    <div id="visualizationContent"></div>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
+        </div>
+        
+        <div class="col-md-4">
+            <div class="feature-card">
+                <div class="feature-icon">
+                    <i class="fas fa-chart-bar"></i>
                 </div>
-                
-                <div class="text-center mt-4">
-                    <button class="btn btn-primary me-2">
-                        <i class="bi bi-save me-2"></i> Save Analysis
-                    </button>
-                    <button class="btn btn-outline-primary me-2">
-                        <i class="bi bi-share me-2"></i> Share Results
-                    </button>
-                    <button class="btn btn-outline-secondary">
-                        <i class="bi bi-file-pdf me-2"></i> Export as PDF
-                    </button>
+                <h5>Metrics & KPI Extraction</h5>
+                <p>Automatically identifies and categorizes sustainability metrics and KPIs throughout your document.</p>
+                <p><strong>Example query:</strong> "What sustainability metrics are reported in this document?"</p>
+            </div>
+        </div>
+        
+        <div class="col-md-4">
+            <div class="feature-card">
+                <div class="feature-icon">
+                    <i class="fas fa-file-export"></i>
                 </div>
+                <h5>Audit Report Generation</h5>
+                <p>Export a comprehensive audit trace with all queries, findings, and data points for compliance records.</p>
+                <p><strong>Example query:</strong> "Generate an audit report from my document queries"</p>
             </div>
         </div>
     </div>
-</div>
-
-<!-- This loading overlay element is a duplicate and has been commented out to avoid conflicts -->
-<!-- 
-<div class="loading-overlay" id="loadingOverlay-duplicate">
-    <div>
-        <div class="loading-spinner"></div>
-        <div class="loading-text" id="loadingText-duplicate">Processing document...</div>
+    
+    {% if documents %}
+    <div class="row">
+        <div class="col-12">
+            <h3 class="mb-4">Your Uploaded Documents</h3>
+            
+            {% for document in documents %}
+            <div class="document-card">
+                <div class="document-icon">
+                    <i class="fas fa-file-pdf"></i>
+                </div>
+                <div class="document-info">
+                    <h5 class="mb-1">{{ document.filename }}</h5>
+                    <p class="mb-2 text-muted">Uploaded on {{ document.upload_date.strftime('%b %d, %Y') }}</p>
+                    
+                    <div class="framework-tags">
+                        <span class="framework-badge csrd">CSRD</span>
+                        <span class="framework-badge gri">GRI</span>
+                        <span class="framework-badge tcfd">TCFD</span>
+                    </div>
+                </div>
+                <div class="document-actions">
+                    <a href="{{ url_for('document_analysis', filename=document.filename) }}" class="document-btn view-btn">
+                        <i class="fas fa-search"></i> Analyze
+                    </a>
+                    <button class="document-btn delete-btn">
+                        <i class="fas fa-trash"></i> Delete
+                    </button>
+                </div>
+            </div>
+            {% endfor %}
+        </div>
     </div>
+    {% endif %}
 </div>
--->
 
 <script>
     document.addEventListener('DOMContentLoaded', function() {
-        const dropArea = document.getElementById('drop-area');
-        const fileInput = document.getElementById('fileInput');
-        const ocrCheck = document.getElementById('ocrCheck');
-        const previewContainer = document.getElementById('previewContainer');
-        const documentPreview = document.getElementById('documentPreview');
-        const analysisResults = document.getElementById('analysisResults');
-        const loadingOverlay = document.getElementById('loadingOverlay');
-        const loadingText = document.getElementById('loadingText');
-        const filePreviewContainer = document.getElementById('filePreviewContainer');
-        const fileName = document.getElementById('fileName');
-        const fileSize = document.getElementById('fileSize');
-        const fileType = document.getElementById('fileType');
-        const cancelUpload = document.getElementById('cancelUpload');
-        const uploadProgress = document.getElementById('uploadProgress');
-        const uploadPercentage = document.getElementById('uploadPercentage');
-        const progressFill = document.getElementById('progressFill');
-        const generateReportBtn = document.getElementById('generateReportBtn');
-        const downloadReportBtn = document.getElementById('downloadReportBtn');
+        const browseBtn = document.getElementById('browse-btn');
+        const fileInput = document.getElementById('document');
+        const fileName = document.getElementById('file-name');
+        const uploadActions = document.getElementById('upload-actions');
+        const uploadContainer = document.querySelector('.upload-container');
         
-        let currentFile = null;
-        let uploadXhr = null;
-        let complianceRadarChart = null;
-        let currentDocumentId = null;
-        let downloadReportUrl = null;
-        
-        // Handle Generate Report button click
-        generateReportBtn.addEventListener('click', function() {
-            if (!currentDocumentId) {
-                alert('Please upload and analyze a document first.');
-                return;
-            }
-            
-            // Show loading overlay
-            loadingText.textContent = 'Generating compliance report...';
-            loadingOverlay.style.display = 'flex';
-            
-            // Make AJAX request to generate compliance report
-            const xhr = new XMLHttpRequest();
-            xhr.open('GET', `/generate-compliance-report/${currentDocumentId}`);
-            
-            xhr.addEventListener('load', function() {
-                if (xhr.status >= 200 && xhr.status < 300) {
-                    try {
-                        const response = JSON.parse(xhr.responseText);
-                        
-                        if (response.success) {
-                            // Store report URL and show download button
-                            downloadReportUrl = response.report_url;
-                            downloadReportBtn.href = downloadReportUrl;
-                            downloadReportBtn.style.display = 'inline-block';
-                            
-                            // Show success message
-                            alert('Report generated successfully! Click "Download Report" to download.');
-                        } else {
-                            alert('Error: ' + (response.error || 'Unknown error generating report'));
-                        }
-                    } catch (e) {
-                        console.error('Error parsing response:', e);
-                        alert('Error: Failed to parse server response');
-                    }
-                } else {
-                    alert('Error: ' + xhr.status + ' ' + xhr.statusText);
-                }
-                
-                loadingOverlay.style.display = 'none';
-            });
-            
-            xhr.addEventListener('error', function() {
-                alert('Error: Network error occurred during report generation');
-                loadingOverlay.style.display = 'none';
-            });
-            
-            xhr.send();
+        // Click the hidden file input when browse button is clicked
+        browseBtn.addEventListener('click', function() {
+            fileInput.click();
         });
         
-        // Prevent default drag behaviors
-        ['dragenter', 'dragover', 'dragleave', 'drop'].forEach(eventName => {
-            dropArea.addEventListener(eventName, preventDefaults, false);
-            document.body.addEventListener(eventName, preventDefaults, false);
-        });
-        
-        function preventDefaults(e) {
-            e.preventDefault();
-            e.stopPropagation();
-        }
-        
-        // Highlight drop area when item is dragged over it
-        ['dragenter', 'dragover'].forEach(eventName => {
-            dropArea.addEventListener(eventName, highlight, false);
-        });
-        
-        ['dragleave', 'drop'].forEach(eventName => {
-            dropArea.addEventListener(eventName, unhighlight, false);
-        });
-        
-        function highlight() {
-            dropArea.classList.add('drag-active');
-        }
-        
-        function unhighlight() {
-            dropArea.classList.remove('drag-active');
-        }
-        
-        // Handle dropped files
-        dropArea.addEventListener('drop', handleDrop, false);
-        
-        function handleDrop(e) {
-            const dt = e.dataTransfer;
-            const files = dt.files;
-            
-            if (files.length) {
-                handleFiles(files);
-            }
-        }
-        
+        // Handle file selection
         fileInput.addEventListener('change', function() {
-            if (fileInput.files.length) {
-                handleFiles(fileInput.files);
+            if (this.files && this.files[0]) {
+                fileName.innerHTML = '<strong>Selected file:</strong> ' + this.files[0].name;
+                uploadActions.style.display = 'block';
+            } else {
+                fileName.innerHTML = '';
+                uploadActions.style.display = 'none';
             }
         });
         
-        function handleFiles(files) {
-            const file = files[0];
-            
-            if (file.type !== 'application/pdf') {
-                alert('Please upload a PDF file');
-                return;
-            }
-            
-            if (file.size > 20 * 1024 * 1024) {
-                alert('File size exceeds 20MB limit');
-                return;
-            }
-            
-            // Show file preview
-            filePreviewContainer.style.display = 'block';
-            fileName.textContent = file.name;
-            fileSize.textContent = formatFileSize(file.size);
-            fileType.textContent = 'PDF Document';
-            
-            // Simulate upload (in real implementation, we would upload the file)
-            simulateUpload(file);
-        }
+        // Handle drag and drop
+        uploadContainer.addEventListener('dragover', function(e) {
+            e.preventDefault();
+            uploadContainer.style.borderColor = '#3b82f6';
+            uploadContainer.style.backgroundColor = '#eff6ff';
+        });
         
-        function formatFileSize(bytes) {
-            if (bytes < 1024) return bytes + ' bytes';
-            else if (bytes < 1048576) return (bytes / 1024).toFixed(1) + ' KB';
-            else return (bytes / 1048576).toFixed(1) + ' MB';
-        }
+        uploadContainer.addEventListener('dragleave', function(e) {
+            e.preventDefault();
+            uploadContainer.style.borderColor = '#d1d5db';
+            uploadContainer.style.backgroundColor = '#f9fafb';
+        });
         
-        function simulateUpload(file) {
-            // Show upload progress
-            uploadProgress.style.display = 'block';
-            currentFile = file;
+        uploadContainer.addEventListener('drop', function(e) {
+            e.preventDefault();
+            uploadContainer.style.borderColor = '#d1d5db';
+            uploadContainer.style.backgroundColor = '#f9fafb';
             
-            // Create FormData for actual upload
-            const formData = new FormData();
-            formData.append('file', file);
-            formData.append('use_ocr', ocrCheck.checked ? 'true' : 'false');
-            
-            // Create AJAX request
-            uploadXhr = new XMLHttpRequest();
-            
-            // Set up progress monitoring
-            uploadXhr.upload.addEventListener('progress', function(e) {
-                if (e.lengthComputable) {
-                    const percentComplete = Math.round((e.loaded / e.total) * 100);
-                    uploadPercentage.textContent = percentComplete + '%';
-                    progressFill.style.width = percentComplete + '%';
-                }
-            });
-            
-            // Set up completion handler
-            uploadXhr.addEventListener('load', function() {
-                if (uploadXhr.status >= 200 && uploadXhr.status < 300) {
-                    // Upload successful
-                    try {
-                        const response = JSON.parse(uploadXhr.responseText);
-                        if (response.success) {
-                            // Process the document with the returned document_id
-                            processDocument(response.document_id, response.text_preview);
-                        } else {
-                            // Error occurred during upload
-                            alert('Error: ' + (response.error || 'Unknown error during document processing'));
-                            filePreviewContainer.style.display = 'none';
-                            uploadProgress.style.display = 'none';
-                        }
-                    } catch (e) {
-                        console.error('Error parsing response:', e);
-                        alert('Error: Failed to parse server response');
-                        filePreviewContainer.style.display = 'none';
-                        uploadProgress.style.display = 'none';
-                    }
-                } else {
-                    // Upload failed
-                    alert('Error: ' + uploadXhr.status + ' ' + uploadXhr.statusText);
-                    filePreviewContainer.style.display = 'none';
-                    uploadProgress.style.display = 'none';
-                }
-            });
-            
-            // Set up error handler
-            uploadXhr.addEventListener('error', function() {
-                alert('Error: Network error occurred during upload');
-                filePreviewContainer.style.display = 'none';
-                uploadProgress.style.display = 'none';
-            });
-            
-            // Set up abort handler
-            uploadXhr.addEventListener('abort', function() {
-                alert('Upload cancelled');
-                filePreviewContainer.style.display = 'none';
-                uploadProgress.style.display = 'none';
-            });
-            
-            // Open and send the request
-            uploadXhr.open('POST', '/upload-sustainability-document');
-            uploadXhr.send(formData);
-            
-            // Handle cancel button
-            cancelUpload.onclick = function() {
-                if (uploadXhr) {
-                    uploadXhr.abort();
-                    uploadXhr = null;
-                }
-                filePreviewContainer.style.display = 'none';
-                uploadProgress.style.display = 'none';
-            };
-        }
-        
-        function processDocument(documentId, textPreview) {
-            // Show loading overlay with text
-            loadingText.textContent = 'Processing document...';
-            loadingOverlay.style.display = 'flex';
-            
-            // Show initial document preview if available
-            if (textPreview) {
-                documentPreview.innerHTML = `<p>${textPreview}</p>`;
-                previewContainer.style.display = 'block';
+            if (e.dataTransfer.files && e.dataTransfer.files[0]) {
+                fileInput.files = e.dataTransfer.files;
+                fileName.innerHTML = '<strong>Selected file:</strong> ' + e.dataTransfer.files[0].name;
+                uploadActions.style.display = 'block';
             }
-            
-            // Update loading text
-            loadingText.textContent = 'Analyzing sustainability metrics...';
-            
-            // Make AJAX request to analyze document
-            const analyzeXhr = new XMLHttpRequest();
-            analyzeXhr.open('GET', `/analyze-sustainability-document/${documentId}`);
-            
-            analyzeXhr.addEventListener('load', function() {
-                if (analyzeXhr.status >= 200 && analyzeXhr.status < 300) {
-                    try {
-                        const response = JSON.parse(analyzeXhr.responseText);
-                        if (response.success) {
-                            // Update loading text
-                            loadingText.textContent = 'Generating insights...';
-                            
-                            // Process the analysis results
-                            setTimeout(() => {
-                                displayAnalysisResults(response);
-                                loadingOverlay.style.display = 'none';
-                            }, 1000);
-                        } else {
-                            alert('Error: ' + (response.error || 'Unknown error during document analysis'));
-                            loadingOverlay.style.display = 'none';
-                        }
-                    } catch (e) {
-                        console.error('Error parsing response:', e);
-                        alert('Error: Failed to parse server response for analysis');
-                        loadingOverlay.style.display = 'none';
-                    }
-                } else {
-                    alert('Error: ' + analyzeXhr.status + ' ' + analyzeXhr.statusText);
-                    loadingOverlay.style.display = 'none';
-                }
-            });
-            
-            analyzeXhr.addEventListener('error', function() {
-                alert('Error: Network error occurred during analysis');
-                loadingOverlay.style.display = 'none';
-            });
-            
-            analyzeXhr.send();
-        }
-        
-        function showDocumentPreview() {
-            // Simulate document preview (in a real implementation, this would be actual text from the PDF)
-            documentPreview.innerHTML = `
-                <p><strong>SAMPLE SUSTAINABILITY REPORT EXTRACT</strong></p>
-                <p>Our company is committed to reducing greenhouse gas emissions and promoting sustainable practices across our operations. In 2024, we achieved a 15% reduction in carbon emissions compared to our 2019 baseline, exceeding our target of 12%.</p>
-                <p>Key achievements include:</p>
-                <ul>
-                    <li>Reduced Scope 1 and 2 emissions by 15% since 2019</li>
-                    <li>Increased renewable energy use to 35% of total energy consumption</li>
-                    <li>Reduced water use intensity by 10% across operations</li>
-                    <li>Diverted 78% of waste from landfill through recycling and reuse programs</li>
-                </ul>
-                <p>We continue to align our reporting with the TCFD framework and are working towards full compliance with the EU's Corporate Sustainability Reporting Directive (CSRD).</p>
-            `;
-            previewContainer.style.display = 'block';
-        }
-        
-        function displayAnalysisResults(result) {
-            // Process and display analysis results from the server
-            // Update document preview if there's text content
-            if (result.text_content) {
-                documentPreview.innerHTML = `<p>${result.text_content}</p>`;
-                previewContainer.style.display = 'block';
-            }
-            
-            // Process metrics results
-            const metricsResults = document.getElementById('metricsResults');
-            if (result.metrics && Array.isArray(result.metrics)) {
-                document.getElementById('metricsCount').textContent = result.metrics.reduce((acc, m) => acc + (m.count || 0), 0);
-                
-                metricsResults.innerHTML = '';
-                result.metrics.forEach(metric => {
-                    const metricItem = document.createElement('div');
-                    metricItem.className = 'metric-item';
-                    metricItem.innerHTML = `
-                        <div class="metric-header">
-                            <span>${metric.category.charAt(0).toUpperCase() + metric.category.slice(1)}</span>
-                            <span class="badge bg-primary">${metric.count} mentions</span>
-                        </div>
-                        <div class="metric-content">
-                            <span>Key terms: ${(metric.examples || []).join(', ')}</span>
-                        </div>
-                    `;
-                    metricsResults.appendChild(metricItem);
-                });
-            } else {
-                // Fallback to mock data for demonstration
-                const mockMetrics = [
-                    { category: 'emissions', count: 8, examples: ['carbon emissions', 'Scope 1', 'Scope 2', 'greenhouse gas'] },
-                    { category: 'energy', count: 4, examples: ['renewable energy', 'energy consumption'] },
-                    { category: 'water', count: 2, examples: ['water use intensity'] },
-                    { category: 'waste', count: 3, examples: ['waste from landfill', 'recycling'] },
-                ];
-                
-                document.getElementById('metricsCount').textContent = mockMetrics.reduce((acc, m) => acc + m.count, 0);
-                
-                metricsResults.innerHTML = '';
-                mockMetrics.forEach(metric => {
-                    const metricItem = document.createElement('div');
-                    metricItem.className = 'metric-item';
-                    metricItem.innerHTML = `
-                        <div class="metric-header">
-                            <span>${metric.category.charAt(0).toUpperCase() + metric.category.slice(1)}</span>
-                            <span class="badge bg-primary">${metric.count} mentions</span>
-                        </div>
-                        <div class="metric-content">
-                            <span>Key terms: ${metric.examples.join(', ')}</span>
-                        </div>
-                    `;
-                    metricsResults.appendChild(metricItem);
-                });
-            }
-            
-            // Process frameworks 
-            const frameworksResults = document.getElementById('frameworksResults');
-            if (result.frameworks && Array.isArray(result.frameworks)) {
-                document.getElementById('frameworksCount').textContent = result.frameworks.length;
-                
-                frameworksResults.innerHTML = '<div class="mb-3">Regulatory frameworks mentioned in the document:</div>';
-                result.frameworks.forEach(framework => {
-                    const badge = document.createElement('span');
-                    badge.className = 'framework-badge';
-                    badge.innerHTML = `${framework.name} <span class="ms-1 badge bg-light text-dark">${Math.round((framework.confidence || 0) * 100)}%</span>`;
-                    frameworksResults.appendChild(badge);
-                });
-            } else {
-                // Fallback to mock data
-                const mockFrameworks = [
-                    { name: 'TCFD', confidence: 0.92 },
-                    { name: 'CSRD', confidence: 0.89 },
-                    { name: 'GRI', confidence: 0.65 },
-                ];
-                
-                document.getElementById('frameworksCount').textContent = mockFrameworks.length;
-                
-                frameworksResults.innerHTML = '<div class="mb-3">Regulatory frameworks mentioned in the document:</div>';
-                mockFrameworks.forEach(framework => {
-                    const badge = document.createElement('span');
-                    badge.className = 'framework-badge';
-                    badge.innerHTML = `${framework.name} <span class="ms-1 badge bg-light text-dark">${Math.round(framework.confidence * 100)}%</span>`;
-                    frameworksResults.appendChild(badge);
-                });
-            }
-            
-            // Process KPIs
-            const kpiResults = document.getElementById('kpiResults');
-            if (result.kpis && Array.isArray(result.kpis)) {
-                document.getElementById('kpiCount').textContent = result.kpis.length;
-                
-                kpiResults.innerHTML = '';
-                result.kpis.forEach(kpi => {
-                    const kpiItem = document.createElement('div');
-                    kpiItem.className = 'kpi-item';
-                    kpiItem.innerHTML = `
-                        <div class="kpi-value">${kpi.value || 'N/A'}</div>
-                        <div class="kpi-details">
-                            <div><strong>${kpi.unit || ''}</strong></div>
-                            <div class="kpi-context">${kpi.context || ''}</div>
-                        </div>
-                    `;
-                    kpiResults.appendChild(kpiItem);
-                });
-            } else {
-                // Fallback to mock data
-                const mockKPIs = [
-                    { value: '15%', unit: 'reduction', context: 'carbon emissions reduction compared to 2019 baseline' },
-                    { value: '35%', unit: 'of total', context: 'renewable energy use as percentage of total energy consumption' },
-                    { value: '10%', unit: 'reduction', context: 'water use intensity reduction across operations' },
-                    { value: '78%', unit: 'of total', context: 'waste diverted from landfill through recycling and reuse programs' },
-                ];
-                
-                document.getElementById('kpiCount').textContent = mockKPIs.length;
-                
-                kpiResults.innerHTML = '';
-                mockKPIs.forEach(kpi => {
-                    const kpiItem = document.createElement('div');
-                    kpiItem.className = 'kpi-item';
-                    kpiItem.innerHTML = `
-                        <div class="kpi-value">${kpi.value}</div>
-                        <div class="kpi-details">
-                            <div><strong>${kpi.unit}</strong></div>
-                            <div class="kpi-context">${kpi.context}</div>
-                        </div>
-                    `;
-                    kpiResults.appendChild(kpiItem);
-                });
-            }
-            
-            // Process executive summary
-            const summaryResults = document.getElementById('summaryResults');
-            if (result.executive_summary) {
-                summaryResults.innerHTML = result.executive_summary;
-            } else {
-                // Fallback to mock data
-                summaryResults.innerHTML = `
-                    <p>This sustainability report demonstrates a strong commitment to environmental sustainability with concrete metrics and targets. Key insights include:</p>
-                    <ul>
-                        <li>The organization has exceeded its carbon reduction targets, achieving a 15% reduction against a 12% target.</li>
-                        <li>There is significant focus on renewable energy transition, with renewable sources now comprising 35% of total energy use.</li>
-                        <li>Water conservation efforts show measurable results with a 10% intensity reduction.</li>
-                        <li>Waste management is a core focus area with strong diversion rates (78%) from landfill.</li>
-                    </ul>
-                    <p>The report aligns with TCFD framework and mentions CSRD compliance efforts, indicating awareness of evolving regulatory requirements. The document contains quantifiable metrics across multiple sustainability dimensions, suggesting a mature sustainability reporting practice.</p>
-                `;
-            }
-            
-            // Process compliance assessment
-            const complianceResults = document.getElementById('complianceResults');
-            const complianceEmptyState = document.getElementById('complianceEmptyState');
-            const complianceContent = document.getElementById('complianceContent');
-            const complianceScore = document.getElementById('complianceScore');
-            const overallComplianceStatus = document.getElementById('overallComplianceStatus');
-            const overallComplianceBar = document.getElementById('overallComplianceBar');
-            const frameworkScores = document.getElementById('frameworkScores');
-            const complianceRecommendations = document.getElementById('complianceRecommendations');
-            const radarChartCanvas = document.getElementById('complianceRadarChart');
-            
-            if (result.compliance_assessment) {
-                // Hide empty state and show content
-                complianceEmptyState.style.display = 'none';
-                complianceContent.style.display = 'block';
-                
-                const compliance = result.compliance_assessment;
-                
-                // Store document ID for report generation
-                currentDocumentId = result.document_id;
-                
-                // Update overall compliance score
-                const overallScore = compliance.overall_score;
-                complianceScore.textContent = `${overallScore}%`;
-                
-                // Update overall compliance status
-                overallComplianceStatus.textContent = compliance.overall_compliance;
-                overallComplianceBar.style.width = `${overallScore}%`;
-                overallComplianceBar.textContent = `${overallScore}%`;
-                
-                // Set appropriate color for the compliance status
-                if (compliance.overall_compliance === 'Compliant') {
-                    overallComplianceStatus.className = 'badge bg-success';
-                    overallComplianceBar.className = 'progress-bar bg-success';
-                } else if (compliance.overall_compliance === 'Partially compliant') {
-                    overallComplianceStatus.className = 'badge bg-warning text-dark';
-                    overallComplianceBar.className = 'progress-bar bg-warning';
-                } else {
-                    overallComplianceStatus.className = 'badge bg-danger';
-                    overallComplianceBar.className = 'progress-bar bg-danger';
-                }
-                
-                // Create or update the radar chart for compliance scores
-                if (radarChartCanvas) {
-                    const frameworks = Object.keys(compliance.framework_scores);
-                    const scores = Object.values(compliance.framework_scores);
-                    
-                    // Destroy previous chart if it exists
-                    if (complianceRadarChart) {
-                        complianceRadarChart.destroy();
-                    }
-                    
-                    // Create new radar chart
-                    complianceRadarChart = new Chart(radarChartCanvas, {
-                        type: 'radar',
-                        data: {
-                            labels: frameworks,
-                            datasets: [{
-                                label: 'Compliance Score',
-                                data: scores,
-                                fill: true,
-                                backgroundColor: 'rgba(54, 162, 235, 0.2)',
-                                borderColor: 'rgb(54, 162, 235)',
-                                pointBackgroundColor: 'rgb(54, 162, 235)',
-                                pointBorderColor: '#fff',
-                                pointHoverBackgroundColor: '#fff',
-                                pointHoverBorderColor: 'rgb(54, 162, 235)'
-                            }]
-                        },
-                        options: {
-                            elements: {
-                                line: {
-                                    borderWidth: 3
-                                }
-                            },
-                            scales: {
-                                r: {
-                                    angleLines: {
-                                        display: true
-                                    },
-                                    suggestedMin: 0,
-                                    suggestedMax: 100,
-                                    ticks: {
-                                        stepSize: 20
-                                    }
-                                }
-                            }
-                        }
-                    });
-                }
-                
-                // Display framework scores
-                frameworkScores.innerHTML = '';
-                Object.entries(compliance.framework_scores).forEach(([framework, score]) => {
-                    const colDiv = document.createElement('div');
-                    colDiv.className = 'col-md-6 col-lg-4 mb-3';
-                    
-                    // Determine color based on score
-                    let barColorClass = 'bg-danger';
-                    if (score >= 70) {
-                        barColorClass = 'bg-success';
-                    } else if (score >= 40) {
-                        barColorClass = 'bg-warning';
-                    }
-                    
-                    colDiv.innerHTML = `
-                        <div class="framework-score-card p-3 border rounded">
-                            <h6>${framework}</h6>
-                            <div class="d-flex justify-content-between align-items-center mb-1">
-                                <small>Compliance Score</small>
-                                <span class="badge ${barColorClass}">${score.toFixed(1)}%</span>
-                            </div>
-                            <div class="progress" style="height: 10px;">
-                                <div class="progress-bar ${barColorClass}" role="progressbar" 
-                                     style="width: ${score}%;" aria-valuenow="${score}" 
-                                     aria-valuemin="0" aria-valuemax="100"></div>
-                            </div>
-                        </div>
-                    `;
-                    frameworkScores.appendChild(colDiv);
-                });
-                
-                // Display recommendations
-                complianceRecommendations.innerHTML = '';
-                if (compliance.key_recommendations && compliance.key_recommendations.length > 0) {
-                    compliance.key_recommendations.forEach(rec => {
-                        const item = document.createElement('li');
-                        item.className = 'list-group-item';
-                        item.innerHTML = `<i class="bi bi-arrow-right-circle me-2 text-primary"></i>${rec}`;
-                        complianceRecommendations.appendChild(item);
-                    });
-                } else {
-                    const item = document.createElement('li');
-                    item.className = 'list-group-item';
-                    item.innerHTML = '<i class="bi bi-check-circle me-2 text-success"></i>No significant recommendations at this time.';
-                    complianceRecommendations.appendChild(item);
-                }
-            } else {
-                // Generate mock compliance data for demonstration
-                complianceEmptyState.style.display = 'none';
-                complianceContent.style.display = 'block';
-                
-                const mockCompliance = {
-                    overall_compliance: 'Partially compliant',
-                    overall_score: 68.5,
-                    framework_scores: {
-                        'CSRD': 75.0,
-                        'SEC': 62.5,
-                        'IFRS': 80.0,
-                        'GRI': 85.0,
-                        'GDPR': 40.0
-                    },
-                    key_recommendations: [
-                        'Enhance CSRD compliance with more detailed metrics on double materiality',
-                        'Improve climate risk disclosures to meet SEC requirements',
-                        'Add data privacy protection measures in sustainability reporting',
-                        'Include more quantitative metrics for biodiversity impacts'
-                    ]
-                };
-                
-                // Update overall compliance score
-                complianceScore.textContent = `${mockCompliance.overall_score}%`;
-                
-                // Update overall compliance status
-                overallComplianceStatus.textContent = mockCompliance.overall_compliance;
-                overallComplianceStatus.className = 'badge bg-warning text-dark';
-                overallComplianceBar.style.width = `${mockCompliance.overall_score}%`;
-                overallComplianceBar.textContent = `${mockCompliance.overall_score}%`;
-                overallComplianceBar.className = 'progress-bar bg-warning';
-                
-                // Create or update radar chart for mock data
-                if (radarChartCanvas) {
-                    const frameworks = Object.keys(mockCompliance.framework_scores);
-                    const scores = Object.values(mockCompliance.framework_scores);
-                    
-                    // Destroy previous chart if it exists
-                    if (complianceRadarChart) {
-                        complianceRadarChart.destroy();
-                    }
-                    
-                    // Create new radar chart with mock data
-                    complianceRadarChart = new Chart(radarChartCanvas, {
-                        type: 'radar',
-                        data: {
-                            labels: frameworks,
-                            datasets: [{
-                                label: 'Compliance Score',
-                                data: scores,
-                                fill: true,
-                                backgroundColor: 'rgba(54, 162, 235, 0.2)',
-                                borderColor: 'rgb(54, 162, 235)',
-                                pointBackgroundColor: 'rgb(54, 162, 235)',
-                                pointBorderColor: '#fff',
-                                pointHoverBackgroundColor: '#fff',
-                                pointHoverBorderColor: 'rgb(54, 162, 235)'
-                            }]
-                        },
-                        options: {
-                            elements: {
-                                line: {
-                                    borderWidth: 3
-                                }
-                            },
-                            scales: {
-                                r: {
-                                    angleLines: {
-                                        display: true
-                                    },
-                                    suggestedMin: 0,
-                                    suggestedMax: 100,
-                                    ticks: {
-                                        stepSize: 20
-                                    }
-                                }
-                            }
-                        }
-                    });
-                }
-                
-                // Display framework scores
-                frameworkScores.innerHTML = '';
-                Object.entries(mockCompliance.framework_scores).forEach(([framework, score]) => {
-                    const colDiv = document.createElement('div');
-                    colDiv.className = 'col-md-6 col-lg-4 mb-3';
-                    
-                    // Determine color based on score
-                    let barColorClass = 'bg-danger';
-                    if (score >= 70) {
-                        barColorClass = 'bg-success';
-                    } else if (score >= 40) {
-                        barColorClass = 'bg-warning';
-                    }
-                    
-                    colDiv.innerHTML = `
-                        <div class="framework-score-card p-3 border rounded">
-                            <h6>${framework}</h6>
-                            <div class="d-flex justify-content-between align-items-center mb-1">
-                                <small>Compliance Score</small>
-                                <span class="badge ${barColorClass}">${score.toFixed(1)}%</span>
-                            </div>
-                            <div class="progress" style="height: 10px;">
-                                <div class="progress-bar ${barColorClass}" role="progressbar" 
-                                     style="width: ${score}%;" aria-valuenow="${score}" 
-                                     aria-valuemin="0" aria-valuemax="100"></div>
-                            </div>
-                        </div>
-                    `;
-                    frameworkScores.appendChild(colDiv);
-                });
-                
-                // Display recommendations
-                complianceRecommendations.innerHTML = '';
-                mockCompliance.key_recommendations.forEach(rec => {
-                    const item = document.createElement('li');
-                    item.className = 'list-group-item';
-                    item.innerHTML = `<i class="bi bi-arrow-right-circle me-2 text-primary"></i>${rec}`;
-                    complianceRecommendations.appendChild(item);
-                });
-            }
-            
-            // Enable document querying with RAG
-            document.getElementById('queryDocumentBtn').disabled = false;
-            
-            // Show analysis results
-            analysisResults.style.display = 'block';
-        }
-        
-        // Keep this function for fallback or demo purposes
-        function showAnalysisResults() {
-            // Build mock data
-            const mockResult = {
-                success: true,
-                metrics: [
-                    { category: 'emissions', count: 8, examples: ['carbon emissions', 'Scope 1', 'Scope 2', 'greenhouse gas'] },
-                    { category: 'energy', count: 4, examples: ['renewable energy', 'energy consumption'] },
-                    { category: 'water', count: 2, examples: ['water use intensity'] },
-                    { category: 'waste', count: 3, examples: ['waste from landfill', 'recycling'] }
-                ],
-                frameworks: [
-                    { name: 'TCFD', confidence: 0.92 },
-                    { name: 'CSRD', confidence: 0.89 },
-                    { name: 'GRI', confidence: 0.65 }
-                ],
-                kpis: [
-                    { value: '15%', unit: 'reduction', context: 'carbon emissions reduction compared to 2019 baseline' },
-                    { value: '35%', unit: 'of total', context: 'renewable energy use as percentage of total energy consumption' },
-                    { value: '10%', unit: 'reduction', context: 'water use intensity reduction across operations' },
-                    { value: '78%', unit: 'of total', context: 'waste diverted from landfill through recycling and reuse programs' }
-                ],
-                executive_summary: `
-                    <p>This sustainability report demonstrates a strong commitment to environmental sustainability with concrete metrics and targets. Key insights include:</p>
-                    <ul>
-                        <li>The organization has exceeded its carbon reduction targets, achieving a 15% reduction against a 12% target.</li>
-                        <li>There is significant focus on renewable energy transition, with renewable sources now comprising 35% of total energy use.</li>
-                        <li>Water conservation efforts show measurable results with a 10% intensity reduction.</li>
-                        <li>Waste management is a core focus area with strong diversion rates (78%) from landfill.</li>
-                    </ul>
-                    <p>The report aligns with TCFD framework and mentions CSRD compliance efforts, indicating awareness of evolving regulatory requirements. The document contains quantifiable metrics across multiple sustainability dimensions, suggesting a mature sustainability reporting practice.</p>
-                `,
-                // Add mock compliance assessment data
-                compliance_assessment: {
-                    overall_compliance: 'Partially compliant',
-                    overall_score: 68.5,
-                    framework_scores: {
-                        'CSRD': 75.0,
-                        'SEC': 62.5,
-                        'IFRS': 80.0,
-                        'GRI': 85.0,
-                        'GDPR': 40.0
-                    },
-                    key_recommendations: [
-                        'Enhance CSRD compliance with more detailed metrics on double materiality',
-                        'Improve climate risk disclosures to meet SEC requirements',
-                        'Add data privacy protection measures in sustainability reporting',
-                        'Include more quantitative metrics for biodiversity impacts'
-                    ]
-                }
-            };
-            
-            // Use our display function
-            displayAnalysisResults(mockResult);
-        }
-        
-        // Store the currently analyzed document ID for querying
-        let currentDocumentId = null;
-        
-        // Update processDocument to store the document ID
-        function processDocument(documentId, textPreview) {
-            // Store current document ID
-            currentDocumentId = documentId;
-            
-            // Show loading overlay with text
-            loadingText.textContent = 'Processing document...';
-            loadingOverlay.style.display = 'flex';
-            
-            // Show initial document preview if available
-            if (textPreview) {
-                documentPreview.innerHTML = `<p>${textPreview}</p>`;
-                previewContainer.style.display = 'block';
-            }
-            
-            // Update loading text
-            loadingText.textContent = 'Analyzing sustainability metrics...';
-            
-            // Make AJAX request to analyze document
-            const analyzeXhr = new XMLHttpRequest();
-            analyzeXhr.open('GET', `/analyze-sustainability-document/${documentId}`);
-            
-            analyzeXhr.addEventListener('load', function() {
-                if (analyzeXhr.status >= 200 && analyzeXhr.status < 300) {
-                    try {
-                        const response = JSON.parse(analyzeXhr.responseText);
-                        if (response.success) {
-                            // Update loading text
-                            loadingText.textContent = 'Generating insights...';
-                            
-                            // Process the analysis results
-                            setTimeout(() => {
-                                displayAnalysisResults(response);
-                                loadingOverlay.style.display = 'none';
-                                
-                                // Enable the query button
-                                const queryDocumentBtn = document.getElementById('queryDocumentBtn');
-                                queryDocumentBtn.disabled = false;
-                                queryDocumentBtn.dataset.documentId = documentId;
-                                
-                                // Set up document querying
-                                setupDocumentQuerying(documentId);
-                            }, 1000);
-                        } else {
-                            alert('Error: ' + (response.error || 'Unknown error during document analysis'));
-                            loadingOverlay.style.display = 'none';
-                        }
-                    } catch (e) {
-                        console.error('Error parsing response:', e);
-                        alert('Error: Failed to parse server response for analysis');
-                        loadingOverlay.style.display = 'none';
-                    }
-                } else {
-                    alert('Error: ' + analyzeXhr.status + ' ' + analyzeXhr.statusText);
-                    loadingOverlay.style.display = 'none';
-                }
-            });
-            
-            analyzeXhr.addEventListener('error', function() {
-                alert('Error: Network error occurred during analysis');
-                loadingOverlay.style.display = 'none';
-            });
-            
-            analyzeXhr.send();
-        }
-        
-        function setupDocumentQuerying(documentId) {
-            const queryDocumentBtn = document.getElementById('queryDocumentBtn');
-            const documentQuery = document.getElementById('documentQuery');
-            
-            // Remove any existing event listeners (to avoid duplicates)
-            queryDocumentBtn.replaceWith(queryDocumentBtn.cloneNode(true));
-            documentQuery.replaceWith(documentQuery.cloneNode(true));
-            
-            // Get the fresh references
-            const newQueryBtn = document.getElementById('queryDocumentBtn');
-            const newQueryInput = document.getElementById('documentQuery');
-            
-            // Set up query button
-            newQueryBtn.addEventListener('click', function() {
-                queryDocument(documentId, newQueryInput.value);
-            });
-            
-            // Set up enter key for query input
-            newQueryInput.addEventListener('keypress', function(e) {
-                if (e.key === 'Enter' && !newQueryBtn.disabled) {
-                    queryDocument(documentId, newQueryInput.value);
-                }
-            });
-        }
-        
-        function queryDocument(documentId, query) {
-            // Validate inputs
-            if (!documentId) {
-                alert('No document has been analyzed yet. Please upload a document first.');
-                return;
-            }
-            
-            if (!query || query.trim() === '') {
-                alert('Please enter a query to analyze the document');
-                return;
-            }
-            
-            // Show loading
-            loadingText.textContent = 'Analyzing your query...';
-            loadingOverlay.style.display = 'flex';
-            
-            // Prepare request data
-            const requestData = {
-                document_id: documentId,
-                query: query
-            };
-            
-            // Send request to RAG endpoint
-            const xhr = new XMLHttpRequest();
-            xhr.open('POST', '/api/sustainability-document-query');
-            xhr.setRequestHeader('Content-Type', 'application/json');
-            
-            xhr.addEventListener('load', function() {
-                if (xhr.status >= 200 && xhr.status < 300) {
-                    try {
-                        const response = JSON.parse(xhr.responseText);
-                        
-                        if (response.success) {
-                            displayQueryResults(response);
-                        } else {
-                            alert('Error: ' + (response.error || 'Unknown error during document query'));
-                        }
-                    } catch (e) {
-                        console.error('Error parsing response:', e);
-                        alert('Error: Failed to parse server response for query');
-                    }
-                } else {
-                    alert('Error: ' + xhr.status + ' ' + xhr.statusText);
-                }
-                
-                loadingOverlay.style.display = 'none';
-            });
-            
-            xhr.addEventListener('error', function() {
-                alert('Error: Network error occurred during query');
-                loadingOverlay.style.display = 'none';
-            });
-            
-            xhr.send(JSON.stringify(requestData));
-        }
-        
-        function displayQueryResults(result) {
-            const queryResultsContainer = document.getElementById('queryResultsContainer');
-            const queryResults = document.getElementById('queryResults');
-            const chunksAnalyzed = document.getElementById('chunksAnalyzed');
-            
-            // Format the response with markdown-like syntax
-            let formattedResponse = result.response;
-            
-            // Apply basic markdown formatting for better display
-            formattedResponse = formattedResponse
-                // Headers
-                .replace(/## (.*)/g, '<h4>$1</h4>')
-                .replace(/### (.*)/g, '<h5>$1</h5>')
-                // Bold
-                .replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>')
-                // Lists
-                .replace(/^\s*[\-\*]\s+(.*)/gm, '<li>$1</li>')
-                .replace(/(<li>.*<\/li>)\n+(?!<li>)/g, '$1</ul>\n')
-                .replace(/(?<!<\/ul>\n)(<li>)/g, '<ul>$1')
-                // Line breaks
-                .replace(/\n\n/g, '<br><br>')
-                .replace(/\n/g, '<br>');
-            
-            // Insert formatted response
-            queryResults.innerHTML = formattedResponse;
-            
-            // Set chunks analyzed
-            chunksAnalyzed.textContent = result.chunks_analyzed || '0';
-            
-            // Show results container
-            queryResultsContainer.style.display = 'block';
-            
-            // Scroll to results
-            queryResultsContainer.scrollIntoView({ behavior: 'smooth' });
-        }
-    });
-    
-    // Initialize Sustainability Co-Pilot context
-    document.addEventListener('DOMContentLoaded', function() {
-        const documentContextElement = document.getElementById('document-copilot-context');
-        if (documentContextElement) {
-            try {
-                const contextData = JSON.parse(documentContextElement.textContent);
-                // Set data attribute for Co-Pilot to read
-                document.body.setAttribute('data-copilot-context', JSON.stringify(contextData));
-                console.log('Document Analysis Co-Pilot context loaded:', contextData);
-                
-                // Load the Co-Pilot script
-                const script = document.createElement('script');
-                script.src = "{{ url_for('static', filename='js/sustainability-copilot.js') }}";
-                document.body.appendChild(script);
-            } catch (e) {
-                console.error('Error loading Document Analysis Co-Pilot context:', e);
-            }
-        }
+        });
     });
 </script>
 {% endblock %}

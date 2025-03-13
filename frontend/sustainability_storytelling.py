@@ -13,11 +13,34 @@ Key features:
 """
 import random
 import logging
+import json
+import re
 from datetime import datetime
 from typing import Dict, List, Any, Optional
 
+try:
+    from flask import Blueprint, request, jsonify, render_template, current_app
+    FLASK_AVAILABLE = True
+except ImportError:
+    FLASK_AVAILABLE = False
+    logging.warning("Flask not available. Web routes will not be registered.")
+
+try:
+    import numpy as np
+    import pandas as pd
+    import plotly.express as px
+    import plotly.graph_objects as go
+    from plotly.subplots import make_subplots
+    VISUALIZATION_AVAILABLE = True
+except ImportError:
+    VISUALIZATION_AVAILABLE = False
+    logging.warning("Visualization libraries not available. Chart generation will be limited.")
+
 # Configure logging
 logger = logging.getLogger(__name__)
+
+# Create Blueprint for routes
+storytelling_bp = Blueprint('storytelling', __name__) if FLASK_AVAILABLE else None
 
 def get_mock_stories():
     """Generate mock sustainability stories for development purposes"""
@@ -885,4 +908,303 @@ def generate_theme_summary(theme, stories):
         sentiment = "mixed"
         trend_text = "with varied results across metrics"
     
-    return f"{base_summary}, with {sentiment} trends {trend_text}."
+def extract_percentage(text):
+    """
+    Extract percentage values from text
+    
+    Args:
+        text: Text to extract percentages from
+        
+    Returns:
+        First percentage found or None
+    """
+    import re
+    
+    # Look for percentages in text (e.g., 15%, 3.5%)
+    percentage_pattern = r'(\d+\.?\d*)%'
+    matches = re.findall(percentage_pattern, text)
+    
+    if matches:
+        return matches[0] + '%'
+    
+    # If no explicit percentage is found, look for numbers with context
+    number_pattern = r'(\d+\.?\d*)\s*(percent|percentage)'
+    matches = re.findall(number_pattern, text.lower())
+    
+    if matches:
+        return matches[0][0] + '%'
+    
+    return None
+
+def generate_story_chart(story_id, chart_type='line'):
+    """
+    Generate chart data for a specific story
+    
+    Args:
+        story_id: ID of the story to generate chart for
+        chart_type: Type of chart to generate
+        
+    Returns:
+        Chart data in format suitable for Plotly.js rendering
+    """
+    # Get all stories
+    stories = get_enhanced_stories()
+    story = None
+    
+    # Find the requested story
+    for s in stories:
+        if s.get('id') == int(story_id) if isinstance(story_id, str) and story_id.isdigit() else story_id:
+            story = s
+            break
+    
+    if not story:
+        return {"error": "Story not found"}
+    
+    # Extract category for coloring
+    category = story.get('category', 'emissions')
+    
+    # Define color schemes by category
+    color_schemes = {
+        'emissions': ['#1a237e', '#283593', '#3949ab', '#5c6bc0'],
+        'water': ['#006064', '#00838f', '#0097a7', '#00acc1'],
+        'energy': ['#e65100', '#ef6c00', '#f57c00', '#fb8c00'],
+        'waste': ['#33691e', '#558b2f', '#689f38', '#7cb342'],
+        'social': ['#4a148c', '#6a1b9a', '#7b1fa2', '#8e24aa']
+    }
+    
+    # Get colors for this category
+    colors = color_schemes.get(category, ['#3949ab', '#5c6bc0', '#7986cb'])
+    
+    # Generate time periods (months)
+    months = [
+        'Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 
+        'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'
+    ]
+    
+    # Extract percentage from story for scale
+    percentage = extract_percentage(story.get('content', ''))
+    target_value = int(percentage.replace('%', '')) if percentage else 15
+    
+    # Create trend data based on story impact and category
+    if story.get('impact') == 'positive':
+        current_data = [target_value * 0.7, target_value * 0.8, target_value * 0.85, 
+                       target_value * 0.9, target_value * 0.95, target_value]
+    else:
+        current_data = [target_value * 1.3, target_value * 1.2, target_value * 1.15, 
+                       target_value * 1.10, target_value * 1.05, target_value]
+    
+    # Create comparison data
+    benchmark_data = [target_value * 1.1, target_value * 1.08, target_value * 1.05, 
+                     target_value * 1.03, target_value * 1.01, target_value * 0.99]
+    
+    # Previous period data
+    previous_data = [target_value * 1.2, target_value * 1.15, target_value * 1.12, 
+                    target_value * 1.1, target_value * 1.05, target_value * 1.02]
+    
+    # Generate chart data based on chart type
+    chart_data = {}
+    
+    if chart_type == 'line' or chart_type == 'area':
+        # Line chart data
+        chart_data = {
+            'type': 'line' if chart_type == 'line' else 'area',
+            'data': {
+                'labels': months[-6:],
+                'datasets': [
+                    {
+                        'label': 'Current Period',
+                        'data': current_data,
+                        'borderColor': colors[0],
+                        'backgroundColor': colors[0] + '20',
+                        'fill': chart_type == 'area'
+                    },
+                    {
+                        'label': 'Previous Period',
+                        'data': previous_data,
+                        'borderColor': colors[1],
+                        'backgroundColor': colors[1] + '20',
+                        'fill': chart_type == 'area'
+                    },
+                    {
+                        'label': 'Industry Benchmark',
+                        'data': benchmark_data,
+                        'borderColor': colors[2],
+                        'backgroundColor': colors[2] + '20',
+                        'fill': chart_type == 'area',
+                        'borderDash': [5, 5]
+                    }
+                ]
+            },
+            'options': {
+                'title': story.get('title'),
+                'category': category,
+                'impact': story.get('impact'),
+                'target': target_value,
+                'annotations': [
+                    {
+                        'type': 'line',
+                        'value': target_value,
+                        'label': 'Target'
+                    }
+                ]
+            }
+        }
+    elif chart_type == 'bar' or chart_type == 'column':
+        # Bar chart data
+        chart_data = {
+            'type': chart_type,
+            'data': {
+                'labels': months[-6:],
+                'datasets': [
+                    {
+                        'label': 'Current Period',
+                        'data': current_data,
+                        'backgroundColor': colors[0]
+                    },
+                    {
+                        'label': 'Previous Period',
+                        'data': previous_data,
+                        'backgroundColor': colors[1]
+                    },
+                    {
+                        'label': 'Industry Benchmark',
+                        'data': benchmark_data,
+                        'backgroundColor': colors[2]
+                    }
+                ]
+            },
+            'options': {
+                'title': story.get('title'),
+                'category': category,
+                'impact': story.get('impact'),
+                'target': target_value
+            }
+        }
+    elif chart_type == 'pie' or chart_type == 'doughnut':
+        # Create components that add up to the target value
+        component_names = {
+            'emissions': ['Scope 1', 'Scope 2', 'Scope 3'],
+            'water': ['Process', 'Cooling', 'Domestic'],
+            'energy': ['Electricity', 'Gas', 'Renewables'],
+            'waste': ['Recycled', 'Landfill', 'Composted'],
+            'social': ['Diversity', 'Training', 'Safety']
+        }
+        
+        names = component_names.get(category, ['Component A', 'Component B', 'Component C'])
+        
+        # Calculate values that add up to target
+        values = [
+            target_value * 0.3,
+            target_value * 0.45,
+            target_value * 0.25
+        ]
+        
+        chart_data = {
+            'type': chart_type,
+            'data': {
+                'labels': names,
+                'datasets': [
+                    {
+                        'data': values,
+                        'backgroundColor': colors[0:3]
+                    }
+                ]
+            },
+            'options': {
+                'title': story.get('title'),
+                'category': category,
+                'impact': story.get('impact'),
+                'cutout': '50%' if chart_type == 'doughnut' else '0%'
+            }
+        }
+    
+    return chart_data
+
+def register_routes(app):
+    """
+    Register Sustainability Storytelling routes with Flask app
+    
+    Args:
+        app: Flask application
+    """
+    if not FLASK_AVAILABLE:
+        logger.warning("Flask not available. Sustainability Storytelling routes will not be registered.")
+        return False
+    
+    app.register_blueprint(storytelling_bp)
+    
+    # Register the view routes
+    @app.route('/story-cards')
+    def story_cards():
+        """AI Storytelling Engine - Data-driven sustainability narratives with Gartner-inspired methodology"""
+        audience = request.args.get('audience', 'all')
+        category = request.args.get('category', 'all')
+        
+        stories = get_enhanced_stories(audience, category)
+        
+        return render_template(
+            'story_cards.html',
+            active_nav='story-cards',
+            stories=stories,
+            page_title="AI Storytelling Engine",
+            selected_audience=audience,
+            selected_category=category
+        )
+    
+    # Register the API endpoints
+    @app.route('/api/storytelling')
+    def api_storytelling():
+        """API endpoint for AI storytelling generation with Gartner-inspired methodology"""
+        audience = request.args.get('audience', 'all')
+        category = request.args.get('category', 'all')
+        format_type = request.args.get('format', 'json')
+        
+        stories = get_enhanced_stories(audience, category)
+        
+        if format_type == 'html':
+            # Generate HTML story cards
+            html_content = render_template(
+                'partials/story_cards_content.html',
+                stories=stories
+            )
+            return jsonify({
+                'success': True,
+                'html': html_content,
+                'count': len(stories)
+            })
+        else:
+            # Return JSON data
+            return jsonify({
+                'success': True,
+                'stories': stories,
+                'count': len(stories),
+                'filters': {
+                    'audience': audience,
+                    'category': category
+                }
+            })
+    
+    # Register API endpoint for chart generation
+    @app.route('/api/storytelling/chart', methods=['POST'])
+    def api_storytelling_chart():
+        """API endpoint for generating charts for storytelling"""
+        if not request.is_json:
+            return jsonify({'success': False, 'error': 'Invalid request format'}), 400
+            
+        data = request.json
+        story_id = data.get('story_id')
+        chart_type = data.get('chart_type', 'line')
+        
+        if not story_id:
+            return jsonify({'success': False, 'error': 'Missing story_id parameter'}), 400
+            
+        # Generate chart based on story data
+        chart_data = generate_story_chart(story_id, chart_type)
+        
+        return jsonify({
+            'success': True,
+            'chart_data': chart_data
+        })
+    
+    logger.info("Sustainability Storytelling routes registered successfully")
+    return True

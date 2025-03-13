@@ -1,0 +1,33 @@
+{% extends "base.html" %}
+
+{% block title %}Error - SustainaTrend™ Intelligence Platform{% endblock %}
+
+{% block content %}
+<div class="container py-5">
+    <div class="row">
+        <div class="col-md-8 mx-auto text-center">
+            <div class="card">
+                <div class="card-body">
+                    <h2 class="text-danger mb-4"><i class="fas fa-exclamation-circle me-2"></i> Error</h2>
+                    <p class="lead">Sorry, something went wrong while processing your request.</p>
+                    
+                    {% if error %}
+                    <div class="alert alert-danger mt-4">
+                        <p>{{ error }}</p>
+                    </div>
+                    {% endif %}
+                    
+                    <div class="mt-4">
+                        <a href="/" class="btn btn-primary me-2">
+                            <i class="fas fa-home me-2"></i> Go to Home
+                        </a>
+                        <button onclick="window.history.back()" class="btn btn-secondary">
+                            <i class="fas fa-arrow-left me-2"></i> Go Back
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

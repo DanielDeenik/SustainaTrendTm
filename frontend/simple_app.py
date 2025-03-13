@@ -1,10 +1,19 @@
-from flask import Flask, render_template, jsonify, request
-import requests
-import os
+"""
+Simple Flask Application for SustainaTrend™ Intelligence Platform
+
+This file provides a minimal implementation to demonstrate the
+storytelling API and chart recommendation functionality.
+"""
+
 import logging
-from datetime import datetime, timedelta
+import os
+import sys
 import json
-import random  # For generating mock AI search and trend data
+import random
+from datetime import datetime, timedelta
+from typing import Dict, List, Any
+
+from flask import Flask, render_template, jsonify, request
 
 # Configure logging
 logging.basicConfig(level=logging.INFO)
@@ -13,488 +22,432 @@ logger = logging.getLogger(__name__)
 # Initialize Flask
 app = Flask(__name__)
 
-# FastAPI backend URL - use port 8000
-BACKEND_URL = os.getenv('BACKEND_URL', 'http://localhost:8000')
+# Set up template directory
+app.template_folder = os.path.join(os.path.dirname(os.path.abspath(__file__)), "templates")
+app.static_folder = os.path.join(os.path.dirname(os.path.abspath(__file__)), "static")
+
+# -------------------------------------------------------------------------
+# Data services
+# -------------------------------------------------------------------------
 
 def get_sustainability_metrics():
-    """Fetch sustainability metrics from FastAPI backend"""
-    try:
-        logger.info(f"Fetching metrics from FastAPI backend: {BACKEND_URL}/api/metrics")
-        response = requests.get(f"{BACKEND_URL}/api/metrics", timeout=10.0)
-        response.raise_for_status()
+    """Get sustainability metrics data"""
+    metrics = []
+    categories = ["Carbon Emissions", "Water Usage", "Energy Consumption", "Waste Management"]
+    
+    for i, category in enumerate(categories):
+        # Generate time series data
+        time_series = []
+        base_value = random.uniform(80, 120)
+        trend = random.choice(["improving", "stable", "worsening"])
+        
+        for month in range(12):
+            date = (datetime.now() - timedelta(days=30 * (11 - month))).strftime("%Y-%m")
+            
+            # Adjust value based on trend
+            if trend == "improving":
+                factor = 0.95 ** month
+            elif trend == "worsening":
+                factor = 1.05 ** month
+            else:
+                factor = 1
+            
+            value = base_value * factor
+            
+            # Add noise
+            noise = random.uniform(-5, 5)
+            value = max(0, value + noise)
+            
+            time_series.append({
+                "date": date,
+                "value": round(value, 2)
+            })
+        
+        metrics.append({
+            "id": f"metric_{i+1}",
+            "name": category,
+            "category": category.split()[0],
+            "description": f"Tracks {category.lower()} across all operations",
+            "time_series": time_series,
+            "latest_value": time_series[-1]["value"],
+            "target": round(base_value * 0.8, 2),
+            "status": "active"
+        })
+    
+    return metrics
 
-        metrics_data = response.json()
-        logger.info(f"Successfully fetched {len(metrics_data)} metrics from API")
-
-        # Log a sample metric for verification
-        if metrics_data and len(metrics_data) > 0:
-            logger.info(f"Sample metric: {json.dumps(metrics_data[0], indent=2)}")
-
-        return metrics_data
-    except Exception as e:
-        logger.error(f"Error fetching metrics from API: {str(e)}")
-        logger.info("Falling back to mock data")
-        return get_mock_sustainability_metrics()
-
-# Fallback mock data function
-def get_mock_sustainability_metrics():
-    """Generate mock sustainability metrics data as fallback"""
-    logger.info("Generating mock sustainability metrics data")
-    # Generate dates for the past 6 months
-    dates = []
-    for i in range(6):
-        dates.append((datetime.now() - timedelta(days=30 * (5 - i))).isoformat())
-
-    # Carbon emissions data (decreasing trend - good)
-    emissions_data = [
-        {"id": 1, "name": "Carbon Emissions", "category": "emissions", "value": 45, "unit": "tons CO2e", "timestamp": dates[0]},
-        {"id": 2, "name": "Carbon Emissions", "category": "emissions", "value": 42, "unit": "tons CO2e", "timestamp": dates[1]},
-        {"id": 3, "name": "Carbon Emissions", "category": "emissions", "value": 38, "unit": "tons CO2e", "timestamp": dates[2]},
-        {"id": 4, "name": "Carbon Emissions", "category": "emissions", "value": 35, "unit": "tons CO2e", "timestamp": dates[3]},
-        {"id": 5, "name": "Carbon Emissions", "category": "emissions", "value": 32, "unit": "tons CO2e", "timestamp": dates[4]},
-        {"id": 6, "name": "Carbon Emissions", "category": "emissions", "value": 30, "unit": "tons CO2e", "timestamp": dates[5]}
+def get_trends():
+    """Get sustainability trends data"""
+    trends = []
+    categories = ["Climate Transition", "Circular Economy", "Social Impact", "ESG Reporting"]
+    titles = [
+        "Net Zero Commitments Accelerate",
+        "Carbon Pricing Adoption Growth",
+        "Plastic Reduction Strategies",
+        "Human Rights Due Diligence",
+        "CSRD Implementation Timeline"
     ]
+    
+    for i, title in enumerate(titles):
+        category = categories[i % len(categories)]
+        
+        trends.append({
+            "id": f"trend_{i+1}",
+            "title": title,
+            "category": category,
+            "description": f"Analysis of {title.lower()} across the industry",
+            "virality_score": round(random.uniform(30, 95), 1),
+            "momentum": random.choice(["rising", "stable", "falling"]),
+            "impact_level": random.choice(["high", "medium", "low"]),
+            "timeframe": random.choice(["short-term", "medium-term", "long-term"]),
+            "created_at": (datetime.now() - timedelta(days=random.randint(1, 30))).isoformat()
+        })
+    
+    return trends
 
-    # Energy consumption data (decreasing trend - good)
-    energy_data = [
-        {"id": 7, "name": "Energy Consumption", "category": "energy", "value": 1250, "unit": "MWh", "timestamp": dates[0]},
-        {"id": 8, "name": "Energy Consumption", "category": "energy", "value": 1200, "unit": "MWh", "timestamp": dates[1]},
-        {"id": 9, "name": "Energy Consumption", "category": "energy", "value": 1150, "unit": "MWh", "timestamp": dates[2]},
-        {"id": 10, "name": "Energy Consumption", "category": "energy", "value": 1100, "unit": "MWh", "timestamp": dates[3]},
-        {"id": 11, "name": "Energy Consumption", "category": "energy", "value": 1075, "unit": "MWh", "timestamp": dates[4]},
-        {"id": 12, "name": "Energy Consumption", "category": "energy", "value": 1050, "unit": "MWh", "timestamp": dates[5]}
+def recommend_chart(metric, data, audience="board", narrative_focus="performance_analysis"):
+    """
+    Recommend the best chart type based on data characteristics, audience, and narrative focus
+    
+    Args:
+        metric: The metric being visualized
+        data: The dataset for visualization
+        audience: Target audience (board, sustainability_team, investors)
+        narrative_focus: Focus of the narrative
+        
+    Returns:
+        Chart recommendation
+    """
+    # Chart type constants
+    LINE_CHART = "line"
+    BAR_CHART = "bar"
+    PIE_CHART = "pie"
+    GAUGE_CHART = "gauge"
+    
+    # Audience preferences
+    audience_preferences = {
+        "board": {
+            "preferred": [GAUGE_CHART, PIE_CHART],
+            "description": "Board members prefer high-level visuals showing status and progress"
+        },
+        "sustainability_team": {
+            "preferred": [LINE_CHART, BAR_CHART],
+            "description": "Sustainability teams need detailed visuals that show patterns and causality"
+        },
+        "investors": {
+            "preferred": [LINE_CHART, BAR_CHART],
+            "description": "Investors need visuals that clearly show performance and comparison to benchmarks"
+        }
+    }
+    
+    # Focus preferences
+    focus_preferences = {
+        "performance_analysis": {
+            "preferred": [LINE_CHART, BAR_CHART, GAUGE_CHART],
+            "description": "Performance analysis focuses on trends, comparisons, and status"
+        },
+        "risk_assessment": {
+            "preferred": [GAUGE_CHART, PIE_CHART],
+            "description": "Risk assessment visualizes threats, vulnerabilities, and impact levels"
+        },
+        "csrd_esg_compliance": {
+            "preferred": [BAR_CHART, PIE_CHART],
+            "description": "CSRD/ESG compliance shows regulatory status, gaps, and coverage"
+        }
+    }
+    
+    # Normalize inputs
+    audience = audience.lower()
+    if audience == "sustainability team":
+        audience = "sustainability_team"
+    
+    narrative_focus = narrative_focus.lower()
+    if "performance" in narrative_focus:
+        narrative_focus = "performance_analysis"
+    elif "risk" in narrative_focus:
+        narrative_focus = "risk_assessment"
+    elif "compliance" in narrative_focus or "esg" in narrative_focus:
+        narrative_focus = "csrd_esg_compliance"
+    
+    # Check for time series data
+    has_time_dimension = False
+    if data and len(data) > 0:
+        if "date" in data[0] or "time" in data[0] or "year" in data[0]:
+            has_time_dimension = True
+    
+    # Select chart type
+    if has_time_dimension:
+        chart_type = LINE_CHART
+        reason = "Time series data is best shown with a line chart"
+    else:
+        # Default to bar chart
+        chart_type = BAR_CHART
+        reason = "Default chart type for non-time series data"
+    
+    # Override based on audience preferences
+    if audience in audience_preferences:
+        preferred = audience_preferences[audience]["preferred"]
+        if preferred and preferred[0]:
+            if has_time_dimension and LINE_CHART in preferred:
+                chart_type = LINE_CHART
+                reason = f"Time series data optimized for {audience} audience"
+            else:
+                chart_type = preferred[0]
+                reason = f"Preferred chart type for {audience} audience"
+    
+    # Create sample config
+    config = {
+        "type": chart_type,
+        "title": f"{metric} Analysis",
+        "data": data[:10],  # Limit to 10 data points
+        "options": {}
+    }
+    
+    if chart_type == LINE_CHART:
+        config["options"] = {
+            "xAxis": {"type": "category"},
+            "yAxis": {"type": "value"},
+            "series": [{"type": "line", "smooth": True}]
+        }
+    elif chart_type == BAR_CHART:
+        config["options"] = {
+            "xAxis": {"type": "category"},
+            "yAxis": {"type": "value"},
+            "series": [{"type": "bar"}]
+        }
+    elif chart_type == PIE_CHART:
+        config["options"] = {
+            "series": [{"type": "pie", "radius": "70%"}]
+        }
+    elif chart_type == GAUGE_CHART:
+        config["options"] = {
+            "series": [{
+                "type": "gauge",
+                "startAngle": 180,
+                "endAngle": 0,
+                "min": 0,
+                "max": 100
+            }]
+        }
+    
+    return {
+        "chart_type": chart_type,
+        "explanation": reason,
+        "audience_notes": audience_preferences.get(audience, {}).get("description", ""),
+        "focus_notes": focus_preferences.get(narrative_focus, {}).get("description", ""),
+        "sample_config": config
+    }
+
+def create_story_card(metric, audience, narrative_focus, time_period):
+    """
+    Create a data-driven story card based on the provided parameters
+    
+    Args:
+        metric: Target metric for storytelling
+        audience: Target stakeholder
+        narrative_focus: Focus type
+        time_period: Timeframe for analysis
+        
+    Returns:
+        Story card as a dictionary
+    """
+    # Get metrics data
+    metrics = get_sustainability_metrics()
+    
+    # Get relevant metrics
+    relevant_metrics = []
+    for m in metrics:
+        if metric.lower() in m.get("name", "").lower():
+            relevant_metrics = m.get("time_series", [])
+            break
+    
+    if not relevant_metrics and metrics:
+        relevant_metrics = metrics[0].get("time_series", [])
+    
+    # Get chart recommendation
+    chart = recommend_chart(metric, relevant_metrics, audience, narrative_focus)
+    
+    # Generate headline based on audience and focus
+    if audience.lower() == "board":
+        if narrative_focus.lower() == "risk assessment":
+            headline = f"Risk Alert: {metric} Exposure Requires Board Attention"
+        else:
+            headline = f"{metric} Performance Shows Strategic Sustainability Impact"
+    elif audience.lower() == "sustainability team":
+        headline = f"{metric} Analysis: Key Drivers and Improvement Opportunities"
+    else:  # investors
+        headline = f"{metric} Performance Against Sector Benchmarks and Targets"
+    
+    # Generate narrative content
+    narrative = f"Our {metric} data shows positive momentum across the organization in {time_period}. This demonstrates alignment with our strategic sustainability goals and indicates effective implementation of our initiatives. Key drivers include operational efficiency improvements and targeted investments in sustainable technologies."
+    
+    # Generate context points
+    context_points = [
+        f"Performance on {metric} directly impacts our ESG ratings and sustainability rankings",
+        "Industry benchmarks show leaders achieve 30-40% better performance",
+        "Regulatory requirements are increasing in key markets"
     ]
+    
+    # Generate recommended actions
+    if audience.lower() == "board":
+        actions = [
+            f"Review strategic targets for {metric} and ensure alignment with corporate strategy",
+            f"Allocate additional resources to successful sustainability initiatives",
+            f"Consider {metric} performance in executive compensation evaluations"
+        ]
+    elif audience.lower() == "sustainability team":
+        actions = [
+            f"Implement performance improvement plan for underperforming sites",
+            f"Document and share best practices from high-performing operations",
+            f"Enhance data collection and monitoring for {metric}"
+        ]
+    else:  # investors
+        actions = [
+            f"Consider {metric} performance trajectory in investment decisions",
+            "Evaluate company's performance against sector leaders and peers",
+            "Monitor quarterly updates for sustained improvement"
+        ]
+    
+    # Create story card
+    story_card = {
+        "id": str(random.randint(1000, 9999)),
+        "created_at": datetime.now().isoformat(),
+        "metric": metric,
+        "time_period": time_period,
+        "audience": audience,
+        "narrative_focus": narrative_focus,
+        "headline": headline,
+        "narrative": narrative,
+        "chart": chart,
+        "context_points": context_points,
+        "recommended_actions": actions,
+        "status": "generated"
+    }
+    
+    return story_card
 
-    # Water usage data (decreasing trend - good)
-    water_data = [
-        {"id": 13, "name": "Water Usage", "category": "water", "value": 350, "unit": "kiloliters", "timestamp": dates[0]},
-        {"id": 14, "name": "Water Usage", "category": "water", "value": 340, "unit": "kiloliters", "timestamp": dates[1]},
-        {"id": 15, "name": "Water Usage", "category": "water", "value": 330, "unit": "kiloliters", "timestamp": dates[2]},
-        {"id": 16, "name": "Water Usage", "category": "water", "value": 320, "unit": "kiloliters", "timestamp": dates[3]},
-        {"id": 17, "name": "Water Usage", "category": "water", "value": 310, "unit": "kiloliters", "timestamp": dates[4]},
-        {"id": 18, "name": "Water Usage", "category": "water", "value": 300, "unit": "kiloliters", "timestamp": dates[5]}
-    ]
-
-    # Waste reduction data (increasing trend - good)
-    waste_data = [
-        {"id": 19, "name": "Waste Recycled", "category": "waste", "value": 65, "unit": "percent", "timestamp": dates[0]},
-        {"id": 20, "name": "Waste Recycled", "category": "waste", "value": 68, "unit": "percent", "timestamp": dates[1]},
-        {"id": 21, "name": "Waste Recycled", "category": "waste", "value": 72, "unit": "percent", "timestamp": dates[2]},
-        {"id": 22, "name": "Waste Recycled", "category": "waste", "value": 76, "unit": "percent", "timestamp": dates[3]},
-        {"id": 23, "name": "Waste Recycled", "category": "waste", "value": 80, "unit": "percent", "timestamp": dates[4]},
-        {"id": 24, "name": "Waste Recycled", "category": "waste", "value": 82, "unit": "percent", "timestamp": dates[5]}
-    ]
-
-    # ESG score data (increasing trend - good)
-    esg_data = [
-        {"id": 25, "name": "ESG Score", "category": "social", "value": 72, "unit": "score", "timestamp": dates[0]},
-        {"id": 26, "name": "ESG Score", "category": "social", "value": 74, "unit": "score", "timestamp": dates[1]},
-        {"id": 27, "name": "ESG Score", "category": "social", "value": 76, "unit": "score", "timestamp": dates[2]},
-        {"id": 28, "name": "ESG Score", "category": "social", "value": 78, "unit": "score", "timestamp": dates[3]},
-        {"id": 29, "name": "ESG Score", "category": "social", "value": 80, "unit": "score", "timestamp": dates[4]},
-        {"id": 30, "name": "ESG Score", "category": "social", "value": 82, "unit": "score", "timestamp": dates[5]}
-    ]
-
-    # Combine all data
-    all_data = emissions_data + energy_data + water_data + waste_data + esg_data
-
-    logger.info(f"Generated mock sustainability metrics with {len(all_data)} records")
-    return all_data
-
+# -------------------------------------------------------------------------
 # Routes
+# -------------------------------------------------------------------------
+
 @app.route('/')
 def home():
     """Home page"""
-    return render_template("index.html")
+    return render_template("index.html", title="SustainaTrend™ Intelligence Platform")
 
 @app.route('/dashboard')
 def dashboard():
-    """Dashboard page using data from FastAPI backend"""
-    logger.info("Dashboard page requested, fetching metrics...")
+    """Dashboard page"""
     metrics = get_sustainability_metrics()
-    logger.info(f"Rendering dashboard with {len(metrics)} metrics")
     return render_template("dashboard.html", metrics=metrics)
+
+@app.route('/trend-analysis')
+def trend_analysis():
+    """Trend analysis page"""
+    trends = get_trends()
+    return render_template("trend_analysis.html", trends=trends)
 
 @app.route('/api/metrics')
 def api_metrics():
     """API endpoint for metrics data"""
-    logger.info("API metrics endpoint called")
     metrics = get_sustainability_metrics()
-    logger.info(f"Returning {len(metrics)} metrics from API endpoint")
-    return jsonify(metrics)
-
-@app.route('/debug')
-def debug_route():
-    """Debug route to check registered routes and connections"""
-    logger.info("Debug route called")
-    routes = [str(rule) for rule in app.url_map.iter_rules()]
-
-    # Also check FastAPI connection
-    try:
-        logger.info(f"Testing connection to FastAPI backend: {BACKEND_URL}/health")
-        response = requests.get(f"{BACKEND_URL}/health", timeout=5.0)
-        response.raise_for_status()
-        backend_status = response.json()
-        logger.info(f"FastAPI backend health check: {backend_status}")
-    except Exception as e:
-        logger.error(f"Failed to connect to FastAPI backend: {str(e)}")
-        backend_status = {"status": "error", "message": str(e)}
-
-    debug_info = {
-        "routes": routes,
-        "backend_url": BACKEND_URL,
-        "backend_status": backend_status
-    }
-
-    return jsonify(debug_info)
-
-# AI Search functionality
-def perform_ai_search(query, model="rag"):
-    """
-    Perform AI-powered search on sustainability data
-    Using simulated results for now, would connect to OpenAI or other AI service in production
-    """
-    logger.info(f"Performing AI search for query: '{query}' using model: {model}")
-
-    # In a real implementation, this would call an AI service
-    # For now, generate simulated results with chain-of-thought reasoning
-
-    # Step 1: Generate mock search results based on query keywords
-    keywords = query.lower().split()
-
-    # Step 2: Mock categories that might match the search
-    categories = []
-    if any(k in keywords for k in ["carbon", "emission", "emissions", "co2", "greenhouse", "ghg"]):
-        categories.append("emissions")
-    if any(k in keywords for k in ["energy", "electricity", "power", "consumption", "renewable"]):
-        categories.append("energy")
-    if any(k in keywords for k in ["water", "hydro", "resource", "usage", "consumption"]):
-        categories.append("water")
-    if any(k in keywords for k in ["waste", "recycle", "recycling", "circular", "reuse"]):
-        categories.append("waste")
-    if any(k in keywords for k in ["social", "esg", "governance", "ethical", "responsibility"]):
-        categories.append("social")
-
-    # If no specific categories match, include all
-    if not categories:
-        categories = ["emissions", "energy", "water", "waste", "social"]
-
-    # Step 3: Generate mock search results
-    results = []
-    result_count = min(5, 1 + len(categories))  # Generate between 1-5 results
-
-    titles = {
-        "emissions": [
-            "Carbon Emissions Reduction Strategies",
-            "Scope 3 Emissions Analysis Report",
-            "GHG Protocol Implementation Guide",
-            "Carbon Neutrality Framework",
-            "Emissions Trading and Offset Mechanisms"
-        ],
-        "energy": [
-            "Renewable Energy Transition Plan",
-            "Energy Efficiency Best Practices",
-            "Green Energy Procurement Strategy",
-            "Energy Consumption Optimization Guide",
-            "Sustainable Power Generation Analysis"
-        ],
-        "water": [
-            "Water Conservation Implementation Guide",
-            "Water Footprint Reduction Strategies",
-            "Sustainable Water Management Framework",
-            "Water Resource Optimization Toolkit",
-            "Watershed Protection and Management Plan"
-        ],
-        "waste": [
-            "Zero Waste Management Strategy",
-            "Circular Economy Implementation Guide",
-            "Waste Reduction and Recycling Program",
-            "Materials Recovery and Reuse Framework",
-            "Sustainable Packaging Initiatives"
-        ],
-        "social": [
-            "ESG Reporting Standards Guide",
-            "Corporate Social Responsibility Framework",
-            "Stakeholder Engagement Best Practices",
-            "Diversity, Equity, and Inclusion Metrics",
-            "Sustainable Supply Chain Management"
-        ]
-    }
-
-    for i in range(result_count):
-        category = random.choice(categories)
-        title = random.choice(titles[category])
-
-        # Generate a snippet with highlighted search terms
-        snippet_template = "This comprehensive guide provides {keyword1} strategies for {keyword2} within your organization's sustainability program. Key areas include {keyword3} and implementation of {keyword4} with focus on {keyword5}."
-        keyword_options = {
-            "emissions": ["emissions reduction", "carbon offsetting", "GHG inventory", "climate action", "science-based targets"],
-            "energy": ["renewable energy", "energy efficiency", "clean power", "sustainable energy", "carbon-free energy"],
-            "water": ["water conservation", "water footprint", "resource optimization", "water quality", "efficiency measures"],
-            "waste": ["waste reduction", "circular economy", "recycling programs", "material recovery", "zero waste"],
-            "social": ["ESG metrics", "social impact", "governance standards", "ethical practices", "stakeholder engagement"]
-        }
-
-        keywords = keyword_options[category]
-        snippet = snippet_template.format(
-            keyword1=random.choice(keywords),
-            keyword2=random.choice(keywords),
-            keyword3=random.choice(keywords),
-            keyword4=random.choice(keywords),
-            keyword5=random.choice(keywords)
-        )
-
-        # Apply different confidence levels based on match quality
-        if any(k in query.lower() for k in keyword_options[category]):
-            confidence = random.randint(80, 98)
-            confidence_level = "high"
-        else:
-            confidence = random.randint(50, 79)
-            confidence_level = "medium"
-
-        # Generate a recent date
-        date = (datetime.now() - timedelta(days=random.randint(1, 365))).strftime("%Y-%m-%d")
-
-        results.append({
-            "title": title,
-            "snippet": snippet,
-            "category": category,
-            "date": date,
-            "confidence": confidence,
-            "confidence_level": confidence_level
-        })
-
-    # Sort by confidence (highest first)
-    results.sort(key=lambda x: x["confidence"], reverse=True)
-
-    return results
-
-@app.route('/search')
-def search():
-    """AI-powered search interface"""
-    query = request.args.get('query', '')
-    model = request.args.get('model', 'rag')  # Default to RAG model
-
-    results = []
-    if query:
-        # Perform AI search with the query
-        results = perform_ai_search(query, model)
-        logger.info(f"Search returned {len(results)} results for query: '{query}'")
-
-    return render_template("search.html", query=query, model=model, results=results)
-
-# Import trend analysis functionality
-def get_sustainability_trends(category=None):
-    """
-    Fetches and processes sustainability trends data using chain-of-thought reasoning.
-
-    This function simulates the AI-powered trend analysis. In production, this would
-    connect to an AI service like OpenAI's GPT model to perform real trend analysis.
-    """
-    logger.info(f"Generating sustainability trends data for category: {category}")
-
-    # Step 1: Generate base trend data
-    all_trends = []
-
-    # Current date for our simulated data
-    current_date = datetime.now()
-
-    # Carbon emissions trends
-    emissions_trends = [
-        {
-            "trend_id": 1,
-            "category": "emissions",
-            "name": "Carbon Emissions",
-            "current_value": 30.0,
-            "trend_direction": "decreasing",
-            "virality_score": 78.5,
-            "keywords": "carbon neutral, emissions reduction, climate impact",
-            "trend_duration": "long-term",
-            "timestamp": current_date.isoformat()
-        },
-        {
-            "trend_id": 2,
-            "category": "emissions",
-            "name": "Science-Based Targets",
-            "current_value": 45.0,
-            "trend_direction": "increasing",
-            "virality_score": 92.3,
-            "keywords": "SBTi, net-zero, climate goals, Paris Agreement",
-            "trend_duration": "long-term",
-            "timestamp": current_date.isoformat()
-        }
-    ]
-
-    # Energy consumption trends
-    energy_trends = [
-        {
-            "trend_id": 3,
-            "category": "energy",
-            "name": "Renewable Energy",
-            "current_value": 1050.0,
-            "trend_direction": "increasing",
-            "virality_score": 85.7,
-            "keywords": "renewable energy, solar, wind, clean power",
-            "trend_duration": "medium-term",
-            "timestamp": current_date.isoformat()
-        },
-        {
-            "trend_id": 4,
-            "category": "energy",
-            "name": "Energy Efficiency",
-            "current_value": 880.0,
-            "trend_direction": "decreasing",
-            "virality_score": 65.2,
-            "keywords": "efficiency, consumption reduction, power management",
-            "trend_duration": "medium-term",
-            "timestamp": current_date.isoformat()
-        }
-    ]
-
-    # Water usage trends
-    water_trends = [
-        {
-            "trend_id": 5,
-            "category": "water",
-            "name": "Water Conservation",
-            "current_value": 320.0,
-            "trend_direction": "decreasing",
-            "virality_score": 45.8,
-            "keywords": "water stewardship, conservation, usage reduction",
-            "trend_duration": "medium-term",
-            "timestamp": current_date.isoformat()
-        }
-    ]
-
-    # Waste management trends
-    waste_trends = [
-        {
-            "trend_id": 6,
-            "category": "waste",
-            "name": "Zero Waste Initiatives",
-            "current_value": 78.0,
-            "trend_direction": "increasing",
-            "virality_score": 72.4,
-            "keywords": "zero waste, circular economy, waste reduction",
-            "trend_duration": "short-term",
-            "timestamp": current_date.isoformat()
-        },
-        {
-            "trend_id": 7,
-            "category": "waste",
-            "name": "Plastic Reduction",
-            "current_value": 65.0,
-            "trend_direction": "increasing",
-            "virality_score": 94.5,
-            "keywords": "plastic-free, reduction, single-use plastic",
-            "trend_duration": "long-term",
-            "timestamp": current_date.isoformat()
-        }
-    ]
-
-    # ESG and social trends
-    social_trends = [
-        {
-            "trend_id": 8,
-            "category": "social",
-            "name": "ESG Reporting Standards",
-            "current_value": 82.0,
-            "trend_direction": "increasing",
-            "virality_score": 89.7,
-            "keywords": "ESG reporting, sustainability metrics, corporate responsibility",
-            "trend_duration": "long-term",
-            "timestamp": current_date.isoformat()
-        },
-        {
-            "trend_id": 9,
-            "category": "social",
-            "name": "Supply Chain Transparency",
-            "current_value": 56.0,
-            "trend_direction": "increasing",
-            "virality_score": 76.3,
-            "keywords": "supply chain, transparency, ethical sourcing",
-            "trend_duration": "medium-term",
-            "timestamp": current_date.isoformat()
-        }
-    ]
-
-    # Combine all trends
-    all_trends = emissions_trends + energy_trends + water_trends + waste_trends + social_trends
-
-    # Step 2: Apply category filter if provided
-    if category and category != 'all':
-        filtered_trends = [trend for trend in all_trends if trend["category"] == category]
-    else:
-        filtered_trends = all_trends
-
-    # Step 3: Generate chart data for trends over time (simulated)
-    trend_chart_data = []
-    for trend in filtered_trends:
-        # Generate 6 data points over the past 6 months for each trend
-        for i in range(6):
-            timestamp = (current_date - timedelta(days=30 * (5 - i))).isoformat()
-
-            # Simulate virality scores that evolve over time
-            base_virality = trend["virality_score"] * 0.7  # Start lower
-            growth_factor = 1 + (i * 0.1)  # Gradually increase
-
-            # Add some randomness
-            random_factor = random.uniform(0.9, 1.1)
-
-            virality = min(base_virality * growth_factor * random_factor, 100)
-
-            trend_chart_data.append({
-                "category": trend["category"],
-                "name": trend["name"],
-                "virality_score": virality,
-                "timestamp": timestamp
-            })
-
-    return filtered_trends, trend_chart_data
-
-@app.route('/trend-analysis')
-def trend_analysis():
-    """Sustainability trend analysis page"""
-    logger.info("Trend analysis page requested")
-
-    # Get category and sort filters from request args
-    category = request.args.get('category', 'all')
-    sort = request.args.get('sort', 'virality')
-
-    # Get trend analysis data
-    trends, trend_chart_data = get_sustainability_trends(category)
-
-    # Sort the trends based on user preference
-    if sort == 'virality':
-        trends.sort(key=lambda x: x['virality_score'], reverse=True)
-    elif sort == 'date':
-        trends.sort(key=lambda x: x['timestamp'], reverse=True)
-    elif sort == 'name':
-        trends.sort(key=lambda x: x['name'])
-
-    logger.info(f"Rendering trend analysis with {len(trends)} trends")
-    return render_template("trend_analysis.html", 
-                          trends=trends, 
-                          trend_chart_data=trend_chart_data,
-                          category=category,
-                          sort=sort)
+    return jsonify({"metrics": metrics})
 
 @app.route('/api/trends')
 def api_trends():
-    """API endpoint for sustainability trend data"""
-    logger.info("API trends endpoint called")
+    """API endpoint for trends data"""
+    trends = get_trends()
+    return jsonify({"trends": trends})
 
-    # Get category filter from request args if provided
-    category = request.args.get('category')
+@app.route('/api/storytelling', methods=['POST'])
+def api_storytelling():
+    """
+    API endpoint for AI storytelling generation with Gartner-inspired methodology
+    
+    Request parameters:
+    - metric: Target metric for storytelling (e.g., 'Carbon Emissions')
+    - time_period: Timeframe for analysis (e.g., 'Last Quarter')
+    - narrative_focus: Focus type ('Performance Analysis', 'Risk Assessment', 'CSRD/ESG Compliance')
+    - audience: Target stakeholder ('Board', 'Sustainability Team', 'Investors')
+    """
+    # Get request data
+    data = request.json or {}
+    
+    # Get parameters for storytelling
+    metric = data.get('metric', 'Carbon Emissions')
+    time_period = data.get('time_period', 'Last Quarter')
+    narrative_focus = data.get('narrative_focus', 'Performance Analysis')
+    audience = data.get('audience', 'Board')
+    
+    # Create story card
+    story_card = create_story_card(metric, audience, narrative_focus, time_period)
+    
+    return jsonify(story_card)
 
-    # Get trend analysis data
-    trends, _ = get_sustainability_trends(category)
+@app.route('/api/chart-recommendation', methods=['POST'])
+def api_chart_recommendation():
+    """
+    API endpoint for AI chart recommendation
+    
+    Request parameters:
+    - metric: Target metric (e.g., 'Carbon Emissions')
+    - audience: Target audience ('Board', 'Sustainability Team', 'Investors')
+    - narrative_focus: Focus type ('Performance Analysis', 'Risk Assessment', 'CSRD/ESG Compliance')
+    """
+    # Get request data
+    data = request.json or {}
+    
+    # Get parameters
+    metric = data.get('metric', 'Carbon Emissions')
+    audience = data.get('audience', 'Board')
+    narrative_focus = data.get('narrative_focus', 'Performance Analysis')
+    
+    # Get metrics data
+    metrics = get_sustainability_metrics()
+    
+    # Get relevant metrics
+    relevant_metrics = []
+    for m in metrics:
+        if metric.lower() in m.get("name", "").lower():
+            relevant_metrics = m.get("time_series", [])
+            break
+    
+    if not relevant_metrics and metrics:
+        relevant_metrics = metrics[0].get("time_series", [])
+    
+    # Get chart recommendation
+    chart = recommend_chart(metric, relevant_metrics, audience, narrative_focus)
+    
+    return jsonify(chart)
 
-    logger.info(f"Returning {len(trends)} trends from API endpoint")
-    return jsonify(trends)
+@app.route('/debug')
+def debug_route():
+    """Debug route to check registered routes"""
+    routes = []
+    for rule in app.url_map.iter_rules():
+        routes.append({
+            "endpoint": rule.endpoint,
+            "methods": [m for m in rule.methods if m not in ["HEAD", "OPTIONS"]],
+            "path": str(rule)
+        })
+    
+    system_info = {
+        "python_version": sys.version,
+        "platform": sys.platform,
+        "current_directory": os.getcwd()
+    }
+    
+    debug_data = {
+        "routes": routes,
+        "system_info": system_info
+    }
+    
+    return jsonify(debug_data)
+
+# -------------------------------------------------------------------------
+# Main entry point
+# -------------------------------------------------------------------------
 
 if __name__ == "__main__":
-    # Use port 5001 to avoid conflicts
-    port = 5001
-    logger.info(f"Starting Flask frontend on port {port}")
+    port = int(os.environ.get('PORT', 5000))
     app.run(host="0.0.0.0", port=port, debug=True)

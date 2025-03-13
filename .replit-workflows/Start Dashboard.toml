@@ -1,6 +1,6 @@
-run = "cd frontend && python clean_app.py --host=0.0.0.0 --port=5000"
+run = "cd frontend && python app.py"
 language = "python"
-entrypoint = "frontend/clean_app.py"
+entrypoint = "frontend/app.py"
 hidden = false
 persistent = true
 wait_for_port = true

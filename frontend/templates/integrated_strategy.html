@@ -1,0 +1,585 @@
+{% extends "base.html" %}
+
+{% block title %}Integrated Strategic Plan | SustainaTrend™{% endblock %}
+
+{% block content %}
+<section class="page-header">
+    <div class="container">
+        <h1 class="page-title">Integrated Strategic Consulting</h1>
+        <p class="page-subtitle">Combining monetization strategies with strategic frameworks</p>
+    </div>
+</section>
+
+<div class="container main-content">
+    <div class="row mb-4">
+        <div class="col-lg-8">
+            <div class="card shadow-sm mb-4">
+                <div class="card-header d-flex justify-content-between align-items-center">
+                    <h5 class="mb-0">Strategic Plan Generator</h5>
+                    <span class="badge bg-primary">Premium Feature</span>
+                </div>
+                <div class="card-body">
+                    <p class="card-text">Generate a comprehensive strategic plan that combines monetization strategies with consulting frameworks tailored to your organization.</p>
+                    
+                    <form id="strategic-plan-form" class="mb-4">
+                        <div class="mb-3">
+                            <label for="company-name" class="form-label">Organization Name</label>
+                            <input type="text" class="form-control" id="company-name" name="company_name" value="{{ company_name }}" required>
+                        </div>
+                        <div class="mb-3">
+                            <label for="industry" class="form-label">Industry</label>
+                            <select class="form-select" id="industry" name="industry" required>
+                                <option value="Real Estate" {% if industry == "Real Estate" %}selected{% endif %}>Real Estate</option>
+                                <option value="Technology" {% if industry == "Technology" %}selected{% endif %}>Technology</option>
+                                <option value="Manufacturing" {% if industry == "Manufacturing" %}selected{% endif %}>Manufacturing</option>
+                                <option value="Financial Services" {% if industry == "Financial Services" %}selected{% endif %}>Financial Services</option>
+                                <option value="Healthcare" {% if industry == "Healthcare" %}selected{% endif %}>Healthcare</option>
+                                <option value="Retail" {% if industry == "Retail" %}selected{% endif %}>Retail</option>
+                                <option value="Energy" {% if industry == "Energy" %}selected{% endif %}>Energy</option>
+                                <option value="Transportation" {% if industry == "Transportation" %}selected{% endif %}>Transportation</option>
+                                <option value="Consumer Goods" {% if industry == "Consumer Goods" %}selected{% endif %}>Consumer Goods</option>
+                                <option value="Other" {% if industry == "Other" %}selected{% endif %}>Other</option>
+                            </select>
+                        </div>
+                        <div class="mb-3">
+                            <label for="document-text" class="form-label">Business Plan/Document Text (Optional)</label>
+                            <textarea class="form-control" id="document-text" name="document_text" rows="6" placeholder="Paste your business plan or sustainability strategy document text here for more personalized analysis..."></textarea>
+                        </div>
+                        <button type="submit" class="btn btn-primary">Generate Strategic Plan</button>
+                    </form>
+                </div>
+            </div>
+            
+            <div id="strategic-plan-results" class="card shadow-sm mb-4 d-none">
+                <div class="card-header bg-success text-white">
+                    <h5 class="mb-0">Strategic Plan for <span id="result-company-name">{{ company_name }}</span></h5>
+                </div>
+                <div class="card-body">
+                    <div id="loading-indicator" class="text-center py-5">
+                        <div class="spinner-border text-primary" role="status">
+                            <span class="visually-hidden">Loading...</span>
+                        </div>
+                        <p class="mt-3">Generating your strategic plan...</p>
+                    </div>
+                    
+                    <div id="plan-content" class="d-none">
+                        <!-- Plan content will be inserted here via JavaScript -->
+                    </div>
+                </div>
+                <div class="card-footer">
+                    <button class="btn btn-outline-primary btn-sm" id="download-pdf">Download as PDF</button>
+                    <button class="btn btn-outline-secondary btn-sm" id="share-plan">Share Plan</button>
+                </div>
+            </div>
+        </div>
+        
+        <div class="col-lg-4">
+            <div class="card shadow-sm mb-4">
+                <div class="card-header">
+                    <h5 class="mb-0">Monetization Strategies</h5>
+                </div>
+                <div class="card-body">
+                    <ul class="list-group list-group-flush">
+                        {% for strategy_id, strategy in monetization_strategies.items() %}
+                        <li class="list-group-item px-0">
+                            <div class="d-flex align-items-center">
+                                <div class="strategy-icon me-3">
+                                    <i class="{{ strategy.icon }} text-primary"></i>
+                                </div>
+                                <div>
+                                    <h6 class="mb-1">{{ strategy.name }}</h6>
+                                    <p class="text-muted small mb-0">{{ strategy.short_description }}</p>
+                                </div>
+                            </div>
+                        </li>
+                        {% endfor %}
+                    </ul>
+                </div>
+            </div>
+            
+            <div class="card shadow-sm mb-4">
+                <div class="card-header">
+                    <h5 class="mb-0">Benefits</h5>
+                </div>
+                <div class="card-body">
+                    <ul class="benefits-list">
+                        <li><i class="check-icon text-success"></i> Actionable monetization strategies</li>
+                        <li><i class="check-icon text-success"></i> McKinsey-style framework analysis</li>
+                        <li><i class="check-icon text-success"></i> Implementation roadmap with timelines</li>
+                        <li><i class="check-icon text-success"></i> Financial projection estimates</li>
+                        <li><i class="check-icon text-success"></i> Integrated business model approach</li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const strategicPlanForm = document.getElementById('strategic-plan-form');
+    const resultsCard = document.getElementById('strategic-plan-results');
+    const loadingIndicator = document.getElementById('loading-indicator');
+    const planContent = document.getElementById('plan-content');
+    const resultCompanyName = document.getElementById('result-company-name');
+    
+    strategicPlanForm.addEventListener('submit', function(e) {
+        e.preventDefault();
+        
+        // Get form data
+        const companyName = document.getElementById('company-name').value;
+        const industry = document.getElementById('industry').value;
+        const documentText = document.getElementById('document-text').value;
+        
+        // Update company name in results
+        resultCompanyName.textContent = companyName;
+        
+        // Show results card and loading indicator
+        resultsCard.classList.remove('d-none');
+        loadingIndicator.classList.remove('d-none');
+        planContent.classList.add('d-none');
+        
+        // Scroll to results
+        resultsCard.scrollIntoView({ behavior: 'smooth' });
+        
+        // Prepare request data
+        const requestData = {
+            company_name: companyName,
+            industry: industry,
+            document_text: documentText
+        };
+        
+        // Make API request
+        fetch('/api/monetization/strategic-plan', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify(requestData)
+        })
+        .then(response => response.json())
+        .then(data => {
+            // Hide loading indicator
+            loadingIndicator.classList.add('d-none');
+            
+            if (data.success) {
+                // Generate HTML content for the plan
+                const plan = data.plan;
+                
+                // Generate strategic plan HTML
+                const planHTML = generatePlanHTML(plan);
+                
+                // Display the plan
+                planContent.innerHTML = planHTML;
+                planContent.classList.remove('d-none');
+            } else {
+                // Show error message
+                planContent.innerHTML = `
+                    <div class="alert alert-danger">
+                        <strong>Error:</strong> ${data.error || 'Failed to generate strategic plan. Please try again.'}
+                    </div>
+                `;
+                planContent.classList.remove('d-none');
+            }
+        })
+        .catch(error => {
+            // Hide loading indicator
+            loadingIndicator.classList.add('d-none');
+            
+            // Show error message
+            planContent.innerHTML = `
+                <div class="alert alert-danger">
+                    <strong>Error:</strong> An unexpected error occurred. Please try again.
+                </div>
+            `;
+            planContent.classList.remove('d-none');
+            console.error('Error:', error);
+        });
+    });
+    
+    // Function to generate HTML for the strategic plan
+    function generatePlanHTML(plan) {
+        // Executive summary section
+        let html = `
+            <div class="plan-section mb-4">
+                <h3 class="section-title">Executive Summary</h3>
+                <div class="card bg-light">
+                    <div class="card-body">
+                        <p class="lead">Strategic plan for <strong>${plan.company_name}</strong> in the <strong>${plan.industry}</strong> sector.</p>
+                        <p>This integrated plan combines top monetization opportunities with strategic consulting frameworks to provide a comprehensive roadmap for sustainability-driven revenue growth.</p>
+                        <div class="d-flex justify-content-between text-center mt-4">
+                            <div class="metric-box">
+                                <h6 class="small text-muted">Monetization Score</h6>
+                                <h4>${Math.round(plan.monetization_overview.overall_score * 100)}%</h4>
+                            </div>
+                            <div class="metric-box">
+                                <h6 class="small text-muted">Coverage</h6>
+                                <h4>${Math.round(plan.monetization_overview.coverage * 100)}%</h4>
+                            </div>
+                            <div class="metric-box">
+                                <h6 class="small text-muted">Revenue Potential</h6>
+                                <h4>${plan.financial_projections.revenue_potential.split(' ')[0]}</h4>
+                            </div>
+                            <div class="metric-box">
+                                <h6 class="small text-muted">ROI (5yr)</h6>
+                                <h4>${plan.financial_projections.roi_5_year}</h4>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        `;
+        
+        // Top monetization strategies section
+        html += `
+            <div class="plan-section mb-4">
+                <h3 class="section-title">Top Monetization Opportunities</h3>
+                <div class="row">
+        `;
+        
+        // Add each top monetization category
+        plan.monetization_overview.top_categories.forEach(category => {
+            html += `
+                <div class="col-md-4 mb-3">
+                    <div class="card h-100">
+                        <div class="card-body">
+                            <h5 class="card-title">${category.name}</h5>
+                            <div class="d-flex align-items-center mb-2">
+                                <div class="progress flex-grow-1 me-2" style="height: 8px;">
+                                    <div class="progress-bar" role="progressbar" style="width: ${Math.round(category.score * 100)}%"></div>
+                                </div>
+                                <span class="small">${Math.round(category.score * 100)}%</span>
+                            </div>
+                            <span class="badge ${getBadgeClass(category.potential_level)}">${category.potential_level} Potential</span>
+                        </div>
+                    </div>
+                </div>
+            `;
+        });
+        
+        html += `
+                </div>
+            </div>
+        `;
+        
+        // Strategic frameworks section
+        html += `
+            <div class="plan-section mb-4">
+                <h3 class="section-title">Strategic Framework Analysis</h3>
+                <div class="accordion" id="frameworksAccordion">
+        `;
+        
+        // Add each strategic framework analysis
+        let index = 0;
+        for (const [categoryId, frameworkData] of Object.entries(plan.strategic_frameworks)) {
+            const categoryName = plan.monetization_overview.top_categories.find(c => c.id === categoryId)?.name || 'Strategy';
+            
+            html += `
+                <div class="accordion-item">
+                    <h2 class="accordion-header">
+                        <button class="accordion-button ${index > 0 ? 'collapsed' : ''}" type="button" data-bs-toggle="collapse" data-bs-target="#framework${index}">
+                            <strong>${categoryName}</strong>: ${frameworkData.framework_name} Analysis
+                        </button>
+                    </h2>
+                    <div id="framework${index}" class="accordion-collapse collapse ${index === 0 ? 'show' : ''}" data-bs-parent="#frameworksAccordion">
+                        <div class="accordion-body">
+                            <p class="mb-3">${getFrameworkDescription(frameworkData.framework)}</p>
+                            
+                            <!-- Framework-specific content would go here -->
+                            <div class="framework-content mb-3">
+                                ${getFrameworkContentHTML(frameworkData.framework, frameworkData.analysis)}
+                            </div>
+                            
+                            <!-- Recommendations -->
+                            <h6 class="mt-4 mb-3">Key Recommendations</h6>
+                            <div class="recommendations-list">
+                                ${getRecommendationsHTML(frameworkData.analysis.recommendations || [])}
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            `;
+            index++;
+        }
+        
+        html += `
+                </div>
+            </div>
+        `;
+        
+        // Implementation roadmap section
+        html += `
+            <div class="plan-section mb-4">
+                <h3 class="section-title">Implementation Roadmap</h3>
+                <div class="roadmap">
+                    <div class="row">
+        `;
+        
+        // Add each phase of the roadmap
+        for (const [phaseId, phaseData] of Object.entries(plan.implementation_roadmap)) {
+            html += `
+                <div class="col-md-3 mb-3">
+                    <div class="card h-100">
+                        <div class="card-header bg-light py-2">
+                            <h6 class="mb-0">${phaseData.title}</h6>
+                            <small class="text-muted">${phaseData.duration}</small>
+                        </div>
+                        <div class="card-body">
+                            <ul class="small roadmap-activities ps-3">
+                                ${phaseData.key_activities.map(activity => `<li>${activity}</li>`).join('')}
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+            `;
+        }
+        
+        html += `
+                    </div>
+                </div>
+            </div>
+        `;
+        
+        // Financial projections section
+        html += `
+            <div class="plan-section">
+                <h3 class="section-title">Financial Projections</h3>
+                <div class="row">
+                    <div class="col-md-6">
+                        <table class="table">
+                            <tbody>
+                                <tr>
+                                    <th scope="row">Development Costs</th>
+                                    <td>${plan.financial_projections.development_costs}</td>
+                                </tr>
+                                <tr>
+                                    <th scope="row">Time to Market</th>
+                                    <td>${plan.financial_projections.time_to_market}</td>
+                                </tr>
+                                <tr>
+                                    <th scope="row">Revenue Potential</th>
+                                    <td>${plan.financial_projections.revenue_potential}</td>
+                                </tr>
+                                <tr>
+                                    <th scope="row">Time to Breakeven</th>
+                                    <td>${plan.financial_projections.time_to_breakeven}</td>
+                                </tr>
+                                <tr>
+                                    <th scope="row">5-Year ROI</th>
+                                    <td>${plan.financial_projections.roi_5_year}</td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                    <div class="col-md-6">
+                        <div class="chart-placeholder bg-light d-flex align-items-center justify-content-center" style="height: 240px;">
+                            <div class="text-center text-muted">
+                                <i class="chart-icon mb-2"></i>
+                                <p>Financial projection chart will be generated here</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        `;
+        
+        return html;
+    }
+    
+    // Helper function to get CSS class for potential level badge
+    function getBadgeClass(level) {
+        switch (level) {
+            case 'High':
+                return 'bg-success';
+            case 'Moderate':
+                return 'bg-primary';
+            case 'Low':
+                return 'bg-secondary';
+            default:
+                return 'bg-info';
+        }
+    }
+    
+    // Helper function to get framework description
+    function getFrameworkDescription(frameworkId) {
+        const descriptions = {
+            'porters': 'Analysis of competitive forces including supplier power, buyer power, competitive rivalry, threat of substitution, and threat of new entry.',
+            'swot': 'Evaluation of internal strengths and weaknesses alongside external opportunities and threats.',
+            'bcg': 'Prioritization based on market growth rate and relative market share.',
+            'mckinsey': 'Ranking based on market attractiveness and competitive position.',
+            'strategy_pyramid': 'Hierarchical framework defining mission, objectives, strategies, and tactical plans.',
+            'blue_ocean': 'Creation of uncontested market space through sustainable innovation and differentiation.'
+        };
+        
+        return descriptions[frameworkId] || 'Strategic analysis using consulting framework methodology.';
+    }
+    
+    // Helper function to generate framework-specific content HTML
+    function getFrameworkContentHTML(frameworkId, analysis) {
+        switch (frameworkId) {
+            case 'porters':
+                return getPortersHTML(analysis);
+            case 'swot':
+                return getSwotHTML(analysis);
+            // Add more framework renderers as needed
+            default:
+                return `<p class="fst-italic">Framework analysis data available in the full strategic consulting package.</p>`;
+        }
+    }
+    
+    // Helper function for Porter's Five Forces HTML
+    function getPortersHTML(analysis) {
+        let html = `<div class="forces-container">`;
+        
+        if (analysis.forces) {
+            html += `<div class="row">`;
+            
+            // Create a force card for each force
+            for (const [forceId, force] of Object.entries(analysis.forces)) {
+                const niceName = forceId.split('_').map(word => word.charAt(0).toUpperCase() + word.slice(1)).join(' ');
+                
+                html += `
+                    <div class="col-md-6 mb-3">
+                        <div class="card h-100">
+                            <div class="card-header bg-light py-2 d-flex justify-content-between align-items-center">
+                                <h6 class="mb-0">${niceName}</h6>
+                                <span class="force-score">${force.score}/5</span>
+                            </div>
+                            <div class="card-body">
+                                <p class="trend-indicator small">Trend: <span class="${getTrendClass(force.trends)}">${force.trends}</span></p>
+                                
+                                <h6 class="text-muted small">Key Factors</h6>
+                                <ul class="small mb-2">
+                                    ${force.key_factors.map(factor => `<li>${factor}</li>`).join('')}
+                                </ul>
+                            </div>
+                        </div>
+                    </div>
+                `;
+            }
+            
+            html += `</div>`;
+        } else {
+            html += `<p class="text-muted">Detailed forces analysis available in the full report.</p>`;
+        }
+        
+        html += `</div>`;
+        return html;
+    }
+    
+    // Helper function for SWOT Analysis HTML
+    function getSwotHTML(analysis) {
+        let html = `
+            <div class="swot-container">
+                <div class="row">
+        `;
+        
+        const categories = ['strengths', 'weaknesses', 'opportunities', 'threats'];
+        const categoryTitles = {
+            'strengths': 'Strengths', 
+            'weaknesses': 'Weaknesses', 
+            'opportunities': 'Opportunities', 
+            'threats': 'Threats'
+        };
+        
+        const categoryClasses = {
+            'strengths': 'success',
+            'weaknesses': 'danger',
+            'opportunities': 'primary',
+            'threats': 'warning'
+        };
+        
+        // Create a card for each SWOT category
+        categories.forEach(category => {
+            html += `
+                <div class="col-md-6 mb-3">
+                    <div class="card h-100">
+                        <div class="card-header bg-${categoryClasses[category]} bg-opacity-10 py-2">
+                            <h6 class="mb-0 text-${categoryClasses[category]}">${categoryTitles[category]}</h6>
+                        </div>
+                        <div class="card-body">
+            `;
+            
+            if (analysis[category] && analysis[category].length > 0) {
+                html += `<ul class="small ps-3">`;
+                analysis[category].slice(0, 3).forEach(item => {
+                    html += `<li><strong>${item.title}</strong>: ${item.description}</li>`;
+                });
+                html += `</ul>`;
+            } else {
+                html += `<p class="text-muted small">Detailed ${category} analysis available in the full report.</p>`;
+            }
+            
+            html += `
+                        </div>
+                    </div>
+                </div>
+            `;
+        });
+        
+        html += `
+                </div>
+            </div>
+        `;
+        
+        return html;
+    }
+    
+    // Helper function to get recommendations HTML
+    function getRecommendationsHTML(recommendations) {
+        if (!recommendations || recommendations.length === 0) {
+            return `<p class="text-muted">Recommendations available in the full strategic consulting package.</p>`;
+        }
+        
+        let html = `<div class="row">`;
+        
+        // Show top 3 recommendations
+        recommendations.slice(0, 3).forEach(rec => {
+            html += `
+                <div class="col-md-4 mb-3">
+                    <div class="card h-100">
+                        <div class="card-body p-3">
+                            <h6 class="recommendation-title">${rec.title}</h6>
+                            <p class="small mb-2">${rec.description}</p>
+                            <div class="d-flex justify-content-between small text-muted">
+                                <span>Impact: <strong>${rec.impact}</strong></span>
+                                <span>Timeline: <strong>${rec.timeframe}</strong></span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            `;
+        });
+        
+        html += `</div>`;
+        return html;
+    }
+    
+    // Helper function to get class for trend indicator
+    function getTrendClass(trend) {
+        switch (trend) {
+            case 'Increasing':
+                return 'text-success';
+            case 'Decreasing':
+                return 'text-danger';
+            case 'Stable':
+                return 'text-primary';
+            default:
+                return 'text-muted';
+        }
+    }
+    
+    // Handle download PDF button - just a placeholder
+    document.getElementById('download-pdf').addEventListener('click', function() {
+        alert('PDF download functionality will be available in the full version.');
+    });
+    
+    // Handle share plan button - just a placeholder
+    document.getElementById('share-plan').addEventListener('click', function() {
+        alert('Plan sharing functionality will be available in the full version.');
+    });
+});
+</script>
+{% endblock %}

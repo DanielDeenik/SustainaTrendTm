@@ -1,695 +1,377 @@
 <!DOCTYPE html>
-<html lang="en" class="{{ current_theme|default('dark-mode') }} theme-transition">
+<html lang="en" class="{{ current_theme|default('dark-mode') }}">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>{% block title %}Sustainability Intelligence Platform{% endblock %}</title>
-    <link rel="stylesheet" href="{{ url_for('static', filename='styles.css') }}">
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
-    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.0/font/bootstrap-icons.css">
-    <!-- SustainaTrend CSS Framework -->
-    <link rel="stylesheet" href="{{ url_for('static', filename='css/sustainatrend-index.css') }}">
-    <link rel="stylesheet" href="{{ url_for('static', filename='css/simcorp-inspired.css') }}">
-    <link rel="stylesheet" href="{{ url_for('static', filename='css/sustainability-copilot.css') }}">
+    <title>{% block title %}SustainaTrend™ Intelligence Platform{% endblock %}</title>
+    
+    <!-- Bootstrap CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    
+    <!-- Font Awesome -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+    
+    <!-- Custom CSS -->
     <style>
         :root {
-            --primary-color: #10b981;
-            --primary-dark: #059669;
-            --primary-light: #d1fae5;
-            --primary-rgb: 16, 185, 129;
-            --bg-sidebar: #052e16;
-            --bg-sidebar-hover: rgba(255, 255, 255, 0.1);
-            --bg-body: #f8f9fa;
-            --text-color: #333;
-            --text-muted: #6c757d;
-            --card-bg: #fff;
-            --border-color: rgba(0, 0, 0, 0.1);
-            --transition-speed: 0.3s;
-            
-            /* Real-time update colors - connect to framework variables */
-            --update-breeam-color: #2ecc71;
-            --update-energy-color: #3498db;
-            --update-carbon-color: #e67e22;
-            --update-financial-color: #9b59b6;
+            --primary-color: #3b82f6;
+            --secondary-color: #10b981;
+            --dark-bg: #1f2937;
+            --light-bg: #f9fafb;
+            --dark-text: #1f2937;
+            --light-text: #f9fafb;
+            --card-bg-dark: #374151;
+            --card-bg-light: #ffffff;
+            --border-dark: #4b5563;
+            --border-light: #e5e7eb;
         }
-
+        
+        /* Light Mode */
         .light-mode {
-            --bg-sidebar: #042f2e;
-            --bg-sidebar-hover: rgba(255, 255, 255, 0.1);
-            --bg-body: #f8fafc;
-            --text-color: #334155;
-            --text-muted: #64748b;
-            --card-bg: #ffffff;
-            --border-color: #e2e8f0;
-            --hover-bg: rgba(0, 0, 0, 0.03);
+            --bg-color: var(--light-bg);
+            --text-color: var(--dark-text);
+            --card-bg: var(--card-bg-light);
+            --border-color: var(--border-light);
         }
         
+        /* Dark Mode */
         .dark-mode {
-            --bg-sidebar: #0f172a;
-            --bg-sidebar-hover: rgba(255, 255, 255, 0.05);
-            --bg-body: #1e293b;
-            --text-color: #e2e8f0;
-            --hover-bg: rgba(255, 255, 255, 0.05);
-            --text-muted: #94a3b8;
-            --card-bg: #0f172a;
-            --border-color: #334155;
+            --bg-color: var(--dark-bg);
+            --text-color: var(--light-text);
+            --card-bg: var(--card-bg-dark);
+            --border-color: var(--border-dark);
         }
-
+        
         body {
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-            margin: 0;
-            padding: 0;
+            background-color: var(--bg-color);
             color: var(--text-color);
-            background-color: var(--bg-body);
-            transition: background-color var(--transition-speed), color var(--transition-speed);
-        }
-
-        /* Left sidebar styles */
-        .sidebar {
-            position: fixed;
-            top: 0;
-            bottom: 0;
-            left: 0;
-            z-index: 100;
-            padding: 0;
-            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
-            background-color: var(--bg-sidebar);
-            width: 280px;
-            transition: all var(--transition-speed) ease;
-            overflow: hidden;
-        }
-
-        .sidebar.collapsed {
-            width: 70px;
-        }
-
-        .sidebar-sticky {
-            position: sticky;
-            top: 0;
-            height: 100vh;
-            overflow-x: hidden;
-            overflow-y: auto;
-            padding-bottom: 60px; /* Space for the theme toggle */
-        }
-
-        .sidebar .nav-link {
-            font-weight: 500;
-            color: var(--primary-light);
-            padding: 0.75rem 1.25rem;
-            border-left: 4px solid transparent;
-            transition: all 0.2s ease;
-            display: flex;
-            align-items: center;
-            white-space: nowrap;
-        }
-
-        .sidebar .nav-link:hover,
-        .sidebar .nav-link.active {
-            color: #fff;
-            background-color: var(--bg-sidebar-hover);
-            border-left: 4px solid var(--primary-color);
-        }
-
-        .sidebar .nav-link i {
-            margin-right: 15px;
-            font-size: 1.1rem;
-            min-width: 24px;
-            text-align: center;
-        }
-
-        .sidebar.collapsed .nav-link span,
-        .sidebar.collapsed .sidebar-heading,
-        .sidebar.collapsed .sidebar-logo h4,
-        .sidebar.collapsed .sidebar-logo small {
-            display: none;
-        }
-
-        .sidebar.collapsed .sidebar-logo {
-            padding: 1rem 0;
-        }
-
-        .sidebar.collapsed .nav-link {
-            padding: 0.75rem;
-            justify-content: center;
-        }
-
-        .sidebar.collapsed .nav-link i {
-            margin-right: 0;
-            font-size: 1.2rem;
-        }
-
-        .sidebar-heading {
-            font-size: 0.75rem;
-            text-transform: uppercase;
-            padding: 0.75rem 1.25rem;
-            margin-top: 1rem;
-            color: var(--primary-light);
-            opacity: 0.8;
-            letter-spacing: 1px;
-        }
-
-        /* Logo and branding area */
-        .sidebar-logo {
-            padding: 1.5rem 1.25rem;
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-            border-bottom: 1px solid var(--bg-sidebar-hover);
-        }
-
-        .sidebar-logo-content {
-            display: flex;
-            flex-direction: column;
-        }
-
-        .sidebar-logo h4 {
-            color: white;
-            margin-bottom: 0;
-            font-size: 1.2rem;
-            font-weight: 600;
-        }
-
-        .sidebar-logo small {
-            color: var(--primary-light);
-            opacity: 0.8;
-            font-size: 0.75rem;
-        }
-
-        /* Hamburger toggle button */
-        .sidebar-toggle {
-            background: transparent;
-            border: none;
-            color: white;
-            cursor: pointer;
-            font-size: 1.2rem;
-            margin-left: 10px;
-            padding: 0;
-            height: 32px;
-            width: 32px;
-            border-radius: 4px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            transition: background-color 0.2s;
-        }
-
-        .sidebar-toggle:hover {
-            background-color: var(--bg-sidebar-hover);
-        }
-
-        /* Main content adjustment to account for sidebar */
-        .main-content {
-            margin-left: 280px;
-            padding-top: 1.5rem;
-            transition: all var(--transition-speed) ease;
-        }
-
-        .main-content.expanded {
-            margin-left: 70px;
-        }
-
-        /* Theme toggle at bottom of sidebar */
-        .theme-toggle {
-            position: fixed;
-            bottom: 0;
-            left: 0;
-            width: 280px;
-            padding: 1rem;
-            background-color: var(--bg-sidebar);
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-            transition: width var(--transition-speed) ease;
-            border-top: 1px solid var(--bg-sidebar-hover);
-            color: var(--primary-light);
-        }
-
-        .sidebar.collapsed .theme-toggle {
-            width: 70px;
-            justify-content: center;
-        }
-
-        .theme-toggle span {
-            font-size: 0.85rem;
-            margin-right: 10px;
-        }
-
-        .sidebar.collapsed .theme-toggle span {
-            display: none;
-        }
-
-        .theme-toggle-button {
-            background: transparent;
-            border: none;
-            color: var(--primary-light);
-            cursor: pointer;
-            font-size: 1.1rem;
-            padding: 5px;
-            border-radius: 4px;
-            transition: background-color 0.2s, color 0.3s ease;
-        }
-
-        .theme-toggle-button:hover {
-            background-color: var(--bg-sidebar-hover);
+            transition: background-color 0.3s, color 0.3s;
         }
         
-        .theme-label {
-            transition: color 0.3s ease;
+        .navbar {
+            background-color: var(--card-bg);
+            border-bottom: 1px solid var(--border-color);
         }
         
-        /* Theme transition for smoother experience */
-        html, body, main, .sidebar, .navbar, .card {
-            transition: background-color 0.3s ease, color 0.3s ease, border-color 0.3s ease;
+        .navbar-brand {
+            font-weight: bold;
+            color: var(--primary-color) !important;
         }
-
-        /* Badge Styles */
-        .status-badge {
-            font-size: 0.7rem;
-            padding: 0.25rem 0.5rem;
-            border-radius: 50px;
-            margin-left: 10px;
+        
+        .nav-link {
+            color: var(--text-color) !important;
         }
-
-        /* Custom Section Icon */
-        .section-icon {
-            display: inline-block;
-            width: 24px;
-            height: 24px;
-            margin-right: 10px;
-            background-color: var(--primary-color);
-            border-radius: 4px;
-            text-align: center;
-            line-height: 24px;
-            color: white;
-            font-size: 14px;
+        
+        .nav-link.active {
+            color: var(--primary-color) !important;
+            font-weight: bold;
         }
-
-        /* Responsive adjustments */
-        @media (max-width: 991.98px) {
-            .sidebar {
-                width: 70px;
-            }
-
-            .sidebar .nav-link span,
-            .sidebar .sidebar-heading,
-            .sidebar .sidebar-logo h4,
-            .sidebar .sidebar-logo small {
-                display: none;
-            }
-
-            .sidebar .sidebar-logo {
-                padding: 1rem 0;
-            }
-
-            .sidebar .nav-link {
-                padding: 0.75rem;
-                justify-content: center;
-            }
-
-            .sidebar .nav-link i {
-                margin-right: 0;
-                font-size: 1.2rem;
-            }
-
-            .main-content {
-                margin-left: 70px;
-            }
-
-            .theme-toggle {
-                width: 70px;
-                justify-content: center;
-            }
-
-            .theme-toggle span {
-                display: none;
-            }
-
-            /* For mobile, make sidebar fully collapsible */
-            @media (max-width: 767.98px) {
-                .sidebar {
-                    transform: translateX(-100%);
-                }
-
-                .sidebar.mobile-expanded {
-                    transform: translateX(0);
-                    width: 280px;
-                }
-
-                .sidebar.mobile-expanded .nav-link span,
-                .sidebar.mobile-expanded .sidebar-heading,
-                .sidebar.mobile-expanded .sidebar-logo h4,
-                .sidebar.mobile-expanded .sidebar-logo small {
-                    display: block;
-                }
-
-                .sidebar.mobile-expanded .nav-link {
-                    padding: 0.75rem 1.25rem;
-                    justify-content: flex-start;
-                }
-
-                .sidebar.mobile-expanded .nav-link i {
-                    margin-right: 15px;
-                }
-
-                .sidebar.mobile-expanded .theme-toggle {
-                    width: 280px;
-                    justify-content: space-between;
-                }
-
-                .sidebar.mobile-expanded .theme-toggle span {
-                    display: block;
-                }
-
-                .main-content {
-                    margin-left: 0;
-                }
-
-                /* Mobile toggle button */
-                .mobile-toggle {
-                    position: fixed;
-                    top: 15px;
-                    left: 15px;
-                    z-index: 1000;
-                    background-color: var(--primary-color);
-                    color: white;
-                    border: none;
-                    border-radius: 5px;
-                    width: 40px;
-                    height: 40px;
-                    display: flex;
-                    align-items: center;
-                    justify-content: center;
-                    cursor: pointer;
-                    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2);
-                }
-            }
-        }
-
-        /* Cards */
+        
         .card {
             background-color: var(--card-bg);
-            border-radius: 8px;
             border: 1px solid var(--border-color);
-            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.05);
-            transition: transform 0.3s, box-shadow 0.3s;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+            transition: transform 0.3s ease;
         }
-
+        
         .card:hover {
             transform: translateY(-5px);
-            box-shadow: 0 8px 15px rgba(0, 0, 0, 0.1);
+        }
+        
+        .btn-primary {
+            background-color: var(--primary-color);
+            border-color: var(--primary-color);
+        }
+        
+        .btn-secondary {
+            background-color: var(--secondary-color);
+            border-color: var(--secondary-color);
+        }
+        
+        /* Data metrics styles */
+        .metric-card {
+            padding: 1.5rem;
+            border-radius: 0.5rem;
+            margin-bottom: 1rem;
+        }
+        
+        .metric-value {
+            font-size: 2.5rem;
+            font-weight: bold;
+            margin-bottom: 0.5rem;
+        }
+        
+        .metric-title {
+            font-size: 1rem;
+            color: #6b7280;
+        }
+        
+        /* Trend indicators */
+        .trend-up {
+            color: #10b981;
+        }
+        
+        .trend-down {
+            color: #ef4444;
+        }
+        
+        .trend-stable {
+            color: #f59e0b;
+        }
+        
+        /* Theme toggle */
+        .theme-toggle {
+            cursor: pointer;
+            padding: 0.5rem;
+            border-radius: 0.25rem;
+        }
+        
+        /* Footer */
+        footer {
+            background-color: var(--card-bg);
+            border-top: 1px solid var(--border-color);
+            padding: 1rem 0;
+            margin-top: 2rem;
+        }
+        
+        /* API status indicator */
+        .api-status {
+            display: inline-block;
+            width: 10px;
+            height: 10px;
+            border-radius: 50%;
+            margin-right: 5px;
+        }
+        
+        .api-online {
+            background-color: #10b981;
+        }
+        
+        .api-offline {
+            background-color: #ef4444;
+        }
+        
+        .api-degraded {
+            background-color: #f59e0b;
         }
 
-        /* Footer */
-        .footer {
+        /* Sidebar styles */
+        #sidebar {
+            min-width: 250px;
+            max-width: 250px;
             background-color: var(--card-bg);
-            color: var(--text-muted);
-            border-top: 1px solid var(--border-color);
-            transition: background-color var(--transition-speed), color var(--transition-speed);
+            color: var(--text-color);
+            transition: all 0.3s;
+            border-right: 1px solid var(--border-color);
+            height: 100vh;
+            position: fixed;
+            z-index: 100;
+        }
+
+        #sidebar .sidebar-header {
+            padding: 20px;
+            background-color: var(--card-bg);
+            border-bottom: 1px solid var(--border-color);
+        }
+
+        #sidebar ul.components {
+            padding: 20px 0;
+            border-bottom: 1px solid var(--border-color);
+        }
+
+        #sidebar ul li a {
+            padding: 10px 20px;
+            font-size: 1.1em;
+            display: block;
+            color: var(--text-color);
+            text-decoration: none;
+            transition: all 0.3s;
+        }
+
+        #sidebar ul li a:hover {
+            background-color: var(--primary-color);
+            color: white;
+        }
+
+        #sidebar ul li.active > a {
+            color: var(--primary-color);
+            background-color: transparent;
+            font-weight: bold;
+        }
+
+        #content {
+            margin-left: 250px;
+            padding: 20px;
+            min-height: 100vh;
+            transition: all 0.3s;
+        }
+
+        /* Media queries for responsive sidebar */
+        @media (max-width: 768px) {
+            #sidebar {
+                margin-left: -250px;
+            }
+            #sidebar.active {
+                margin-left: 0;
+            }
+            #content {
+                margin-left: 0;
+            }
+            #content.active {
+                margin-left: 250px;
+            }
+        }
+
+        /* Custom scrollbar for sidebar */
+        #sidebar::-webkit-scrollbar {
+            width: 8px;
+        }
+
+        #sidebar::-webkit-scrollbar-track {
+            background: var(--card-bg);
+        }
+
+        #sidebar::-webkit-scrollbar-thumb {
+            background-color: var(--border-color);
+            border-radius: 10px;
         }
     </style>
-    <link rel="stylesheet" href="{{ url_for('static', filename='css/common.css') }}">
-    {% block extra_css %}{% endblock %}
+    
+    {% block styles %}{% endblock %}
 </head>
-<body class="sustainatrend-theme">
-    <!-- Mobile Sidebar Toggle (visible on small screens) -->
-    <button class="mobile-toggle d-md-none">
-        <i class="bi bi-list"></i>
-    </button>
+<body>
+    <div class="wrapper d-flex">
+        <!-- Sidebar -->
+        <nav id="sidebar">
+            <div class="sidebar-header">
+                <h3>SustainaTrend™</h3>
+                <p class="text-muted">Intelligence Platform</p>
+            </div>
 
-    <!-- Main Container -->
-    <div class="container-fluid p-0">
-        <div class="row g-0">
-            <!-- Left Sidebar -->
-            <nav id="sidebar" class="sidebar">
-                <div class="sidebar-sticky">
-                    <div class="sidebar-logo">
-                        <div class="sidebar-logo-content">
-                            <h4>SustainaTrend™</h4>
-                            <small>Intelligence Platform</small>
-                        </div>
-                        <button class="sidebar-toggle">
-                            <i class="bi bi-chevron-left"></i>
-                        </button>
-                    </div>
+            <ul class="list-unstyled components">
+                <li class="{{ 'active' if active_nav == 'home' else '' }}">
+                    <a href="/"><i class="fas fa-home me-2"></i> Home</a>
+                </li>
+                <li class="{{ 'active' if active_nav == 'dashboard' else '' }}">
+                    <a href="/dashboard"><i class="fas fa-chart-line me-2"></i> Dashboard</a>
+                </li>
+                <li class="{{ 'active' if active_nav == 'document-upload' else '' }}">
+                    <a href="/document-upload"><i class="fas fa-file-upload me-2"></i> Document Upload</a>
+                </li>
+                <li class="{{ 'active' if active_nav == 'search' else '' }}">
+                    <a href="/search"><i class="fas fa-search me-2"></i> Search</a>
+                </li>
+                <li class="{{ 'active' if active_nav == 'trend-analysis' else '' }}">
+                    <a href="/trend-analysis"><i class="fas fa-chart-pie me-2"></i> Trend Analysis</a>
+                </li>
+                <li class="{{ 'active' if active_nav == 'risk-tracker' else '' }}">
+                    <a href="/risk-tracker"><i class="fas fa-exclamation-triangle me-2"></i> Risk Tracker</a>
+                </li>
+                <li class="{{ 'active' if active_nav == 'sustainability' else '' }}">
+                    <a href="/sustainability"><i class="fas fa-leaf me-2"></i> Sustainability</a>
+                </li>
+                <li class="{{ 'active' if active_nav == 'monetization' else '' }}">
+                    <a href="/monetization"><i class="fas fa-dollar-sign me-2"></i> Monetization</a>
+                </li>
+            </ul>
 
-                    <!-- Sustainability Co-Pilot Activation Button -->
-                    <div class="st-global-action">
-                        <div class="st-global-action-button" id="activate-copilot-sidebar" onclick="window.copilotInstance.toggleCopilot()">
-                            <i class="bi bi-robot"></i>
-                            <span>Sustainability Co-Pilot</span>
-                        </div>
-                    </div>
-
-                    <!-- Dashboard Section - Using Atomic Navigation Components -->
-                    <div class="st-nav-section">
-                        <a href="/" class="st-nav-item {% if request.path == '/' %}active{% endif %}">
-                            <span class="st-nav-icon"><i class="bi bi-house-door-fill"></i></span>
-                            <span class="st-nav-text">Home</span>
-                        </a>
-                        <a href="/dashboard" class="st-nav-item {% if request.path == '/dashboard' %}active{% endif %}">
-                            <span class="st-nav-icon"><i class="bi bi-speedometer2"></i></span>
-                            <span class="st-nav-text">Dashboard</span>
-                        </a>
-                        <a href="/analytics-dashboard" class="st-nav-item {% if request.path == '/analytics-dashboard' %}active{% endif %}">
-                            <span class="st-nav-icon"><i class="bi bi-graph-up-arrow"></i></span>
-                            <span class="st-nav-text">Analytics</span>
-                        </a>
-                    </div>
-
-                    <div class="st-nav-divider"></div>
-                    <h6 class="st-nav-header">AI Tools</h6>
-                    <div class="st-nav-section">
-                        <div class="st-nav-item" id="activate-copilot-ai" onclick="window.copilotInstance.toggleCopilot()">
-                            <span class="st-nav-icon"><i class="bi bi-robot"></i></span>
-                            <span class="st-nav-text">AI Co-Pilot</span>
-                            <span class="st-nav-badge st-nav-badge-success">New</span>
-                        </div>
-                        <a href="/sustainability-stories" class="st-nav-item {% if request.path == '/sustainability-stories' %}active{% endif %}">
-                            <span class="st-nav-icon"><i class="bi bi-book"></i></span>
-                            <span class="st-nav-text">AI Stories</span>
-                        </a>
-                    </div>
-
-                    <div class="st-nav-divider"></div>
-                    <h6 class="st-nav-header">Sustainability</h6>
-                    <div class="st-nav-section">
-                        <a href="/trend-analysis" class="st-nav-item {% if request.path == '/trend-analysis' %}active{% endif %}">
-                            <span class="st-nav-icon"><i class="bi bi-arrow-up-right"></i></span>
-                            <span class="st-nav-text">Trend Analysis</span>
-                        </a>
-                        <a href="/sustainability" class="st-nav-item {% if request.path == '/sustainability' %}active{% endif %}">
-                            <span class="st-nav-icon"><i class="bi bi-bar-chart-fill"></i></span>
-                            <span class="st-nav-text">ESG Analysis</span>
-                        </a>
-                        <a href="/sentiment-analysis" class="st-nav-item {% if request.path == '/sentiment-analysis' %}active{% endif %}">
-                            <span class="st-nav-icon"><i class="bi bi-emoji-smile"></i></span>
-                            <span class="st-nav-text">Sentiment</span>
-                        </a>
-                        <a href="/document-upload" class="st-nav-item {% if request.path == '/document-upload' %}active{% endif %}">
-                            <span class="st-nav-icon"><i class="bi bi-file-earmark-pdf"></i></span>
-                            <span class="st-nav-text">Document Analysis</span>
-                        </a>
-                    </div>
-
-                    <div class="st-nav-divider"></div>
-                    <h6 class="st-nav-header">Business</h6>
-                    <div class="st-nav-section">
-                        <a href="/realestate-unified-dashboard" class="st-nav-item {% if request.path == '/realestate-unified-dashboard' %}active{% endif %}">
-                            <span class="st-nav-icon"><i class="bi bi-building"></i></span>
-                            <span class="st-nav-text">Real Estate Dashboard</span>
-                            <span class="st-nav-badge st-nav-badge-success">New</span>
-                        </a>
-                        <a href="/monetization" class="st-nav-item {% if request.path == '/monetization' %}active{% endif %}">
-                            <span class="st-nav-icon"><i class="bi bi-currency-dollar"></i></span>
-                            <span class="st-nav-text">Monetization</span>
-                        </a>
-                        <a href="/ethical-ai" class="st-nav-item {% if request.path == '/ethical-ai' %}active{% endif %}">
-                            <span class="st-nav-icon"><i class="bi bi-shield-check"></i></span>
-                            <span class="st-nav-text">Ethical AI</span>
-                        </a>
-                        <a href="/ai-development-tools" class="st-nav-item {% if request.path == '/ai-development-tools' %}active{% endif %}">
-                            <span class="st-nav-icon"><i class="bi bi-code-slash"></i></span>
-                            <span class="st-nav-text">Dev Tools</span>
-                        </a>
-                    </div>
-
-                    <div class="st-nav-divider"></div>
-                    <h6 class="st-nav-header">System</h6>
-                    <div class="st-nav-section">
-                        <a href="/api-status" class="st-nav-item {% if request.path == '/api-status' %}active{% endif %}">
-                            <span class="st-nav-icon"><i class="bi bi-hdd-network"></i></span>
-                            <span class="st-nav-text">API Status</span>
-                            {% if api_status %}
-                                {% if api_status.using_real_apis %}
-                                    <span class="st-nav-badge st-nav-badge-success">Online</span>
-                                {% elif api_status.fallback_active %}
-                                    <span class="st-nav-badge st-nav-badge-warning">Fallback</span>
-                                {% else %}
-                                    <span class="st-nav-badge st-nav-badge-danger">Offline</span>
-                                {% endif %}
-                            {% endif %}
-                        </a>
-                        <a href="/debug" class="st-nav-item {% if request.path == '/debug' %}active{% endif %}">
-                            <span class="st-nav-icon"><i class="bi bi-bug"></i></span>
-                            <span class="st-nav-text">Debug Info</span>
-                        </a>
-                    </div>
+            <div class="px-3 py-2">
+                <div class="form-check form-switch">
+                    <input class="form-check-input" type="checkbox" id="themeSwitch" 
+                        {{ 'checked' if current_theme == 'dark-mode' else '' }}>
+                    <label class="form-check-label" for="themeSwitch">Dark Mode</label>
                 </div>
+                <div class="mt-3">
+                    <small class="text-muted">API Status: 
+                        <span class="api-status {{ 'api-online' if api_status.status == 'online' else 'api-offline' }}"></span>
+                        {{ api_status.status|capitalize }}
+                    </small>
+                </div>
+            </div>
+        </nav>
 
-                <!-- Atomic Theme Toggle -->
-                <div class="st-sidebar-footer">
-                    <div class="st-flex st-justify-between st-items-center">
-                        <span class="st-text-sm st-text-muted theme-label">Dark Mode</span>
-                        <button class="st-sidebar-toggle theme-toggle-button">
-                            <i class="bi bi-moon-stars-fill theme-icon"></i>
-                        </button>
+        <!-- Page Content -->
+        <div id="content">
+            <nav class="navbar navbar-expand-lg">
+                <div class="container-fluid">
+                    <button type="button" id="sidebarCollapse" class="btn btn-primary">
+                        <i class="fas fa-bars"></i>
+                    </button>
+                    <div class="ms-3">
+                        <h3>{% block page_title %}{{ self.title() }}{% endblock %}</h3>
+                    </div>
+                    <div class="ms-auto">
+                        <a href="/document-upload" class="btn btn-outline-primary">
+                            <i class="fas fa-file-upload me-2"></i> Upload Report
+                        </a>
                     </div>
                 </div>
             </nav>
 
-            <!-- Main Content -->
-            <main id="mainContent" class="main-content">
-                <div class="container-fluid px-4 py-3">
-                    {% block content %}{% endblock %}
-                </div>
-
-                <footer class="footer py-4 mt-5">
-                    <div class="container text-center">
-                        <p>&copy; 2025 SustainaTrend™ Intelligence Platform. All rights reserved.</p>
-                    </div>
-                </footer>
+            <main>
+                {% block content %}{% endblock %}
             </main>
+            
+            <footer>
+                <div class="container">
+                    <div class="row">
+                        <div class="col-md-6">
+                            <p>&copy; 2025 SustainaTrend™ Intelligence Platform</p>
+                        </div>
+                        <div class="col-md-6 text-end">
+                            <a href="#" class="text-decoration-none">Privacy Policy</a> | 
+                            <a href="#" class="text-decoration-none">Terms of Service</a>
+                        </div>
+                    </div>
+                </div>
+            </footer>
         </div>
     </div>
 
-    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
-    <script src="{{ url_for('static', filename='js/common.js') }}"></script>
-    <script src="{{ url_for('static', filename='js/copilot-prompt-templates.js') }}"></script>
-    <script src="{{ url_for('static', filename='js/sustainability-copilot.js') }}"></script>
+    <!-- Bootstrap Bundle with Popper -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/js/bootstrap.bundle.min.js"></script>
     
-    <!-- Theme toggle functionality -->
+    <!-- jQuery -->
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    
+    <!-- Theme Toggle Script -->
     <script>
-        function toggleTheme() {
-            const currentTheme = document.documentElement.classList.contains('dark-mode') ? 'dark-mode' : 'light-mode';
-            const newTheme = currentTheme === 'dark-mode' ? 'light-mode' : 'dark-mode';
+        $(document).ready(function() {
+            // Sidebar toggle
+            $('#sidebarCollapse').on('click', function() {
+                $('#sidebar').toggleClass('active');
+                $('#content').toggleClass('active');
+            });
             
-            // Update class on HTML element
-            document.documentElement.classList.remove(currentTheme);
-            document.documentElement.classList.add(newTheme);
-            
-            // Store preference (consistently use 'dark' and 'light' values for storage)
-            localStorage.setItem('sustainatrend-theme', newTheme === 'dark-mode' ? 'dark' : 'light');
-            
-            // Update URL to maintain theme across page loads
-            const url = new URL(window.location);
-            url.searchParams.set('theme', newTheme === 'dark-mode' ? 'dark' : 'light');
-            window.history.replaceState({}, '', url);
-            
-            // Update theme icons
-            updateThemeIcons(newTheme);
-        }
-        
-        function updateThemeIcons(theme) {
-            // Update icons
-            const themeIcons = document.querySelectorAll('.theme-icon');
-            themeIcons.forEach(icon => {
-                if (theme === 'dark-mode') {
-                    icon.classList.remove('bi-sun');
-                    icon.classList.add('bi-moon-stars-fill');
+            // Theme toggle
+            $('#themeSwitch').change(function() {
+                if($(this).is(':checked')) {
+                    // Dark mode
+                    $('html').removeClass('light-mode').addClass('dark-mode');
+                    // Store preference
+                    localStorage.setItem('theme', 'dark-mode');
                 } else {
-                    icon.classList.remove('bi-moon-stars-fill');
-                    icon.classList.add('bi-sun');
+                    // Light mode
+                    $('html').removeClass('dark-mode').addClass('light-mode');
+                    // Store preference
+                    localStorage.setItem('theme', 'light-mode');
                 }
             });
             
-            // Update labels
-            const themeLabels = document.querySelectorAll('.theme-label');
-            themeLabels.forEach(label => {
-                label.textContent = theme === 'dark-mode' ? 'Dark Mode' : 'Light Mode';
-            });
-        }
-        
-        // Initialize theme based on user preference
-        document.addEventListener('DOMContentLoaded', function() {
-            // Check for URL parameter first
-            const urlParams = new URLSearchParams(window.location.search);
-            let theme = urlParams.get('theme');
-            
-            // If no URL parameter, check localStorage
-            if (!theme) {
-                theme = localStorage.getItem('sustainatrend-theme');
+            // Check for saved theme preference
+            const savedTheme = localStorage.getItem('theme');
+            if(savedTheme) {
+                if(savedTheme === 'dark-mode') {
+                    $('#themeSwitch').prop('checked', true);
+                    $('html').removeClass('light-mode').addClass('dark-mode');
+                } else {
+                    $('#themeSwitch').prop('checked', false);
+                    $('html').removeClass('dark-mode').addClass('light-mode');
+                }
             }
-            
-            // Apply theme if we have a preference
-            if (theme) {
-                const currentTheme = document.documentElement.classList.contains('dark-mode') ? 'dark-mode' : 'light-mode';
-                document.documentElement.classList.remove(currentTheme);
-                document.documentElement.classList.add(theme === 'dark' || theme === 'dark-mode' ? 'dark-mode' : 'light-mode');
-                
-                // Update theme icons
-                updateThemeIcons(theme === 'dark' || theme === 'dark-mode' ? 'dark-mode' : 'light-mode');
-            }
-            
-            // Attach click handlers to theme toggle buttons
-            const themeToggleButtons = document.querySelectorAll('.theme-toggle-button');
-            themeToggleButtons.forEach(button => {
-                button.addEventListener('click', toggleTheme);
-            });
         });
     </script>
     
-    <!-- Add context data for Co-Pilot -->
-    <script>
-        document.addEventListener('DOMContentLoaded', function() {
-            // Create page-specific context data
-            const pageContext = {
-                pageName: '{{ request.path }}',
-                pageTitle: document.title,
-                {% if request.path == '/dashboard' %}
-                context: 'dashboard',
-                suggestion: 'What are the key metrics I should be focusing on?'
-                {% elif request.path.startswith('/trend-analysis') %}
-                context: 'trend_analysis',
-                suggestion: 'What are the top trending sustainability themes?'
-                {% elif request.path.startswith('/real-estate') %}
-                context: 'real_estate',
-                suggestion: 'Which properties are underperforming on BREEAM?'
-                {% elif request.path.startswith('/document') %}
-                context: 'document_analysis',
-                suggestion: 'Summarize this document\'s sustainability position'
-                {% elif request.path.startswith('/strategy') %}
-                context: 'strategy',
-                suggestion: 'What strategy should I use for carbon reduction?'
-                {% else %}
-                context: 'general',
-                suggestion: 'How can I improve our sustainability metrics?'
-                {% endif %}
-            };
-            
-            // Add hidden data attribute to body for Co-Pilot to access
-            document.body.setAttribute('data-copilot-context', JSON.stringify(pageContext));
-            
-            // Initialize keyboard shortcut help text (fade-in and fade-out)
-            setTimeout(() => {
-                const shortcutHelp = document.createElement('div');
-                shortcutHelp.className = 'copilot-shortcut-hint';
-                shortcutHelp.innerHTML = 'Press <kbd>Ctrl</kbd> + <kbd>K</kbd> to activate Co-Pilot';
-                document.body.appendChild(shortcutHelp);
-                
-                // Show shortcut help then fade out
-                setTimeout(() => {
-                    shortcutHelp.classList.add('show');
-                    setTimeout(() => {
-                        shortcutHelp.classList.remove('show');
-                        setTimeout(() => {
-                            shortcutHelp.remove();
-                        }, 500);
-                    }, 4000);
-                }, 300);
-            }, 2000);
-        });
-    </script>
-    
-    {% block extra_js %}{% endblock %}
+    {% block scripts %}{% endblock %}
 </body>
 </html>

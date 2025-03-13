@@ -1,0 +1,366 @@
+{% extends "base.html" %}
+
+{% block title %}Monetization & Strategy Consulting | SustainaTrend™{% endblock %}
+
+{% block content %}
+<section class="page-header">
+    <div class="container">
+        <h1 class="page-title">Monetization & Strategy Consulting</h1>
+        <p class="page-subtitle">Transform sustainability insights into revenue opportunities</p>
+    </div>
+</section>
+
+<div class="container main-content">
+    <div class="row mb-4">
+        <div class="col-lg-8">
+            <div class="card shadow-sm mb-4">
+                <div class="card-header d-flex justify-content-between align-items-center">
+                    <h5 class="mb-0">Strategy Consulting Dashboard</h5>
+                    <div>
+                        <a href="/monetization-opportunities/strategic-plan" class="btn btn-sm btn-primary">Generate Strategic Plan</a>
+                    </div>
+                </div>
+                <div class="card-body">
+                    <p class="lead">Combine McKinsey-style consulting frameworks with monetization models for actionable sustainability strategies.</p>
+                    
+                    <div class="row mb-4">
+                        <div class="col-md-6">
+                            <div class="card h-100">
+                                <div class="card-body">
+                                    <h5 class="card-title">Monetization Strategies</h5>
+                                    <p class="card-text">Analyze how your sustainability initiatives can generate value and revenue through multiple streams.</p>
+                                    <div class="d-grid">
+                                        <button type="button" class="btn btn-outline-primary" data-bs-toggle="modal" data-bs-target="#monetizationModal">
+                                            View Monetization Strategies
+                                        </button>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="card h-100">
+                                <div class="card-body">
+                                    <h5 class="card-title">Strategy Frameworks</h5>
+                                    <p class="card-text">Apply proven consulting frameworks to position your sustainability initiatives for maximum impact.</p>
+                                    <div class="d-grid">
+                                        <button type="button" class="btn btn-outline-primary" data-bs-toggle="modal" data-bs-target="#frameworksModal">
+                                            View Strategy Frameworks
+                                        </button>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="row mb-3">
+                        <div class="col-12">
+                            <h5>Quick Actions</h5>
+                        </div>
+                        <div class="col-md-4">
+                            <div class="card action-card">
+                                <div class="card-body text-center py-3">
+                                    <h6 class="mb-0">Strategy Assessment</h6>
+                                    <p class="small text-muted mb-0">Upload your strategy document</p>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-4">
+                            <div class="card action-card">
+                                <div class="card-body text-center py-3">
+                                    <h6 class="mb-0">ROI Calculator</h6>
+                                    <p class="small text-muted mb-0">Estimate sustainability ROI</p>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-4">
+                            <div class="card action-card">
+                                <div class="card-body text-center py-3">
+                                    <h6 class="mb-0">Competitor Analysis</h6>
+                                    <p class="small text-muted mb-0">Benchmark vs. industry</p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="card shadow-sm mb-4">
+                <div class="card-header">
+                    <h5 class="mb-0">Strategy Framework Selection</h5>
+                </div>
+                <div class="card-body">
+                    <p>Select the appropriate strategic framework based on your organization's sustainability objectives:</p>
+                    
+                    <div class="row">
+                        {% for framework_id, framework in strategy_frameworks.items() %}
+                        <div class="col-md-4 mb-4">
+                            <div class="card h-100 framework-card">
+                                <div class="card-body text-center">
+                                    <div class="framework-icon mb-3">
+                                        <i class="me-2 {{ framework.icon }}"></i>
+                                    </div>
+                                    <h5 class="card-title">{{ framework.name }}</h5>
+                                    <p class="card-text small">{{ framework.description }}</p>
+                                    <a href="/monetization-strategy/framework/{{ framework_id }}" class="stretched-link"></a>
+                                </div>
+                            </div>
+                        </div>
+                        {% endfor %}
+                    </div>
+                </div>
+            </div>
+            
+            <div class="card shadow-sm mb-4">
+                <div class="card-header">
+                    <h5 class="mb-0">Case Studies</h5>
+                </div>
+                <div class="card-body">
+                    <div class="row">
+                        <div class="col-md-4 mb-3">
+                            <div class="card h-100">
+                                <div class="card-body">
+                                    <span class="badge bg-success mb-2">Real Estate</span>
+                                    <h5 class="card-title h6">Green Building Monetization Strategy</h5>
+                                    <p class="card-text small">How a major real estate developer generated $4.2M in additional revenue through sustainability features.</p>
+                                </div>
+                                <div class="card-footer bg-light">
+                                    <small class="text-muted">35% increase in ROI</small>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-4 mb-3">
+                            <div class="card h-100">
+                                <div class="card-body">
+                                    <span class="badge bg-primary mb-2">Manufacturing</span>
+                                    <h5 class="card-title h6">Carbon Credit Program</h5>
+                                    <p class="card-text small">Implementation of a carbon credit program that generated both revenue and improved brand reputation.</p>
+                                </div>
+                                <div class="card-footer bg-light">
+                                    <small class="text-muted">$2.8M additional revenue</small>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-4 mb-3">
+                            <div class="card h-100">
+                                <div class="card-body">
+                                    <span class="badge bg-warning text-dark mb-2">Retail</span>
+                                    <h5 class="card-title h6">Sustainable Consumer Products</h5>
+                                    <p class="card-text small">Development of premium eco-friendly product line with Porter's Five Forces analysis.</p>
+                                </div>
+                                <div class="card-footer bg-light">
+                                    <small class="text-muted">28% price premium achieved</small>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <div class="col-lg-4">
+            <div class="card shadow-sm mb-4">
+                <div class="card-header">
+                    <h5 class="mb-0">Monetization Insights</h5>
+                </div>
+                <div class="card-body">
+                    <div class="chart-placeholder bg-light mb-3" style="height: 180px;">
+                        <!-- Placeholder for chart showing monetization potential by category -->
+                    </div>
+                    <ul class="list-group list-group-flush">
+                        <li class="list-group-item px-0 py-2 d-flex justify-content-between align-items-center">
+                            <span>Consulting Services</span>
+                            <span class="badge bg-primary rounded-pill">High</span>
+                        </li>
+                        <li class="list-group-item px-0 py-2 d-flex justify-content-between align-items-center">
+                            <span>Carbon Credits</span>
+                            <span class="badge bg-primary rounded-pill">High</span>
+                        </li>
+                        <li class="list-group-item px-0 py-2 d-flex justify-content-between align-items-center">
+                            <span>Data Licensing</span>
+                            <span class="badge bg-secondary rounded-pill">Medium</span>
+                        </li>
+                        <li class="list-group-item px-0 py-2 d-flex justify-content-between align-items-center">
+                            <span>Sustainable Products</span>
+                            <span class="badge bg-secondary rounded-pill">Medium</span>
+                        </li>
+                        <li class="list-group-item px-0 py-2 d-flex justify-content-between align-items-center">
+                            <span>Educational Content</span>
+                            <span class="badge bg-light text-dark rounded-pill">Low</span>
+                        </li>
+                    </ul>
+                </div>
+            </div>
+            
+            <div class="card shadow-sm mb-4">
+                <div class="card-header">
+                    <h5 class="mb-0">Key Benefits</h5>
+                </div>
+                <div class="card-body">
+                    <ul class="benefits-list">
+                        <li>
+                            <div class="d-flex">
+                                <div class="benefit-icon me-3 text-primary">
+                                    <i class="check-icon"></i>
+                                </div>
+                                <div>
+                                    <h6 class="mb-1">Strategy Integration</h6>
+                                    <p class="small text-muted mb-0">Connect sustainability initiatives to monetization opportunities</p>
+                                </div>
+                            </div>
+                        </li>
+                        <li>
+                            <div class="d-flex">
+                                <div class="benefit-icon me-3 text-primary">
+                                    <i class="check-icon"></i>
+                                </div>
+                                <div>
+                                    <h6 class="mb-1">ROI Calculation</h6>
+                                    <p class="small text-muted mb-0">Quantify financial returns from sustainability investments</p>
+                                </div>
+                            </div>
+                        </li>
+                        <li>
+                            <div class="d-flex">
+                                <div class="benefit-icon me-3 text-primary">
+                                    <i class="check-icon"></i>
+                                </div>
+                                <div>
+                                    <h6 class="mb-1">Competitive Positioning</h6>
+                                    <p class="small text-muted mb-0">Identify strategic advantages in sustainability initiatives</p>
+                                </div>
+                            </div>
+                        </li>
+                        <li>
+                            <div class="d-flex">
+                                <div class="benefit-icon me-3 text-primary">
+                                    <i class="check-icon"></i>
+                                </div>
+                                <div>
+                                    <h6 class="mb-1">Implementation Roadmap</h6>
+                                    <p class="small text-muted mb-0">Actionable plans with clear timelines and milestones</p>
+                                </div>
+                            </div>
+                        </li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Monetization Strategies Modal -->
+<div class="modal fade" id="monetizationModal" tabindex="-1" aria-labelledby="monetizationModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="monetizationModalLabel">Monetization Strategies</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <div class="table-responsive">
+                    <table class="table table-hover">
+                        <thead>
+                            <tr>
+                                <th>Strategy</th>
+                                <th>Description</th>
+                                <th>Potential</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for strategy_id, strategy in monetization_strategies.items() %}
+                            <tr>
+                                <td><strong>{{ strategy.name }}</strong></td>
+                                <td>{{ strategy.short_description }}</td>
+                                <td>
+                                    <div class="d-flex align-items-center">
+                                        <div class="progress flex-grow-1 me-2" style="height: 6px;">
+                                            <div class="progress-bar" role="progressbar" style="width: {{ strategy.default_potential }}%;"></div>
+                                        </div>
+                                        <span class="small">{{ strategy.default_potential }}%</span>
+                                    </div>
+                                </td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+                <a href="/monetization-opportunities/strategic-plan" class="btn btn-primary">Generate Strategic Plan</a>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Strategy Frameworks Modal -->
+<div class="modal fade" id="frameworksModal" tabindex="-1" aria-labelledby="frameworksModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="frameworksModalLabel">Strategy Frameworks</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <div class="table-responsive">
+                    <table class="table table-hover">
+                        <thead>
+                            <tr>
+                                <th>Framework</th>
+                                <th>Description</th>
+                                <th>Best For</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for framework_id, framework in strategy_frameworks.items() %}
+                            <tr>
+                                <td><strong>{{ framework.name }}</strong></td>
+                                <td>{{ framework.description }}</td>
+                                <td>
+                                    {% if framework_id == 'porters' %}
+                                    Competitive analysis
+                                    {% elif framework_id == 'swot' %}
+                                    Internal/external assessment
+                                    {% elif framework_id == 'bcg' %}
+                                    Portfolio management
+                                    {% elif framework_id == 'mckinsey' %}
+                                    Investment prioritization
+                                    {% elif framework_id == 'strategy_pyramid' %}
+                                    Strategic planning
+                                    {% elif framework_id == 'blue_ocean' %}
+                                    Innovation strategy
+                                    {% else %}
+                                    Strategic analysis
+                                    {% endif %}
+                                </td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+                <a href="/monetization-opportunities/strategic-plan" class="btn btn-primary">Apply Framework</a>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // Initialize any interactive elements
+    const actionCards = document.querySelectorAll('.action-card');
+    
+    actionCards.forEach(card => {
+        card.addEventListener('click', function() {
+            // This would normally navigate to the specific action
+            // For now, show an alert about premium features
+            alert('This feature is available in the full version.');
+        });
+    });
+});
+</script>
+{% endblock %}

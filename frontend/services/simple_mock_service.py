@@ -1,609 +1,441 @@
 """
-SimpleMockService
+Simple Mock Service for SustainaTrend™ Intelligence Platform
 
-A lightweight mock service that provides static data for the Sustainability Intelligence Platform.
-This eliminates external dependencies on MongoDB while providing realistic test data.
+This module provides a simple service for generating mock sustainability data
+for development purposes and testing dashboard functionality.
+
+Note: This is used for UI development only and should be replaced with 
+real data services in production.
 """
 
-import random
 import logging
-import json
+import random
 from datetime import datetime, timedelta
-from typing import Dict, List, Any, Optional, Union
+from typing import Dict, List, Any, Optional
 
-# Setup logging
-logger = logging.getLogger("services.simple_mock_service")
+logger = logging.getLogger(__name__)
 
 class SimpleMockService:
     """
-    Simple mock service that provides static data for all service layer operations.
-    This implementation is self-contained and doesn't rely on external databases.
+    Service for generating mock sustainability data
     """
     
     def __init__(self):
-        """Initialize the mock service with pre-generated data"""
+        """Initialize the mock service"""
         logger.info("Initializing SimpleMockService")
         
-        # Generate mock data
-        self._metrics = self._generate_metrics(30)
-        self._trends = self._generate_trends(15)
-        self._stories = self._generate_stories(10)
+        # Define metrics categories
+        self.metrics_categories = [
+            "Carbon Emissions",
+            "Energy Consumption",
+            "Water Usage",
+            "Waste Management",
+            "Renewable Energy",
+            "Employee Diversity",
+            "Supply Chain",
+            "Biodiversity Impact"
+        ]
         
-        # Create lookups for faster access
-        self._metrics_by_id = {m["id"]: m for m in self._metrics}
-        self._trends_by_id = {t["id"]: t for t in self._trends}
-        self._stories_by_id = {s["id"]: s for s in self._stories}
+        # Define trend categories
+        self.trend_categories = [
+            "Climate Transition",
+            "Circular Economy",
+            "Social Impact",
+            "Governance",
+            "ESG Reporting",
+            "Stakeholder Engagement",
+            "Regulatory Compliance",
+            "Technology Innovation"
+        ]
         
-        logger.info(f"Mock service initialized with {len(self._metrics)} metrics, "
-                   f"{len(self._trends)} trends, and {len(self._stories)} stories")
-    
-    def get_categories(self) -> List[str]:
-        """
-        Get the list of available metric categories
+        # Define story categories
+        self.story_categories = [
+            "Success Stories",
+            "Challenges",
+            "Innovations",
+            "Strategic Initiatives",
+            "Risk Management",
+            "Stakeholder Value",
+            "Regulatory Impact",
+            "Future Outlook"
+        ]
         
-        Returns:
-            List of category names
-        """
-        categories = ["emissions", "energy", "water", "waste", "social"]
-        return categories
-    
-    def get_metrics(self, 
-                    category: Optional[str] = None, 
-                    start_date: Optional[Union[str, datetime]] = None,
-                    end_date: Optional[Union[str, datetime]] = None,
-                    limit: int = 100) -> List[Dict[str, Any]]:
-        """
-        Get sustainability metrics with optional filtering
-        
-        Args:
-            category: Filter by category name
-            start_date: Filter by minimum date (string or datetime)
-            end_date: Filter by maximum date (string or datetime)
-            limit: Maximum number of records to return
-            
-        Returns:
-            List of metric dictionaries
-        """
-        # Convert string dates to datetime if provided
-        start_dt = self._parse_date(start_date) if start_date else None
-        end_dt = self._parse_date(end_date) if end_date else None
-        
-        # Apply filters
-        filtered_metrics = self._metrics.copy()
-        
-        if category:
-            filtered_metrics = [m for m in filtered_metrics if m.get("category") == category]
-            
-        if start_dt:
-            filtered_metrics = [m for m in filtered_metrics 
-                               if self._parse_date(m.get("timestamp")) is not None and 
-                               self._parse_date(m.get("timestamp")) >= start_dt]
-            
-        if end_dt:
-            filtered_metrics = [m for m in filtered_metrics 
-                               if self._parse_date(m.get("timestamp")) is not None and 
-                               self._parse_date(m.get("timestamp")) <= end_dt]
-        
-        # Apply limit and return
-        return filtered_metrics[:limit]
-    
-    def get_trends(self,
-                   category: Optional[str] = None,
-                   min_virality: Optional[float] = None,
-                   limit: int = 50) -> List[Dict[str, Any]]:
-        """
-        Get sustainability trends with optional filtering
-        
-        Args:
-            category: Filter by category name
-            min_virality: Minimum virality score
-            limit: Maximum number of records to return
-            
-        Returns:
-            List of trend dictionaries
-        """
-        # Apply filters
-        filtered_trends = self._trends.copy()
-        
-        if category:
-            filtered_trends = [t for t in filtered_trends if t.get("category") == category]
-            
-        if min_virality is not None:
-            filtered_trends = [t for t in filtered_trends 
-                              if t.get("virality_score", 0) >= min_virality]
-        
-        # Sort by virality score (high to low)
-        filtered_trends.sort(key=lambda t: t.get("virality_score", 0), reverse=True)
-        
-        # Apply limit and return
-        return filtered_trends[:limit]
-    
-    def get_stories(self,
-                    category: Optional[str] = None,
-                    tags: Optional[List[str]] = None,
-                    limit: int = 50) -> List[Dict[str, Any]]:
-        """
-        Get sustainability stories with optional filtering
-        
-        Args:
-            category: Filter by category name
-            tags: Filter by one or more tags
-            limit: Maximum number of records to return
-            
-        Returns:
-            List of story dictionaries
-        """
-        # Apply filters
-        filtered_stories = self._stories.copy()
-        
-        if category:
-            filtered_stories = [s for s in filtered_stories if s.get("category") == category]
-            
-        if tags:
-            filtered_stories = [s for s in filtered_stories 
-                               if any(tag in s.get("tags", []) for tag in tags)]
-        
-        # Sort by publication date (newest first)
-        # Using a custom sorting key function to handle None values
-        def publication_date_key(story):
-            date = self._parse_date(story.get("publication_date"))
-            # If date is None, return a very old date to sort at the end
-            return date if date is not None else datetime(1900, 1, 1)
-            
-        filtered_stories.sort(key=publication_date_key, reverse=True)
-        
-        # Apply limit and return
-        return filtered_stories[:limit]
-    
-    def get_metric_by_id(self, metric_id: Union[str, int]) -> Optional[Dict[str, Any]]:
-        """
-        Get a single metric by ID
-        
-        Args:
-            metric_id: The ID of the metric to retrieve
-            
-        Returns:
-            Metric dictionary or None if not found
-        """
-        # Handle both string and integer IDs
-        str_id = str(metric_id)
-        if str_id in self._metrics_by_id:
-            return self._metrics_by_id[str_id]
-        
-        # Also try with integer ID
-        try:
-            int_id = int(metric_id)
-            return self._metrics_by_id.get(int_id)
-        except (ValueError, TypeError):
-            pass
-            
-        return None
-    
-    def get_trend_by_id(self, trend_id: Union[str, int]) -> Optional[Dict[str, Any]]:
-        """
-        Get a single trend by ID
-        
-        Args:
-            trend_id: The ID of the trend to retrieve
-            
-        Returns:
-            Trend dictionary or None if not found
-        """
-        # Handle both string and integer IDs
-        str_id = str(trend_id)
-        if str_id in self._trends_by_id:
-            return self._trends_by_id[str_id]
-            
-        # Also try with integer ID
-        try:
-            int_id = int(trend_id)
-            return self._trends_by_id.get(int_id)
-        except (ValueError, TypeError):
-            pass
-            
-        return None
-    
-    def get_story_by_id(self, story_id: Union[str, int]) -> Optional[Dict[str, Any]]:
-        """
-        Get a single story by ID
-        
-        Args:
-            story_id: The ID of the story to retrieve
-            
-        Returns:
-            Story dictionary or None if not found
-        """
-        # Handle both string and integer IDs
-        str_id = str(story_id)
-        if str_id in self._stories_by_id:
-            return self._stories_by_id[str_id]
-            
-        # Also try with integer ID
-        try:
-            int_id = int(story_id)
-            return self._stories_by_id.get(int_id)
-        except (ValueError, TypeError):
-            pass
-            
-        return None
-    
-    def _generate_metrics(self, count: int = 30) -> List[Dict[str, Any]]:
-        """
-        Generate mock sustainability metrics data
-        
-        Args:
-            count: Number of metrics to generate
-            
-        Returns:
-            List of metric dictionaries
-        """
-        categories = ["emissions", "energy", "water", "waste", "social"]
-        units = {
-            "emissions": "tons CO2e",
-            "energy": "MWh",
-            "water": "kiloliters",
-            "waste": "tons",
-            "social": "score"
+        # Define targets dictionary
+        self.targets = {
+            "Carbon Emissions": {"unit": "tons CO2e", "direction": "decrease", "annual_target": 0.85},
+            "Energy Consumption": {"unit": "MWh", "direction": "decrease", "annual_target": 0.9},
+            "Water Usage": {"unit": "gallons", "direction": "decrease", "annual_target": 0.85},
+            "Waste Management": {"unit": "tons", "direction": "decrease", "annual_target": 0.8},
+            "Renewable Energy": {"unit": "%", "direction": "increase", "annual_target": 1.2},
+            "Employee Diversity": {"unit": "%", "direction": "increase", "annual_target": 1.1},
+            "Supply Chain": {"unit": "score", "direction": "increase", "annual_target": 1.15},
+            "Biodiversity Impact": {"unit": "index", "direction": "decrease", "annual_target": 0.9}
         }
-        metrics_per_category = count // len(categories)
-        result = []
-        
-        for cat_index, category in enumerate(categories):
-            # Generate multiple data points for the same metric over time
-            if category == "emissions":
-                # Carbon emissions with decreasing trend
-                for i in range(metrics_per_category):
-                    # Start at 50 tons CO2e and decrease by ~5% each month
-                    base_value = 50
-                    reduction_factor = 0.95
-                    
-                    value = base_value * (reduction_factor ** i)
-                    # Add some noise (±10%)
-                    value = value * random.uniform(0.9, 1.1)
-                    
-                    metric = {
-                        "id": cat_index * metrics_per_category + i + 1,
-                        "name": "Carbon Emissions",
-                        "category": category,
-                        "value": round(value),
-                        "unit": units[category],
-                        "timestamp": (datetime.now() - timedelta(days=30 * i)).isoformat()
-                    }
-                    result.append(metric)
-            
-            elif category == "energy":
-                # Energy consumption with seasonal variations
-                for i in range(metrics_per_category):
-                    # Base value of 120 MWh with seasonal pattern
-                    month = i % 12
-                    # Higher in winter (months 0,1,2,10,11), lower in summer
-                    seasonal_factor = 1.2 if month in [0, 1, 2, 10, 11] else 0.8
-                    
-                    base_value = 120
-                    value = base_value * seasonal_factor
-                    # Add some noise (±15%)
-                    value = value * random.uniform(0.85, 1.15)
-                    
-                    metric = {
-                        "id": cat_index * metrics_per_category + i + 1,
-                        "name": "Energy Consumption",
-                        "category": category,
-                        "value": round(value),
-                        "unit": units[category],
-                        "timestamp": (datetime.now() - timedelta(days=30 * i)).isoformat()
-                    }
-                    result.append(metric)
-            
-            elif category == "water":
-                # Water usage with slight upward trend
-                for i in range(metrics_per_category):
-                    # Start at 250 kiloliters and increase slightly
-                    base_value = 250
-                    increase_factor = 1.02
-                    
-                    value = base_value * (increase_factor ** i)
-                    # Add some noise (±8%)
-                    value = value * random.uniform(0.92, 1.08)
-                    
-                    metric = {
-                        "id": cat_index * metrics_per_category + i + 1,
-                        "name": "Water Usage",
-                        "category": category,
-                        "value": round(value),
-                        "unit": units[category],
-                        "timestamp": (datetime.now() - timedelta(days=30 * i)).isoformat()
-                    }
-                    result.append(metric)
-            
-            elif category == "waste":
-                # Waste generation with decreasing trend
-                for i in range(metrics_per_category):
-                    # Start at 85 tons and decrease gradually
-                    base_value = 85
-                    reduction_factor = 0.97
-                    
-                    value = base_value * (reduction_factor ** i)
-                    # Add some noise (±12%)
-                    value = value * random.uniform(0.88, 1.12)
-                    
-                    metric = {
-                        "id": cat_index * metrics_per_category + i + 1,
-                        "name": "Waste Generation",
-                        "category": category,
-                        "value": round(value),
-                        "unit": units[category],
-                        "timestamp": (datetime.now() - timedelta(days=30 * i)).isoformat()
-                    }
-                    result.append(metric)
-            
-            elif category == "social":
-                # ESG score with improving trend
-                for i in range(metrics_per_category):
-                    # Start at 65 and improve gradually
-                    base_value = 65
-                    improvement_factor = 1.03
-                    
-                    value = base_value * (improvement_factor ** i)
-                    # Cap at 100
-                    value = min(100, value)
-                    # Add some noise (±5%)
-                    value = value * random.uniform(0.95, 1.05)
-                    
-                    metric = {
-                        "id": cat_index * metrics_per_category + i + 1,
-                        "name": "ESG Score",
-                        "category": category,
-                        "value": round(value),
-                        "unit": units[category],
-                        "timestamp": (datetime.now() - timedelta(days=30 * i)).isoformat()
-                    }
-                    result.append(metric)
-        
-        return result
     
-    def _generate_trends(self, count: int = 15) -> List[Dict[str, Any]]:
+    def get_metrics(self, category: Optional[str] = None, limit: int = 10) -> List[Dict[str, Any]]:
         """
-        Generate mock sustainability trend data
+        Get mock sustainability metrics
         
         Args:
-            count: Number of trends to generate
+            category: Category to filter by (optional)
+            limit: Maximum number of metrics to return
             
         Returns:
-            List of trend dictionaries
+            List of metrics
         """
-        categories = ["emissions", "energy", "water", "waste", "social"]
-        trends_data = []
+        logger.info(f"Getting mock metrics, category: {category}, limit: {limit}")
         
-        # Predefined trend topics by category for more realistic data
-        trend_topics = {
-            "emissions": [
-                "Carbon Neutrality Pledges",
-                "Scope 3 Emissions Tracking",
-                "Net-Zero Building Standards",
-                "Carbon Offset Verification"
-            ],
-            "energy": [
-                "Renewable Energy Integration",
-                "Energy Efficiency Measures",
-                "Green Building Certification",
-                "Heat Pump Technology Adoption"
-            ],
-            "water": [
-                "Water Conservation Techniques",
-                "Rainwater Harvesting Systems",
-                "Greywater Recycling Solutions",
-                "Water Risk Assessment"
-            ],
-            "waste": [
-                "Circular Economy Implementation",
-                "Zero Waste Certification",
-                "Biodegradable Packaging Adoption",
-                "Compost Integration Programs"
-            ],
-            "social": [
-                "Community Impact Measurement",
-                "Diversity & Inclusion Metrics",
-                "Supply Chain Ethical Standards",
-                "Employee Well-being Programs"
-            ]
-        }
+        metrics = []
         
-        # Generate trends with realistic data distribution
-        for i in range(count):
-            # Select category with weighted distribution
-            # More trends in emissions and energy categories
-            category_weights = {
-                "emissions": 0.3,
-                "energy": 0.25,
-                "social": 0.2,
-                "waste": 0.15,
-                "water": 0.1
-            }
-            category = random.choices(
-                list(category_weights.keys()),
-                weights=list(category_weights.values()),
-                k=1
-            )[0]
-            
-            # Select a topic from the predefined list for this category
-            topic = random.choice(trend_topics[category])
-            
-            # Generate a timestamp within the last 3 months
-            days_ago = random.randint(1, 90)
-            timestamp = (datetime.now() - timedelta(days=days_ago)).isoformat()
-            
-            # Generate virality score with realistic distribution
-            # Most trends have moderate virality (0.3-0.6)
-            # Few trends have high virality (0.7-0.9)
-            virality_base = random.random()
-            if virality_base < 0.7:  # 70% of trends
-                virality_score = random.uniform(0.3, 0.6)
-            else:  # 30% of trends
-                virality_score = random.uniform(0.7, 0.9)
+        # Generate metrics for each category
+        for metric_category in self.metrics_categories:
+            # Skip if filtering by category and this doesn't match
+            if category and category.lower() not in metric_category.lower():
+                continue
                 
-            # Newer trends tend to have higher virality
-            recency_boost = max(0, 0.2 * (1 - days_ago / 90))
-            virality_score = min(0.95, virality_score + recency_boost)
+            # Generate time series for this metric
+            base_value = random.uniform(80, 120)
+            time_series = []
             
-            # Determine momentum based on virality and recency
-            if days_ago < 30 and virality_score > 0.6:
-                momentum = "rising"
-            elif days_ago > 60 or virality_score < 0.4:
-                momentum = "falling"
-            else:
-                momentum = "steady"
+            # Generate 12 months of data
+            for i in range(12):
+                date = (datetime.now() - timedelta(days=30 * (11 - i))).strftime("%Y-%m")
                 
-            # Create the trend object
-            # Generate a random change percentage between -20 and +30
-            change_percentage = random.uniform(-20, 30)
+                # Determine direction and factor
+                direction = self.targets[metric_category]["direction"]
+                annual_target = self.targets[metric_category]["annual_target"]
+                
+                # Calculate monthly factor (smaller changes each month to reach annual target)
+                monthly_factor = annual_target ** (1/12)
+                
+                # Apply cumulative factor based on month
+                cumulative_factor = monthly_factor ** i
+                
+                # For decreasing metrics, we want values to decrease over time
+                if direction == "decrease":
+                    value = base_value * (2 - cumulative_factor)
+                else:
+                    value = base_value * cumulative_factor
+                
+                # Add random noise
+                noise = random.uniform(-5, 5)
+                value = max(0, value + noise)  # Ensure no negative values
+                
+                time_series.append({
+                    "date": date,
+                    "value": round(value, 2),
+                    "target": round(base_value * self.targets[metric_category]["annual_target"], 2),
+                    "unit": self.targets[metric_category]["unit"]
+                })
             
-            trend = {
-                "id": i + 1,
-                "name": topic,
-                "category": category,
-                "virality_score": round(virality_score, 2),
-                "timestamp": timestamp,
-                "momentum": momentum,
-                "change": round(change_percentage, 1),  # Add change percentage
-                "mentions_count": random.randint(int(virality_score * 100), int(virality_score * 500)),
-                "sentiment_score": random.uniform(0.3, 0.8),
-                "key_sources": random.sample([
-                    "industry_reports", "news_articles", "social_media", 
-                    "regulatory_updates", "research_papers"
-                ], k=random.randint(1, 3))
-            }
+            metrics.append({
+                "id": f"metric_{len(metrics) + 1}",
+                "name": metric_category,
+                "category": metric_category.split()[0],
+                "description": f"Tracks {metric_category.lower()} across all operations",
+                "unit": self.targets[metric_category]["unit"],
+                "time_series": time_series,
+                "latest_value": time_series[-1]["value"],
+                "target": time_series[-1]["target"],
+                "status": "active",
+                "regulatory_framework": random.choice(["CSRD", "GRI", "SASB", "TCFD", "None"]),
+                "source": random.choice(["Internal", "External", "Calculated", "Estimated"])
+            })
             
-            trends_data.append(trend)
-            
-        return trends_data
+            # Break if we've reached the limit
+            if len(metrics) >= limit:
+                break
+        
+        return metrics
     
-    def _generate_stories(self, count: int = 10) -> List[Dict[str, Any]]:
+    def get_trends(self, category: Optional[str] = None, limit: int = 10) -> List[Dict[str, Any]]:
         """
-        Generate mock sustainability storytelling data
+        Get mock sustainability trends
         
         Args:
-            count: Number of stories to generate
+            category: Category to filter by (optional)
+            limit: Maximum number of trends to return
             
         Returns:
-            List of story dictionaries
+            List of trends
         """
-        categories = ["emissions", "energy", "water", "waste", "social"]
-        stories_data = []
+        logger.info(f"Getting mock trends, category: {category}, limit: {limit}")
         
-        # Predefined story templates for more realistic data
-        story_templates = {
-            "emissions": [
+        trends = []
+        
+        # Sample trend titles
+        trend_titles = {
+            "Climate Transition": [
+                "Net Zero Commitments Accelerate",
+                "Carbon Pricing Adoption Growth",
+                "Climate Risk Disclosure Standards",
+                "Green Hydrogen Momentum"
+            ],
+            "Circular Economy": [
+                "Plastic Reduction Strategies",
+                "Product-as-Service Models Expansion",
+                "Remanufacturing Initiatives Growth",
+                "Zero Waste Certification Demand"
+            ],
+            "Social Impact": [
+                "Human Rights Due Diligence",
+                "Community Investment Programs",
+                "Diversity Reporting Standards",
+                "Living Wage Commitments"
+            ],
+            "Governance": [
+                "ESG Board Committee Formation",
+                "Sustainability Executive Compensation",
+                "Climate Competency Requirements",
+                "Transparency in Political Spending"
+            ],
+            "ESG Reporting": [
+                "CSRD Implementation Timeline",
+                "AI-Enhanced ESG Analytics",
+                "Double Materiality Assessment",
+                "Impact Valuation Methodologies"
+            ],
+            "Stakeholder Engagement": [
+                "Investor ESG Expectations",
+                "Employee Sustainability Engagement",
+                "Customer Sustainability Preferences",
+                "Supplier ESG Performance Requirements"
+            ],
+            "Regulatory Compliance": [
+                "EU Deforestation Regulation Impact",
+                "Carbon Border Adjustment Mechanism",
+                "Human Rights Due Diligence Laws",
+                "Plastic Packaging Taxes"
+            ],
+            "Technology Innovation": [
+                "Digital Product Passports",
+                "Blockchain for Supply Chain Transparency",
+                "Satellite Monitoring of Emissions",
+                "AI for Predictive Sustainability Analytics"
+            ]
+        }
+        
+        # Generate trends for each category
+        for trend_category in self.trend_categories:
+            # Skip if filtering by category and this doesn't match
+            if category and category.lower() not in trend_category.lower():
+                continue
+            
+            # Get titles for this category
+            category_titles = trend_titles.get(trend_category, [f"{trend_category} Trend"])
+            
+            # Create a trend for each title
+            for title in category_titles:
+                # Generate random virality score (0-100)
+                virality_score = random.uniform(30, 95)
+                
+                # Higher chance of high virality for regulatory and climate trends
+                if "Regulatory" in trend_category or "Climate" in trend_category:
+                    virality_score += random.uniform(0, 15)
+                    virality_score = min(virality_score, 100)
+                
+                # Generate momentum (rising or falling)
+                momentum = random.choice(["rising", "stable", "falling"])
+                momentum_value = random.uniform(-10, 20)
+                
+                if momentum == "rising":
+                    momentum_value = abs(momentum_value)
+                elif momentum == "falling":
+                    momentum_value = -abs(momentum_value)
+                else:
+                    momentum_value = momentum_value / 5  # Smaller change for stable
+                
+                trends.append({
+                    "id": f"trend_{len(trends) + 1}",
+                    "title": title,
+                    "category": trend_category,
+                    "description": f"Analysis of {title.lower()} across the industry and its implications",
+                    "virality_score": round(virality_score, 1),
+                    "momentum": momentum,
+                    "momentum_value": round(momentum_value, 1),
+                    "impact_level": random.choice(["high", "medium", "low"]),
+                    "timeframe": random.choice(["short-term", "medium-term", "long-term"]),
+                    "sources": random.randint(1, 5),
+                    "mentions": random.randint(5, 500),
+                    "created_at": (datetime.now() - timedelta(days=random.randint(1, 30))).isoformat()
+                })
+                
+                # Break if we've reached the limit
+                if len(trends) >= limit:
+                    break
+            
+            # Break if we've reached the limit
+            if len(trends) >= limit:
+                break
+        
+        return trends
+    
+    def get_stories(self, category: Optional[str] = None, limit: int = 10) -> List[Dict[str, Any]]:
+        """
+        Get mock sustainability stories
+        
+        Args:
+            category: Category to filter by (optional)
+            limit: Maximum number of stories to return
+            
+        Returns:
+            List of stories
+        """
+        logger.info(f"Getting mock stories, category: {category}, limit: {limit}")
+        
+        stories = []
+        
+        # Sample story titles and content
+        story_content = {
+            "Success Stories": [
                 {
-                    "title": "Carbon Reduction Success Story",
-                    "content": "This organization achieved a 30% reduction in carbon emissions through innovative building management and renewable energy integration."
+                    "title": "Carbon Reduction Exceeds Targets",
+                    "content": "Our carbon emissions reduction program has exceeded its annual target by 15%, demonstrating the effectiveness of our climate strategy. The implementation of energy efficiency measures and renewable energy procurement has been particularly successful, with facility-level improvements significantly outperforming initial projections.",
+                    "metric": "Carbon Emissions",
+                    "sentiment": "positive"
                 },
                 {
-                    "title": "Net-Zero Building Case Study",
-                    "content": "A detailed analysis of how this commercial property achieved net-zero carbon emissions through a combination of design, technology, and operational excellence."
+                    "title": "Water Conservation Initiative Success",
+                    "content": "The corporate water conservation program has reduced total water consumption by 22% compared to baseline, surpassing our 15% target. Advanced recycling technologies and process optimizations across manufacturing facilities have contributed to this achievement, particularly in water-stressed regions.",
+                    "metric": "Water Usage",
+                    "sentiment": "positive"
                 }
             ],
-            "energy": [
+            "Challenges": [
                 {
-                    "title": "Renewable Energy Transformation",
-                    "content": "How this portfolio transitioned to 100% renewable energy, overcoming technical challenges and achieving significant cost savings."
+                    "title": "Supply Chain Emissions Challenge",
+                    "content": "Scope 3 emissions from our supply chain remain a significant challenge, with only 65% of suppliers providing verified emission data. Despite engagement efforts, visibility throughout the value chain remains limited, particularly for smaller tier 2 and tier 3 suppliers operating in regions with less developed reporting infrastructure.",
+                    "metric": "Carbon Emissions",
+                    "sentiment": "negative"
                 },
                 {
-                    "title": "Energy Efficiency Innovation",
-                    "content": "A case study of innovative energy efficiency measures that reduced consumption by 40% across multiple properties."
+                    "title": "Regulatory Compliance Complexity",
+                    "content": "Meeting divergent sustainability reporting requirements across global markets presents increasing complexity. Our teams are working to align data collection and verification processes with emerging standards like CSRD in Europe and SEC climate disclosure rules in the US, which have different methodological approaches and timelines.",
+                    "metric": "ESG Reporting",
+                    "sentiment": "negative"
                 }
             ],
-            "water": [
+            "Innovations": [
                 {
-                    "title": "Water Conservation Excellence",
-                    "content": "This organization implemented comprehensive water conservation measures, reducing consumption by 25% and setting new industry standards."
+                    "title": "AI-Powered Energy Optimization",
+                    "content": "Implementation of AI-powered energy management systems has reduced energy consumption by 18% in pilot facilities. The machine learning algorithms continuously optimize HVAC, lighting, and production systems based on occupancy, weather conditions, and production schedules, learning and improving over time.",
+                    "metric": "Energy Consumption",
+                    "sentiment": "positive"
                 },
                 {
-                    "title": "Integrated Water Management",
-                    "content": "A holistic approach to water management across multiple properties, including rainwater harvesting, greywater recycling, and smart irrigation systems."
+                    "title": "Circular Packaging Breakthrough",
+                    "content": "Our R&D team has developed a fully recyclable packaging solution for previously hard-to-recycle products, potentially eliminating 1,200 tons of landfill waste annually. The innovation uses a novel polymer blend that maintains performance while being compatible with existing recycling infrastructure.",
+                    "metric": "Waste Management",
+                    "sentiment": "positive"
                 }
             ],
-            "waste": [
+            "Strategic Initiatives": [
                 {
-                    "title": "Zero Waste Certification Journey",
-                    "content": "The challenges and successes encountered on the path to achieving Zero Waste certification across a diverse property portfolio."
+                    "title": "Net Zero Roadmap Implementation",
+                    "content": "Implementation of our 2030 Net Zero roadmap is progressing on schedule with 40% of planned initiatives now operational. Capital investments in on-site renewable energy are showing a 4.5-year average payback period, better than the projected 5.5 years, while electrification of our vehicle fleet is advancing with 35% conversion complete.",
+                    "metric": "Carbon Emissions",
+                    "sentiment": "positive"
                 },
                 {
-                    "title": "Circular Economy Implementation",
-                    "content": "How this organization embedded circular economy principles into its operations, reducing waste by 60% and creating new value streams."
+                    "title": "Water Stewardship Program Expansion",
+                    "content": "Our water stewardship program is expanding to include watershed-level initiatives in three key operating regions identified as high water stress areas. This strategic expansion includes community engagement, infrastructure investment, and collaborative governance approaches designed to address shared water resource challenges.",
+                    "metric": "Water Usage",
+                    "sentiment": "positive"
                 }
             ],
-            "social": [
+            "Risk Management": [
                 {
-                    "title": "Community Impact Initiative",
-                    "content": "This development project created significant positive impact through innovative community engagement and local economic development initiatives."
+                    "title": "Climate Risk Scenario Analysis",
+                    "content": "Comprehensive climate risk scenario analysis identifies potential financial exposure of $25-40M annually by 2030 under a high-warming scenario. Physical risks to coastal facilities and transition risks related to carbon pricing represent the most significant exposures, with cascading impacts on insurance costs, capital expenditure requirements, and operational continuity.",
+                    "metric": "Carbon Emissions",
+                    "sentiment": "negative"
                 },
                 {
-                    "title": "Inclusive Design Excellence",
-                    "content": "A case study of how inclusive design principles were applied to create accessible, equitable spaces that serve diverse community needs."
+                    "title": "Biodiversity Impact Assessment",
+                    "content": "Biodiversity impact assessment completed for 75% of high-risk operations, revealing moderate to significant ecosystem impacts at three locations. Mitigation planning is underway with initial focus on habitat restoration, invasive species control, and operational modifications to reduce ongoing impacts to sensitive ecosystems.",
+                    "metric": "Biodiversity Impact",
+                    "sentiment": "negative"
+                }
+            ],
+            "Stakeholder Value": [
+                {
+                    "title": "ESG Investor Engagement Results",
+                    "content": "Structured ESG investor engagement program has reached 80% of our shareholder base, with positive feedback on climate transition plans. Investors particularly valued the transparency on capital allocation for sustainability initiatives, emissions reduction methodology, and clear connection between sustainability performance and executive compensation.",
+                    "metric": "Governance",
+                    "sentiment": "positive"
+                },
+                {
+                    "title": "Employee Sustainability Engagement",
+                    "content": "Employee sustainability engagement program has achieved 85% participation rate with measurable impact on retention and recruitment. Survey data indicates sustainability performance is now the third most important factor for employee satisfaction, with ambassador programs and innovation challenges generating over 200 implementable improvement ideas.",
+                    "metric": "Social Impact",
+                    "sentiment": "positive"
+                }
+            ],
+            "Regulatory Impact": [
+                {
+                    "title": "CSRD Readiness Assessment",
+                    "content": "CSRD readiness assessment indicates 65% compliance with forthcoming disclosure requirements, with significant gaps in double materiality assessment and value chain reporting. Implementation timeline and resource allocation have been adjusted to prioritize development of data collection systems for social metrics and upstream scope 3 emissions, which represent the largest compliance gaps.",
+                    "metric": "ESG Reporting",
+                    "sentiment": "neutral"
+                },
+                {
+                    "title": "Carbon Border Adjustment Mechanism Impact",
+                    "content": "Analysis of EU Carbon Border Adjustment Mechanism impact indicates potential cost increase of €3.2M annually for imported materials. Strategic response includes accelerated supplier engagement program, potential reformulation of product lines, and evaluation of localized production options to mitigate border adjustment costs.",
+                    "metric": "Carbon Emissions",
+                    "sentiment": "negative"
+                }
+            ],
+            "Future Outlook": [
+                {
+                    "title": "Science-Based Targets Implementation",
+                    "content": "Implementation of science-based targets is on track with 30% reduction in absolute emissions achieved against 2018 baseline. Current trajectory supports our 2030 target of 50% reduction, though acceleration is needed in certain business units. The renewable energy transition remains ahead of schedule with 65% of electricity now from renewable sources.",
+                    "metric": "Carbon Emissions",
+                    "sentiment": "positive"
+                },
+                {
+                    "title": "Circular Economy Transition Progress",
+                    "content": "Circular economy transition metrics show 45% of product portfolio now incorporates circular design principles, up from 20% in 2021. Recycled content has increased to an average of 35% across all packaging, while take-back programs have been implemented for 60% of eligible product lines with a 25% customer participation rate.",
+                    "metric": "Waste Management",
+                    "sentiment": "positive"
                 }
             ]
         }
         
-        # Generate stories with realistic data
-        for i in range(count):
-            # Select category
-            category = random.choice(categories)
+        # Generate stories for each category
+        for story_category in self.story_categories:
+            # Skip if filtering by category and this doesn't match
+            if category and category.lower() not in story_category.lower():
+                continue
             
-            # Select a story template
-            template = random.choice(story_templates[category])
+            # Get content for this category
+            category_stories = story_content.get(story_category, [])
             
-            # Generate publication date within the last 6 months
-            days_ago = random.randint(1, 180)
-            pub_date = (datetime.now() - timedelta(days=days_ago)).isoformat()
+            # Create a story for each content item
+            for story_item in category_stories:
+                # Generate random date in last 90 days
+                created_at = datetime.now() - timedelta(days=random.randint(1, 90))
+                
+                stories.append({
+                    "id": f"story_{len(stories) + 1}",
+                    "title": story_item["title"],
+                    "category": story_category,
+                    "metric": story_item.get("metric", "General"),
+                    "content": story_item["content"],
+                    "sentiment": story_item.get("sentiment", "neutral"),
+                    "author": "AI Storytelling Engine",
+                    "created_at": created_at.isoformat(),
+                    "tags": [story_category, story_item.get("metric", "General")],
+                    "status": "published",
+                    "visual_type": random.choice(["chart", "table", "infographic", "none"]),
+                    "related_frameworks": random.choice(["CSRD", "GRI", "SASB", "TCFD", "None"])
+                })
+                
+                # Break if we've reached the limit
+                if len(stories) >= limit:
+                    break
             
-            # Select random tags appropriate for the category
-            all_tags = [
-                "best_practice", "case_study", "innovation", "leadership",
-                "technology", "policy", "award_winning", "community",
-                "investment", "performance", "certification"
-            ]
-            
-            tag_count = random.randint(2, 4)
-            tags = random.sample(all_tags, k=tag_count)
-            
-            # Create the story object
-            story = {
-                "id": i + 1,
-                "title": template["title"],
-                "content": template["content"],
-                "category": category,
-                "tags": tags,
-                "publication_date": pub_date,
-                "reading_time": random.randint(3, 10),  # minutes
-                "impact_score": round(random.uniform(6.5, 9.5), 1),  # 1-10 scale
-                "sources": random.sample([
-                    "customer_interview", "industry_report", 
-                    "internal_data", "third_party_verification"
-                ], k=random.randint(1, 2))
-            }
-            
-            stories_data.append(story)
-            
-        return stories_data
-    
-    def _parse_date(self, date_value: Optional[Union[str, datetime]]) -> Optional[datetime]:
-        """
-        Parse a date value from string or datetime
+            # Break if we've reached the limit
+            if len(stories) >= limit:
+                break
         
-        Args:
-            date_value: Date as string or datetime object
-            
-        Returns:
-            Parsed datetime object or None if invalid
-        """
-        if not date_value:
-            return None
-            
-        if isinstance(date_value, datetime):
-            return date_value
-            
-        try:
-            return datetime.fromisoformat(date_value.replace('Z', '+00:00'))
-        except (ValueError, AttributeError):
-            logger.warning(f"Invalid date format: {date_value}")
-            return None
+        return stories

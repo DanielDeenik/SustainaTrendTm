@@ -1,516 +1,148 @@
-{% extends "base_new.html" %}
-
-{% block title %}Dashboard | SustainaTrend™{% endblock %}
-
-{% block extra_head %}
-<!-- Co-Pilot Dashboard Context Data -->
-<script type="application/json" id="dashboard-copilot-context">
-{
-    "context": "dashboard",
-    "metrics": [
-        {"name": "Carbon Emissions", "trend": "down", "value": "33%"},
-        {"name": "Water Consumption", "trend": "down", "value": "14%"},
-        {"name": "Waste Recycling", "trend": "up", "value": "82%"},
-        {"name": "Energy Efficiency", "trend": "up", "value": "16%"}
-    ],
-    "recommendations": [
-        "Continue investment in renewable energy sources",
-        "Implement additional water conservation measures",
-        "Expand circular economy initiatives"
-    ],
-    "suggested_prompts": [
-        "Explain this carbon emissions trend",
-        "What actions would improve our ESG score?",
-        "Compare our metrics to industry benchmarks",
-        "Generate a report summary of these metrics",
-        "What sustainability KPIs should I focus on?"
-    ]
-}
-</script>
-{% endblock %}
-
-{% block styles %}
-<script src="https://cdn.plot.ly/plotly-latest.min.js"></script>
-<style>
-    .metric-card {
-        background-color: var(--card-bg);
-        border-radius: 0.5rem;
-        padding: 1.25rem;
-        text-align: center;
-        box-shadow: var(--shadow-sm);
-        transition: all 0.3s ease;
-    }
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Sustainability Dashboard - SustainaTrend™</title>
+    <style>
+        body {
+            font-family: system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, 'Open Sans', 'Helvetica Neue', sans-serif;
+            margin: 0;
+            padding: 0;
+            background-color: #f9fafb;
+            color: #1f2937;
+        }
+        
+        header {
+            background-color: #10b981;
+            color: white;
+            padding: 1rem;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+        }
+        
+        main {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 2rem;
+        }
+        
+        .card {
+            background-color: white;
+            border-radius: 8px;
+            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+            padding: 1.5rem;
+            margin-bottom: 1.5rem;
+        }
+        
+        h1 {
+            margin-top: 0;
+            font-weight: 600;
+        }
+        
+        .grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+            gap: 1.5rem;
+            margin-top: 1.5rem;
+        }
+        
+        .metric-card {
+            background-color: white;
+            border-radius: 8px;
+            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+            padding: 1.5rem;
+            transition: transform 0.2s;
+        }
+        
+        .metric-card:hover {
+            transform: translateY(-4px);
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        }
+        
+        .metric-title {
+            font-size: 1.25rem;
+            font-weight: 600;
+            margin-top: 0;
+            color: #10b981;
+        }
+        
+        .metric-value {
+            font-size: 2.5rem;
+            font-weight: 700;
+            margin: 1rem 0;
+        }
+        
+        .metric-target {
+            color: #6b7280;
+            font-size: 0.875rem;
+        }
+        
+        .metric-chart {
+            height: 200px;
+            margin-top: 1rem;
+            background-color: #f3f4f6;
+            border-radius: 4px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        
+        .actions {
+            margin-top: 2rem;
+        }
+        
+        .btn {
+            display: inline-block;
+            background-color: #10b981;
+            color: white;
+            padding: 0.5rem 1rem;
+            border-radius: 4px;
+            text-decoration: none;
+            font-weight: 500;
+            margin-right: 0.5rem;
+        }
+        
+        .btn:hover {
+            background-color: #059669;
+        }
+    </style>
+</head>
+<body>
+    <header>
+        <h1>SustainaTrend™ Dashboard</h1>
+    </header>
     
-    .metric-card:hover {
-        transform: translateY(-5px);
-        box-shadow: var(--shadow);
-    }
-    
-    .metric-value {
-        font-size: 2.5rem;
-        font-weight: 700;
-        margin-bottom: 0.5rem;
-        color: var(--primary-color);
-    }
-    
-    .metric-label {
-        font-size: 0.9rem;
-        color: var(--text-muted);
-        margin-bottom: 0.5rem;
-    }
-    
-    .metric-change {
-        display: inline-block;
-        font-size: 0.8rem;
-        padding: 0.25rem 0.5rem;
-        border-radius: 1rem;
-    }
-    
-    .positive {
-        background-color: rgba(var(--bs-success-rgb), 0.1);
-        color: var(--success-color);
-    }
-    
-    .negative {
-        background-color: rgba(var(--bs-danger-rgb), 0.1);
-        color: var(--danger-color);
-    }
-    
-    .dashboard-grid {
-        display: grid;
-        grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
-        gap: 1.5rem;
-        margin-bottom: 2rem;
-    }
-    
-    .chart-container {
-        background-color: var(--card-bg);
-        border-radius: 0.5rem;
-        box-shadow: var(--shadow-sm);
-        padding: 1.5rem;
-        margin-bottom: 2rem;
-    }
-    
-    .chart-header {
-        display: flex;
-        justify-content: space-between;
-        align-items: center;
-        margin-bottom: 1.5rem;
-    }
-    
-    .chart-title {
-        font-size: 1.25rem;
-        font-weight: 600;
-        margin: 0;
-        color: var(--text-color);
-    }
-    
-    .chart-actions {
-        display: flex;
-        gap: 0.5rem;
-    }
-    
-    /* Update cards to better support dark mode */
-    .card {
-        background-color: var(--card-bg);
-        border-color: var(--border-color);
-    }
-    
-    .card-header {
-        background-color: rgba(var(--bs-primary-rgb), 0.1);
-        color: var(--text-color);
-        border-color: var(--border-color);
-    }
-</style>
-{% endblock %}
-
-{% block content %}
-    <div class="container py-4">
-                    <li class="nav-item">
-                        <a class="nav-link" href="/">Home</a>
-                    </li>
-                    <li class="nav-item">
-                        <a class="nav-link active" href="/dashboard">Dashboard & Monetization</a>
-                    </li>
-                    <li class="nav-item">
-                        <a class="nav-link" href="#" id="dashboard-copilot-button" onclick="window.copilotInstance.toggleCopilot()">
-                            <i class="bi bi-robot"></i> AI Co-Pilot
-                            <span class="badge bg-success">New</span>
-                        </a>
-                    </li>
-                    <li class="nav-item">
-                        <a class="nav-link" href="/trend-analysis">Trend Analysis</a>
-                    </li>
-                    <li class="nav-item">
-                        <a class="nav-link" href="/sustainability">Sustainability</a>
-                    </li>
-                    <li class="nav-item dropdown">
-                        <a class="nav-link dropdown-toggle" href="#" id="navbarDropdown" role="button" data-bs-toggle="dropdown" aria-expanded="false">
-                            Test Routes
-                        </a>
-                        <ul class="dropdown-menu" aria-labelledby="navbarDropdown">
-                            <li><a class="dropdown-item" href="/test-route">Test API Route</a></li>
-                            <li><a class="dropdown-item" href="/monetization-simple">Simple Monetization</a></li>
-                            <li><a class="dropdown-item" href="/monetization?format=text">Debug Monetization</a></li>
-                            <li><hr class="dropdown-divider"></li>
-                            <li><a class="dropdown-item" href="/debug">Debug Info</a></li>
-                        </ul>
-                    </li>
-                </ul>
-            </div>
-        </div>
-    </nav>
-
-    <div class="container-fluid p-4">
-        <div class="row">
-            <div class="col-12">
-                <h1 class="text-center my-4">SustainaTrend™ Intelligence Dashboard</h1>
-                <p class="text-center mb-5">Real-time insights powered by advanced AI analytics with integrated monetization framework</p>
-            </div>
-        </div>
-
-        <div class="row mb-4">
-            <div class="col-12 col-md-3">
-                <div class="card">
-                    <div class="card-header">Filter Metrics</div>
-                    <div class="card-body">
-                        <p>Select Category:</p>
-                        <select id="category-filter" class="form-select">
-                            <option value="all">All Categories</option>
-                            <option value="emissions">Emissions</option>
-                            <option value="energy">Energy</option>
-                            <option value="water">Water</option>
-                            <option value="waste">Waste</option>
-                            <option value="social">Social & Governance</option>
-                        </select>
-                    </div>
-                </div>
-            </div>
-
-            <div class="col-12 col-md-9">
-                <div class="card">
-                    <div class="card-header">Sustainability Metrics Over Time</div>
-                    <div class="card-body">
-                        <div id="metrics-time-series" style="height: 400px;"></div>
-                    </div>
-                </div>
-            </div>
-        </div>
-
-        <div class="row mb-4">
-            <div class="col-12 col-md-4">
-                <div class="card">
-                    <div class="card-header">Carbon Emissions</div>
-                    <div class="card-body">
-                        <h3 id="emissions-value" class="text-center">-</h3>
-                        <p class="text-center text-muted">tons CO2e</p>
-                        <p id="emissions-trend" class="text-center">-</p>
-                    </div>
-                </div>
-            </div>
-
-            <div class="col-12 col-md-4">
-                <div class="card">
-                    <div class="card-header">Water Usage</div>
-                    <div class="card-body">
-                        <h3 id="water-value" class="text-center">-</h3>
-                        <p class="text-center text-muted">kiloliters</p>
-                        <p id="water-trend" class="text-center">-</p>
-                    </div>
-                </div>
-            </div>
-
-            <div class="col-12 col-md-4">
-                <div class="card">
-                    <div class="card-header">Waste Recycled</div>
-                    <div class="card-body">
-                        <h3 id="waste-value" class="text-center">-</h3>
-                        <p class="text-center text-muted">percent</p>
-                        <p id="waste-trend" class="text-center">-</p>
-                    </div>
-                </div>
-            </div>
-        </div>
-
-        <div class="row">
-            <div class="col-12">
-                <div class="card">
-                    <div class="card-header">AI-Powered Sustainability Insights</div>
-                    <div class="card-body">
-                        <p>Based on the current trends, your organization is showing positive progress in reducing its environmental footprint.</p>
-                        <p>Key insights:</p>
-                        <ul>
-                            <li>Carbon emissions have reduced by 33% over the past 6 months</li>
-                            <li>Water consumption is down 14%, ahead of industry average</li>
-                            <li>Waste recycling has improved to 82%, exceeding target goals</li>
-                            <li>Energy efficiency measures have reduced consumption by 16%</li>
-                        </ul>
-                        <p>Recommended actions:</p>
-                        <ul>
-                            <li>Continue investment in renewable energy sources</li>
-                            <li>Implement additional water conservation measures</li>
-                            <li>Expand your circular economy initiatives for further waste reduction</li>
-                        </ul>
-                        
-                        <div class="mt-4 text-center">
-                            <button class="btn btn-primary btn-lg" id="insights-copilot-button" onclick="window.copilotInstance.toggleCopilot()">
-                                <i class="bi bi-robot me-2"></i> Ask the AI Co-Pilot for More Insights
-                            </button>
-                            <p class="text-muted mt-2">Our AI Co-Pilot can provide detailed analysis and custom recommendations based on your specific goals.</p>
-                        </div>
-                    </div>
-                </div>
+    <main>
+        <div class="card">
+            <h2>Sustainability Intelligence Dashboard</h2>
+            <p>
+                Welcome to the SustainaTrend™ Dashboard. This page visualizes key sustainability metrics
+                across your organization.
+            </p>
+            
+            <div class="actions">
+                <a href="/" class="btn">Home</a>
+                <a href="/trend-analysis" class="btn">Trend Analysis</a>
+                <a href="/debug" class="btn">Debug Info</a>
             </div>
         </div>
         
-        <!-- Monetization Framework Section -->
-        <div class="row mt-4">
-            <div class="col-12">
-                <div class="card">
-                    <div class="card-header bg-success text-white">
-                        <h3 class="mb-0">Monetization Framework</h3>
-                    </div>
-                    <div class="card-body">
-                        <h4 class="mb-3">Revenue Channels for SustainaTrend™ 2.0</h4>
-                        
-                        <div class="row">
-                            <div class="col-md-6 mb-4">
-                                <div class="card h-100 shadow-sm">
-                                    <div class="card-header bg-light">
-                                        <h5 class="mb-0">1. Data-as-a-Service</h5>
-                                    </div>
-                                    <div class="card-body">
-                                        <p><strong>Revenue Model:</strong> Subscription-based access to sustainability metrics and insights</p>
-                                        <p><strong>Target Customers:</strong> Corporations, ESG consultants, investment firms</p>
-                                        <p><strong>Implementation:</strong> Tiered subscription plans with varying access levels and data granularity</p>
-                                    </div>
-                                </div>
-                            </div>
-                            
-                            <div class="col-md-6 mb-4">
-                                <div class="card h-100 shadow-sm">
-                                    <div class="card-header bg-light">
-                                        <h5 class="mb-0">2. AI-Powered Analytics</h5>
-                                    </div>
-                                    <div class="card-body">
-                                        <p><strong>Revenue Model:</strong> Premium analysis of sustainability trends with predictive capabilities</p>
-                                        <p><strong>Target Customers:</strong> Strategy executives, sustainability officers</p>
-                                        <p><strong>Implementation:</strong> Advanced AI models for trend prediction and strategic recommendations</p>
-                                    </div>
-                                </div>
-                            </div>
-                            
-                            <div class="col-md-6 mb-4">
-                                <div class="card h-100 shadow-sm">
-                                    <div class="card-header bg-light">
-                                        <h5 class="mb-0">3. Consulting Services</h5>
-                                    </div>
-                                    <div class="card-body">
-                                        <p><strong>Revenue Model:</strong> High-touch consulting leveraging platform insights</p>
-                                        <p><strong>Target Customers:</strong> Large enterprises, government agencies</p>
-                                        <p><strong>Implementation:</strong> Expert-guided sustainability transformation programs</p>
-                                    </div>
-                                </div>
-                            </div>
-                            
-                            <div class="col-md-6 mb-4">
-                                <div class="card h-100 shadow-sm">
-                                    <div class="card-header bg-light">
-                                        <h5 class="mb-0">4. API Integration</h5>
-                                    </div>
-                                    <div class="card-body">
-                                        <p><strong>Revenue Model:</strong> Developer access to sustainability data via API</p>
-                                        <p><strong>Target Customers:</strong> Software developers, SaaS providers</p>
-                                        <p><strong>Implementation:</strong> RESTful API with usage-based pricing</p>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-                        
-                        <div class="mt-4">
-                            <h4 class="mb-3">Monetization Strategy Summary</h4>
-                            <p>Our multi-layered approach combines both data services and human expertise to create multiple revenue streams while maximizing customer value. The AI-powered platform serves as both a stand-alone product and a foundation for premium services.</p>
-                        </div>
-                    </div>
+        <div class="grid">
+            {% for metric in metrics %}
+            <div class="metric-card">
+                <h3 class="metric-title">{{ metric.name }}</h3>
+                <div class="metric-value">{{ metric.latest_value | round(1) }}</div>
+                <div class="metric-target">Target: {{ metric.target }}</div>
+                <div class="metric-chart">
+                    [Chart for {{ metric.name }}]
                 </div>
             </div>
+            {% endfor %}
         </div>
-    </div>
-
-{% endblock %}
-
-{% block scripts %}
-    <!-- Visualization utilities with trendViz namespace -->
-    <script src="{{ url_for('static', filename='js/visualization-utils.js') }}"></script>
-    
-    <!-- Dashboard Co-Pilot Integration -->
-    <script>
-        document.addEventListener('DOMContentLoaded', function() {
-            // Get context data from the JSON in the page
-            const dashboardContextElement = document.getElementById('dashboard-copilot-context');
-            if (dashboardContextElement) {
-                try {
-                    const contextData = JSON.parse(dashboardContextElement.textContent);
-                    
-                    // Add it to body data attribute for Co-Pilot to access
-                    document.body.setAttribute('data-copilot-context', JSON.stringify(contextData));
-                    
-                    // Set up dashboard-specific Co-Pilot behavior
-                    const insightsCopilotButton = document.getElementById('insights-copilot-button');
-                    if (insightsCopilotButton && window.copilotInstance) {
-                        insightsCopilotButton.addEventListener('click', function(e) {
-                            e.preventDefault();
-                            
-                            // Pre-populate with a dashboard-specific question
-                            const copilotQuery = document.getElementById('copilot-query');
-                            if (copilotQuery) {
-                                copilotQuery.value = "What do these carbon emissions trends mean for our sustainability goals?";
-                            }
-                            
-                            // Open the Co-Pilot
-                            window.copilotInstance.toggleCopilot();
-                            
-                            // Submit the query automatically
-                            setTimeout(() => {
-                                if (window.copilotInstance && typeof window.copilotInstance.submitQuery === 'function') {
-                                    window.copilotInstance.submitQuery();
-                                }
-                            }, 500);
-                        });
-                    }
-                    
-                    console.log('Dashboard Co-Pilot context initialized');
-                } catch (e) {
-                    console.error('Error parsing dashboard Co-Pilot context:', e);
-                }
-            }
-        });
-    </script>
+    </main>
     
     <script>
-        // Parse metrics data from Flask
-        const metricsData = {{ metrics|tojson }};
-
-        // Process metrics for visualization using trendViz color scheme
-        const processMetricsData = (metrics) => {
-            const data = [];
-            const categories = {};
-            const categoryColors = trendViz.categoryColors;
-
-            // Group metrics by name for time series chart
-            metrics.forEach(metric => {
-                if (!categories[metric.name]) {
-                    categories[metric.name] = {
-                        x: [],
-                        y: [],
-                        name: metric.name,
-                        type: 'scatter',
-                        mode: 'lines+markers',
-                        line: {
-                            color: categoryColors[metric.category] || categoryColors.emissions
-                        }
-                    };
-                }
-
-                categories[metric.name].x.push(metric.timestamp);
-                categories[metric.name].y.push(metric.value);
-            });
-
-            // Convert to array for Plotly
-            for (const name in categories) {
-                data.push(categories[name]);
-            }
-
-            return data;
-        };
-
-        // Filter metrics by category
-        const filterMetricsByCategory = (metrics, category) => {
-            if (category === 'all') {
-                return metrics;
-            }
-            return metrics.filter(metric => metric.category === category);
-        };
-
-        // Initial plot using trendViz styling
-        const plotMetrics = (metrics) => {
-            const data = processMetricsData(metrics);
-            const isDarkMode = document.documentElement.getAttribute('data-bs-theme') === 'dark';
-
-            trendViz.createLineChart('metrics-time-series', data, {
-                title: 'Sustainability Metrics Over Time',
-                xAxisTitle: 'Date',
-                yAxisTitle: 'Value',
-                showLegend: true,
-                legendPosition: 'top-right',
-                gridLines: true
-            });
-        };
-
-        // Update metric cards
-        const updateMetricCards = (metrics) => {
-            // Find the latest metrics by name
-            const latestMetrics = {};
-            const previousMetrics = {};
-
-            // Group metrics by name and find the latest two for each
-            metrics.forEach(metric => {
-                if (!latestMetrics[metric.name] || new Date(metric.timestamp) > new Date(latestMetrics[metric.name].timestamp)) {
-                    previousMetrics[metric.name] = latestMetrics[metric.name];
-                    latestMetrics[metric.name] = metric;
-                } else if (!previousMetrics[metric.name] || new Date(metric.timestamp) > new Date(previousMetrics[metric.name].timestamp)) {
-                    previousMetrics[metric.name] = metric;
-                }
-            });
-
-            // Update Carbon Emissions card
-            if (latestMetrics['Carbon Emissions']) {
-                const emissionsValue = latestMetrics['Carbon Emissions'].value;
-                const previousValue = previousMetrics['Carbon Emissions'] ? previousMetrics['Carbon Emissions'].value : emissionsValue;
-                const percentChange = ((emissionsValue - previousValue) / previousValue) * 100;
-
-                document.getElementById('emissions-value').textContent = emissionsValue.toFixed(1);
-                document.getElementById('emissions-trend').textContent = `${Math.abs(percentChange).toFixed(1)}% ${percentChange > 0 ? 'increase' : 'decrease'} from previous period`;
-                document.getElementById('emissions-trend').className = percentChange > 0 ? 'text-center text-danger' : 'text-center text-success';
-            }
-
-            // Update Water Usage card
-            if (latestMetrics['Water Usage']) {
-                const waterValue = latestMetrics['Water Usage'].value;
-                const previousValue = previousMetrics['Water Usage'] ? previousMetrics['Water Usage'].value : waterValue;
-                const percentChange = ((waterValue - previousValue) / previousValue) * 100;
-
-                document.getElementById('water-value').textContent = waterValue.toFixed(1);
-                document.getElementById('water-trend').textContent = `${Math.abs(percentChange).toFixed(1)}% ${percentChange > 0 ? 'increase' : 'decrease'} from previous period`;
-                document.getElementById('water-trend').className = percentChange > 0 ? 'text-center text-danger' : 'text-center text-success';
-            }
-
-            // Update Waste Recycled card
-            if (latestMetrics['Waste Recycled']) {
-                const wasteValue = latestMetrics['Waste Recycled'].value;
-                const previousValue = previousMetrics['Waste Recycled'] ? previousMetrics['Waste Recycled'].value : wasteValue;
-                const percentChange = ((wasteValue - previousValue) / previousValue) * 100;
-
-                document.getElementById('waste-value').textContent = wasteValue.toFixed(1) + '%';
-                document.getElementById('waste-trend').textContent = `${Math.abs(percentChange).toFixed(1)}% ${percentChange > 0 ? 'increase' : 'decrease'} from previous period`;
-                document.getElementById('waste-trend').className = percentChange > 0 ? 'text-center text-success' : 'text-center text-danger';
-            }
-        };
-
-        // Initialize dashboard
-        document.addEventListener('DOMContentLoaded', function() {
-            // Plot initial metrics
-            plotMetrics(metricsData);
-
-            // Update metric cards
-            updateMetricCards(metricsData);
-
-            // Add event listener for category filter
-            document.getElementById('category-filter').addEventListener('change', function() {
-                const category = this.value;
-                const filteredMetrics = filterMetricsByCategory(metricsData, category);
-                plotMetrics(filteredMetrics);
-            });
-        });
+        // Future enhancement: Add interactive charts using a library like Chart.js or ECharts
     </script>
-{% endblock %}
+</body>
+</html>

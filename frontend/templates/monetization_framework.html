@@ -1,0 +1,627 @@
+{% extends "base.html" %}
+
+{% block title %}{{ framework.name }} | Strategy Framework | SustainaTrend™{% endblock %}
+
+{% block content %}
+<section class="page-header">
+    <div class="container">
+        <div class="d-flex justify-content-between align-items-center">
+            <div>
+                <h1 class="page-title">{{ framework.name }}</h1>
+                <p class="page-subtitle">Strategic Framework Analysis</p>
+            </div>
+            <div>
+                <a href="/monetization-strategy-consulting" class="btn btn-outline-primary">Back to Frameworks</a>
+            </div>
+        </div>
+    </div>
+</section>
+
+<div class="container main-content">
+    <div class="row mb-4">
+        <div class="col-lg-8">
+            <div class="card shadow-sm mb-4">
+                <div class="card-header d-flex justify-content-between align-items-center">
+                    <h5 class="mb-0">Framework Overview</h5>
+                    <div class="framework-icon">
+                        <i class="{{ framework.icon }} h4 mb-0"></i>
+                    </div>
+                </div>
+                <div class="card-body">
+                    <p class="lead mb-4">{{ framework.description }}</p>
+                    
+                    <h6>Key Dimensions</h6>
+                    <div class="row mb-4">
+                        {% if framework_id == 'porters' %}
+                            <div class="col-md-4 mb-3">
+                                <div class="card">
+                                    <div class="card-body py-2 px-3">
+                                        <h6 class="mb-1">Supplier Power</h6>
+                                        <p class="small text-muted mb-0">Assessing supplier bargaining power</p>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col-md-4 mb-3">
+                                <div class="card">
+                                    <div class="card-body py-2 px-3">
+                                        <h6 class="mb-1">Buyer Power</h6>
+                                        <p class="small text-muted mb-0">Analyzing customer bargaining power</p>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col-md-4 mb-3">
+                                <div class="card">
+                                    <div class="card-body py-2 px-3">
+                                        <h6 class="mb-1">Competitive Rivalry</h6>
+                                        <p class="small text-muted mb-0">Evaluating industry competition</p>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col-md-4 mb-3">
+                                <div class="card">
+                                    <div class="card-body py-2 px-3">
+                                        <h6 class="mb-1">Threat of Substitution</h6>
+                                        <p class="small text-muted mb-0">Assessing alternative solutions</p>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col-md-4 mb-3">
+                                <div class="card">
+                                    <div class="card-body py-2 px-3">
+                                        <h6 class="mb-1">Threat of New Entry</h6>
+                                        <p class="small text-muted mb-0">Evaluating entry barriers</p>
+                                    </div>
+                                </div>
+                            </div>
+                        {% elif framework_id == 'swot' %}
+                            <div class="col-md-6 mb-3">
+                                <div class="card bg-success bg-opacity-10">
+                                    <div class="card-body py-2 px-3">
+                                        <h6 class="mb-1 text-success">Strengths</h6>
+                                        <p class="small text-muted mb-0">Internal advantages and capabilities</p>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col-md-6 mb-3">
+                                <div class="card bg-danger bg-opacity-10">
+                                    <div class="card-body py-2 px-3">
+                                        <h6 class="mb-1 text-danger">Weaknesses</h6>
+                                        <p class="small text-muted mb-0">Internal limitations and challenges</p>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col-md-6 mb-3">
+                                <div class="card bg-primary bg-opacity-10">
+                                    <div class="card-body py-2 px-3">
+                                        <h6 class="mb-1 text-primary">Opportunities</h6>
+                                        <p class="small text-muted mb-0">External favorable factors</p>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col-md-6 mb-3">
+                                <div class="card bg-warning bg-opacity-10">
+                                    <div class="card-body py-2 px-3">
+                                        <h6 class="mb-1 text-warning">Threats</h6>
+                                        <p class="small text-muted mb-0">External unfavorable factors</p>
+                                    </div>
+                                </div>
+                            </div>
+                        {% elif framework_id == 'bcg' %}
+                            <div class="col-md-6 mb-3">
+                                <div class="card bg-success bg-opacity-10">
+                                    <div class="card-body py-2 px-3">
+                                        <h6 class="mb-1">Stars</h6>
+                                        <p class="small text-muted mb-0">High growth, high market share</p>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col-md-6 mb-3">
+                                <div class="card bg-warning bg-opacity-10">
+                                    <div class="card-body py-2 px-3">
+                                        <h6 class="mb-1">Question Marks</h6>
+                                        <p class="small text-muted mb-0">High growth, low market share</p>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col-md-6 mb-3">
+                                <div class="card bg-primary bg-opacity-10">
+                                    <div class="card-body py-2 px-3">
+                                        <h6 class="mb-1">Cash Cows</h6>
+                                        <p class="small text-muted mb-0">Low growth, high market share</p>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col-md-6 mb-3">
+                                <div class="card bg-danger bg-opacity-10">
+                                    <div class="card-body py-2 px-3">
+                                        <h6 class="mb-1">Dogs</h6>
+                                        <p class="small text-muted mb-0">Low growth, low market share</p>
+                                    </div>
+                                </div>
+                            </div>
+                        {% elif framework_id == 'mckinsey' %}
+                            <div class="col-md-12 mb-3">
+                                <div class="card">
+                                    <div class="card-body py-2 px-3">
+                                        <h6 class="mb-1">9-Box Matrix</h6>
+                                        <p class="small text-muted mb-0">Ranking based on market attractiveness and competitive position</p>
+                                    </div>
+                                </div>
+                            </div>
+                        {% elif framework_id == 'strategy_pyramid' %}
+                            <div class="col-md-12 mb-3">
+                                <div class="card">
+                                    <div class="card-body py-2 px-3">
+                                        <h6 class="mb-1">Mission</h6>
+                                        <p class="small text-muted mb-0">Overall purpose and vision</p>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col-md-12 mb-3">
+                                <div class="card">
+                                    <div class="card-body py-2 px-3">
+                                        <h6 class="mb-1">Objectives</h6>
+                                        <p class="small text-muted mb-0">Specific and measurable goals</p>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col-md-12 mb-3">
+                                <div class="card">
+                                    <div class="card-body py-2 px-3">
+                                        <h6 class="mb-1">Strategies</h6>
+                                        <p class="small text-muted mb-0">High-level approaches to achieve objectives</p>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col-md-12 mb-3">
+                                <div class="card">
+                                    <div class="card-body py-2 px-3">
+                                        <h6 class="mb-1">Tactics</h6>
+                                        <p class="small text-muted mb-0">Specific actions and initiatives</p>
+                                    </div>
+                                </div>
+                            </div>
+                        {% elif framework_id == 'blue_ocean' %}
+                            <div class="col-md-6 mb-3">
+                                <div class="card">
+                                    <div class="card-body py-2 px-3">
+                                        <h6 class="mb-1">Eliminate</h6>
+                                        <p class="small text-muted mb-0">Factors to eliminate entirely</p>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col-md-6 mb-3">
+                                <div class="card">
+                                    <div class="card-body py-2 px-3">
+                                        <h6 class="mb-1">Reduce</h6>
+                                        <p class="small text-muted mb-0">Factors to reduce below industry standard</p>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col-md-6 mb-3">
+                                <div class="card">
+                                    <div class="card-body py-2 px-3">
+                                        <h6 class="mb-1">Raise</h6>
+                                        <p class="small text-muted mb-0">Factors to raise above industry standard</p>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col-md-6 mb-3">
+                                <div class="card">
+                                    <div class="card-body py-2 px-3">
+                                        <h6 class="mb-1">Create</h6>
+                                        <p class="small text-muted mb-0">New factors to create that industry doesn't offer</p>
+                                    </div>
+                                </div>
+                            </div>
+                        {% else %}
+                            <div class="col-md-12">
+                                <p class="text-muted">Framework dimensions will be displayed here.</p>
+                            </div>
+                        {% endif %}
+                    </div>
+                    
+                    <h6>How to Apply This Framework</h6>
+                    <div class="card bg-light mb-4">
+                        <div class="card-body">
+                            <ol class="mb-0">
+                                {% if framework_id == 'porters' %}
+                                    <li>Gather industry data and competitive intelligence</li>
+                                    <li>Assess each of the five forces in your sustainability context</li>
+                                    <li>Score each force and identify key drivers</li>
+                                    <li>Develop strategies to address high-threat areas</li>
+                                    <li>Create action plans to leverage opportunities</li>
+                                {% elif framework_id == 'swot' %}
+                                    <li>Identify internal strengths and weaknesses in sustainability initiatives</li>
+                                    <li>Map external opportunities and threats in the sustainability landscape</li>
+                                    <li>Prioritize factors based on impact and probability</li>
+                                    <li>Develop strategies to leverage strengths and opportunities</li>
+                                    <li>Create mitigation plans for weaknesses and threats</li>
+                                {% elif framework_id == 'bcg' %}
+                                    <li>Identify your sustainability assets, initiatives, and products</li>
+                                    <li>Plot each on the matrix based on growth rate and market share</li>
+                                    <li>Determine appropriate strategies for each quadrant</li>
+                                    <li>Allocate resources accordingly across your portfolio</li>
+                                    <li>Develop migration strategies to move initiatives between quadrants</li>
+                                {% elif framework_id == 'mckinsey' %}
+                                    <li>Define criteria for market attractiveness and competitive position</li>
+                                    <li>Score each sustainability initiative on both dimensions</li>
+                                    <li>Map initiatives on the 9-box matrix</li>
+                                    <li>Develop strategies based on position within the matrix</li>
+                                    <li>Create resource allocation plans based on positioning</li>
+                                {% elif framework_id == 'strategy_pyramid' %}
+                                    <li>Define your sustainability mission and vision</li>
+                                    <li>Set specific, measurable sustainability objectives</li>
+                                    <li>Develop high-level strategies to achieve those objectives</li>
+                                    <li>Create tactical implementation plans for each strategy</li>
+                                    <li>Align all levels of the pyramid for consistency</li>
+                                {% elif framework_id == 'blue_ocean' %}
+                                    <li>Map your current competitive factors against industry standards</li>
+                                    <li>Identify factors to eliminate that don't add real value</li>
+                                    <li>Determine factors to reduce below industry standards</li>
+                                    <li>Identify factors to raise above industry standards</li>
+                                    <li>Develop new factors not currently offered by the industry</li>
+                                {% else %}
+                                    <li>Define the strategic context for your sustainability initiatives</li>
+                                    <li>Gather relevant data and insights</li>
+                                    <li>Apply the framework methodology to your specific situation</li>
+                                    <li>Develop strategic recommendations based on the analysis</li>
+                                    <li>Create implementation plans with clear milestones</li>
+                                {% endif %}
+                            </ol>
+                        </div>
+                    </div>
+                    
+                    <div class="d-grid gap-2 d-md-flex justify-content-md-center">
+                        <a href="/monetization-opportunities/strategic-plan?framework={{ framework_id }}" class="btn btn-primary">Apply This Framework</a>
+                        <button type="button" class="btn btn-outline-secondary" data-bs-toggle="modal" data-bs-target="#caseStudyModal">View Case Study</button>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="card shadow-sm mb-4">
+                <div class="card-header">
+                    <h5 class="mb-0">Framework Application to Monetization</h5>
+                </div>
+                <div class="card-body">
+                    <p>This framework can be applied to the following monetization strategies:</p>
+                    
+                    <div class="table-responsive">
+                        <table class="table table-hover">
+                            <thead>
+                                <tr>
+                                    <th>Monetization Strategy</th>
+                                    <th>Framework Application</th>
+                                    <th>Potential Impact</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% if framework_id == 'porters' %}
+                                    <tr>
+                                        <td>AI-Driven Trend Monetization</td>
+                                        <td>Analyze competitive positioning of AI sustainability solutions</td>
+                                        <td><span class="badge bg-success">High</span></td>
+                                    </tr>
+                                    <tr>
+                                        <td>Data Licensing</td>
+                                        <td>Evaluate supplier and buyer power in data markets</td>
+                                        <td><span class="badge bg-success">High</span></td>
+                                    </tr>
+                                {% elif framework_id == 'swot' %}
+                                    <tr>
+                                        <td>Sentiment-Driven Pre-Suasion</td>
+                                        <td>Identify sentiment analysis strengths and opportunities</td>
+                                        <td><span class="badge bg-success">High</span></td>
+                                    </tr>
+                                    <tr>
+                                        <td>Educational Content</td>
+                                        <td>Map educational content opportunities against competitor weaknesses</td>
+                                        <td><span class="badge bg-primary">Medium</span></td>
+                                    </tr>
+                                {% elif framework_id == 'bcg' %}
+                                    <tr>
+                                        <td>Carbon Credit & Financial</td>
+                                        <td>Position carbon credit offerings in growth-share matrix</td>
+                                        <td><span class="badge bg-success">High</span></td>
+                                    </tr>
+                                    <tr>
+                                        <td>Subscription Services</td>
+                                        <td>Analyze subscription tiers based on market growth and share</td>
+                                        <td><span class="badge bg-primary">Medium</span></td>
+                                    </tr>
+                                {% elif framework_id == 'mckinsey' %}
+                                    <tr>
+                                        <td>Consulting Services</td>
+                                        <td>Position consulting offerings based on market attractiveness</td>
+                                        <td><span class="badge bg-success">High</span></td>
+                                    </tr>
+                                    <tr>
+                                        <td>Corporate Training Programs</td>
+                                        <td>Evaluate training offerings across 9-box matrix</td>
+                                        <td><span class="badge bg-primary">Medium</span></td>
+                                    </tr>
+                                {% elif framework_id == 'strategy_pyramid' %}
+                                    <tr>
+                                        <td>Subscription Services</td>
+                                        <td>Create strategic hierarchy for subscription offerings</td>
+                                        <td><span class="badge bg-success">High</span></td>
+                                    </tr>
+                                    <tr>
+                                        <td>Corporate Training Programs</td>
+                                        <td>Develop mission-aligned training strategies</td>
+                                        <td><span class="badge bg-primary">Medium</span></td>
+                                    </tr>
+                                {% elif framework_id == 'blue_ocean' %}
+                                    <tr>
+                                        <td>Consumer Products</td>
+                                        <td>Create uncontested market space for sustainability products</td>
+                                        <td><span class="badge bg-success">High</span></td>
+                                    </tr>
+                                    <tr>
+                                        <td>Certification Programs</td>
+                                        <td>Develop blue ocean strategy for certification offerings</td>
+                                        <td><span class="badge bg-primary">Medium</span></td>
+                                    </tr>
+                                {% else %}
+                                    <tr>
+                                        <td>Multiple Strategies</td>
+                                        <td>Apply framework across monetization approaches</td>
+                                        <td><span class="badge bg-primary">Varies</span></td>
+                                    </tr>
+                                {% endif %}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <div class="col-lg-4">
+            <div class="card shadow-sm mb-4">
+                <div class="card-header">
+                    <h5 class="mb-0">Framework Benefits</h5>
+                </div>
+                <div class="card-body">
+                    <ul class="benefits-list">
+                        <li>
+                            <div class="d-flex">
+                                <div class="benefit-icon me-3 text-primary">
+                                    <i class="check-icon"></i>
+                                </div>
+                                <div>
+                                    <h6 class="mb-1">Strategic Clarity</h6>
+                                    <p class="small text-muted mb-0">
+                                        {% if framework_id == 'porters' %}
+                                            Understand competitive dynamics in sustainability markets
+                                        {% elif framework_id == 'swot' %}
+                                            Gain clear picture of internal and external factors
+                                        {% elif framework_id == 'bcg' %}
+                                            Prioritize sustainability investments based on growth potential
+                                        {% elif framework_id == 'mckinsey' %}
+                                            Make informed decisions based on market attractiveness
+                                        {% elif framework_id == 'strategy_pyramid' %}
+                                            Align sustainability activities with strategic objectives
+                                        {% elif framework_id == 'blue_ocean' %}
+                                            Create differentiated sustainability position in market
+                                        {% else %}
+                                            Gain structured approach to strategic decision-making
+                                        {% endif %}
+                                    </p>
+                                </div>
+                            </div>
+                        </li>
+                        <li>
+                            <div class="d-flex">
+                                <div class="benefit-icon me-3 text-primary">
+                                    <i class="check-icon"></i>
+                                </div>
+                                <div>
+                                    <h6 class="mb-1">Resource Optimization</h6>
+                                    <p class="small text-muted mb-0">Allocate sustainability resources effectively across initiatives</p>
+                                </div>
+                            </div>
+                        </li>
+                        <li>
+                            <div class="d-flex">
+                                <div class="benefit-icon me-3 text-primary">
+                                    <i class="check-icon"></i>
+                                </div>
+                                <div>
+                                    <h6 class="mb-1">Competitive Advantage</h6>
+                                    <p class="small text-muted mb-0">Identify opportunities for sustainable differentiation</p>
+                                </div>
+                            </div>
+                        </li>
+                        <li>
+                            <div class="d-flex">
+                                <div class="benefit-icon me-3 text-primary">
+                                    <i class="check-icon"></i>
+                                </div>
+                                <div>
+                                    <h6 class="mb-1">Risk Mitigation</h6>
+                                    <p class="small text-muted mb-0">Identify and address sustainability-related business risks</p>
+                                </div>
+                            </div>
+                        </li>
+                    </ul>
+                </div>
+            </div>
+            
+            <div class="card shadow-sm mb-4">
+                <div class="card-header">
+                    <h5 class="mb-0">Related Frameworks</h5>
+                </div>
+                <div class="card-body">
+                    <div class="list-group">
+                        {% for related_id, related in strategy_frameworks.items() %}
+                            {% if related_id != framework_id %}
+                                <a href="/monetization-strategy/framework/{{ related_id }}" class="list-group-item list-group-item-action d-flex align-items-center">
+                                    <div class="framework-icon me-3">
+                                        <i class="{{ related.icon }} text-primary"></i>
+                                    </div>
+                                    <div>
+                                        <h6 class="mb-1">{{ related.name }}</h6>
+                                        <p class="text-muted small mb-0">{{ related.description }}</p>
+                                    </div>
+                                </a>
+                            {% endif %}
+                        {% endfor %}
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Case Study Modal -->
+<div class="modal fade" id="caseStudyModal" tabindex="-1" aria-labelledby="caseStudyModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="caseStudyModalLabel">{{ framework.name }} Case Study</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                {% if framework_id == 'porters' %}
+                    <h5>Green Building Certification Program</h5>
+                    <p class="lead">How a real estate developer used Porter's Five Forces to create a profitable sustainability certification program</p>
+                    
+                    <div class="mb-4">
+                        <h6>Challenge</h6>
+                        <p>A leading real estate developer wanted to create a sustainability certification program that could be monetized while providing value to tenants and property owners.</p>
+                    </div>
+                    
+                    <div class="mb-4">
+                        <h6>Approach</h6>
+                        <p>The company applied Porter's Five Forces framework to analyze the competitive landscape:</p>
+                        
+                        <ul>
+                            <li><strong>Supplier Power:</strong> Low - Many sustainability consultants and technology providers available</li>
+                            <li><strong>Buyer Power:</strong> Medium - Increasing tenant demand for green certifications</li>
+                            <li><strong>Competitive Rivalry:</strong> High - Several established certification programs</li>
+                            <li><strong>Threat of Substitution:</strong> Medium - Alternative forms of demonstrating sustainability commitment</li>
+                            <li><strong>Threat of New Entry:</strong> Low - High barriers due to reputation requirements</li>
+                        </ul>
+                    </div>
+                    
+                    <div class="mb-4">
+                        <h6>Strategy Developed</h6>
+                        <p>Based on the analysis, the company focused on:</p>
+                        <ol>
+                            <li>Creating a tiered certification system with varying price points</li>
+                            <li>Developing a unique focus on operational efficiency rather than just construction</li>
+                            <li>Partnering with major tenants to create demand-side endorsements</li>
+                            <li>Building a digital platform to streamline certification process</li>
+                        </ol>
+                    </div>
+                    
+                    <div class="mb-4">
+                        <h6>Results</h6>
+                        <p>The program generated $3.2M in certification revenue in the first year, while increasing property values by an average of 7.5% for certified buildings.</p>
+                    </div>
+                {% elif framework_id == 'swot' %}
+                    <h5>Sustainable Manufacturing Analytics Platform</h5>
+                    <p class="lead">How a manufacturing company used SWOT analysis to develop a profitable sustainability analytics platform</p>
+                    
+                    <div class="mb-4">
+                        <h6>Challenge</h6>
+                        <p>A manufacturing company needed to identify how to monetize its internal sustainability analytics capabilities.</p>
+                    </div>
+                    
+                    <div class="mb-4">
+                        <h6>Approach</h6>
+                        <p>The company conducted a SWOT analysis:</p>
+                        
+                        <div class="row mb-3">
+                            <div class="col-md-6 mb-3">
+                                <div class="card h-100 bg-success bg-opacity-10">
+                                    <div class="card-header">
+                                        <h6 class="mb-0 text-success">Strengths</h6>
+                                    </div>
+                                    <div class="card-body">
+                                        <ul class="small">
+                                            <li>Proprietary analytics algorithms</li>
+                                            <li>Deep manufacturing domain expertise</li>
+                                            <li>Significant cost savings achieved internally</li>
+                                            <li>Strong IT infrastructure</li>
+                                        </ul>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col-md-6 mb-3">
+                                <div class="card h-100 bg-danger bg-opacity-10">
+                                    <div class="card-header">
+                                        <h6 class="mb-0 text-danger">Weaknesses</h6>
+                                    </div>
+                                    <div class="card-body">
+                                        <ul class="small">
+                                            <li>Limited sales and marketing expertise</li>
+                                            <li>No experience as a software provider</li>
+                                            <li>Current platform designed for internal use</li>
+                                            <li>Limited resources for product development</li>
+                                        </ul>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="row">
+                            <div class="col-md-6 mb-3">
+                                <div class="card h-100 bg-primary bg-opacity-10">
+                                    <div class="card-header">
+                                        <h6 class="mb-0 text-primary">Opportunities</h6>
+                                    </div>
+                                    <div class="card-body">
+                                        <ul class="small">
+                                            <li>Growing market for sustainability solutions</li>
+                                            <li>Regulatory requirements creating demand</li>
+                                            <li>Partnership potential with consulting firms</li>
+                                            <li>First-mover advantage in manufacturing niche</li>
+                                        </ul>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col-md-6 mb-3">
+                                <div class="card h-100 bg-warning bg-opacity-10">
+                                    <div class="card-header">
+                                        <h6 class="mb-0 text-warning">Threats</h6>
+                                    </div>
+                                    <div class="card-body">
+                                        <ul class="small">
+                                            <li>Large tech companies entering market</li>
+                                            <li>Rapidly evolving regulatory landscape</li>
+                                            <li>Potential customer data security concerns</li>
+                                            <li>Economic downturn impacting IT budgets</li>
+                                        </ul>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="mb-4">
+                        <h6>Strategy Developed</h6>
+                        <p>Based on the SWOT analysis, the company:</p>
+                        <ol>
+                            <li>Partnered with a software company to develop a SaaS platform</li>
+                            <li>Focused on the manufacturing vertical where they had credibility</li>
+                            <li>Created a value-sharing pricing model tied to customer savings</li>
+                            <li>Established an advisory board of industry leaders</li>
+                        </ol>
+                    </div>
+                    
+                    <div class="mb-4">
+                        <h6>Results</h6>
+                        <p>The platform generated $1.8M in recurring revenue within 18 months and established the company as a sustainability leader.</p>
+                    </div>
+                {% else %}
+                    <p>Case study for this framework will be available soon.</p>
+                {% endif %}
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+                <a href="/monetization-opportunities/strategic-plan?framework={{ framework_id }}" class="btn btn-primary">Apply This Framework</a>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

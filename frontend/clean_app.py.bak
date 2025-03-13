@@ -94,15 +94,6 @@ def create_app():
                 except ImportError:
                     logger.error("Failed to import direct_app.py as fallback")
     
-    # Register document query API routes
-    try:
-        logger.info("Registering document query API routes")
-        from document_query_api import register_routes as register_document_routes
-        register_document_routes(app)
-        logger.info("Document query API routes registered successfully")
-    except ImportError as e:
-        logger.warning(f"Failed to import document_query_api.py: {e}")
-    
     return app
 
 # Create the application

@@ -2137,11 +2137,11 @@ def get_mock_stories():
     return stories
 
 # Add API endpoint for storytelling
-@app.route('/api/storytelling', methods=['POST'])
-def api_storytelling():
+@app.route('/api/storytelling/generate', methods=['POST'])
+def api_storytelling_generate():
     """API endpoint to proxy storytelling requests to the backend"""
     try:
-        logger.info("Storytelling API endpoint called")
+        logger.info("Storytelling generation API endpoint called")
         data = request.json
 
         if not data:

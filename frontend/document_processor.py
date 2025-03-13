@@ -58,11 +58,12 @@ except ImportError:
 # For RAG AI support
 try:
     import openai
+    from openai import OpenAI
     OPENAI_AVAILABLE = True
 except ImportError:
     OPENAI_AVAILABLE = False
     openai = None
-    logging.warning("OpenAI not available. RAG capabilities will be limited.")
+    logging.warning("OpenAI not available. RAG capabilities will use fallback mechanisms.")
 
 # Import compliance assessment functionality
 try:
@@ -160,14 +161,14 @@ class DocumentProcessor:
     
     def process_document(self, file_path: str, use_ocr: bool = False) -> Dict[str, Any]:
         """
-        Process a document and extract text
+        Process a document and extract text with advanced CSRD/ESG auditing capabilities
         
         Args:
             file_path: Path to the document file
             use_ocr: Whether to use OCR for scanned documents
             
         Returns:
-            Processing result with extracted text and metadata
+            Processing result with extracted text, metadata, and audit capabilities
         """
         try:
             # Extract text from document
@@ -177,14 +178,42 @@ class DocumentProcessor:
             word_count = len(text.split())
             file_size = os.path.getsize(file_path)
             
-            # Return the processing result
+            # Extract tables, figures and references
+            figures = self._extract_figures_and_tables_references(text)
+            tables = self._extract_table_references(text)
+            
+            # Identify metrics, standards and KPIs
+            metrics = self._identify_sustainability_metrics(text)
+            frameworks = self._identify_frameworks(text)
+            kpis = self._extract_numerical_kpis(text)
+            
+            # Prepare document structure for querying
+            document_structure = self._create_document_structure(text, page_count)
+            
+            # Chunk document for RAG processing
+            chunks = self.chunk_document(text)
+            
+            # Analyze and index document content
+            analysis_results = self.analyze_document(text)
+            
+            # Return the enhanced processing result
             return {
                 'success': True,
                 'text': text,
                 'page_count': page_count,
                 'word_count': word_count,
                 'file_size': file_size,
-                'preview': text[:1000] + '...' if len(text) > 1000 else text
+                'preview': text[:1000] + '...' if len(text) > 1000 else text,
+                'figures': figures,
+                'tables': tables,
+                'metrics': metrics,
+                'frameworks': frameworks,
+                'kpis': kpis,
+                'document_structure': document_structure,
+                'chunks': len(chunks),
+                'analysis': analysis_results,
+                'audit_ready': True,
+                'timestamp': datetime.now().isoformat()
             }
         except Exception as e:
             self.logger.error(f"Error processing document: {str(e)}")
@@ -508,6 +537,181 @@ class DocumentProcessor:
                 
         return kpis
     
+    def _extract_figures_and_tables_references(self, text: str) -> List[Dict[str, Any]]:
+        """
+        Extract references to figures and charts from the document
+        
+        Args:
+            text: Document text
+            
+        Returns:
+            List of figure references with context
+        """
+        # Patterns to match figure references
+        figure_patterns = [
+            r'(figure|fig\.?)\s+(\d+(?:\.\d+)?)',
+            r'(chart|graph|diagram)\s+(\d+(?:\.\d+)?)',
+            r'(table|tbl\.?)\s+(\d+(?:\.\d+)?)'
+        ]
+        
+        figures = []
+        # Search for figures using regex
+        for pattern in figure_patterns:
+            matches = re.finditer(pattern, text, re.IGNORECASE)
+            for match in matches:
+                # Get page number from nearby text
+                page_match = re.search(r'page\s+(\d+)', text[max(0, match.start()-50):match.end()+50], re.IGNORECASE)
+                page = page_match.group(1) if page_match else "unknown"
+                
+                # Get context (100 chars before and after)
+                start = max(0, match.start() - 100)
+                end = min(len(text), match.end() + 100)
+                context = text[start:end]
+                
+                figures.append({
+                    'type': match.group(1).lower(),
+                    'number': match.group(2),
+                    'page': page,
+                    'context': context,
+                    'position': match.start()
+                })
+        
+        return figures
+
+    def _extract_table_references(self, text: str) -> List[Dict[str, Any]]:
+        """
+        Extract references to tables from the document
+        
+        Args:
+            text: Document text
+            
+        Returns:
+            List of table references with context
+        """
+        # Pattern to match table references
+        table_pattern = r'(table|tbl\.?)\s+(\d+(?:\.\d+)?)'
+        
+        tables = []
+        # Search for tables using regex
+        matches = re.finditer(table_pattern, text, re.IGNORECASE)
+        for match in matches:
+            # Get page number from nearby text
+            page_match = re.search(r'page\s+(\d+)', text[max(0, match.start()-50):match.end()+50], re.IGNORECASE)
+            page = page_match.group(1) if page_match else "unknown"
+            
+            # Get context (100 chars before and after)
+            start = max(0, match.start() - 100)
+            end = min(len(text), match.end() + 100)
+            context = text[start:end]
+            
+            tables.append({
+                'type': 'table',
+                'number': match.group(2),
+                'page': page,
+                'context': context,
+                'position': match.start()
+            })
+        
+        return tables
+        
+    def _create_document_structure(self, text: str, page_count: int) -> Dict[str, Any]:
+        """
+        Create a structured representation of the document for querying
+        
+        Args:
+            text: Document text
+            page_count: Number of pages in the document
+            
+        Returns:
+            Document structure with sections, headings, and page mappings
+        """
+        # Extract headings using regex
+        heading_pattern = r'^\s*(#+|\d+(?:\.\d+)*)\s+(.+)$'
+        
+        structure = {
+            'page_count': page_count,
+            'headings': [],
+            'sections': []
+        }
+        
+        # Split text by pages (based on page markers we inserted during extraction)
+        pages = []
+        current_page_text = ""
+        current_page_num = 1
+        
+        for line in text.split('\n'):
+            page_marker_match = re.match(r'---\s+Page\s+(\d+)\s+---', line)
+            if page_marker_match:
+                if current_page_text:
+                    pages.append({
+                        'number': current_page_num,
+                        'text': current_page_text
+                    })
+                current_page_num = int(page_marker_match.group(1))
+                current_page_text = ""
+            else:
+                current_page_text += line + "\n"
+        
+        # Add the last page if it exists
+        if current_page_text:
+            pages.append({
+                'number': current_page_num,
+                'text': current_page_text
+            })
+            
+        structure['pages'] = pages
+        
+        # Extract headings and sections from text
+        lines = text.split('\n')
+        current_section = {"title": "Document Start", "content": "", "level": 0, "page": 1}
+        
+        for line in lines:
+            # Check if this is a page marker
+            page_marker_match = re.match(r'---\s+Page\s+(\d+)\s+---', line)
+            if page_marker_match:
+                current_page = int(page_marker_match.group(1))
+                continue
+                
+            # Check if this is a heading
+            heading_match = re.match(heading_pattern, line)
+            if heading_match:
+                # Save previous section if it has content
+                if current_section["content"].strip():
+                    structure['sections'].append(current_section)
+                
+                # Start new section
+                level_marker = heading_match.group(1)
+                title = heading_match.group(2)
+                
+                # Determine heading level
+                if level_marker.startswith('#'):
+                    level = len(level_marker)
+                else:
+                    # For numbered headings, count the number of dots plus 1
+                    level = level_marker.count('.') + 1
+                
+                structure['headings'].append({
+                    'title': title,
+                    'level': level,
+                    'page': current_page
+                })
+                
+                current_section = {
+                    "title": title,
+                    "content": "",
+                    "level": level,
+                    "page": current_page
+                }
+            else:
+                # Add line to current section
+                current_section["content"] += line + "\n"
+        
+        # Add the last section
+        if current_section["content"].strip():
+            structure['sections'].append(current_section)
+            
+        return structure
+
     def _generate_executive_summary(self, text: str) -> str:
         """
         Generate an executive summary of the document (simplified version)

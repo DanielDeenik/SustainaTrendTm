@@ -339,20 +339,35 @@ def generate_monetization_opportunities(document_text: str) -> Dict[str, Any]:
     }
 
 # Export monetization strategies for UI display
-def get_monetization_strategies() -> Dict[str, Dict[str, str]]:
+def get_monetization_strategies() -> Dict[str, Dict[str, Any]]:
     """
     Get monetization strategies for UI display
     
     Returns:
-        Dictionary with monetization strategies information
+        Dictionary with monetization strategies information and default potential values
     """
-    return {
-        category_id: {
-            "name": category_data["name"],
-            "description": category_data["description"]
+    # Add default potential values for UI display
+    strategies = {}
+    
+    for strategy_id, strategy_data in MONETIZATION_FRAMEWORK.items():
+        strategy = {
+            "name": strategy_data["name"],
+            "description": strategy_data["description"],
+            "icon": strategy_data.get("icon", "chart-line"),
+            "short_description": strategy_data.get("description", "")[:100] + "..."
         }
-        for category_id, category_data in MONETIZATION_FRAMEWORK.items()
-    }
+        
+        # Add default potential value based on strategy ID
+        if strategy_id in ['M1', 'M3', 'M6']:
+            strategy['default_potential'] = 85  # High potential
+        elif strategy_id in ['M2', 'M4', 'M7']:
+            strategy['default_potential'] = 65  # Medium potential
+        else:
+            strategy['default_potential'] = 45  # Lower potential
+            
+        strategies[strategy_id] = strategy
+    
+    return strategies
 
 def configure_routes(app):
     """
@@ -404,6 +419,283 @@ def configure_routes(app):
             'opportunities': opportunities
         })
 
+def generate_strategy_consulting_insights(document_text: str, industry: str = "General") -> Dict[str, Any]:
+    """
+    Generate integrated strategy consulting insights based on monetization analysis
+    
+    Args:
+        document_text: Text content of the business plan or document
+        industry: Industry for context
+        
+    Returns:
+        Dictionary with strategic consulting analysis and recommendations
+    """
+    # Analyze monetization opportunities
+    monetization_analysis = analyze_monetization_opportunities(document_text)
+    
+    # Identify top monetization categories
+    top_categories = sorted(
+        [(cat_id, data) for cat_id, data in monetization_analysis.get("categories", {}).items()],
+        key=lambda x: x[1]["score"],
+        reverse=True
+    )[:3]
+    
+    # Map each monetization category to relevant strategic frameworks
+    framework_recommendations = []
+    for cat_id, data in top_categories:
+        category_name = MONETIZATION_FRAMEWORK[cat_id]["name"]
+        
+        # Determine the best strategic frameworks for this monetization category
+        recommended_frameworks = []
+        
+        if cat_id == "M1":  # AI-Driven Sustainability Trend Monetization
+            recommended_frameworks = ["blue_ocean", "mckinsey"]
+        elif cat_id == "M2":  # Sentiment-Driven Pre-Suasion & Behavioral Shifts
+            recommended_frameworks = ["swot", "strategy_pyramid"]
+        elif cat_id == "M3":  # Carbon Credit & Green Financial Instruments
+            recommended_frameworks = ["porters", "bcg"]
+        elif cat_id == "M4":  # AI-Powered Sustainability-Linked Consumer Products
+            recommended_frameworks = ["blue_ocean", "mckinsey"]
+        elif cat_id == "M5":  # Sustainability Intelligence Subscriptions
+            recommended_frameworks = ["strategy_pyramid", "bcg"]
+        elif cat_id == "M6":  # Strategic Consulting & Professional Services
+            recommended_frameworks = ["swot", "mckinsey"]
+        elif cat_id == "M7":  # Data Licensing & Sustainability APIs
+            recommended_frameworks = ["porters", "bcg"]
+        elif cat_id == "M8":  # Educational Content & Certification Programs
+            recommended_frameworks = ["swot", "strategy_pyramid"]
+        else:
+            recommended_frameworks = ["swot", "porters"]  # Default frameworks
+        
+        # For each monetization category, recommend strategic frameworks
+        for framework_id in recommended_frameworks:
+            framework_recommendation = {
+                "monetization_category": {
+                    "id": cat_id,
+                    "name": category_name,
+                    "score": data["score"],
+                    "potential_level": data["potential_level"],
+                },
+                "strategic_framework": {
+                    "id": framework_id,
+                    "name": STRATEGY_FRAMEWORKS.get(framework_id, {}).get("name", "Unknown Framework"),
+                    "description": STRATEGY_FRAMEWORKS.get(framework_id, {}).get("description", ""),
+                },
+                "implementation_considerations": [
+                    f"Align {category_name} with competitive positioning strategy",
+                    f"Integrate {STRATEGY_FRAMEWORKS.get(framework_id, {}).get('name', 'strategic')} analysis into monetization roadmap",
+                    f"Develop metrics to track success of integrated approach"
+                ],
+                "strategic_advantage": "Competitive differentiation through integrated sustainability strategy and monetization"
+            }
+            framework_recommendations.append(framework_recommendation)
+    
+    # Generate comprehensive strategic recommendations
+    strategic_recommendations = []
+    for i, recommendation in enumerate(framework_recommendations[:5]):  # Limit to top 5
+        strategic_recommendations.append({
+            "title": f"Strategy {i+1}: {recommendation['monetization_category']['name']} with {recommendation['strategic_framework']['name']}",
+            "description": f"Implement {recommendation['monetization_category']['name']} through {recommendation['strategic_framework']['name']} framework",
+            "potential_level": recommendation['monetization_category']['potential_level'],
+            "implementation_steps": recommendation['implementation_considerations'],
+            "strategic_advantage": recommendation['strategic_advantage']
+        })
+    
+    return {
+        "overall_potential": monetization_analysis.get("overall_score", 0),
+        "strategic_recommendations": strategic_recommendations,
+        "integrated_approach": "Combined Monetization & Strategic Framework Analysis",
+        "industry_context": industry,
+        "timestamp": datetime.now().isoformat()
+    }
+
+# Define mapping to strategic frameworks - imported from strategy_simulation.py
+STRATEGY_FRAMEWORKS = {
+    "porters": {
+        "name": "Porter's Five Forces",
+        "description": "Assess competitive sustainability positioning by analyzing supplier power, buyer power, competitive rivalry, threat of substitution, and threat of new entry.",
+        "dimensions": ["supplier_power", "buyer_power", "competitive_rivalry", "threat_of_substitution", "threat_of_new_entry"],
+        "icon": "chart-bar",
+    },
+    "swot": {
+        "name": "SWOT Analysis",
+        "description": "Evaluate internal strengths and weaknesses alongside external opportunities and threats for sustainability initiatives.",
+        "dimensions": ["strengths", "weaknesses", "opportunities", "threats"],
+        "icon": "grid-2x2",
+    },
+    "bcg": {
+        "name": "BCG Growth-Share Matrix",
+        "description": "Prioritize green investments and assets based on market growth rate and relative market share.",
+        "dimensions": ["market_growth", "market_share"],
+        "icon": "pie-chart",
+    },
+    "mckinsey": {
+        "name": "McKinsey 9-Box Matrix",
+        "description": "Rank real estate assets based on market attractiveness and competitive position for sustainability ROI.",
+        "dimensions": ["market_attractiveness", "competitive_position"],
+        "icon": "layout-grid",
+    },
+    "strategy_pyramid": {
+        "name": "Strategy Pyramid",
+        "description": "Define sustainability mission, objectives, strategies, and tactical plans in a hierarchical framework.",
+        "dimensions": ["mission", "objectives", "strategies", "tactics"],
+        "icon": "pyramid",
+    },
+    "blue_ocean": {
+        "name": "Blue Ocean Strategy",
+        "description": "Create uncontested market space by focusing on sustainable innovation and differentiation.",
+        "dimensions": ["eliminate", "reduce", "raise", "create"],
+        "icon": "waves",
+    }
+}
+
+def generate_integrated_strategic_plan(company_name: str, industry: str, document_text: str = None) -> Dict[str, Any]:
+    """
+    Generate an integrated strategic plan combining monetization strategies with consulting frameworks
+    
+    Args:
+        company_name: Name of the company
+        industry: Industry sector
+        document_text: Optional document text for analysis
+        
+    Returns:
+        Dictionary with comprehensive strategic plan
+    """
+    try:
+        # Import strategy simulation module
+        from strategy_simulation import analyze_with_framework, get_frameworks
+        
+        # Generate monetization analysis
+        monetization_analysis = analyze_monetization_opportunities(document_text or f"Strategic plan for {company_name} in {industry} sector")
+        
+        # Get top monetization categories
+        top_categories = sorted(
+            [(cat_id, data) for cat_id, data in monetization_analysis.get("categories", {}).items()],
+            key=lambda x: x[1]["score"],
+            reverse=True
+        )[:3]
+        
+        # Map to suitable strategy frameworks based on monetization score
+        strategic_analyses = {}
+        
+        # Framework selection logic based on monetization categories
+        framework_mapping = {
+            "M1": "porters",     # AI-Driven Trend Monetization -> Porter's Five Forces
+            "M2": "swot",        # Sentiment-Driven Pre-Suasion -> SWOT Analysis
+            "M3": "bcg",         # Carbon Credit & Financial -> BCG Matrix
+            "M4": "blue_ocean",  # Consumer Products -> Blue Ocean
+            "M5": "strategy_pyramid",  # Subscriptions -> Strategy Pyramid
+            "M6": "mckinsey",    # Consulting Services -> McKinsey Matrix
+            "M7": "porters",     # Data Licensing -> Porter's Five Forces
+            "M8": "swot"         # Educational Content -> SWOT
+        }
+        
+        # Generate analyses for top monetization categories
+        for cat_id, cat_data in top_categories:
+            framework_id = framework_mapping.get(cat_id, "swot")  # Default to SWOT if no mapping
+            
+            # Create a mock data structure - in a production app, this would use real data
+            mock_data = {
+                "category": cat_id,
+                "score": cat_data["score"],
+                "terms_found": cat_data.get("terms_found", []),
+                "potential_level": cat_data.get("potential_level", "Moderate")
+            }
+            
+            # Run the framework analysis
+            strategic_analysis = analyze_with_framework(
+                framework_id=framework_id,
+                data=mock_data,
+                company_name=company_name,
+                industry=industry
+            )
+            
+            strategic_analyses[cat_id] = {
+                "framework": framework_id,
+                "framework_name": get_frameworks()[framework_id]["name"],
+                "analysis": strategic_analysis
+            }
+        
+        # Integration plan summary
+        integration_plan = {
+            "company_name": company_name,
+            "industry": industry,
+            "monetization_overview": {
+                "overall_score": monetization_analysis.get("overall_score", 0),
+                "coverage": monetization_analysis.get("coverage", 0),
+                "top_categories": [
+                    {
+                        "id": cat_id,
+                        "name": MONETIZATION_FRAMEWORK[cat_id]["name"],
+                        "potential_level": cat_data["potential_level"],
+                        "score": cat_data["score"]
+                    }
+                    for cat_id, cat_data in top_categories
+                ]
+            },
+            "strategic_frameworks": strategic_analyses,
+            "implementation_roadmap": {
+                "phase_1": {
+                    "title": "Analysis & Planning",
+                    "duration": "1-2 months",
+                    "key_activities": [
+                        "Comprehensive data gathering and analysis",
+                        "Stakeholder interviews and workshops",
+                        "Benchmark against industry leaders",
+                        "Detailed opportunity sizing"
+                    ]
+                },
+                "phase_2": {
+                    "title": "Strategy Development",
+                    "duration": "2-3 months",
+                    "key_activities": [
+                        "Define monetization strategy and pricing models",
+                        "Technology enablement planning",
+                        "Organizational alignment assessment",
+                        "Financial modelling and ROI analysis"
+                    ]
+                },
+                "phase_3": {
+                    "title": "Pilot & Implementation",
+                    "duration": "3-6 months",
+                    "key_activities": [
+                        "Launch focused pilot programs",
+                        "Technology build and integration",
+                        "Go-to-market strategy execution",
+                        "Early adopter onboarding"
+                    ]
+                },
+                "phase_4": {
+                    "title": "Scale & Optimization",
+                    "duration": "6-12 months",
+                    "key_activities": [
+                        "Full-scale rollout across markets",
+                        "Continuous performance monitoring",
+                        "Optimization based on market feedback",
+                        "Expansion planning for additional monetization approaches"
+                    ]
+                }
+            },
+            "financial_projections": {
+                "development_costs": "$250,000 - $500,000",
+                "time_to_market": "6-9 months",
+                "revenue_potential": f"$2-5M annual recurring revenue potential for {company_name}",
+                "time_to_breakeven": "18-24 months",
+                "roi_5_year": "250-350%"
+            }
+        }
+        
+        return integration_plan
+    
+    except Exception as e:
+        logger.error(f"Error generating integrated strategic plan: {e}")
+        return {
+            "company_name": company_name,
+            "industry": industry,
+            "error": str(e),
+            "timestamp": datetime.now().isoformat()
+        }
+
 def register_routes(app):
     """
     Register the Monetization Strategies routes with a Flask application
@@ -412,5 +704,112 @@ def register_routes(app):
         app: Flask application
     """
     configure_routes(app)
-    logger.info("Monetization Strategies routes registered")
-    return app
+    
+    # Import strategy simulation module
+    from flask import render_template, request, jsonify
+    
+    # Add integrated strategy consulting route
+    @app.route('/monetization-opportunities/strategic-plan', methods=['GET'])
+    def integrated_strategy_plan():
+        """Integrated Strategy Plan combining monetization with consulting frameworks"""
+        company_name = request.args.get('company', 'Your Company')
+        industry = request.args.get('industry', 'Technology')
+        
+        return render_template(
+            'integrated_strategy.html', 
+            company_name=company_name,
+            industry=industry,
+            monetization_strategies=get_monetization_strategies(),
+            page_title="Integrated Strategic Plan"
+        )
+    
+    # Add API endpoint for generating integrated strategic plan
+    @app.route('/api/monetization/strategic-plan', methods=['POST'])
+    def api_strategic_plan():
+        """API endpoint for generating integrated strategic plan"""
+        data = request.get_json()
+        if not data:
+            return jsonify({
+                'success': False,
+                'error': 'Missing request data'
+            }), 400
+        
+        company_name = data.get('company_name', 'Your Company')
+        industry = data.get('industry', 'Technology')
+        document_text = data.get('document_text', '')
+        
+        # Generate integrated strategic plan
+        plan = generate_integrated_strategic_plan(company_name, industry, document_text)
+        
+        return jsonify({
+            'success': True,
+            'plan': plan
+        })
+        
+    logger.info("Integrated Strategy Consulting routes registered in Monetization module")
+    
+    # Import additional strategy framework data
+    try:
+        from strategy_simulation import STRATEGY_FRAMEWORKS
+    except ImportError:
+        # Define a fallback if strategy_simulation is not available
+        STRATEGY_FRAMEWORKS = {
+            "porters": {
+                "name": "Porter's Five Forces",
+                "description": "Analyze competitive forces shaping sustainability positioning",
+                "icon": "chart-bar",
+            },
+            "swot": {
+                "name": "SWOT Analysis",
+                "description": "Evaluate strengths, weaknesses, opportunities and threats",
+                "icon": "grid-2x2",
+            }
+        }
+    
+    # Add integrated strategy consulting features to monetization route
+    @app.route('/monetization-strategy-consulting')
+    def monetization_strategy_consulting():
+        """Integrated Monetization & Strategy Consulting Dashboard"""
+        from flask import render_template, redirect, url_for
+        
+        strategies = get_monetization_strategies()
+        frameworks = STRATEGY_FRAMEWORKS
+        return render_template(
+            'monetization_strategy.html',
+            monetization_strategies=strategies,
+            strategy_frameworks=frameworks,
+            page_title="Monetization & Strategy Consulting",
+            active_nav="monetization-strategy-consulting"
+        )
+    
+    # Add strategy framework selection route
+    @app.route('/monetization-strategy/framework/<framework_id>')
+    def monetization_strategy_framework(framework_id):
+        """Strategy Framework Details View"""
+        from flask import render_template, redirect, url_for
+        
+        if framework_id not in STRATEGY_FRAMEWORKS:
+            return redirect(url_for('monetization_strategy_consulting'))
+        
+        framework = STRATEGY_FRAMEWORKS[framework_id]
+        strategies = get_monetization_strategies()
+        
+        return render_template(
+            'monetization_framework.html',
+            framework=framework,
+            framework_id=framework_id,
+            monetization_strategies=strategies,
+            page_title=f"{framework['name']} - Strategy Framework",
+            active_nav="monetization-strategy-consulting"
+        )
+    
+    # Add additional API endpoint for accessing strategy frameworks
+    @app.route('/api/monetization/strategy-frameworks', methods=['GET'])
+    def api_strategy_frameworks():
+        """API endpoint for getting available strategy frameworks"""
+        from flask import jsonify
+        
+        return jsonify({
+            'success': True,
+            'frameworks': STRATEGY_FRAMEWORKS
+        })

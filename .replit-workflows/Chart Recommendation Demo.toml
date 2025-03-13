@@ -1,0 +1,7 @@
+run = "cd frontend && python start_simple_app.py"
+language = "python"
+entrypoint = "frontend/start_simple_app.py"
+hidden = false
+persistent = true
+wait_for_port = true
+onPort = { action = "open", port = 5000 }
