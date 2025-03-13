@@ -117,14 +117,14 @@ except ImportError as e:
     ESRS_FRAMEWORK_AVAILABLE = False
     logger.warning(f"ESRS Framework module not available: {e}")
 
-# Import Company Search Module
+# Import Marketing Strategies Module
 try:
-    from company_search import register_routes as register_company_search_routes
-    COMPANY_SEARCH_AVAILABLE = True
-    logger.info("Company Search module loaded successfully")
+    from marketing_strategies import register_routes as register_marketing_strategies_routes
+    MARKETING_STRATEGIES_AVAILABLE = True
+    logger.info("Marketing Strategies module loaded successfully")
 except ImportError as e:
-    COMPANY_SEARCH_AVAILABLE = False
-    logger.warning(f"Company Search module not available: {e}")
+    MARKETING_STRATEGIES_AVAILABLE = False
+    logger.warning(f"Marketing Strategies module not available: {e}")
 
 # Import Trend Virality Benchmarking Module
 try:
@@ -202,10 +202,10 @@ if ESRS_FRAMEWORK_AVAILABLE:
         register_esrs_framework_routes(app)
         logger.info("ESRS Framework routes registered as fallback")
 
-# Register Company Search routes if available
-if COMPANY_SEARCH_AVAILABLE:
-    register_company_search_routes(app)
-    logger.info("Company Search routes registered successfully")
+# Register Marketing Strategies routes if available
+if MARKETING_STRATEGIES_AVAILABLE:
+    register_marketing_strategies_routes(app)
+    logger.info("Marketing Strategies routes registered successfully")
 
 # Register Trend Virality routes if available
 if TREND_VIRALITY_AVAILABLE:
