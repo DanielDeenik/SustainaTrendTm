@@ -29,8 +29,24 @@ from flask import Blueprint, render_template, request, jsonify, current_app, url
 
 # Import sustainability storytelling utilities
 from frontend.sustainability_storytelling import get_enhanced_stories, get_data_driven_stories
-from frontend.sustainability_storytelling import get_ai_generated_story
+from frontend.sustainability_storytelling import get_lcm_story
 from frontend.navigation_config import get_context_for_template
+
+# Alias for compatibility 
+def get_ai_generated_story(story_id: str, audience: str = 'all', category: str = 'all', prompt: str = '', document_data: Optional[Dict[str, Any]] = None) -> Dict[str, Any]:
+    """Wrapper for get_lcm_story to maintain API compatibility"""
+    # Call get_lcm_story function with the same parameters
+    story = get_lcm_story(audience, category, prompt, document_data)
+    
+    # Ensure story has the correct ID
+    if isinstance(story, dict):
+        story['id'] = story_id
+        
+        # Add timestamp if not present
+        if 'timestamp' not in story:
+            story['timestamp'] = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+    
+    return story
 
 # Configure logging
 logger = logging.getLogger(__name__)
@@ -97,7 +113,7 @@ except ImportError:
     OPENAI_AVAILABLE = False
 
 # AI Storytelling Agent Functions with LCM integration
-def get_ai_generated_story(story_id: str, audience: str = 'all', category: str = 'all', prompt: str = '', document_data: Optional[Dict[str, Any]] = None) -> Dict[str, Any]:
+def _get_ai_generated_story_impl(story_id: str, audience: str = 'all', category: str = 'all', prompt: str = '', document_data: Optional[Dict[str, Any]] = None) -> Dict[str, Any]:
     """
     Get AI-generated story using Latent Concept Models with Pinecone integration
     
@@ -424,9 +440,9 @@ def create_lcm_enhanced_story(
         # Create fallback story
         story.update({
             "title": f"LCM Story: {category.capitalize()} for {audience.capitalize()}",
-            "content": f"This sustainability story focuses on {category} tailored for {audience} audience. " +
-                      f"It incorporates the latest data and trends to provide actionable insights." +
-                      (f" Key focus: {prompt}" if prompt else ""),
+            "content": f"This sustainability story focuses on {category} tailored for {audience} audience. "
+                      f"It incorporates the latest data and trends to provide actionable insights."
+                      f"{' Key focus: ' + prompt if prompt else ''}",
             "insights": [
                 f"Companies focusing on {category} sustainability outperform peers by 15% on average",
                 f"Stakeholder engagement increases 30% when {audience} are properly informed",
@@ -557,7 +573,7 @@ def get_story_by_id(story_id: str) -> Optional[Dict[str, Any]]:
         audience = 'all'
         category = 'emissions'
     
-    return get_ai_generated_story(story_id, audience, category)
+    return _get_ai_generated_story_impl(story_id, audience, category)
 
 # Blueprint routes
 @storytelling_bp.route('/')
@@ -594,7 +610,23 @@ def storytelling_home(category='all'):
     
     try:
         # Use imported function from sustainability_storytelling
-        stories = get_enhanced_stories(audience='all', category=category_filter)
+        raw_stories = get_enhanced_stories(audience='all', category=category_filter)
+        
+        # Transform story format to match template expectations
+        stories = []
+        for story in raw_stories:
+            # Format story for template compatibility
+            formatted_story = {
+                "id": story.get("id", str(uuid.uuid4())),
+                "title": story.get("title", f"Sustainability Story: {story.get('category', 'general').capitalize()}"),
+                "content": story.get("content", ""),
+                "category": story.get("category", "general"),
+                "audience": story.get("audience", "all"),
+                "timestamp": story.get("date_generated", datetime.now().strftime("%Y-%m-%d")),
+                "recommendations": story.get("recommendations", [])
+            }
+            stories.append(formatted_story)
+            
         logger.info(f"Generated {len(stories)} enhanced stories")
     except Exception as e:
         logger.error(f"Error generating enhanced stories: {e}")
@@ -642,7 +674,14 @@ def storytelling_home(category='all'):
     })
     
     try:
-        logger.info(f"Attempting to render template: {DEFAULT_TEMPLATE} with context: stories={len(stories)}, page_title={context['page_title']}")
+        # Enhanced logging with more story details
+        logger.info(f"Attempting to render template: {DEFAULT_TEMPLATE} with context: stories={len(stories)} items, page_title={context['page_title']}")
+        
+        # Debug logging to track story content
+        if stories:
+            logger.info(f"First story title: {stories[0].get('title', 'No title')}")
+            logger.info(f"First story content preview: {stories[0].get('content', 'No content')[:50]}...")
+        
         return render_template(DEFAULT_TEMPLATE, **context)
     except Exception as e:
         logger.error(f"Error rendering storytelling template: {e}")
@@ -754,11 +793,17 @@ def api_generate_story():
     story_id = f"{audience}-{category}-{uuid.uuid4()}"
     
     # Generate the story using our local function
-    story = get_ai_generated_story(story_id, audience, category, prompt, document_data)
+    story = _get_ai_generated_story_impl(story_id, audience, category, prompt, document_data)
     
     # Save the generated story using our story_operations module
     if story and 'id' in story:
         save_new_story(story)
+        
+    # Return the story as JSON response
+    return jsonify({
+        'status': 'success',
+        'story': story
+    })
 
 @storytelling_bp.route('/api/generate-multiple', methods=['POST'])
 def api_generate_multiple_stories():
@@ -805,7 +850,7 @@ def api_generate_multiple_stories():
             
             # Generate the story using our local function
             try:
-                story = get_ai_generated_story(story_id, audience, category, prompt, document_data)
+                story = _get_ai_generated_story_impl(story_id, audience, category, prompt, document_data)
                 
                 # Save the generated story using our story_operations module
                 if story and 'id' in story:
