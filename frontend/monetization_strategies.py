@@ -392,11 +392,27 @@ def get_monetization_strategies() -> Dict[str, Dict[str, Any]]:
     Returns:
         Dictionary with monetization strategies information and default potential values
     """
-    # First try to return the preloaded strategies for reliability
+    # Create a NEW dictionary with explicit key-value pairs to avoid method references
+    # This ensures we always return a concrete dictionary, not a callable method
+    strategies = {}
+    
+    # First try to use the preloaded strategies for reliability
     if PRELOADED_MONETIZATION_STRATEGIES:
-        return PRELOADED_MONETIZATION_STRATEGIES
+        preloaded = PRELOADED_MONETIZATION_STRATEGIES
         
-    # This is now a fallback if the preloaded strategies are somehow empty
+        # Manually copy each key-value pair to ensure it's a regular dictionary
+        if hasattr(preloaded, 'items') and callable(preloaded.items):
+            # If it's a dictionary with items() method
+            for key, value in preloaded.items():
+                strategies[key] = value
+            return strategies
+        elif isinstance(preloaded, dict):
+            # If it's already a dictionary but items might be a method issue
+            for key in preloaded:
+                strategies[key] = preloaded[key] 
+            return strategies
+                
+    # This is now a fallback if the preloaded strategies are somehow empty or not a proper dict
     strategies = {}
     
     for strategy_id, strategy_data in MONETIZATION_FRAMEWORK.items():

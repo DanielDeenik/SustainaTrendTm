@@ -216,7 +216,7 @@
                                         <div class="card h-100 bg-darker">
                                             <div class="card-body">
                                                 <h5 class="card-title">
-                                                    <i class="fas fa-{{ strategy.icon }}"></i> 
+                                                    <i class="fas fa-{{ strategy.icon if strategy.icon else 'chart-line' }}"></i> 
                                                     {{ strategy.name }}
                                                 </h5>
                                                 <p class="card-text small text-muted">{{ strategy.short_description }}</p>
