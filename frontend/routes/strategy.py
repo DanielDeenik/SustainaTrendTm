@@ -49,6 +49,46 @@ from monetization_strategies import (
     PRELOADED_MONETIZATION_STRATEGIES
 )
 
+# Import marketing strategy functions (with fallback)
+try:
+    from marketing_strategies import (
+        get_marketing_strategies,
+        get_strategy_recommendations,
+        MARKETING_CATEGORIES
+    )
+    MARKETING_AVAILABLE = True
+    logger.info("Marketing strategies module loaded successfully")
+except ImportError as e:
+    MARKETING_AVAILABLE = False
+    logger.warning(f"Marketing strategies module not available: {str(e)}")
+    MARKETING_CATEGORIES = {
+        "storytelling": "Storytelling & Narratives",
+        "stakeholder": "Stakeholder Engagement",
+        "digital": "Digital Marketing"
+    }
+
+# Import trend virality benchmarking functions (with fallback)
+try:
+    from trend_virality_benchmarking import (
+        analyze_trend_with_stepps,
+        benchmark_against_competitors,
+        generate_benchmark_insights,
+        STEPPS_COMPONENTS
+    )
+    TREND_VIRALITY_AVAILABLE = True
+    logger.info("Trend virality benchmarking module loaded successfully")
+except ImportError as e:
+    TREND_VIRALITY_AVAILABLE = False
+    logger.warning(f"Trend virality benchmarking module not available: {str(e)}")
+    STEPPS_COMPONENTS = {
+        "social_currency": "Social Currency",
+        "triggers": "Triggers",
+        "emotion": "Emotion",
+        "public": "Public",
+        "practical_value": "Practical Value",
+        "stories": "Stories"
+    }
+
 # Import strategy frameworks (if available) or use fallback
 try:
     from strategy_simulation import get_frameworks, analyze_with_framework
@@ -1028,7 +1068,13 @@ def strategy_hub_document_view(document_id):
 def unified_strategy_hub():
     """
     Unified Strategy Hub page with document analysis, storytelling, and strategy frameworks
-    This is the new integrated version that combines all features
+    This is the new integrated version that combines all features including:
+    - Document analysis and compliance assessment
+    - Sustainability storytelling
+    - Marketing strategies
+    - Monetization opportunities
+    - Trend virality benchmarking
+    - Strategy frameworks
     """
     logger.info("Unified Strategy Hub route called")
     
@@ -1120,17 +1166,92 @@ def unified_strategy_hub():
             }
         }
         
-        # Render the unified template with active_nav set to "strategy"
+        # Get marketing strategies
+        try:
+            # Try to import marketing strategies directly from module
+            from marketing_strategies import get_marketing_strategies
+            marketing_strategies = get_marketing_strategies()
+            logger.info(f"Loaded {len(marketing_strategies)} marketing strategies")
+        except (ImportError, AttributeError) as e:
+            logger.warning(f"Could not load marketing strategies: {str(e)}")
+            # Fallback marketing strategies
+            marketing_strategies = {
+                "content": {
+                    "name": "Content Marketing",
+                    "icon": "file-text",
+                    "short_description": "Educational sustainability content",
+                    "target_audience": "all"
+                },
+                "storytelling": {
+                    "name": "Data Storytelling",
+                    "icon": "bar-chart-2",
+                    "short_description": "Narrative-driven data visualization",
+                    "target_audience": "executives"
+                },
+                "social": {
+                    "name": "Social Media",
+                    "icon": "share-2",
+                    "short_description": "Social sharing of sustainability wins",
+                    "target_audience": "public"
+                }
+            }
+        
+        # Get trend virality data 
+        trend_data = None
+        benchmark_data = None
+        
+        if TREND_VIRALITY_AVAILABLE:
+            try:
+                # Sample sustainability trend to analyze
+                sample_trend = {
+                    "name": "Carbon Footprint Transparency",
+                    "description": "Companies publicly sharing detailed carbon footprint data",
+                    "category": "emissions",
+                    "content": "Organizations are increasingly sharing granular carbon emissions data with stakeholders and the public, moving beyond basic GHG protocol reporting to include product-level carbon footprints and real-time emissions tracking.",
+                    "audience": ["investors", "customers", "regulators"]
+                }
+                
+                # Get STEPPS analysis for the trend
+                trend_data = analyze_trend_with_stepps(sample_trend)
+                logger.info("Generated STEPPS analysis for sample trend")
+                
+                # Get competitor benchmark data
+                company_name = "Your Company"
+                industry = "Sustainability Solutions"
+                
+                # Create simple trend data list for benchmarking
+                trend_data_list = [
+                    {
+                        "name": "Carbon Footprint Transparency",
+                        "score": 85,
+                        "category": "emissions",
+                        "trend": "rising"
+                    }
+                ]
+                
+                benchmark_data = benchmark_against_competitors(company_name, industry, trend_data_list)
+                logger.info("Generated competitor benchmark data")
+            except Exception as e:
+                logger.warning(f"Error generating trend virality data: {str(e)}")
+                trend_data = None
+                benchmark_data = None
+        
+        # Render the unified template with all components
         return render_template(
             "strategy/strategy_hub.html",
             page_title="Unified Strategy Hub",
             active_nav="strategy",  # Set the active navigation item to highlight in sidebar
             frameworks=STRATEGY_FRAMEWORKS,
             monetization_strategies=monetization_strategies,
+            marketing_strategies=marketing_strategies,  # Added marketing strategies
             recent_documents=recent_documents,
             recent_stories=recent_stories,
+            stepps_components=STEPPS_COMPONENTS,  # STEPPS virality components
+            trend_data=trend_data,  # Added trend analysis data
+            benchmark_data=benchmark_data,  # Added benchmark data
             document_processor_available=DOCUMENT_PROCESSOR_AVAILABLE,
             storytelling_available=STORYTELLING_AVAILABLE,
+            trend_virality_available=TREND_VIRALITY_AVAILABLE,  # Added flag for trend virality
             **nav_context
         )
     except Exception as e:

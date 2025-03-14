@@ -953,11 +953,11 @@ def get_mock_sustainability_metrics():
 # Routes
 @app.route('/')
 def home():
-    """Home page"""
+    """Home page - now redirects to Unified Strategy Hub for easier testing"""
     try:
-        logger.info("Home page requested")
-        logger.info("Using Finchat dark dashboard template")
-        return render_template("finchat_dark_dashboard.html")
+        logger.info("Home page requested - redirecting to Unified Strategy Hub")
+        # Redirect to our new Unified Strategy Hub for easier testing
+        return redirect('/unified-strategy-hub')
     except Exception as e:
         logger.error(f"Error in home route: {str(e)}")
         traceback.print_exc()
