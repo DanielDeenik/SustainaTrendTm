@@ -10,6 +10,7 @@
 
 {% block additional_styles %}
 <style>
+    /* Common Components */
     .metric-summary {
         display: grid;
         grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
@@ -223,11 +224,714 @@
         height: 100%;
         background-color: var(--fc-primary);
     }
+    
+    /* Trend Analysis Styles */
+    .trend-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+        gap: var(--fc-spacing-md);
+    }
+    
+    .trend-card {
+        background-color: var(--fc-bg-card);
+        border: 1px solid var(--fc-border);
+        border-radius: var(--fc-radius);
+        overflow: hidden;
+        transition: all 0.2s;
+    }
+    
+    .trend-card:hover {
+        border-color: var(--fc-primary);
+        box-shadow: var(--fc-shadow);
+    }
+    
+    .trend-card-header {
+        background-color: var(--fc-bg-tertiary);
+        padding: var(--fc-spacing-sm) var(--fc-spacing-md);
+        border-bottom: 1px solid var(--fc-border);
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+    }
+    
+    .trend-category {
+        font-size: 0.75rem;
+        font-weight: 600;
+        color: var(--fc-primary);
+    }
+    
+    .trend-virality {
+        background-color: var(--fc-primary-light);
+        color: var(--fc-primary);
+        padding: 2px 8px;
+        border-radius: 10px;
+        font-size: 0.7rem;
+        font-weight: 600;
+        display: flex;
+        align-items: center;
+        gap: 4px;
+    }
+    
+    .trend-card-content {
+        padding: var(--fc-spacing-md);
+    }
+    
+    .trend-title {
+        font-size: 0.95rem;
+        font-weight: 600;
+        margin-bottom: var(--fc-spacing-xs);
+    }
+    
+    .trend-description {
+        color: var(--fc-text-secondary);
+        font-size: 0.85rem;
+        margin-bottom: var(--fc-spacing-md);
+    }
+    
+    .trend-metrics {
+        display: flex;
+        justify-content: space-between;
+        margin-bottom: var(--fc-spacing-md);
+        border-bottom: 1px solid var(--fc-border);
+        padding-bottom: var(--fc-spacing-md);
+    }
+    
+    .trend-metric {
+        text-align: center;
+    }
+    
+    .trend-metric-title {
+        font-size: 0.75rem;
+        color: var(--fc-text-secondary);
+        margin-bottom: 4px;
+    }
+    
+    .trend-metric-value {
+        font-size: 0.95rem;
+        font-weight: 600;
+    }
+    
+    .trend-impact {
+        background-color: var(--fc-bg-tertiary);
+        padding: var(--fc-spacing-sm);
+        border-radius: var(--fc-radius);
+        font-size: 0.85rem;
+        margin-bottom: var(--fc-spacing-md);
+    }
+    
+    .trend-sources-title {
+        font-size: 0.75rem;
+        color: var(--fc-text-secondary);
+        margin-bottom: 4px;
+    }
+    
+    .trend-sources-list {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 4px;
+    }
+    
+    .trend-source {
+        background-color: var(--fc-bg-hover);
+        padding: 2px 6px;
+        border-radius: 4px;
+        font-size: 0.7rem;
+    }
+    
+    /* Real Estate Dashboard Components */
+    .certification-progress {
+        margin-top: var(--fc-spacing-xs);
+    }
+    
+    .certification-header {
+        display: flex;
+        justify-content: space-between;
+        font-size: 0.85rem;
+        margin-bottom: 4px;
+    }
+    
+    .recommendation-item {
+        display: flex;
+        gap: var(--fc-spacing-md);
+        padding: var(--fc-spacing-md);
+        border-bottom: 1px solid var(--fc-border);
+    }
+    
+    .recommendation-item:last-child {
+        border-bottom: none;
+    }
+    
+    .recommendation-icon {
+        width: 40px;
+        height: 40px;
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        flex-shrink: 0;
+    }
+    
+    .recommendation-icon.green {
+        background-color: rgba(38, 222, 129, 0.15);
+        color: #26de81;
+    }
+    
+    .recommendation-icon.blue {
+        background-color: rgba(52, 195, 255, 0.15);
+        color: #34c3ff;
+    }
+    
+    .recommendation-icon.purple {
+        background-color: rgba(143, 113, 255, 0.15);
+        color: #8f71ff;
+    }
+    
+    .recommendation-title {
+        font-size: 0.9rem;
+        font-weight: 600;
+        margin-bottom: 4px;
+    }
+    
+    .recommendation-description {
+        font-size: 0.85rem;
+        color: var(--fc-text-secondary);
+        margin-bottom: 8px;
+    }
+    
+    .recommendation-metrics {
+        display: flex;
+        gap: var(--fc-spacing-md);
+    }
+    
+    .recommendation-metric {
+        font-size: 0.75rem;
+        color: var(--fc-text-muted);
+        display: flex;
+        align-items: center;
+        gap: 4px;
+    }
+    
+    /* API Status Components */
+    .status-badge {
+        padding: 2px 8px;
+        border-radius: 10px;
+        font-size: 0.75rem;
+        font-weight: 500;
+    }
+    
+    .status-badge.online {
+        background-color: rgba(38, 222, 129, 0.15);
+        color: #26de81;
+    }
+    
+    .status-badge.degraded {
+        background-color: rgba(255, 173, 99, 0.15);
+        color: #ffad63;
+    }
+    
+    .status-badge.offline {
+        background-color: rgba(252, 92, 101, 0.15);
+        color: #fc5c65;
+    }
+    
+    /* Debug Information Components */
+    .debug-info-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+        gap: var(--fc-spacing-md);
+    }
+    
+    .debug-info-item {
+        padding: var(--fc-spacing-sm);
+        background-color: var(--fc-bg-tertiary);
+        border-radius: var(--fc-radius);
+    }
+    
+    .debug-info-label {
+        font-size: 0.75rem;
+        color: var(--fc-text-secondary);
+        margin-bottom: 4px;
+    }
+    
+    .debug-info-value {
+        font-size: 0.9rem;
+        font-weight: 500;
+    }
+    
+    .route-list {
+        display: flex;
+        flex-direction: column;
+        gap: 4px;
+    }
+    
+    .route-item {
+        padding: var(--fc-spacing-sm);
+        background-color: var(--fc-bg-tertiary);
+        border-radius: var(--fc-radius);
+        font-family: monospace;
+        font-size: 0.85rem;
+    }
+    
+    /* Select and Form Elements */
+    .finchat-select {
+        background-color: var(--fc-bg-tertiary);
+        border: 1px solid var(--fc-border);
+        border-radius: var(--fc-radius);
+        color: var(--fc-text-primary);
+        padding: 6px 10px;
+        font-size: 0.85rem;
+        min-width: 150px;
+    }
+    
+    .finchat-select:focus {
+        outline: none;
+        border-color: var(--fc-primary);
+    }
 </style>
 {% endblock %}
 
 {% block main_content %}
-<!-- Top Metrics Summary -->
+{% if template_type == "trends" %}
+<!-- Trend Analysis Dashboard -->
+<div class="finchat-section">
+    <div class="finchat-section-title">
+        <i class="fas fa-chart-line"></i> Sustainability Trend Analysis
+    </div>
+    
+    <!-- Filter Controls -->
+    <div class="finchat-card" style="margin-bottom: var(--fc-spacing-md);">
+        <div class="finchat-card-body" style="padding: var(--fc-spacing-md);">
+            <div style="display: flex; gap: var(--fc-spacing-md); flex-wrap: wrap; align-items: center;">
+                <div>
+                    <label style="display: block; font-size: 0.8rem; margin-bottom: 4px; color: var(--fc-text-secondary);">Category</label>
+                    <select class="finchat-select" id="categoryFilter">
+                        <option value="all" {% if category == 'all' %}selected{% endif %}>All Categories</option>
+                        <option value="climate" {% if category == 'climate' %}selected{% endif %}>Climate Action</option>
+                        <option value="resource" {% if category == 'resource' %}selected{% endif %}>Resource Efficiency</option>
+                        <option value="governance" {% if category == 'governance' %}selected{% endif %}>ESG Governance</option>
+                        <option value="finance" {% if category == 'finance' %}selected{% endif %}>Sustainable Finance</option>
+                    </select>
+                </div>
+                <div>
+                    <label style="display: block; font-size: 0.8rem; margin-bottom: 4px; color: var(--fc-text-secondary);">Sort By</label>
+                    <select class="finchat-select" id="sortFilter">
+                        <option value="virality" {% if sort == 'virality' %}selected{% endif %}>Virality Score</option>
+                        <option value="mentions" {% if sort == 'mentions' %}selected{% endif %}>Mentions</option>
+                        <option value="sentiment" {% if sort == 'sentiment' %}selected{% endif %}>Sentiment</option>
+                        <option value="recent" {% if sort == 'recent' %}selected{% endif %}>Most Recent</option>
+                    </select>
+                </div>
+                <div style="margin-top: 24px;">
+                    <button class="finchat-button" id="applyFilters">
+                        <i class="fas fa-filter"></i> Apply Filters
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Trend Grid -->
+    <div class="trend-grid">
+        {% for trend in trends %}
+        <div class="trend-card">
+            <div class="trend-card-header">
+                <div class="trend-category">{{ trend.category_display }}</div>
+                <div class="trend-virality">
+                    <i class="fas fa-bolt"></i> {{ trend.virality_score }}
+                </div>
+            </div>
+            <div class="trend-card-content">
+                <div class="trend-title">{{ trend.name }}</div>
+                <div class="trend-description">{{ trend.description }}</div>
+                <div class="trend-metrics">
+                    <div class="trend-metric">
+                        <div class="trend-metric-title">Sentiment</div>
+                        <div class="trend-metric-value">{{ "%.2f"|format(trend.sentiment) }}</div>
+                    </div>
+                    <div class="trend-metric">
+                        <div class="trend-metric-title">Mentions</div>
+                        <div class="trend-metric-value">{{ trend.mentions }}</div>
+                    </div>
+                    <div class="trend-metric">
+                        <div class="trend-metric-title">Momentum</div>
+                        <div class="trend-metric-value">{{ trend.momentum }}</div>
+                    </div>
+                </div>
+                <div class="trend-impact">{{ trend.impact_statement }}</div>
+                <div class="trend-sources">
+                    <div class="trend-sources-title">Sources</div>
+                    <div class="trend-sources-list">
+                        {% for source in trend.sources %}
+                        <span class="trend-source">{{ source }}</span>
+                        {% endfor %}
+                    </div>
+                </div>
+            </div>
+        </div>
+        {% endfor %}
+    </div>
+</div>
+{% endif %}
+
+{% if template_type == "realestate" %}
+<!-- Real Estate Sustainability Dashboard -->
+<div class="finchat-section">
+    <div class="finchat-section-title">
+        <i class="fas fa-building"></i> Real Estate Sustainability Intelligence
+    </div>
+    
+    <!-- Property Metrics Summary -->
+    <div class="metric-summary">
+        {% for metric in metrics[:4] %}
+        <div class="metric-card">
+            <div class="metric-header">
+                <div class="metric-title">{{ metric.name }}</div>
+                <i class="fas {% if 'Energy' in metric.category %}fa-bolt{% elif 'Water' in metric.category %}fa-tint{% elif 'Waste' in metric.category %}fa-trash{% elif 'Building' in metric.category %}fa-building{% elif 'Tenant' in metric.category %}fa-users{% else %}fa-leaf{% endif %}"></i>
+            </div>
+            <div class="metric-value">{{ metric.value }}{{ metric.unit }}</div>
+            <div class="metric-change {% if metric.change_type == 'positive' %}finchat-value-positive{% else %}finchat-value-negative{% endif %}">
+                <i class="fas {% if metric.change_type == 'positive' %}fa-arrow-{% if 'Carbon' in metric.category or 'Water' in metric.category or 'Waste' in metric.category %}down{% else %}up{% endif %}{% else %}fa-arrow-{% if 'Carbon' in metric.category or 'Water' in metric.category or 'Waste' in metric.category %}up{% else %}down{% endif %}{% endif %}"></i> 
+                {% if metric.change_type == 'positive' %}
+                    {% if 'Carbon' in metric.category or 'Water' in metric.category or 'Waste' in metric.category %}-{% else %}+{% endif %}
+                {% else %}
+                    {% if 'Carbon' in metric.category or 'Water' in metric.category or 'Waste' in metric.category %}+{% else %}-{% endif %}
+                {% endif %}
+                {{ metric.change|abs }}%
+            </div>
+        </div>
+        {% endfor %}
+    </div>
+    
+    <!-- Main Charts Area -->
+    <div class="two-col-grid">
+        <div>
+            <!-- Energy Performance Chart -->
+            <div class="market-chart">
+                <div class="market-chart-header">
+                    <div class="market-chart-title">Energy Performance Trend</div>
+                    <div class="chart-controls">
+                        <button class="chart-period">1M</button>
+                        <button class="chart-period active">3M</button>
+                        <button class="chart-period">6M</button>
+                        <button class="chart-period">1Y</button>
+                    </div>
+                </div>
+                <div class="chart-container">
+                    <canvas id="energyPerformanceChart"></canvas>
+                </div>
+            </div>
+            
+            <!-- Property Comparison Table -->
+            <div class="finchat-card">
+                <div class="finchat-card-header">
+                    <h3 class="finchat-card-title">Property Portfolio Performance</h3>
+                </div>
+                <div class="finchat-card-body">
+                    <table class="finchat-table">
+                        <thead>
+                            <tr>
+                                <th>Property</th>
+                                <th>Energy Rating</th>
+                                <th>Water Usage</th>
+                                <th>Waste Diversion</th>
+                                <th>Tenant Satisfaction</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td>Green Tower</td>
+                                <td class="finchat-value-positive">A+</td>
+                                <td class="finchat-value-positive">Low</td>
+                                <td>75%</td>
+                                <td>4.8/5</td>
+                            </tr>
+                            <tr>
+                                <td>Blue Heights</td>
+                                <td>B</td>
+                                <td>Medium</td>
+                                <td>68%</td>
+                                <td>4.2/5</td>
+                            </tr>
+                            <tr>
+                                <td>Parkside Offices</td>
+                                <td class="finchat-value-negative">C</td>
+                                <td class="finchat-value-negative">High</td>
+                                <td>42%</td>
+                                <td>3.9/5</td>
+                            </tr>
+                            <tr>
+                                <td>Riverside Complex</td>
+                                <td>B+</td>
+                                <td>Medium-Low</td>
+                                <td>72%</td>
+                                <td>4.5/5</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+        
+        <div>
+            <!-- Certifications Overview -->
+            <div class="finchat-card">
+                <div class="finchat-card-header">
+                    <h3 class="finchat-card-title">Green Building Certifications</h3>
+                </div>
+                <div class="finchat-card-body">
+                    <div class="certification-progress">
+                        <div class="certification-header">
+                            <span>LEED Certification</span>
+                            <span>75%</span>
+                        </div>
+                        <div class="progress-bar" style="margin-bottom: 12px;">
+                            <div class="progress-fill" style="width: 75%;"></div>
+                        </div>
+                        
+                        <div class="certification-header">
+                            <span>BREEAM Excellent</span>
+                            <span>60%</span>
+                        </div>
+                        <div class="progress-bar" style="margin-bottom: 12px;">
+                            <div class="progress-fill" style="width: 60%;"></div>
+                        </div>
+                        
+                        <div class="certification-header">
+                            <span>Energy Star</span>
+                            <span>90%</span>
+                        </div>
+                        <div class="progress-bar" style="margin-bottom: 12px;">
+                            <div class="progress-fill" style="width: 90%;"></div>
+                        </div>
+                        
+                        <div class="certification-header">
+                            <span>WELL Building Standard</span>
+                            <span>45%</span>
+                        </div>
+                        <div class="progress-bar">
+                            <div class="progress-fill" style="width: 45%;"></div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Sustainability Recommendations -->
+            <div class="finchat-card">
+                <div class="finchat-card-header">
+                    <h3 class="finchat-card-title">Improvement Recommendations</h3>
+                </div>
+                <div class="finchat-card-body" style="padding: 0;">
+                    <div class="recommendation-item">
+                        <div class="recommendation-icon green">
+                            <i class="fas fa-lightbulb"></i>
+                        </div>
+                        <div class="recommendation-content">
+                            <div class="recommendation-title">LED Lighting Retrofit</div>
+                            <div class="recommendation-description">Replace all common area lighting with LED fixtures to reduce energy consumption by up to 60%.</div>
+                            <div class="recommendation-metrics">
+                                <span class="recommendation-metric">
+                                    <i class="fas fa-dollar-sign"></i> Cost: Medium
+                                </span>
+                                <span class="recommendation-metric">
+                                    <i class="fas fa-chart-line"></i> ROI: 24 months
+                                </span>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="recommendation-item">
+                        <div class="recommendation-icon blue">
+                            <i class="fas fa-tint"></i>
+                        </div>
+                        <div class="recommendation-content">
+                            <div class="recommendation-title">Water Conservation System</div>
+                            <div class="recommendation-description">Install low-flow fixtures and smart irrigation to reduce water consumption by up to 40%.</div>
+                            <div class="recommendation-metrics">
+                                <span class="recommendation-metric">
+                                    <i class="fas fa-dollar-sign"></i> Cost: Low-Medium
+                                </span>
+                                <span class="recommendation-metric">
+                                    <i class="fas fa-chart-line"></i> ROI: 18 months
+                                </span>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="recommendation-item">
+                        <div class="recommendation-icon purple">
+                            <i class="fas fa-temperature-low"></i>
+                        </div>
+                        <div class="recommendation-content">
+                            <div class="recommendation-title">HVAC Optimization</div>
+                            <div class="recommendation-description">Implement smart HVAC controls and zoning to reduce energy use while improving tenant comfort.</div>
+                            <div class="recommendation-metrics">
+                                <span class="recommendation-metric">
+                                    <i class="fas fa-dollar-sign"></i> Cost: High
+                                </span>
+                                <span class="recommendation-metric">
+                                    <i class="fas fa-chart-line"></i> ROI: 36 months
+                                </span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+{% endif %}
+
+{% if template_type == "api-status" %}
+<!-- API Status Dashboard -->
+<div class="finchat-section">
+    <div class="finchat-section-title">
+        <i class="fas fa-server"></i> API Status Dashboard
+    </div>
+    
+    <!-- API Status Overview -->
+    <div class="metric-summary">
+        <div class="metric-card">
+            <div class="metric-header">
+                <div class="metric-title">Available APIs</div>
+                <i class="fas fa-check-circle"></i>
+            </div>
+            <div class="metric-value">{{ api_status.available_count }}</div>
+            <div class="metric-change finchat-value-positive">
+                <i class="fas fa-arrow-up"></i> {{ api_status.available_percentage }}%
+            </div>
+        </div>
+        
+        <div class="metric-card">
+            <div class="metric-header">
+                <div class="metric-title">Response Time</div>
+                <i class="fas fa-tachometer-alt"></i>
+            </div>
+            <div class="metric-value">{{ api_status.avg_response_time }}ms</div>
+            <div class="metric-change {% if api_status.response_time_trend < 0 %}finchat-value-positive{% else %}finchat-value-negative{% endif %}">
+                <i class="fas {% if api_status.response_time_trend < 0 %}fa-arrow-down{% else %}fa-arrow-up{% endif %}"></i> {{ api_status.response_time_trend|abs }}%
+            </div>
+        </div>
+        
+        <div class="metric-card">
+            <div class="metric-header">
+                <div class="metric-title">Error Rate</div>
+                <i class="fas fa-exclamation-triangle"></i>
+            </div>
+            <div class="metric-value">{{ api_status.error_rate }}%</div>
+            <div class="metric-change {% if api_status.error_rate_trend < 0 %}finchat-value-positive{% else %}finchat-value-negative{% endif %}">
+                <i class="fas {% if api_status.error_rate_trend < 0 %}fa-arrow-down{% else %}fa-arrow-up{% endif %}"></i> {{ api_status.error_rate_trend|abs }}%
+            </div>
+        </div>
+        
+        <div class="metric-card">
+            <div class="metric-header">
+                <div class="metric-title">Total Requests</div>
+                <i class="fas fa-exchange-alt"></i>
+            </div>
+            <div class="metric-value">{{ api_status.total_requests }}</div>
+            <div class="metric-change finchat-value-positive">
+                <i class="fas fa-arrow-up"></i> {{ api_status.request_trend }}%
+            </div>
+        </div>
+    </div>
+    
+    <!-- API Service Status Table -->
+    <div class="finchat-card">
+        <div class="finchat-card-header">
+            <h3 class="finchat-card-title">API Service Status</h3>
+        </div>
+        <div class="finchat-card-body">
+            <table class="finchat-table">
+                <thead>
+                    <tr>
+                        <th>Service</th>
+                        <th>Status</th>
+                        <th>Response Time</th>
+                        <th>Uptime</th>
+                        <th>Last Updated</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for service in api_status.services %}
+                    <tr>
+                        <td>
+                            <div style="display: flex; align-items: center; gap: 8px;">
+                                <i class="fas {{ service.icon }}"></i>
+                                <div>{{ service.name }}</div>
+                            </div>
+                        </td>
+                        <td>
+                            <span class="status-badge {{ service.status_class }}">
+                                {{ service.status }}
+                            </span>
+                        </td>
+                        <td>{{ service.response_time }}</td>
+                        <td>{{ service.uptime }}</td>
+                        <td>{{ service.last_checked }}</td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+
+{% endif %}
+
+{% if template_type == "debug" %}
+<!-- Debug Information Dashboard -->
+<div class="finchat-section">
+    <div class="finchat-section-title">
+        <i class="fas fa-bug"></i> Debug Information
+    </div>
+    
+    <!-- System Information -->
+    <div class="finchat-card">
+        <div class="finchat-card-header">
+            <h3 class="finchat-card-title">System Information</h3>
+        </div>
+        <div class="finchat-card-body">
+            <div class="debug-info-grid">
+                <div class="debug-info-item">
+                    <div class="debug-info-label">Python Version</div>
+                    <div class="debug-info-value">{{ python_version|default('Not available') }}</div>
+                </div>
+                <div class="debug-info-item">
+                    <div class="debug-info-label">Flask Version</div>
+                    <div class="debug-info-value">{{ flask_version|default('Not available') }}</div>
+                </div>
+                <div class="debug-info-item">
+                    <div class="debug-info-label">Environment</div>
+                    <div class="debug-info-value">{{ environment|default('Development') }}</div>
+                </div>
+                <div class="debug-info-item">
+                    <div class="debug-info-label">Debug Mode</div>
+                    <div class="debug-info-value">{{ 'Enabled' if debug_mode|default(True) else 'Disabled' }}</div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Available Routes -->
+    <div class="finchat-card">
+        <div class="finchat-card-header">
+            <h3 class="finchat-card-title">Available Routes</h3>
+        </div>
+        <div class="finchat-card-body">
+            <div class="route-list">
+                {% for route in app_routes %}
+                <div class="route-item">
+                    <div class="route-name">{{ route }}</div>
+                </div>
+                {% endfor %}
+            </div>
+        </div>
+    </div>
+</div>
+
+{% else %}
+<!-- Default Dashboard (Top Metrics Summary) -->
 <div class="finchat-section">
     <div class="metric-summary">
         <div class="metric-card">
@@ -275,6 +979,403 @@
         </div>
     </div>
 </div>
+
+{% endif %}
+
+{% if template_type == "home" %}
+<!-- Home Page Dashboard -->
+<div class="finchat-section">
+    <div class="finchat-section-title">
+        <i class="fas fa-home"></i> Sustainability Intelligence Hub
+    </div>
+    
+    <div class="finchat-card">
+        <div class="finchat-card-header">
+            <h3 class="finchat-card-title">Welcome to SustainaTrend™</h3>
+        </div>
+        <div class="finchat-card-body">
+            <p>Transforming complex environmental data into actionable, visually engaging insights for your organization.</p>
+            
+            <div class="finchat-grid" style="margin-top: var(--fc-spacing-md);">
+                <div class="finchat-grid-item">
+                    <div class="finchat-card">
+                        <div class="finchat-card-body" style="text-align: center;">
+                            <i class="fas fa-chart-line" style="font-size: 2rem; color: var(--fc-primary); margin-bottom: var(--fc-spacing-sm);"></i>
+                            <h3 style="margin-bottom: var(--fc-spacing-xs);">Trend Analysis</h3>
+                            <p style="margin-bottom: var(--fc-spacing-sm);">Discover emerging sustainability trends and patterns</p>
+                            <a href="/trend-analysis" class="finchat-button">Explore Trends</a>
+                        </div>
+                    </div>
+                </div>
+                <div class="finchat-grid-item">
+                    <div class="finchat-card">
+                        <div class="finchat-card-body" style="text-align: center;">
+                            <i class="fas fa-building" style="font-size: 2rem; color: var(--fc-primary); margin-bottom: var(--fc-spacing-sm);"></i>
+                            <h3 style="margin-bottom: var(--fc-spacing-xs);">Real Estate</h3>
+                            <p style="margin-bottom: var(--fc-spacing-sm);">Specialized insights for real estate sustainability</p>
+                            <a href="/real-estate-sustainability" class="finchat-button">View Insights</a>
+                        </div>
+                    </div>
+                </div>
+                <div class="finchat-grid-item">
+                    <div class="finchat-card">
+                        <div class="finchat-card-body" style="text-align: center;">
+                            <i class="fas fa-chart-pie" style="font-size: 2rem; color: var(--fc-primary); margin-bottom: var(--fc-spacing-sm);"></i>
+                            <h3 style="margin-bottom: var(--fc-spacing-xs);">Dashboard</h3>
+                            <p style="margin-bottom: var(--fc-spacing-sm);">Comprehensive sustainability metrics dashboard</p>
+                            <a href="/dashboard" class="finchat-button">Open Dashboard</a>
+                        </div>
+                    </div>
+                </div>
+                <div class="finchat-grid-item">
+                    <div class="finchat-card">
+                        <div class="finchat-card-body" style="text-align: center;">
+                            <i class="fas fa-book" style="font-size: 2rem; color: var(--fc-primary); margin-bottom: var(--fc-spacing-sm);"></i>
+                            <h3 style="margin-bottom: var(--fc-spacing-xs);">Story Cards</h3>
+                            <p style="margin-bottom: var(--fc-spacing-sm);">Data-driven sustainability storytelling</p>
+                            <a href="/story-cards" class="finchat-button">View Stories</a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <div class="finchat-card" style="margin-top: var(--fc-spacing-md);">
+        <div class="finchat-card-header">
+            <h3 class="finchat-card-title">System Status</h3>
+        </div>
+        <div class="finchat-card-body">
+            <div class="debug-info-grid">
+                {% for service, status in api_status.items() %}
+                <div class="debug-info-item">
+                    <div class="debug-info-label">{{ service }}</div>
+                    <div class="debug-info-value">
+                        <span class="status-badge {{ status.status }}">{{ status.status }}</span>
+                    </div>
+                </div>
+                {% endfor %}
+            </div>
+        </div>
+    </div>
+</div>
+
+{% endif %}
+
+{% if template_type == "dashboard" %}
+<!-- Main Dashboard -->
+<div class="finchat-section">
+    <div class="finchat-section-title">
+        <i class="fas fa-chart-pie"></i> Sustainability Intelligence Dashboard
+    </div>
+    
+    <!-- Metrics Summary -->
+    <div class="metric-summary">
+        {% for metric in metrics[:4] %}
+        <div class="metric-card">
+            <div class="metric-header">
+                <div class="metric-title">{{ metric.name }}</div>
+                <i class="fas fa-circle-info" title="{{ metric.description }}"></i>
+            </div>
+            <div class="metric-value">{{ metric.value }}</div>
+            <div class="metric-change {% if metric.change > 0 %}positive{% else %}negative{% endif %}">
+                <i class="fas {% if metric.change > 0 %}fa-arrow-up{% else %}fa-arrow-down{% endif %}"></i>
+                {{ metric.change }}%
+            </div>
+        </div>
+        {% endfor %}
+    </div>
+    
+    <!-- Main Chart -->
+    <div class="market-chart">
+        <div class="market-chart-header">
+            <div class="market-chart-title">Sustainability Performance Trend</div>
+            <div class="chart-controls">
+                <div class="chart-period" data-period="1w">1W</div>
+                <div class="chart-period active" data-period="1m">1M</div>
+                <div class="chart-period" data-period="3m">3M</div>
+                <div class="chart-period" data-period="1y">1Y</div>
+                <div class="chart-period" data-period="all">All</div>
+            </div>
+        </div>
+        <div class="chart-container" id="performanceChart"></div>
+    </div>
+    
+    <!-- Two-column layout -->
+    <div class="two-col-grid">
+        <!-- Left column: Top categories -->
+        <div class="finchat-card">
+            <div class="finchat-card-header">
+                <h3 class="finchat-card-title">Top Sustainability Categories</h3>
+            </div>
+            <div class="finchat-card-body">
+                <div class="positions-table">
+                    <table class="finchat-table">
+                        <thead>
+                            <tr>
+                                <th>Category</th>
+                                <th>Score</th>
+                                <th>Change</th>
+                                <th>Rating</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for metric in metrics[4:10] %}
+                            <tr>
+                                <td>
+                                    <div class="company-info">
+                                        <div class="company-icon">
+                                            <i class="fas fa-leaf"></i>
+                                        </div>
+                                        <div>
+                                            {{ metric.name }}
+                                            <div class="position-sector">{{ metric.category }}</div>
+                                        </div>
+                                    </div>
+                                </td>
+                                <td>{{ metric.value }}</td>
+                                <td class="{% if metric.change > 0 %}positive{% else %}negative{% endif %}">
+                                    <i class="fas {% if metric.change > 0 %}fa-arrow-up{% else %}fa-arrow-down{% endif %}"></i>
+                                    {{ metric.change }}%
+                                </td>
+                                <td>
+                                    <div class="esg-score">
+                                        <div class="esg-letter {{ metric.rating|lower }}">{{ metric.rating }}</div>
+                                    </div>
+                                </td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Right column: Recent updates -->
+        <div class="finchat-card">
+            <div class="finchat-card-header">
+                <h3 class="finchat-card-title">Recent Updates</h3>
+            </div>
+            <div class="finchat-card-body">
+                {% for i in range(3) %}
+                <div class="news-item">
+                    <div>
+                        <div>
+                            <span class="news-source">Update</span>
+                        </div>
+                        <div style="font-weight: 500; margin: 4px 0;">
+                            {{ metrics[i].name }} has {{ 'increased' if metrics[i].change > 0 else 'decreased' }} by {{ metrics[i].change }}%
+                        </div>
+                        <div class="news-meta">
+                            <div class="news-time">{{ metrics[i].timestamp }}</div>
+                        </div>
+                    </div>
+                </div>
+                {% endfor %}
+            </div>
+        </div>
+    </div>
+</div>
+
+{% endif %}
+
+{% if template_type == "monetization" %}
+<!-- Monetization Strategies Dashboard -->
+<div class="finchat-section">
+    <div class="finchat-section-title">
+        <i class="fas fa-coins"></i> Monetization Strategies Framework
+    </div>
+    
+    <div class="finchat-card">
+        <div class="finchat-card-header">
+            <h3 class="finchat-card-title">Revenue Opportunities</h3>
+        </div>
+        <div class="finchat-card-body">
+            <div class="recommendation-item">
+                <div class="recommendation-icon green">
+                    <i class="fas fa-database"></i>
+                </div>
+                <div>
+                    <div class="recommendation-title">ESG Data Subscription</div>
+                    <div class="recommendation-description">Subscription-based access to premium ESG data and metrics with tiered pricing model.</div>
+                    <div class="recommendation-metrics">
+                        <div class="recommendation-metric">
+                            <i class="fas fa-calendar"></i> 3-6 months
+                        </div>
+                        <div class="recommendation-metric">
+                            <i class="fas fa-chart-line"></i> 25-35% ROI
+                        </div>
+                        <div class="recommendation-metric">
+                            <i class="fas fa-signal"></i> High Potential
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="recommendation-item">
+                <div class="recommendation-icon blue">
+                    <i class="fas fa-file-alt"></i>
+                </div>
+                <div>
+                    <div class="recommendation-title">Sustainability Reporting as a Service</div>
+                    <div class="recommendation-description">Automated generation of compliance-ready sustainability reports for regulatory frameworks.</div>
+                    <div class="recommendation-metrics">
+                        <div class="recommendation-metric">
+                            <i class="fas fa-calendar"></i> 6-12 months
+                        </div>
+                        <div class="recommendation-metric">
+                            <i class="fas fa-chart-line"></i> 20-30% ROI
+                        </div>
+                        <div class="recommendation-metric">
+                            <i class="fas fa-signal"></i> Medium-High Potential
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="recommendation-item">
+                <div class="recommendation-icon purple">
+                    <i class="fas fa-robot"></i>
+                </div>
+                <div>
+                    <div class="recommendation-title">AI-Powered ESG Consulting</div>
+                    <div class="recommendation-description">Premium consulting services backed by AI analytics for sustainability strategy development.</div>
+                    <div class="recommendation-metrics">
+                        <div class="recommendation-metric">
+                            <i class="fas fa-calendar"></i> Immediate
+                        </div>
+                        <div class="recommendation-metric">
+                            <i class="fas fa-chart-line"></i> 40-50% ROI
+                        </div>
+                        <div class="recommendation-metric">
+                            <i class="fas fa-signal"></i> High Potential
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <div class="finchat-card" style="margin-top: var(--fc-spacing-md);">
+        <div class="finchat-card-header">
+            <h3 class="finchat-card-title">Implementation Roadmap</h3>
+        </div>
+        <div class="finchat-card-body">
+            <div class="finchat-tabs">
+                <div class="finchat-tabs-header">
+                    <div class="finchat-tab active" data-tab="immediate">Immediate (0-3m)</div>
+                    <div class="finchat-tab" data-tab="short">Short-Term (3-6m)</div>
+                    <div class="finchat-tab" data-tab="medium">Medium-Term (6-12m)</div>
+                </div>
+                <div class="finchat-tabs-body">
+                    <div class="finchat-tab-content active" id="immediate">
+                        <ul class="finchat-list">
+                            <li>Launch AI-powered consulting services with current platform capabilities</li>
+                            <li>Implement freemium model for basic ESG data access</li>
+                            <li>Develop premium feature marketing strategy</li>
+                            <li>Create pricing tiers and subscription framework</li>
+                        </ul>
+                    </div>
+                    <div class="finchat-tab-content" id="short">
+                        <ul class="finchat-list">
+                            <li>Develop data subscription API and access controls</li>
+                            <li>Implement billing and subscription management system</li>
+                            <li>Create premium dashboard experiences</li>
+                            <li>Launch beta for sustainability reporting service</li>
+                        </ul>
+                    </div>
+                    <div class="finchat-tab-content" id="medium">
+                        <ul class="finchat-list">
+                            <li>Fully automate sustainability reporting for all major frameworks</li>
+                            <li>Implement customization options for enterprise clients</li>
+                            <li>Launch partner ecosystem with revenue sharing model</li>
+                            <li>Develop white-label platform offerings</li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+{% endif %}
+
+{% if template_type == "stories" %}
+<!-- Story Cards Dashboard -->
+<div class="finchat-section">
+    <div class="finchat-section-title">
+        <i class="fas fa-book-open"></i> Sustainability Story Cards
+    </div>
+    
+    <div class="finchat-card" style="margin-bottom: var(--fc-spacing-md);">
+        <div class="finchat-card-body" style="padding: var(--fc-spacing-md);">
+            <div style="display: flex; gap: var(--fc-spacing-md); flex-wrap: wrap; align-items: center;">
+                <div>
+                    <label style="display: block; font-size: 0.8rem; margin-bottom: 4px; color: var(--fc-text-secondary);">Category</label>
+                    <select class="finchat-select" id="storyFilter">
+                        <option value="all">All Categories</option>
+                        <option value="climate">Climate Action</option>
+                        <option value="resource">Resource Efficiency</option>
+                        <option value="social">Social Impact</option>
+                        <option value="governance">ESG Governance</option>
+                    </select>
+                </div>
+                <div>
+                    <label style="display: block; font-size: 0.8rem; margin-bottom: 4px; color: var(--fc-text-secondary);">Sort By</label>
+                    <select class="finchat-select" id="storySortFilter">
+                        <option value="recent">Most Recent</option>
+                        <option value="relevance">Relevance</option>
+                        <option value="impact">Impact Score</option>
+                    </select>
+                </div>
+                <div style="margin-top: 24px;">
+                    <button class="finchat-button" id="applyStoryFilters">
+                        <i class="fas fa-filter"></i> Apply Filters
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <div class="finchat-grid">
+        {% for story in stories %}
+        <div class="finchat-grid-item">
+            <div class="finchat-card story-card">
+                <div class="finchat-card-header" style="background-color: rgba(var(--primary-rgb), 0.1);">
+                    <h3 class="finchat-card-title">{{ story.title }}</h3>
+                </div>
+                <div class="finchat-card-body">
+                    <div class="story-meta" style="display: flex; gap: var(--fc-spacing-xs); margin-bottom: var(--fc-spacing-xs);">
+                        <span class="finchat-badge">{{ story.category }}</span>
+                        <span class="finchat-badge finchat-badge-secondary">Impact: {{ story.impact_score }}/10</span>
+                    </div>
+                    
+                    <p style="margin-bottom: var(--fc-spacing-md); color: var(--fc-text-secondary);">{{ story.summary }}</p>
+                    
+                    <div class="story-metrics" style="margin-bottom: var(--fc-spacing-md); border-bottom: 1px solid var(--fc-border); padding-bottom: var(--fc-spacing-md);">
+                        {% for metric in story.key_metrics %}
+                        <div class="story-metric">
+                            <div class="trend-metric-title">{{ metric.name }}</div>
+                            <div class="trend-metric-value">{{ metric.value }} {{ metric.unit }}</div>
+                        </div>
+                        {% endfor %}
+                    </div>
+                    
+                    <div class="story-actions" style="display: flex; justify-content: space-between;">
+                        <button class="finchat-button finchat-button-sm">
+                            <i class="fas fa-download"></i> Export
+                        </button>
+                        <button class="finchat-button finchat-button-sm finchat-button-secondary">
+                            <i class="fas fa-share"></i> Share
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+        {% endfor %}
+    </div>
+</div>
+{% endif %}
 
 <div class="two-col-grid">
     <div>

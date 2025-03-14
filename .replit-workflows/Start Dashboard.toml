@@ -3,5 +3,6 @@ language = "python"
 entrypoint = "frontend/app.py"
 hidden = false
 persistent = true
-wait_for_port = true
+wait_for_port = 5000
 onPort = { action = "open", port = 5000 }
+environment = { DEBUG = "false", FLASK_ENV = "development", HOST = "0.0.0.0", PORT = "5000" }

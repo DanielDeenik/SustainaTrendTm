@@ -1,83 +1,110 @@
-#!/usr/bin/env python3
 """
-Entry point for SustainaTrend Intelligence Platform
+SustainaTrend Intelligence Platform - Application Factory
 
-This file serves as the main entry point for the Flask application and
-maintains compatibility with Replit configuration. The application uses
-clean_app.py with consolidated routes in updated_routes.py.
+This file serves as the main entry point for the Flask application with a clean,
+modular blueprint-based architecture.
 """
-import logging
+
 import os
-import sys
-import traceback
-import argparse
-
-# Parse command line arguments
-parser = argparse.ArgumentParser(description='Start the SustainaTrend Intelligence Platform')
-parser.add_argument('--port', type=int, default=int(os.environ.get('PORT', 5000)), help='Port to run the server on')
-parser.add_argument('--debug', action='store_true', default=True, help='Run in debug mode')
-args = parser.parse_args()
+import logging
+from flask import Flask, request, g
+from logging.config import dictConfig
 
 # Configure logging
-logging.basicConfig(level=logging.INFO)
-logger = logging.getLogger(__name__)
-logger.info("Starting SustainaTrend Intelligence Platform")
-logger.info(f"Current working directory: {os.getcwd()}")
-logger.info(f"Python executable: {sys.executable}")
-logger.info(f"Python path: {sys.path}")
-
-# Import the application from clean_app.py
-try:
-    logger.info("Loading application from clean_app.py")
-    from clean_app import app, create_app
-    
-    # Log all registered routes for debugging
-    routes = [str(rule) for rule in app.url_map.iter_rules()]
-    logger.info(f"Successfully imported application from clean_app.py")
-    logger.info(f"Registered routes: {len(routes)}")
-    
-except Exception as e:
-    logger.error(f"Error importing application: {str(e)}")
-    logger.error(traceback.format_exc())
-    
-    # Fall back to minimal implementation if all else fails
-    from flask import Flask, render_template, jsonify, request
-    from flask_caching import Cache
-
-    logger.warning("Falling back to minimal implementation due to errors")
-
-    # Initialize Flask
-    app = Flask(__name__)
-
-    # Setup Simple Cache
-    cache = Cache(app, config={
-        'CACHE_TYPE': 'SimpleCache'
+def configure_logging():
+    """Configure logging for the application"""
+    dictConfig({
+        'version': 1,
+        'formatters': {
+            'default': {
+                'format': '[%(asctime)s] %(levelname)s in %(module)s: %(message)s',
+            }
+        },
+        'handlers': {
+            'console': {
+                'class': 'logging.StreamHandler',
+                'level': 'INFO',
+                'formatter': 'default',
+                'stream': 'ext://sys.stdout',
+            },
+            'file': {
+                'class': 'logging.FileHandler',
+                'level': 'INFO',
+                'formatter': 'default',
+                'filename': 'app.log',
+            }
+        },
+        'root': {
+            'level': 'INFO',
+            'handlers': ['console', 'file']
+        }
     })
 
-    # Add basic emergency routes with debug info
-    @app.route('/')
-    def home():
-        """Home page"""
-        logger.info(f"Home route called (emergency fallback mode)")
-        return render_template("index.html")
-
-    @app.route('/debug')
-    def debug_route():
-        """Debug route to check registered routes"""
-        logger.info(f"Debug route called (emergency fallback mode)")
-        routes = [str(rule) for rule in app.url_map.iter_rules()]
-        python_info = {
-            "sys.path": sys.path,
-            "current_dir": os.getcwd(),
-            "dir_contents": os.listdir(os.getcwd()),
-            "error": str(e),
-            "traceback": traceback.format_exc()
-        }
-        return jsonify({"routes": routes, "python_info": python_info})
-
-# Start the application when run directly
+def create_app(test_config=None):
+    """
+    Create and configure the Flask application
+    
+    Args:
+        test_config: Configuration dictionary for testing (optional)
+        
+    Returns:
+        Flask application instance
+    """
+    # Configure logging
+    configure_logging()
+    
+    # Create Flask application
+    app = Flask(__name__)
+    
+    # Configure the application
+    app.config.from_mapping(
+        SECRET_KEY=os.environ.get('SECRET_KEY', 'dev'),
+        DEBUG=os.environ.get('FLASK_ENV', 'development') == 'development',
+    )
+    
+    if test_config:
+        app.config.update(test_config)
+    
+    # Initialize the application
+    @app.before_request
+    def before_request():
+        """Execute before each request"""
+        g.theme = request.cookies.get('theme', 'dark')
+    
+    # Register template context processors
+    @app.context_processor
+    def inject_api_status():
+        """Inject API status into all templates"""
+        from direct_app import get_api_status
+        return {"api_status": get_api_status()}
+    
+    @app.context_processor
+    def inject_theme_preference():
+        """Inject theme preference into all templates"""
+        return {"theme": g.get('theme', 'dark')}
+    
+    # Register blueprints
+    from routes import register_blueprints
+    register_blueprints(app)
+    
+    # Register API blueprint routes separately
+    from routes.api import api_bp
+    app.register_blueprint(api_bp)
+    
+    # Register the API views blueprint
+    from routes.api import api_views_bp
+    try:
+        app.register_blueprint(api_views_bp)
+        app.logger.info("API views blueprint registered successfully")
+    except Exception as e:
+        app.logger.error(f"Error registering API views blueprint: {e}")
+    
+    # Log the registered routes
+    app.logger.info(f"Registered routes: {len(list(app.url_map.iter_rules()))}")
+    
+    return app
+    
+# If this file is run directly, start the application
 if __name__ == "__main__":
-    # Use port 5000 to match Replit's expected configuration
-    port = int(os.environ.get('PORT', 5000))
-    logger.info(f"Starting Flask server on port {port}")
-    app.run(host="0.0.0.0", port=port, debug=True)
+    app = create_app()
+    app.run(host="0.0.0.0", port=5000, debug=True)
