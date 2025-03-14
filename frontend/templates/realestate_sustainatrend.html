@@ -1,0 +1,753 @@
+{% extends "layouts/sustainatrend_inspired_layout.html" %}
+
+{% block title %}Real Estate Sustainability - SustainaTrend™{% endblock %}
+
+{% block header_title %}Real Estate Sustainability Intelligence{% endblock %}
+
+{% block header_actions %}
+    <div class="property-filter">
+        <select id="property-type-filter" class="filter-select" onchange="filterPropertiesByType(this.value)">
+            <option value="all">All Property Types</option>
+            <option value="office">Office Buildings</option>
+            <option value="residential">Residential</option>
+            <option value="retail">Retail</option>
+            <option value="industrial">Industrial</option>
+            <option value="mixed">Mixed Use</option>
+        </select>
+    </div>
+    
+    <button class="btn-primary" onclick="refreshRealEstateData()">
+        <span class="material-icons">refresh</span>
+        Refresh Data
+    </button>
+{% endblock %}
+
+{% block content %}
+<div class="realestate-container">
+    <!-- Portfolio Overview Row -->
+    <div class="dashboard-row">
+        <div class="st-data-card">
+            <div class="st-data-card-header">
+                <h3 class="st-data-card-title">Portfolio Sustainability Score</h3>
+                <button class="st-data-toggle">
+                    <span class="material-icons">expand_more</span>
+                </button>
+            </div>
+            <div class="st-data-content">
+                <div class="score-gauge-container">
+                    <div id="portfolio-gauge" class="score-gauge"></div>
+                    <div class="score-value">
+                        <span id="portfolio-score">72</span>
+                        <span class="score-max">/100</span>
+                    </div>
+                </div>
+                <div class="score-breakdown">
+                    <div class="score-item">
+                        <span class="score-label">Energy Efficiency</span>
+                        <div class="score-bar-container">
+                            <div class="score-bar" style="width: 78%"></div>
+                        </div>
+                        <span class="score-number">78</span>
+                    </div>
+                    <div class="score-item">
+                        <span class="score-label">Carbon Emissions</span>
+                        <div class="score-bar-container">
+                            <div class="score-bar" style="width: 65%"></div>
+                        </div>
+                        <span class="score-number">65</span>
+                    </div>
+                    <div class="score-item">
+                        <span class="score-label">Water Usage</span>
+                        <div class="score-bar-container">
+                            <div class="score-bar" style="width: 82%"></div>
+                        </div>
+                        <span class="score-number">82</span>
+                    </div>
+                    <div class="score-item">
+                        <span class="score-label">Waste Management</span>
+                        <div class="score-bar-container">
+                            <div class="score-bar" style="width: 68%"></div>
+                        </div>
+                        <span class="score-number">68</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <div class="st-data-card">
+            <div class="st-data-card-header">
+                <h3 class="st-data-card-title">Certification Distribution</h3>
+                <button class="st-data-toggle">
+                    <span class="material-icons">expand_more</span>
+                </button>
+            </div>
+            <div class="st-data-content">
+                <div id="certification-chart" class="realestate-chart"></div>
+                <div class="certification-legend">
+                    <div class="legend-item">
+                        <span class="legend-color" style="background-color: #047857;"></span>
+                        <span class="legend-label">BREEAM Excellent</span>
+                    </div>
+                    <div class="legend-item">
+                        <span class="legend-color" style="background-color: #10b981;"></span>
+                        <span class="legend-label">BREEAM Very Good</span>
+                    </div>
+                    <div class="legend-item">
+                        <span class="legend-color" style="background-color: #a7f3d0;"></span>
+                        <span class="legend-label">BREEAM Good</span>
+                    </div>
+                    <div class="legend-item">
+                        <span class="legend-color" style="background-color: #e5e7eb;"></span>
+                        <span class="legend-label">Not Certified</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Building Performance Row -->
+    <div class="dashboard-row">
+        <div class="st-data-card">
+            <div class="st-data-card-header">
+                <h3 class="st-data-card-title">Energy Performance by Property Type</h3>
+                <button class="st-data-toggle">
+                    <span class="material-icons">expand_more</span>
+                </button>
+            </div>
+            <div class="st-data-content">
+                <div id="energy-by-type-chart" class="realestate-chart"></div>
+            </div>
+        </div>
+        
+        <div class="st-data-card">
+            <div class="st-data-card-header">
+                <h3 class="st-data-card-title">Carbon Emissions Trend</h3>
+                <button class="st-data-toggle">
+                    <span class="material-icons">expand_more</span>
+                </button>
+            </div>
+            <div class="st-data-content">
+                <div id="carbon-trend-chart" class="realestate-chart"></div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Properties Table -->
+    <div class="st-data-card">
+        <div class="st-data-card-header">
+            <h3 class="st-data-card-title">Property Portfolio</h3>
+            <button class="st-data-toggle">
+                <span class="material-icons">expand_more</span>
+            </button>
+        </div>
+        <div class="st-data-content">
+            <div class="properties-table-container">
+                <table class="properties-table" id="properties-table">
+                    <thead>
+                        <tr>
+                            <th>Property</th>
+                            <th>Type</th>
+                            <th>Location</th>
+                            <th>Size (sqm)</th>
+                            <th>EPC Rating</th>
+                            <th>Sustainability Score</th>
+                        </tr>
+                    </thead>
+                    <tbody id="properties-table-body">
+                        <tr>
+                            <td colspan="6" class="loading-text">Loading property data...</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+    
+    <!-- AI Insights Card -->
+    <div class="st-data-card">
+        <div class="st-data-card-header">
+            <h3 class="st-data-card-title">AI-Powered Insights</h3>
+            <button class="st-data-toggle">
+                <span class="material-icons">expand_more</span>
+            </button>
+        </div>
+        <div class="st-data-content">
+            <div class="ai-insights-container" id="ai-insights-container">
+                <div class="ai-insight-card">
+                    <div class="ai-insight-icon">
+                        <span class="material-icons">tip_online</span>
+                    </div>
+                    <div class="ai-insight-content">
+                        <h4>Energy Optimization Opportunity</h4>
+                        <p>Your office buildings show 31% higher energy consumption than industry benchmarks. Installing smart energy management systems could reduce costs by up to 25%.</p>
+                        <div class="ai-insight-actions">
+                            <button class="insight-action-btn">Explore Solutions</button>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="ai-insight-card">
+                    <div class="ai-insight-icon">
+                        <span class="material-icons">trending_up</span>
+                    </div>
+                    <div class="ai-insight-content">
+                        <h4>Value Enhancement</h4>
+                        <p>Properties with BREEAM Excellent ratings in your portfolio show 18% higher rental rates and 12% lower vacancy rates compared to non-certified properties.</p>
+                        <div class="ai-insight-actions">
+                            <button class="insight-action-btn">View Impact Analysis</button>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="ai-insight-card">
+                    <div class="ai-insight-icon">
+                        <span class="material-icons">water_drop</span>
+                    </div>
+                    <div class="ai-insight-content">
+                        <h4>Water Conservation</h4>
+                        <p>Your properties with rainwater harvesting systems use 42% less municipal water than similar properties. Expanding this to 5 more buildings could save 8.5 million liters annually.</p>
+                        <div class="ai-insight-actions">
+                            <button class="insight-action-btn">Calculate ROI</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block additional_css %}
+<style>
+    .realestate-container {
+        padding: 20px;
+    }
+    
+    .dashboard-row {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+        gap: 20px;
+        margin-bottom: 20px;
+    }
+    
+    .property-filter {
+        margin-right: 10px;
+    }
+    
+    .filter-select {
+        padding: 8px 12px;
+        border-radius: 4px;
+        border: 1px solid #e2e8f0;
+        background-color: white;
+        color: #1e293b;
+        font-size: 0.9rem;
+    }
+    
+    .score-gauge-container {
+        position: relative;
+        width: 200px;
+        height: 200px;
+        margin: 0 auto 20px;
+    }
+    
+    .score-gauge {
+        width: 100%;
+        height: 100%;
+    }
+    
+    .score-value {
+        position: absolute;
+        top: 50%;
+        left: 50%;
+        transform: translate(-50%, -50%);
+        text-align: center;
+    }
+    
+    .score-value span:first-child {
+        font-size: 2.5rem;
+        font-weight: 700;
+        color: #1e293b;
+    }
+    
+    .score-max {
+        font-size: 1rem;
+        color: #64748b;
+    }
+    
+    .score-breakdown {
+        margin-top: 20px;
+    }
+    
+    .score-item {
+        display: flex;
+        align-items: center;
+        margin-bottom: 12px;
+    }
+    
+    .score-label {
+        width: 140px;
+        flex-shrink: 0;
+        font-size: 0.9rem;
+        color: #475569;
+    }
+    
+    .score-bar-container {
+        flex: 1;
+        height: 8px;
+        background-color: #e2e8f0;
+        border-radius: 4px;
+        overflow: hidden;
+        margin: 0 12px;
+    }
+    
+    .score-bar {
+        height: 100%;
+        background-color: #2c7744;
+        border-radius: 4px;
+    }
+    
+    .score-number {
+        width: 30px;
+        text-align: right;
+        font-size: 0.9rem;
+        font-weight: 500;
+        color: #1e293b;
+    }
+    
+    .realestate-chart {
+        height: 300px;
+    }
+    
+    .certification-legend {
+        display: flex;
+        flex-wrap: wrap;
+        justify-content: center;
+        gap: 16px;
+        margin-top: 16px;
+    }
+    
+    .legend-item {
+        display: flex;
+        align-items: center;
+    }
+    
+    .legend-color {
+        width: 12px;
+        height: 12px;
+        border-radius: 2px;
+        margin-right: 6px;
+    }
+    
+    .legend-label {
+        font-size: 0.8rem;
+        color: #475569;
+    }
+    
+    .properties-table-container {
+        overflow-x: auto;
+    }
+    
+    .properties-table {
+        width: 100%;
+        border-collapse: collapse;
+    }
+    
+    .properties-table th,
+    .properties-table td {
+        padding: 12px;
+        text-align: left;
+        border-bottom: 1px solid #e2e8f0;
+    }
+    
+    .properties-table th {
+        font-weight: 500;
+        color: #64748b;
+        background-color: #f8fafc;
+    }
+    
+    .properties-table td {
+        color: #1e293b;
+    }
+    
+    .epc-rating {
+        display: inline-block;
+        padding: 4px 8px;
+        border-radius: 4px;
+        font-weight: 500;
+        font-size: 0.8rem;
+        color: white;
+    }
+    
+    .epc-rating.a {
+        background-color: #047857;
+    }
+    
+    .epc-rating.b {
+        background-color: #10b981;
+    }
+    
+    .epc-rating.c {
+        background-color: #059669;
+    }
+    
+    .epc-rating.d {
+        background-color: #fbbf24;
+    }
+    
+    .epc-rating.e {
+        background-color: #f59e0b;
+    }
+    
+    .epc-rating.f {
+        background-color: #ef4444;
+    }
+    
+    .epc-rating.g {
+        background-color: #dc2626;
+    }
+    
+    .sustainability-score {
+        display: inline-block;
+        width: 36px;
+        height: 36px;
+        line-height: 36px;
+        text-align: center;
+        border-radius: 50%;
+        font-weight: 500;
+        color: white;
+    }
+    
+    .sustainability-score.high {
+        background-color: #10b981;
+    }
+    
+    .sustainability-score.medium {
+        background-color: #f59e0b;
+    }
+    
+    .sustainability-score.low {
+        background-color: #ef4444;
+    }
+    
+    .loading-text {
+        text-align: center;
+        color: #64748b;
+        padding: 20px;
+    }
+    
+    .ai-insights-container {
+        display: grid;
+        grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+        gap: 16px;
+    }
+    
+    .ai-insight-card {
+        display: flex;
+        background-color: #f8fafc;
+        border-radius: 8px;
+        padding: 16px;
+    }
+    
+    .ai-insight-icon {
+        flex-shrink: 0;
+        width: 40px;
+        height: 40px;
+        border-radius: 8px;
+        background-color: #2c7744;
+        color: white;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        margin-right: 16px;
+    }
+    
+    .ai-insight-icon .material-icons {
+        font-size: 1.5rem;
+    }
+    
+    .ai-insight-content {
+        flex: 1;
+    }
+    
+    .ai-insight-content h4 {
+        margin: 0 0 8px 0;
+        color: #1e293b;
+        font-size: 1rem;
+    }
+    
+    .ai-insight-content p {
+        margin: 0 0 12px 0;
+        color: #64748b;
+        font-size: 0.9rem;
+        line-height: 1.5;
+    }
+    
+    .ai-insight-actions {
+        display: flex;
+    }
+    
+    .insight-action-btn {
+        padding: 6px 12px;
+        background-color: #ffffff;
+        border: 1px solid #2c7744;
+        color: #2c7744;
+        border-radius: 4px;
+        font-size: 0.8rem;
+        cursor: pointer;
+        transition: all 0.2s ease;
+    }
+    
+    .insight-action-btn:hover {
+        background-color: #2c7744;
+        color: white;
+    }
+</style>
+{% endblock %}
+
+{% block scripts %}
+<script>
+    // Initialize the real estate dashboard
+    function initializeRealEstate() {
+        // Initialize charts
+        initializeCharts();
+        
+        // Load property data
+        loadPropertyData();
+        
+        // Set up AI insights
+        setupAIInsights();
+    }
+    
+    // Initialize charts
+    function initializeCharts() {
+        // Portfolio sustainability score gauge
+        Plotly.newPlot('portfolio-gauge', [{
+            type: 'indicator',
+            mode: 'gauge',
+            value: 72,
+            gauge: {
+                axis: { range: [0, 100], tickwidth: 1, tickcolor: '#f8fafc', visible: false },
+                bar: { color: '#2c7744' },
+                bgcolor: '#f1f5f9',
+                borderwidth: 0,
+                steps: [
+                    { range: [0, 50], color: '#fee2e2' },
+                    { range: [50, 75], color: '#fef3c7' },
+                    { range: [75, 100], color: '#dcfce7' }
+                ]
+            }
+        }], {
+            margin: { t: 0, r: 0, l: 0, b: 0 }
+        }, { responsive: true, displayModeBar: false });
+        
+        // Certification distribution pie chart
+        Plotly.newPlot('certification-chart', [{
+            labels: ['BREEAM Excellent', 'BREEAM Very Good', 'BREEAM Good', 'Not Certified'],
+            values: [15, 25, 30, 30],
+            type: 'pie',
+            marker: {
+                colors: ['#047857', '#10b981', '#a7f3d0', '#e5e7eb']
+            },
+            textinfo: 'percent',
+            hoverinfo: 'label+percent'
+        }], {
+            margin: { t: 20, r: 20, l: 20, b: 20 },
+            showlegend: false
+        }, { responsive: true, displayModeBar: false });
+        
+        // Energy performance by property type bar chart
+        Plotly.newPlot('energy-by-type-chart', [{
+            x: ['Office', 'Residential', 'Retail', 'Industrial', 'Mixed Use'],
+            y: [78, 65, 72, 58, 68],
+            type: 'bar',
+            marker: {
+                color: '#2c7744'
+            }
+        }], {
+            margin: { t: 20, r: 20, l: 50, b: 60 },
+            yaxis: { 
+                title: 'Energy Efficiency Score',
+                range: [0, 100]
+            }
+        }, { responsive: true, displayModeBar: false });
+        
+        // Carbon emissions trend line chart
+        Plotly.newPlot('carbon-trend-chart', [{
+            x: ['2021 Q1', '2021 Q2', '2021 Q3', '2021 Q4', '2022 Q1', '2022 Q2', '2022 Q3', '2022 Q4', '2023 Q1', '2023 Q2'],
+            y: [68, 65, 62, 63, 60, 58, 55, 52, 50, 47],
+            type: 'scatter',
+            mode: 'lines+markers',
+            line: { 
+                color: '#2c7744',
+                shape: 'spline'
+            },
+            marker: {
+                color: '#2c7744'
+            }
+        }], {
+            margin: { t: 20, r: 20, l: 50, b: 60 },
+            yaxis: { 
+                title: 'Carbon Emissions (kg CO2e/sqm)'
+            }
+        }, { responsive: true, displayModeBar: false });
+    }
+    
+    // Load property data
+    function loadPropertyData() {
+        // In a real application, this would fetch data from an API
+        // For demonstration, we'll use mock data
+        
+        const properties = [
+            {
+                name: 'Greenview Tower',
+                type: 'office',
+                location: 'London, UK',
+                size: 12500,
+                epcRating: 'A',
+                sustainabilityScore: 92
+            },
+            {
+                name: 'The Oaks Residential',
+                type: 'residential',
+                location: 'Manchester, UK',
+                size: 8750,
+                epcRating: 'B',
+                sustainabilityScore: 85
+            },
+            {
+                name: 'Eco Retail Park',
+                type: 'retail',
+                location: 'Birmingham, UK',
+                size: 15200,
+                epcRating: 'B',
+                sustainabilityScore: 83
+            },
+            {
+                name: 'Waterfront Offices',
+                type: 'office',
+                location: 'Liverpool, UK',
+                size: 9800,
+                epcRating: 'C',
+                sustainabilityScore: 76
+            },
+            {
+                name: 'Central City Complex',
+                type: 'mixed',
+                location: 'Edinburgh, UK',
+                size: 22500,
+                epcRating: 'B',
+                sustainabilityScore: 81
+            },
+            {
+                name: 'Riverside Apartments',
+                type: 'residential',
+                location: 'Glasgow, UK',
+                size: 7300,
+                epcRating: 'C',
+                sustainabilityScore: 74
+            },
+            {
+                name: 'Logistics Hub',
+                type: 'industrial',
+                location: 'Leeds, UK',
+                size: 35000,
+                epcRating: 'D',
+                sustainabilityScore: 62
+            },
+            {
+                name: 'Heritage Mall',
+                type: 'retail',
+                location: 'Bristol, UK',
+                size: 18700,
+                epcRating: 'C',
+                sustainabilityScore: 71
+            }
+        ];
+        
+        updatePropertiesTable(properties);
+    }
+    
+    // Update properties table
+    function updatePropertiesTable(properties) {
+        const tableBody = document.getElementById('properties-table-body');
+        
+        // Clear table
+        tableBody.innerHTML = '';
+        
+        if (properties.length === 0) {
+            const row = document.createElement('tr');
+            row.innerHTML = '<td colspan="6" class="loading-text">No property data available</td>';
+            tableBody.appendChild(row);
+            return;
+        }
+        
+        // Add properties to table
+        properties.forEach(property => {
+            const row = document.createElement('tr');
+            
+            // Determine sustainability score class
+            let scoreClass = '';
+            if (property.sustainabilityScore >= 80) {
+                scoreClass = 'high';
+            } else if (property.sustainabilityScore >= 60) {
+                scoreClass = 'medium';
+            } else {
+                scoreClass = 'low';
+            }
+            
+            row.innerHTML = `
+                <td>${property.name}</td>
+                <td>${property.type.charAt(0).toUpperCase() + property.type.slice(1)}</td>
+                <td>${property.location}</td>
+                <td>${property.size.toLocaleString()}</td>
+                <td><span class="epc-rating ${property.epcRating.toLowerCase()}">${property.epcRating}</span></td>
+                <td><span class="sustainability-score ${scoreClass}">${property.sustainabilityScore}</span></td>
+            `;
+            
+            tableBody.appendChild(row);
+        });
+    }
+    
+    // Filter properties by type
+    function filterPropertiesByType(type) {
+        // In a real application, this would fetch filtered data from an API
+        // For demonstration, we'll just reload the data
+        loadPropertyData();
+        
+        // Update charts
+        updateChartsForFilter(type);
+    }
+    
+    // Update charts based on filter
+    function updateChartsForFilter(type) {
+        // This function would update the charts based on the selected property type
+        // For demonstration, we'll just log the filter
+        console.log(`Filtering by property type: ${type}`);
+    }
+    
+    // Set up AI insights
+    function setupAIInsights() {
+        // This function would set up the AI insights section
+        // For demonstration, we'll use the static insights defined in the HTML
+    }
+    
+    // Refresh real estate data
+    function refreshRealEstateData() {
+        // Reload all data
+        initializeCharts();
+        loadPropertyData();
+        
+        // Get the current filter value
+        const filterSelect = document.getElementById('property-type-filter');
+        const selectedType = filterSelect.value;
+        
+        // Update charts for the selected filter
+        updateChartsForFilter(selectedType);
+    }
+    
+    // Initialize on page load
+    document.addEventListener('DOMContentLoaded', function() {
+        initializeRealEstate();
+    });
+</script>
+{% endblock %}

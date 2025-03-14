@@ -131,8 +131,8 @@
             {% for metric in metrics %}
             <div class="metric-card">
                 <h3 class="metric-title">{{ metric.name }}</h3>
-                <div class="metric-value">{{ metric.latest_value | round(1) }}</div>
-                <div class="metric-target">Target: {{ metric.target }}</div>
+                <div class="metric-value">{{ metric.latest_value | default(0) | round(1) }}</div>
+                <div class="metric-target">Target: {{ metric.target | default('N/A') }}</div>
                 <div class="metric-chart">
                     [Chart for {{ metric.name }}]
                 </div>

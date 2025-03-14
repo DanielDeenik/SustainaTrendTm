@@ -22,8 +22,8 @@ from document_processor import DocumentProcessor
 # Set up logging
 logger = logging.getLogger(__name__)
 
-# Create Blueprint
-document_query_bp = Blueprint('document_query', __name__)
+# Create Blueprint with unique name
+document_query_bp = Blueprint('document_query_api', __name__)
 
 # Create temporary data directory for downloadable data
 DATA_DIR = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'data')

@@ -1,0 +1,41 @@
+<!-- Core Navigation Component -->
+<div class="col-md-3 col-lg-2 d-md-block bg-light sidebar collapse" style="min-height: 100vh;">
+    <div class="position-sticky pt-3">
+        <div class="text-center mb-4">
+            <h5 class="fw-bold text-primary mb-0">SustainaTrend™</h5>
+            <small class="text-muted">Intelligence Platform</small>
+        </div>
+        <ul class="nav flex-column">
+            <li class="nav-item">
+                <a class="nav-link {% if active_page == 'home' %}active{% endif %}" href="/">
+                    <i class="fas fa-home me-2"></i> Home
+                </a>
+            </li>
+            <li class="nav-item">
+                <a class="nav-link {% if active_page == 'dashboard' %}active{% endif %}" href="/dashboard">
+                    <i class="fas fa-tachometer-alt me-2"></i> Dashboard
+                </a>
+            </li>
+            <li class="nav-item">
+                <a class="nav-link {% if active_page == 'story_cards' %}active{% endif %}" href="/story-cards">
+                    <i class="fas fa-newspaper me-2"></i> Story Cards
+                </a>
+            </li>
+            <li class="nav-item">
+                <a class="nav-link {% if active_page == 'trend_analysis' %}active{% endif %}" href="/trend-analysis">
+                    <i class="fas fa-chart-line me-2"></i> Trend Analysis
+                </a>
+            </li>
+            <li class="nav-item">
+                <a class="nav-link {% if active_page == 'document_upload' %}active{% endif %}" href="/document-upload">
+                    <i class="fas fa-file-upload me-2"></i> Document Upload
+                </a>
+            </li>
+            <li class="nav-item">
+                <a class="nav-link {% if active_page == 'debug' %}active{% endif %}" href="/debug">
+                    <i class="fas fa-bug me-2"></i> Debug
+                </a>
+            </li>
+        </ul>
+    </div>
+</div>

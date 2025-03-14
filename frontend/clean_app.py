@@ -8,9 +8,18 @@ more organized structure using modular routing.
 import logging
 import os
 import sys
-from dotenv import load_dotenv
-from flask import Flask, request
-from flask_caching import Cache
+try:
+    from dotenv import load_dotenv
+except ImportError:
+    load_dotenv = lambda: None
+    print("Warning: python-dotenv not installed, environment variables may not be properly loaded")
+
+try:
+    from flask import Flask, request, render_template
+    from flask_caching import Cache
+except ImportError:
+    print("Error: Flask or Flask-Caching not installed")
+    sys.exit(1)
 
 # Configure logging
 logging.basicConfig(level=logging.INFO)
@@ -94,14 +103,13 @@ def create_app():
                 except ImportError:
                     logger.error("Failed to import direct_app.py as fallback")
     
-    # Register document query API routes
-    try:
-        logger.info("Registering document query API routes")
-        from document_query_api import register_routes as register_document_routes
-        register_document_routes(app)
-        logger.info("Document query API routes registered successfully")
-    except ImportError as e:
-        logger.warning(f"Failed to import document_query_api.py: {e}")
+    # Document query API routes are now handled in updated_routes.py
+    logger.info("Document query API routes are now registered via updated_routes.py")
+    
+    # Monetization strategies routes are now handled in updated_routes.py
+    logger.info("Monetization strategies routes are now registered via updated_routes.py")
+    
+    # Debug route is now in updated_routes.py
     
     return app
 

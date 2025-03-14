@@ -1,1723 +1,651 @@
-<!doctype html>
-<html lang="en" class="h-100">
+<!DOCTYPE html>
+<html lang="en" class="dark-mode">
 <head>
-  <meta charset="utf-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1">
-  <meta name="description" content="SustainaTrend™ - AI-Powered Sustainability Intelligence Platform">
-  <meta name="author" content="SustainaTrend Team">
-  <title>Dashboard | SustainaTrend™</title>
-  
-  <!-- Favicon -->
-  <link rel="icon" href="/static/img/favicon.svg" type="image/svg+xml">
-  
-  <!-- Bootstrap CSS and Icons -->
-  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
-  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css">
-  
-  <!-- Google Fonts -->
-  <link rel="preconnect" href="https://fonts.googleapis.com">
-  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
-  
-  <!-- jQuery (needed for various interactive components) -->
-  <script src="https://code.jquery.com/jquery-3.7.1.min.js" integrity="sha256-/JqT3SQfawRcv/BIHPThkBvs0OEvtFFmqPF/lYI/Cxo=" crossorigin="anonymous"></script>
-  
-  <!-- Chart.js -->
-  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
-  
-  <!-- SustainaTrend Theme System -->
-  <link href="/static/css/theme.css" rel="stylesheet">
-  
-  <!-- Common CSS -->
-  <link href="/static/css/common.css" rel="stylesheet">
-  
-  <!-- Page-specific styles -->
-  
-<link href="/static/css/dashboard.css" rel="stylesheet">
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SustainaTrend™ | AI-Powered Sustainability Intelligence</title>
+    
+    <!-- Bootstrap CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    
+    <!-- Font Awesome -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+    
+    <!-- Custom CSS -->
+    <style>
+        :root {
+            --primary-color: #3b82f6;
+            --secondary-color: #10b981;
+            --dark-bg: #1f2937;
+            --light-bg: #f9fafb;
+            --dark-text: #1f2937;
+            --light-text: #f9fafb;
+            --card-bg-dark: #374151;
+            --card-bg-light: #ffffff;
+            --border-dark: #4b5563;
+            --border-light: #e5e7eb;
+        }
+        
+        /* Light Mode */
+        .light-mode {
+            --bg-color: var(--light-bg);
+            --text-color: var(--dark-text);
+            --card-bg: var(--card-bg-light);
+            --border-color: var(--border-light);
+        }
+        
+        /* Dark Mode */
+        .dark-mode {
+            --bg-color: var(--dark-bg);
+            --text-color: var(--light-text);
+            --card-bg: var(--card-bg-dark);
+            --border-color: var(--border-dark);
+        }
+        
+        body {
+            background-color: var(--bg-color);
+            color: var(--text-color);
+            transition: background-color 0.3s, color 0.3s;
+        }
+        
+        .navbar {
+            background-color: var(--card-bg);
+            border-bottom: 1px solid var(--border-color);
+        }
+        
+        .navbar-brand {
+            font-weight: bold;
+            color: var(--primary-color) !important;
+        }
+        
+        .nav-link {
+            color: var(--text-color) !important;
+        }
+        
+        .nav-link.active {
+            color: var(--primary-color) !important;
+            font-weight: bold;
+        }
+        
+        .card {
+            background-color: var(--card-bg);
+            border: 1px solid var(--border-color);
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+            transition: transform 0.3s ease;
+        }
+        
+        .card:hover {
+            transform: translateY(-5px);
+        }
+        
+        .btn-primary {
+            background-color: var(--primary-color);
+            border-color: var(--primary-color);
+        }
+        
+        .btn-secondary {
+            background-color: var(--secondary-color);
+            border-color: var(--secondary-color);
+        }
+        
+        /* Data metrics styles */
+        .metric-card {
+            padding: 1.5rem;
+            border-radius: 0.5rem;
+            margin-bottom: 1rem;
+        }
+        
+        .metric-value {
+            font-size: 2.5rem;
+            font-weight: bold;
+            margin-bottom: 0.5rem;
+        }
+        
+        .metric-title {
+            font-size: 1rem;
+            color: #6b7280;
+        }
+        
+        /* Trend indicators */
+        .trend-up {
+            color: #10b981;
+        }
+        
+        .trend-down {
+            color: #ef4444;
+        }
+        
+        .trend-stable {
+            color: #f59e0b;
+        }
+        
+        /* Theme toggle */
+        .theme-toggle {
+            cursor: pointer;
+            padding: 0.5rem;
+            border-radius: 0.25rem;
+        }
+        
+        /* Footer */
+        footer {
+            background-color: var(--card-bg);
+            border-top: 1px solid var(--border-color);
+            padding: 1rem 0;
+            margin-top: 2rem;
+        }
+        
+        /* API status indicator */
+        .api-status {
+            display: inline-block;
+            width: 10px;
+            height: 10px;
+            border-radius: 50%;
+            margin-right: 5px;
+        }
+        
+        .api-online {
+            background-color: #10b981;
+        }
+        
+        .api-offline {
+            background-color: #ef4444;
+        }
+        
+        .api-degraded {
+            background-color: #f59e0b;
+        }
 
-  
-  <style>
-    body {
-      font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
-      min-height: 100vh;
-      padding-top: 0;
-    }
+        /* Sidebar styles */
+        #sidebar {
+            min-width: 250px;
+            max-width: 250px;
+            background-color: var(--card-bg);
+            color: var(--text-color);
+            transition: all 0.3s;
+            border-right: 1px solid var(--border-color);
+            height: 100vh;
+            position: fixed;
+            z-index: 100;
+        }
+
+        #sidebar .sidebar-header {
+            padding: 20px;
+            background-color: var(--card-bg);
+            border-bottom: 1px solid var(--border-color);
+        }
+
+        #sidebar ul.components {
+            padding: 20px 0;
+            border-bottom: 1px solid var(--border-color);
+        }
+
+        #sidebar ul li a {
+            padding: 10px 20px;
+            font-size: 1.1em;
+            display: block;
+            color: var(--text-color);
+            text-decoration: none;
+            transition: all 0.3s;
+        }
+
+        #sidebar ul li a:hover {
+            background-color: var(--primary-color);
+            color: white;
+        }
+
+        #sidebar ul li.active > a {
+            color: var(--primary-color);
+            background-color: transparent;
+            font-weight: bold;
+        }
+
+        #content {
+            margin-left: 250px;
+            padding: 20px;
+            min-height: 100vh;
+            transition: all 0.3s;
+        }
+
+        /* Media queries for responsive sidebar */
+        @media (max-width: 768px) {
+            #sidebar {
+                margin-left: -250px;
+            }
+            #sidebar.active {
+                margin-left: 0;
+            }
+            #content {
+                margin-left: 0;
+            }
+            #content.active {
+                margin-left: 250px;
+            }
+        }
+
+        /* Custom scrollbar for sidebar */
+        #sidebar::-webkit-scrollbar {
+            width: 8px;
+        }
+
+        #sidebar::-webkit-scrollbar-track {
+            background: var(--card-bg);
+        }
+
+        #sidebar::-webkit-scrollbar-thumb {
+            background-color: var(--border-color);
+            border-radius: 10px;
+        }
+    </style>
     
-    /* Make charts responsive */
-    .chart-container {
-      position: relative;
-      height: 100%;
-      width: 100%;
-      min-height: 250px;
-    }
     
-    /* Main content padding adjustments */
-    main {
-      padding-bottom: 3rem;
-      transition: all 0.3s ease;
-    }
-    
-    /* Animations */
-    .fade-in {
-      animation: fadeIn 0.5s ease-in-out;
-    }
-    
-    @keyframes fadeIn {
-      from { opacity: 0; transform: translateY(10px); }
-      to { opacity: 1; transform: translateY(0); }
-    }
-    
-    /* Add smooth transitions to all elements */
-    * {
-      transition: color 0.2s ease-in-out, background-color 0.2s ease-in-out, border-color 0.2s ease-in-out;
-    }
-  </style>
 </head>
-<body class="d-flex flex-column h-100">
-  
-  <!-- Header (navigation) -->
-  <header class="navbar navbar-expand-md navbar-dark sticky-top p-0 shadow header-theme">
-  <!-- Mobile sidebar toggle -->
-  <button class="navbar-toggler d-md-none border-0 ms-2" type="button" data-bs-toggle="collapse" data-bs-target="#sidebarMenu" aria-controls="sidebarMenu" aria-expanded="false" aria-label="Toggle navigation">
-    <span class="navbar-toggler-icon"></span>
-  </button>
-  
-  <!-- Brand logo -->
-  <a class="navbar-brand col-md-3 col-lg-2 me-0 px-3 py-2 d-flex align-items-center" href="/">
-    <img src="/static/img/logo-horizontal.svg" alt="SustainaTrend™" height="32" class="d-none d-md-inline-block">
-    <img src="/static/img/logo-icon.svg" alt="SustainaTrend™" height="32" class="d-inline-block d-md-none">
-  </a>
-  
-  <!-- Global search bar (desktop only) -->
-  <div class="search-container d-none d-md-flex flex-grow-1 mx-3">
-    <form class="w-100" action="/search" method="get" id="searchForm">
-      <div class="search-wrapper position-relative">
-        <input type="text" class="form-control search-input" id="globalSearch" name="q" placeholder="Search sustainability data..." aria-label="Search" autocomplete="off">
-        <div class="search-icon-wrapper">
-          <i class="bi bi-search"></i>
-        </div>
-        <button type="submit" class="btn btn-primary search-button">
-          Search
-        </button>
-      </div>
-    </form>
-  </div>
-  
-  <!-- Header navigation (right side) -->
-  <div class="navbar-nav flex-row">
-    <!-- Dark mode toggle -->
-    <div class="nav-item">
-      <a class="nav-link header-icon-link px-3" href="#" id="darkModeToggle" data-bs-toggle="tooltip" data-bs-placement="bottom" title="Toggle dark mode">
-        <i class="bi bi-moon-stars"></i>
-      </a>
-    </div>
-    
-    <!-- System status link -->
-    <div class="nav-item">
-      <a class="nav-link header-icon-link px-3" href="/api-status" data-bs-toggle="tooltip" data-bs-placement="bottom" title="System status">
-        <i class="bi bi-activity"></i>
-      </a>
-    </div>
-    
-    <!-- Notifications dropdown -->
-    <div class="nav-item dropdown">
-      <a class="nav-link header-icon-link px-3 dropdown-toggle" href="#" id="notificationsDropdown" role="button" data-bs-toggle="dropdown" aria-expanded="false" data-bs-auto-close="outside" title="Notifications">
-        <i class="bi bi-bell"></i>
-        <span class="position-absolute top-25 start-75 translate-middle pulse-badge rounded-circle">
-          <span class="visually-hidden">New notifications</span>
-        </span>
-      </a>
-      <div class="dropdown-menu dropdown-menu-end dropdown-menu-lg notifications-dropdown p-0" aria-labelledby="notificationsDropdown">
-        <div class="notifications-header p-3 d-flex justify-content-between align-items-center">
-          <h6 class="m-0">Notifications</h6>
-          <span class="badge bg-primary rounded-pill">3 New</span>
-        </div>
-        <div class="notifications-body p-0">
-          <a href="#" class="dropdown-item notification-item p-3 border-bottom">
-            <div class="d-flex align-items-center">
-              <div class="notification-icon bg-success-subtle rounded-circle p-2 me-3">
-                <i class="bi bi-graph-up-arrow text-success"></i>
-              </div>
-              <div class="notification-content flex-grow-1">
-                <p class="notification-title mb-1">New Trend Detected</p>
-                <p class="notification-text text-muted small mb-0">Renewable energy trend showing 28% growth</p>
-                <span class="notification-time text-muted smallest">2 hours ago</span>
-              </div>
+<body>
+    <div class="wrapper d-flex">
+        <!-- Sidebar -->
+        <nav id="sidebar">
+            <div class="sidebar-header">
+                <h3>SustainaTrend™</h3>
+                <p class="text-muted">Intelligence Platform</p>
             </div>
-          </a>
-          <a href="#" class="dropdown-item notification-item p-3 border-bottom">
-            <div class="d-flex align-items-center">
-              <div class="notification-icon bg-primary-subtle rounded-circle p-2 me-3">
-                <i class="bi bi-file-earmark-text text-primary"></i>
-              </div>
-              <div class="notification-content flex-grow-1">
-                <p class="notification-title mb-1">Report Analysis Complete</p>
-                <p class="notification-text text-muted small mb-0">Your ESRS compliance report is ready to view</p>
-                <span class="notification-time text-muted smallest">Yesterday</span>
-              </div>
+
+            <ul class="list-unstyled components">
+                <li class="">
+                    <a href="/"><i class="fas fa-home me-2"></i> Home</a>
+                </li>
+                <li class="">
+                    <a href="/dashboard"><i class="fas fa-chart-line me-2"></i> Dashboard</a>
+                </li>
+                <li class="">
+                    <a href="/document-upload"><i class="fas fa-file-upload me-2"></i> Document Upload</a>
+                </li>
+                <li class="">
+                    <a href="/search"><i class="fas fa-search me-2"></i> Search</a>
+                </li>
+                <li class="">
+                    <a href="/trend-analysis"><i class="fas fa-chart-pie me-2"></i> Trend Analysis</a>
+                </li>
+                <li class="">
+                    <a href="/risk-tracker"><i class="fas fa-exclamation-triangle me-2"></i> Risk Tracker</a>
+                </li>
+                <li class="">
+                    <a href="/sustainability"><i class="fas fa-leaf me-2"></i> Sustainability</a>
+                </li>
+                <li class="">
+                    <a href="/monetization"><i class="fas fa-dollar-sign me-2"></i> Monetization</a>
+                </li>
+            </ul>
+
+            <div class="px-3 py-2">
+                <div class="form-check form-switch">
+                    <input class="form-check-input" type="checkbox" id="themeSwitch" 
+                        checked>
+                    <label class="form-check-label" for="themeSwitch">Dark Mode</label>
+                </div>
+                <div class="mt-3">
+                    <small class="text-muted">API Status: 
+                        <span class="api-status api-offline"></span>
+                        
+                    </small>
+                </div>
             </div>
-          </a>
-          <a href="#" class="dropdown-item notification-item p-3">
-            <div class="d-flex align-items-center">
-              <div class="notification-icon bg-warning-subtle rounded-circle p-2 me-3">
-                <i class="bi bi-exclamation-triangle text-warning"></i>
-              </div>
-              <div class="notification-content flex-grow-1">
-                <p class="notification-title mb-1">Data Update Required</p>
-                <p class="notification-text text-muted small mb-0">Please update your sustainability metrics</p>
-                <span class="notification-time text-muted smallest">3 days ago</span>
-              </div>
-            </div>
-          </a>
+        </nav>
+
+        <!-- Page Content -->
+        <div id="content">
+            <nav class="navbar navbar-expand-lg">
+                <div class="container-fluid">
+                    <button type="button" id="sidebarCollapse" class="btn btn-primary">
+                        <i class="fas fa-bars"></i>
+                    </button>
+                    <div class="ms-3">
+                        <h3>SustainaTrend™ | AI-Powered Sustainability Intelligence</h3>
+                    </div>
+                    <div class="ms-auto">
+                        <a href="/document-upload" class="btn btn-outline-primary">
+                            <i class="fas fa-file-upload me-2"></i> Upload Report
+                        </a>
+                    </div>
+                </div>
+            </nav>
+
+            <main>
+                
+<div class="fc-container">
+    <!-- Header -->
+    <header class="fc-header">
+        <div class="fc-logo">
+            <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2v8"/><path d="M12 18v4"/><path d="M4.93 10.93 9.17 15.17"/><path d="M14.83 15.17l4.24-4.24"/><path d="M19.07 10.93 14.83 6.7"/><path d="M14.83 6.7 12 3.87 9.17 6.7 4.93 10.93l4.24 4.24L12 18.13l2.83-2.83 4.24-4.24z"/></svg>
+            <span>SustainaTrend™</span>
         </div>
-        <div class="notifications-footer p-2 text-center border-top">
-          <a href="#" class="small">View all notifications</a>
-        </div>
-      </div>
-    </div>
-    
-    <!-- User profile dropdown -->
-    <div class="nav-item dropdown">
-      <a class="nav-link header-icon-link px-3 dropdown-toggle d-flex align-items-center" href="#" id="userDropdown" role="button" data-bs-toggle="dropdown" aria-expanded="false" title="User menu">
-        <i class="bi bi-person-circle"></i>
-      </a>
-      <div class="dropdown-menu dropdown-menu-end" aria-labelledby="userDropdown">
-        <div class="dropdown-header d-flex align-items-center">
-          <div class="user-avatar bg-primary text-white rounded-circle d-flex align-items-center justify-content-center me-2">
-            <span>JS</span>
-          </div>
-          <div>
-            <div class="fw-semibold">John Smith</div>
-            <div class="small text-muted">Organization Admin</div>
-          </div>
-        </div>
-        <div class="dropdown-divider"></div>
-        <a class="dropdown-item" href="#">
-          <i class="bi bi-person me-2"></i> My Profile
-        </a>
-        <a class="dropdown-item" href="#">
-          <i class="bi bi-gear me-2"></i> Settings
-        </a>
-        <a class="dropdown-item" href="#">
-          <i class="bi bi-card-list me-2"></i> Activity Log
-        </a>
-        <a class="dropdown-item" href="#">
-          <i class="bi bi-question-circle me-2"></i> Help Center
-        </a>
-        <div class="dropdown-divider"></div>
-        <a class="dropdown-item" href="#">
-          <i class="bi bi-box-arrow-right me-2"></i> Sign Out
-        </a>
-      </div>
-    </div>
-  </div>
-</header>
-
-<style>
-.header-theme {
-  background: linear-gradient(90deg, var(--primary-dark) 0%, var(--primary-color) 100%);
-  height: var(--header-height);
-  z-index: 1030;
-}
-
-/* Search styling */
-.search-container {
-  max-width: 700px;
-}
-
-.search-wrapper {
-  display: flex;
-  align-items: center;
-}
-
-.search-input {
-  height: 40px;
-  background-color: rgba(255, 255, 255, 0.15);
-  border: none;
-  border-radius: 20px;
-  padding-left: 40px;
-  padding-right: 100px;
-  color: white;
-  transition: all 0.3s ease;
-}
-
-.search-input::placeholder {
-  color: rgba(255, 255, 255, 0.7);
-}
-
-.search-input:focus {
-  background-color: rgba(255, 255, 255, 0.25);
-  box-shadow: 0 0 0 0.25rem rgba(255, 255, 255, 0.15);
-  color: white;
-}
-
-.search-icon-wrapper {
-  position: absolute;
-  left: 15px;
-  top: 50%;
-  transform: translateY(-50%);
-  color: rgba(255, 255, 255, 0.7);
-  pointer-events: none;
-}
-
-.search-button {
-  position: absolute;
-  right: 5px;
-  top: 50%;
-  transform: translateY(-50%);
-  border-radius: 17px;
-  padding: 0.25rem 0.75rem;
-  background-color: rgba(255, 255, 255, 0.9);
-  color: var(--primary-color);
-  border: none;
-  font-size: 0.875rem;
-  font-weight: 500;
-  transition: all 0.2s ease;
-}
-
-.search-button:hover {
-  background-color: white;
-  color: var(--primary-dark);
-}
-
-/* Icon styling */
-.header-icon-link {
-  color: rgba(255, 255, 255, 0.85);
-  position: relative;
-  width: 40px;
-  height: 40px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  border-radius: 50%;
-  transition: all 0.2s ease;
-}
-
-.header-icon-link:hover {
-  background-color: rgba(255, 255, 255, 0.15);
-  color: white;
-}
-
-.header-icon-link i {
-  font-size: 1.25rem;
-}
-
-/* Notification badge pulse */
-.pulse-badge {
-  width: 8px;
-  height: 8px;
-  background-color: #dc3545;
-  animation: pulse-animation 2s infinite;
-}
-
-@keyframes pulse-animation {
-  0% { box-shadow: 0 0 0 0 rgba(220, 53, 69, 0.7); }
-  70% { box-shadow: 0 0 0 6px rgba(220, 53, 69, 0); }
-  100% { box-shadow: 0 0 0 0 rgba(220, 53, 69, 0); }
-}
-
-/* Notifications dropdown */
-.notifications-dropdown {
-  width: 320px;
-  max-height: 400px;
-  overflow-y: auto;
-}
-
-.notifications-header {
-  background-color: var(--card-bg);
-  border-bottom: 1px solid var(--border-color);
-}
-
-.notification-item {
-  transition: background-color 0.2s ease;
-}
-
-.notification-item:hover, .notification-item:focus {
-  background-color: rgba(var(--bs-primary-rgb), 0.05);
-}
-
-.notification-icon {
-  width: 36px;
-  height: 36px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-}
-
-.notification-title {
-  font-weight: 500;
-  font-size: 0.875rem;
-}
-
-.notification-time {
-  font-size: 0.75rem;
-}
-
-.smallest {
-  font-size: 0.7rem;
-}
-
-/* User dropdown */
-.user-avatar {
-  width: 32px;
-  height: 32px;
-  font-weight: 600;
-  font-size: 0.875rem;
-}
-
-/* Media queries */
-@media (max-width: 767.98px) {
-  .navbar-brand {
-    margin-left: 1rem;
-  }
-  
-  .navbar-toggler {
-    margin-left: 0;
-  }
-}
-</style>
-
-  <!-- Content container -->
-  <div class="container-fluid">
-    <div class="row">
-      <!-- Sidebar navigation -->
-      
-        <nav id="sidebarMenu" class="col-md-3 col-lg-2 d-md-block sidebar-theme sidebar collapse">
-  <div class="position-sticky pt-3 sidebar-sticky">
-    <!-- Brand logo in sidebar -->
-    <div class="sidebar-brand d-flex align-items-center justify-content-center mb-4">
-      <img src="/static/img/logo-icon.svg" alt="SustainaTrend™" height="36" class="me-2">
-      <span class="sidebar-brand-text">SustainaTrend™</span>
-    </div>
-    
-    <div class="px-3 mb-3">
-      <div class="sidebar-search position-relative">
-        <input type="text" class="form-control rounded-pill" placeholder="Quick search...">
-        <i class="bi bi-search position-absolute top-50 end-0 translate-middle-y me-3"></i>
-      </div>
-    </div>
-    
-    <div class="sidebar-section">
-      <div class="sidebar-section-header">
-        <span>Core Platform</span>
-      </div>
-      <ul class="nav flex-column">
-        <li class="nav-item">
-          <a class="sidebar-link " href="/">
-            <i class="bi bi-house"></i>
-            <span>Home</span>
-          </a>
-        </li>
-        <li class="nav-item">
-          <a class="sidebar-link " href="/dashboard">
-            <i class="bi bi-speedometer2"></i>
+        
+        <nav class="fc-nav">
+            <a class="fc-nav-item active" href="/">Dashboard</a>
+            <a class="fc-nav-item" href="/trend-analysis">Trends</a>
+            <a class="fc-nav-item" href="/sustainability-stories">Stories</a>
+            <a class="fc-nav-item" href="/document-upload">Documents</a>
+        </nav>
+        
+        <div class="fc-user-menu">
+            <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"></circle><path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3"></path><line x1="12" y1="17" x2="12.01" y2="17"></line></svg>
             <span>Dashboard</span>
-          </a>
-        </li>
-        <li class="nav-item">
-          <a class="sidebar-link " href="/trend-analysis">
-            <i class="bi bi-graph-up"></i>
-            <span>Trend Analysis</span>
-            <span class="sidebar-badge-success">New</span>
-          </a>
-        </li>
-        <li class="nav-item">
-          <a class="sidebar-link " href="/search">
-            <i class="bi bi-search"></i>
-            <span>AI Search</span>
-          </a>
-        </li>
-        <li class="nav-item">
-          <a class="sidebar-link " href="/document-upload">
-            <i class="bi bi-file-earmark-text"></i>
-            <span>Document Analysis</span>
-          </a>
-        </li>
-      </ul>
-    </div>
-
-    <div class="sidebar-section">
-      <div class="sidebar-section-header">
-        <span>Sustainability Intelligence</span>
-      </div>
-      <ul class="nav flex-column">
-        <li class="nav-item">
-          <a class="sidebar-link " href="/realestate-trends">
-            <i class="bi bi-building"></i>
-            <span>Real Estate Trends</span>
-          </a>
-        </li>
-        <li class="nav-item">
-          <a class="sidebar-link " href="/strategy-simulation/">
-            <i class="bi bi-kanban"></i>
-            <span>Strategy Simulation</span>
-          </a>
-        </li>
-        <li class="nav-item">
-          <a class="sidebar-link " href="/company-search">
-            <i class="bi bi-building-check"></i>
-            <span>Company Research</span>
-          </a>
-        </li>
-        <li class="nav-item">
-          <a class="sidebar-link " href="/esrs-framework">
-            <i class="bi bi-clipboard-check"></i>
-            <span>ESRS Framework</span>
-          </a>
-        </li>
-      </ul>
-    </div>
-
-    <div class="sidebar-section">
-      <div class="sidebar-section-header">
-        <span>Advanced Analytics</span>
-      </div>
-      <ul class="nav flex-column">
-        <li class="nav-item">
-          <a class="sidebar-link " href="/sentiment-analysis">
-            <i class="bi bi-emoji-smile"></i>
-            <span>Sentiment Analysis</span>
-          </a>
-        </li>
-        <li class="nav-item">
-          <a class="sidebar-link " href="/trend-virality-dashboard">
-            <i class="bi bi-lightning"></i>
-            <span>Trend Virality</span>
-            <span class="sidebar-badge-primary">Beta</span>
-          </a>
-        </li>
-        <li class="nav-item">
-          <a class="sidebar-link " href="/sustainability-storytelling">
-            <i class="bi bi-book"></i>
-            <span>AI Storytelling</span>
-          </a>
-        </li>
-        <li class="nav-item">
-          <a class="sidebar-link " href="/ethical-ai">
-            <i class="bi bi-shield-check"></i>
-            <span>Ethical AI</span>
-          </a>
-        </li>
-      </ul>
-    </div>
-    
-    <!-- Sidebar footer with version and status -->
-    <div class="sidebar-footer">
-      <div class="d-flex align-items-center justify-content-between">
-        <div class="small">
-          <i class="bi bi-circle-fill text-success me-1" style="font-size: 8px;"></i>
-          <span class="text-muted">v2.1.0</span>
         </div>
-        <a href="/api-status" class="sidebar-footer-link" title="System Status">
-          <i class="bi bi-info-circle"></i>
-        </a>
-      </div>
-    </div>
-  </div>
-</nav>
-
-<style>
-.sidebar-theme {
-  background-color: var(--card-bg);
-  border-right: 1px solid var(--border-color);
-  transition: background-color 0.3s ease, border-color 0.3s ease;
-  overflow-y: auto;
-  z-index: 100;
-}
-
-.sidebar-brand {
-  padding: 0.75rem 1rem;
-}
-
-.sidebar-brand-text {
-  font-weight: 700;
-  font-size: 1.2rem;
-  color: var(--primary-color);
-}
-
-.sidebar-search input {
-  background-color: rgba(var(--bs-primary-rgb), 0.05);
-  border-color: rgba(var(--bs-primary-rgb), 0.1);
-  font-size: 0.875rem;
-  padding-right: 2.5rem;
-  color: var(--text-color);
-}
-
-.sidebar-search input:focus {
-  box-shadow: 0 0 0 0.2rem rgba(var(--bs-primary-rgb), 0.1);
-  border-color: rgba(var(--bs-primary-rgb), 0.2);
-  background-color: var(--card-bg);
-}
-
-.sidebar-search i {
-  color: rgba(var(--bs-primary-rgb), 0.7);
-  pointer-events: none;
-}
-
-.sidebar-section {
-  margin-bottom: 1.5rem;
-}
-
-.sidebar-section-header {
-  text-transform: uppercase;
-  font-size: 0.75rem;
-  font-weight: 600;
-  color: var(--text-muted);
-  padding: 0 1.25rem;
-  margin-bottom: 0.5rem;
-}
-
-.sidebar-link {
-  display: flex;
-  align-items: center;
-  padding: 0.625rem 1.25rem;
-  color: var(--text-color);
-  text-decoration: none;
-  border-radius: 0.375rem;
-  margin: 0.125rem 0.75rem;
-  transition: all 0.2s ease;
-  font-size: 0.9375rem;
-  position: relative;
-}
-
-.sidebar-link i {
-  margin-right: 0.875rem;
-  font-size: 1.125rem;
-  color: var(--text-muted);
-  width: 1.25rem;
-  display: flex;
-  justify-content: center;
-  transition: color 0.2s ease;
-}
-
-.sidebar-link:hover {
-  background-color: rgba(var(--bs-primary-rgb), 0.08);
-  color: var(--primary-color);
-}
-
-.sidebar-link:hover i {
-  color: var(--primary-color);
-}
-
-.sidebar-link.active {
-  background-color: rgba(var(--bs-primary-rgb), 0.1);
-  color: var(--primary-color);
-  font-weight: 500;
-}
-
-.sidebar-link.active i {
-  color: var(--primary-color);
-}
-
-.sidebar-link.active::before {
-  content: '';
-  position: absolute;
-  left: -0.75rem;
-  top: 50%;
-  height: 50%;
-  width: 3px;
-  background-color: var(--primary-color);
-  transform: translateY(-50%);
-  border-radius: 0 3px 3px 0;
-}
-
-.sidebar-badge-success,
-.sidebar-badge-primary {
-  font-size: 0.625rem;
-  padding: 0.125rem 0.375rem;
-  border-radius: 0.25rem;
-  margin-left: auto;
-  font-weight: 600;
-}
-
-.sidebar-badge-success {
-  background-color: rgba(var(--bs-success-rgb), 0.1);
-  color: var(--success-color);
-}
-
-.sidebar-badge-primary {
-  background-color: rgba(var(--bs-primary-rgb), 0.1);
-  color: var(--primary-color);
-}
-
-.sidebar-footer {
-  padding: 0.75rem 1.25rem;
-  margin-top: 2rem;
-  border-top: 1px solid var(--border-color);
-}
-
-.sidebar-footer-link {
-  color: var(--text-muted);
-  transition: color 0.2s ease;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  width: 1.5rem;
-  height: 1.5rem;
-  border-radius: 50%;
-}
-
-.sidebar-footer-link:hover {
-  color: var(--primary-color);
-}
-
-@media (max-width: 767.98px) {
-  .sidebar-theme {
-    position: fixed;
-    top: 0;
-    bottom: 0;
-    left: 0;
-    width: 280px;
-    max-width: 100%;
-    z-index: 1100;
-    transform: translateX(-100%);
-    transition: transform 0.3s ease;
-  }
-  
-  .sidebar-theme.show {
-    transform: translateX(0);
-    box-shadow: 5px 0 15px rgba(0, 0, 0, 0.1);
-  }
-}
-</style>
-      
-      
-      <!-- Main content area -->
-      <main class="col-md-9 ms-sm-auto col-lg-10 px-md-4 pt-3 pb-5">
-        
-  <!-- Page Header -->
-  <!-- Page Header Component -->
-<div class="page-header mb-4">
-    <h1>Sustainability Dashboard</h1>
-    <p class="text-muted">Monitor and analyze key sustainability metrics</p>
-
+    </header>
     
-    <div class="page-actions mt-3">
-        
-        
-        
-        <button class="btn btn-outline-primary me-2" id="filter-btn">
-            <i class="bi bi-funnel"></i> Filter
-        </button>
-        
-        
-        
-        <div class="dropdown d-inline-block">
-            <button class="btn btn-outline-primary" id="export-btn">
-                <i class="bi bi-download"></i> Export
-            </button>
-            <div id="export-dropdown" class="export-dropdown">
-                <ul class="export-dropdown-menu">
-                    <li><a href="#" data-format="csv"><i class="bi bi-filetype-csv"></i> CSV</a></li>
-                    <li><a href="#" data-format="excel"><i class="bi bi-filetype-xlsx"></i> Excel</a></li>
-                    <li><a href="#" data-format="pdf"><i class="bi bi-filetype-pdf"></i> PDF Report</a></li>
-                    <li><a href="#" data-format="json"><i class="bi bi-filetype-json"></i> JSON</a></li>
+    <!-- AI Copilot (Finchat-style primary interaction) -->
+    <div class="fc-copilot">
+        <div class="fc-copilot-header">
+            <h2 class="fc-copilot-title">
+                <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"></circle><path d="M12 16v-4"></path><path d="M12 8h.01"></path></svg>
+                What do you need to know today?
+            </h2>
+            <div class="fc-copilot-actions">
+                <button class="fc-copilot-btn">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="7 10 12 15 17 10"></polyline><line x1="12" y1="15" x2="12" y2="3"></line></svg>
+                    Export
+                </button>
+                <button class="fc-copilot-btn">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M5.52 19c.64-2.2 1.84-3 3.22-3h6.52c1.38 0 2.58.8 3.22 3"/><circle cx="12" cy="10" r="3"/><circle cx="12" cy="12" r="10"/></svg>
+                    Share
+                </button>
+            </div>
+        </div>
+        <div class="fc-copilot-content">
+            <div class="fc-copilot-message">
+                <p>Hi there! I'm your SustainaTrend™ AI assistant. Ask me about your sustainability metrics, trends, or request a custom analysis. Some examples:</p>
+                <ul style="margin-top: 10px; padding-left: 20px;">
+                    <li>How are our carbon emissions trending this quarter?</li>
+                    <li>Generate a water usage report for our manufacturing facilities</li>
+                    <li>What sustainability trends are emerging in our industry?</li>
                 </ul>
             </div>
         </div>
-        
-        
-        
-        
-        
+        <div class="fc-copilot-input-container">
+            <input type="text" class="fc-copilot-input" placeholder="Ask about your sustainability metrics, trends, or request an analysis..." id="copilot-input">
+            <button class="fc-copilot-submit" id="copilot-submit">
+                <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="22" y1="2" x2="11" y2="13"></line><polygon points="22 2 15 22 11 13 2 9 22 2"></polygon></svg>
+            </button>
+        </div>
     </div>
     
-</div>
-  
-  <!-- Dashboard Content -->
-  <div class="container-fluid px-0">
-    <!-- Summary Metrics -->
-    <div class="row metrics-summary mb-4">
-      <div class="col-md-3 col-sm-6 mb-3">
-        <div class="summary-box">
-          <div class="summary-icon">
-            <i class="bi bi-graph-up"></i>
-          </div>
-          <div class="summary-number">30</div>
-          <div class="summary-label">Total Metrics</div>
+    <!-- Quick Actions -->
+    <div class="fc-quick-actions">
+        <div class="fc-quick-action">
+            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"></circle><line x1="21" y1="21" x2="16.65" y2="16.65"></line></svg>
+            Find metrics
         </div>
-      </div>
-      <div class="col-md-3 col-sm-6 mb-3">
-        <div class="summary-box">
-          <div class="summary-icon">
-            <i class="bi bi-tags"></i>
-          </div>
-          <div class="summary-number">5</div>
-          <div class="summary-label">Categories</div>
+        <div class="fc-quick-action">
+            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="18" height="18" rx="2" ry="2"></rect><line x1="3" y1="9" x2="21" y2="9"></line><line x1="9" y1="21" x2="9" y2="9"></line></svg>
+            Create dashboard
         </div>
-      </div>
-      <div class="col-md-3 col-sm-6 mb-3">
-        <div class="summary-box">
-          <div class="summary-icon">
-            <i class="bi bi-calendar-check"></i>
-          </div>
-          <div class="summary-number">6</div>
-          <div class="summary-label">Months of Data</div>
+        <div class="fc-quick-action">
+            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="22 12 16 12 14 15 10 15 8 12 2 12"></polyline><path d="M5.45 5.11L2 12v6a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2v-6l-3.45-6.89A2 2 0 0 0 16.76 4H7.24a2 2 0 0 0-1.79 1.11z"></path></svg>
+            Upload document
         </div>
-      </div>
-      <div class="col-md-3 col-sm-6 mb-3">
-        <div class="summary-box">
-          <div class="summary-icon">
-            <i class="bi bi-arrow-up-right"></i>
-          </div>
-          <div class="summary-number">0</div>
-          <div class="summary-label">Improving Trends</div>
+        <div class="fc-quick-action">
+            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 12h-4l-3 9L9 3l-3 9H2"></path></svg>
+            View trends
         </div>
-      </div>
+        <div class="fc-quick-action">
+            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20.59 13.41l-7.17 7.17a2 2 0 0 1-2.83 0L2 12V2h10l8.59 8.59a2 2 0 0 1 0 2.82z"></path><line x1="7" y1="7" x2="7.01" y2="7"></line></svg>
+            ESRS check
+        </div>
     </div>
     
-    <!-- Time Period Selector -->
-    <div class="d-flex justify-content-between align-items-center mb-3">
-      <div class="time-period-selector">
-        <input type="radio" class="btn-check" name="time-period" id="time-1m" autocomplete="off">
-        <label class="btn btn-outline-secondary" for="time-1m">1M</label>
+    <!-- AI-Generated Story -->
+    <div class="fc-section">
+        <div class="fc-section-header">
+            <h2 class="fc-section-title">
+                <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"></polygon></svg>
+                Today's Key Insight
+            </h2>
+        </div>
         
-        <input type="radio" class="btn-check" name="time-period" id="time-3m" autocomplete="off">
-        <label class="btn btn-outline-secondary" for="time-3m">3M</label>
-        
-        <input type="radio" class="btn-check" name="time-period" id="time-6m" autocomplete="off">
-        <label class="btn btn-outline-secondary" for="time-6m">6M</label>
-        
-        <input type="radio" class="btn-check" name="time-period" id="time-1y" autocomplete="off" checked>
-        <label class="btn btn-outline-secondary" for="time-1y">1Y</label>
-        
-        <input type="radio" class="btn-check" name="time-period" id="time-all" autocomplete="off">
-        <label class="btn btn-outline-secondary" for="time-all">All</label>
-      </div>
-      
-      <div class="btn-group" role="group">
-        <button type="button" class="btn btn-outline-secondary active" data-chart-type="line">
-          <i class="bi bi-graph-up"></i>
-        </button>
-        <button type="button" class="btn btn-outline-secondary" data-chart-type="bar">
-          <i class="bi bi-bar-chart"></i>
-        </button>
-        <button type="button" class="btn btn-outline-secondary" data-chart-type="area">
-          <i class="bi bi-area-chart"></i>
-        </button>
-      </div>
-    </div>
-    
-    <!-- Chart Row -->
-    <div class="row mb-4">
-      <div class="col-lg-8 mb-4">
-        <div class="card h-100">
-          <div class="card-header d-flex justify-content-between align-items-center">
-            <h5 class="card-title mb-0">Sustainability Metrics Trends</h5>
-            <div class="card-actions">
-              <button class="btn btn-sm btn-outline-secondary" id="download-chart">
-                <i class="bi bi-download"></i>
-              </button>
-              <button class="btn btn-sm btn-outline-secondary" id="refresh-chart">
-                <i class="bi bi-arrow-repeat"></i>
-              </button>
-            </div>
-          </div>
-          <div class="card-body">
-            <div id="metrics-chart-container">
-              <canvas id="metrics-chart"></canvas>
-              <div class="chart-overlay">
-                <div class="spinner-border text-primary" role="status">
-                  <span class="visually-hidden">Loading...</span>
+        <div class="fc-story-card">
+            <div class="fc-story-badge">AI-Generated</div>
+            <h3 class="fc-story-title">Carbon Emissions Down 12%, Exceeding Quarterly Target</h3>
+            <div class="fc-story-content">
+                <p>Over the past quarter, your organization has shown significant progress in key sustainability metrics. 
+                <span class="fc-story-highlight">Carbon emissions decreased by 12%</span> compared to the previous quarter, 
+                exceeding your target of 8%. Water usage efficiency improved by 5%, contributing to overall resource conservation efforts.</p>
+                
+                <p>The most notable improvement has been in <span class="fc-story-highlight">renewable energy adoption</span>, 
+                which increased from 28% to 35% of total energy consumption. This puts you ahead of industry average (29%) 
+                and positions your organization well for the upcoming regulatory changes.</p>
+                
+                <div class="fc-story-metrics">
+                    <div class="fc-story-metric">
+                        <div class="fc-story-metric-value">-12%</div>
+                        <div class="fc-story-metric-label">Carbon Emissions</div>
+                    </div>
+                    <div class="fc-story-metric">
+                        <div class="fc-story-metric-value">35%</div>
+                        <div class="fc-story-metric-label">Renewable Energy</div>
+                    </div>
+                    <div class="fc-story-metric">
+                        <div class="fc-story-metric-value">87</div>
+                        <div class="fc-story-metric-label">ESG Score</div>
+                    </div>
                 </div>
-              </div>
+                
+                <div id="primary-chart" class="fc-chart-container"></div>
             </div>
-            <div id="custom-legend" class="custom-legend mt-3"></div>
-          </div>
         </div>
-      </div>
-      
-      <div class="col-lg-4 mb-4">
-        <div class="card h-100">
-          <div class="card-header">
-            <h5 class="card-title mb-0">Category Distribution</h5>
-          </div>
-          <div class="card-body">
-            <canvas id="category-chart"></canvas>
-          </div>
-        </div>
-      </div>
     </div>
     
-    <!-- Metrics Table -->
-    <div class="card mb-4">
-      <div class="card-header d-flex justify-content-between align-items-center">
-        <h5 class="card-title mb-0">Sustainability Metrics Details</h5>
-        <div class="card-actions">
-          <button class="btn btn-sm btn-outline-secondary filter-button" id="filter-table-btn">
-            <i class="bi bi-funnel"></i>
-            <span class="filter-badge">0</span>
-          </button>
+    <!-- KPI Cards -->
+    <div class="fc-section">
+        <div class="fc-section-header">
+            <h2 class="fc-section-title">
+                <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 3v18h18"/><path d="m18.7 8-5.1 5.2-2.8-2.7L7 14.3"/></svg>
+                Key Metrics
+            </h2>
         </div>
-      </div>
-      <div class="card-body p-0">
-        <div class="metrics-table-responsive custom-scrollbar">
-          <table class="table table-hover metrics-table mb-0">
-            <thead>
-              <tr>
-                <th scope="col">Name</th>
-                <th scope="col">Category</th>
-                <th scope="col">Value</th>
-                <th scope="col">Unit</th>
-                <th scope="col">Timestamp</th>
-                <th scope="col">Trend</th>
-              </tr>
-            </thead>
-            <tbody>
-              
-              <tr>
-                <td>Carbon Emissions</td>
-                <td>
-                  <span class="badge bg-emissions">emissions</span>
-                </td>
-                <td>46</td>
-                <td>tons CO2e</td>
-                <td>
-                  
-                    2025-03-07T15:52:50.415323
-                  
-                </td>
-                <td>
-                  
-                    <span class="trend-stable" title="Stable"><i class="bi bi-dash"></i></span>
-                  
-                </td>
-              </tr>
-              
-              <tr>
-                <td>Carbon Emissions</td>
-                <td>
-                  <span class="badge bg-emissions">emissions</span>
-                </td>
-                <td>46</td>
-                <td>tons CO2e</td>
-                <td>
-                  
-                    2025-02-05T15:52:50.415341
-                  
-                </td>
-                <td>
-                  
-                    <span class="trend-stable" title="Stable"><i class="bi bi-dash"></i></span>
-                  
-                </td>
-              </tr>
-              
-              <tr>
-                <td>Carbon Emissions</td>
-                <td>
-                  <span class="badge bg-emissions">emissions</span>
-                </td>
-                <td>46</td>
-                <td>tons CO2e</td>
-                <td>
-                  
-                    2025-01-06T15:52:50.415347
-                  
-                </td>
-                <td>
-                  
-                    <span class="trend-stable" title="Stable"><i class="bi bi-dash"></i></span>
-                  
-                </td>
-              </tr>
-              
-              <tr>
-                <td>Carbon Emissions</td>
-                <td>
-                  <span class="badge bg-emissions">emissions</span>
-                </td>
-                <td>39</td>
-                <td>tons CO2e</td>
-                <td>
-                  
-                    2024-12-07T15:52:50.415351
-                  
-                </td>
-                <td>
-                  
-                    <span class="trend-stable" title="Stable"><i class="bi bi-dash"></i></span>
-                  
-                </td>
-              </tr>
-              
-              <tr>
-                <td>Carbon Emissions</td>
-                <td>
-                  <span class="badge bg-emissions">emissions</span>
-                </td>
-                <td>38</td>
-                <td>tons CO2e</td>
-                <td>
-                  
-                    2024-11-07T15:52:50.415359
-                  
-                </td>
-                <td>
-                  
-                    <span class="trend-stable" title="Stable"><i class="bi bi-dash"></i></span>
-                  
-                </td>
-              </tr>
-              
-              <tr>
-                <td>Carbon Emissions</td>
-                <td>
-                  <span class="badge bg-emissions">emissions</span>
-                </td>
-                <td>40</td>
-                <td>tons CO2e</td>
-                <td>
-                  
-                    2024-10-08T15:52:50.415363
-                  
-                </td>
-                <td>
-                  
-                    <span class="trend-stable" title="Stable"><i class="bi bi-dash"></i></span>
-                  
-                </td>
-              </tr>
-              
-              <tr>
-                <td>Energy Consumption</td>
-                <td>
-                  <span class="badge bg-energy">energy</span>
-                </td>
-                <td>143</td>
-                <td>MWh</td>
-                <td>
-                  
-                    2025-03-07T15:52:50.415373
-                  
-                </td>
-                <td>
-                  
-                    <span class="trend-stable" title="Stable"><i class="bi bi-dash"></i></span>
-                  
-                </td>
-              </tr>
-              
-              <tr>
-                <td>Energy Consumption</td>
-                <td>
-                  <span class="badge bg-energy">energy</span>
-                </td>
-                <td>139</td>
-                <td>MWh</td>
-                <td>
-                  
-                    2025-02-05T15:52:50.415379
-                  
-                </td>
-                <td>
-                  
-                    <span class="trend-stable" title="Stable"><i class="bi bi-dash"></i></span>
-                  
-                </td>
-              </tr>
-              
-              <tr>
-                <td>Energy Consumption</td>
-                <td>
-                  <span class="badge bg-energy">energy</span>
-                </td>
-                <td>159</td>
-                <td>MWh</td>
-                <td>
-                  
-                    2025-01-06T15:52:50.415383
-                  
-                </td>
-                <td>
-                  
-                    <span class="trend-stable" title="Stable"><i class="bi bi-dash"></i></span>
-                  
-                </td>
-              </tr>
-              
-              <tr>
-                <td>Energy Consumption</td>
-                <td>
-                  <span class="badge bg-energy">energy</span>
-                </td>
-                <td>106</td>
-                <td>MWh</td>
-                <td>
-                  
-                    2024-12-07T15:52:50.415387
-                  
-                </td>
-                <td>
-                  
-                    <span class="trend-stable" title="Stable"><i class="bi bi-dash"></i></span>
-                  
-                </td>
-              </tr>
-              
-              <tr>
-                <td>Energy Consumption</td>
-                <td>
-                  <span class="badge bg-energy">energy</span>
-                </td>
-                <td>92</td>
-                <td>MWh</td>
-                <td>
-                  
-                    2024-11-07T15:52:50.415391
-                  
-                </td>
-                <td>
-                  
-                    <span class="trend-stable" title="Stable"><i class="bi bi-dash"></i></span>
-                  
-                </td>
-              </tr>
-              
-              <tr>
-                <td>Energy Consumption</td>
-                <td>
-                  <span class="badge bg-energy">energy</span>
-                </td>
-                <td>107</td>
-                <td>MWh</td>
-                <td>
-                  
-                    2024-10-08T15:52:50.415394
-                  
-                </td>
-                <td>
-                  
-                    <span class="trend-stable" title="Stable"><i class="bi bi-dash"></i></span>
-                  
-                </td>
-              </tr>
-              
-              <tr>
-                <td>Water Usage</td>
-                <td>
-                  <span class="badge bg-water">water</span>
-                </td>
-                <td>246</td>
-                <td>kiloliters</td>
-                <td>
-                  
-                    2025-03-07T15:52:50.415400
-                  
-                </td>
-                <td>
-                  
-                    <span class="trend-stable" title="Stable"><i class="bi bi-dash"></i></span>
-                  
-                </td>
-              </tr>
-              
-              <tr>
-                <td>Water Usage</td>
-                <td>
-                  <span class="badge bg-water">water</span>
-                </td>
-                <td>254</td>
-                <td>kiloliters</td>
-                <td>
-                  
-                    2025-02-05T15:52:50.415404
-                  
-                </td>
-                <td>
-                  
-                    <span class="trend-stable" title="Stable"><i class="bi bi-dash"></i></span>
-                  
-                </td>
-              </tr>
-              
-              <tr>
-                <td>Water Usage</td>
-                <td>
-                  <span class="badge bg-water">water</span>
-                </td>
-                <td>271</td>
-                <td>kiloliters</td>
-                <td>
-                  
-                    2025-01-06T15:52:50.415408
-                  
-                </td>
-                <td>
-                  
-                    <span class="trend-stable" title="Stable"><i class="bi bi-dash"></i></span>
-                  
-                </td>
-              </tr>
-              
-              <tr>
-                <td>Water Usage</td>
-                <td>
-                  <span class="badge bg-water">water</span>
-                </td>
-                <td>258</td>
-                <td>kiloliters</td>
-                <td>
-                  
-                    2024-12-07T15:52:50.415412
-                  
-                </td>
-                <td>
-                  
-                    <span class="trend-stable" title="Stable"><i class="bi bi-dash"></i></span>
-                  
-                </td>
-              </tr>
-              
-              <tr>
-                <td>Water Usage</td>
-                <td>
-                  <span class="badge bg-water">water</span>
-                </td>
-                <td>268</td>
-                <td>kiloliters</td>
-                <td>
-                  
-                    2024-11-07T15:52:50.415415
-                  
-                </td>
-                <td>
-                  
-                    <span class="trend-stable" title="Stable"><i class="bi bi-dash"></i></span>
-                  
-                </td>
-              </tr>
-              
-              <tr>
-                <td>Water Usage</td>
-                <td>
-                  <span class="badge bg-water">water</span>
-                </td>
-                <td>256</td>
-                <td>kiloliters</td>
-                <td>
-                  
-                    2024-10-08T15:52:50.415419
-                  
-                </td>
-                <td>
-                  
-                    <span class="trend-stable" title="Stable"><i class="bi bi-dash"></i></span>
-                  
-                </td>
-              </tr>
-              
-              <tr>
-                <td>Waste Generation</td>
-                <td>
-                  <span class="badge bg-waste">waste</span>
-                </td>
-                <td>94</td>
-                <td>tons</td>
-                <td>
-                  
-                    2025-03-07T15:52:50.415424
-                  
-                </td>
-                <td>
-                  
-                    <span class="trend-stable" title="Stable"><i class="bi bi-dash"></i></span>
-                  
-                </td>
-              </tr>
-              
-              <tr>
-                <td>Waste Generation</td>
-                <td>
-                  <span class="badge bg-waste">waste</span>
-                </td>
-                <td>85</td>
-                <td>tons</td>
-                <td>
-                  
-                    2025-02-05T15:52:50.415427
-                  
-                </td>
-                <td>
-                  
-                    <span class="trend-stable" title="Stable"><i class="bi bi-dash"></i></span>
-                  
-                </td>
-              </tr>
-              
-              <tr>
-                <td>Waste Generation</td>
-                <td>
-                  <span class="badge bg-waste">waste</span>
-                </td>
-                <td>71</td>
-                <td>tons</td>
-                <td>
-                  
-                    2025-01-06T15:52:50.415431
-                  
-                </td>
-                <td>
-                  
-                    <span class="trend-stable" title="Stable"><i class="bi bi-dash"></i></span>
-                  
-                </td>
-              </tr>
-              
-              <tr>
-                <td>Waste Generation</td>
-                <td>
-                  <span class="badge bg-waste">waste</span>
-                </td>
-                <td>75</td>
-                <td>tons</td>
-                <td>
-                  
-                    2024-12-07T15:52:50.415435
-                  
-                </td>
-                <td>
-                  
-                    <span class="trend-stable" title="Stable"><i class="bi bi-dash"></i></span>
-                  
-                </td>
-              </tr>
-              
-              <tr>
-                <td>Waste Generation</td>
-                <td>
-                  <span class="badge bg-waste">waste</span>
-                </td>
-                <td>71</td>
-                <td>tons</td>
-                <td>
-                  
-                    2024-11-07T15:52:50.415439
-                  
-                </td>
-                <td>
-                  
-                    <span class="trend-stable" title="Stable"><i class="bi bi-dash"></i></span>
-                  
-                </td>
-              </tr>
-              
-              <tr>
-                <td>Waste Generation</td>
-                <td>
-                  <span class="badge bg-waste">waste</span>
-                </td>
-                <td>74</td>
-                <td>tons</td>
-                <td>
-                  
-                    2024-10-08T15:52:50.415442
-                  
-                </td>
-                <td>
-                  
-                    <span class="trend-stable" title="Stable"><i class="bi bi-dash"></i></span>
-                  
-                </td>
-              </tr>
-              
-              <tr>
-                <td>ESG Score</td>
-                <td>
-                  <span class="badge bg-social">social</span>
-                </td>
-                <td>67</td>
-                <td>score</td>
-                <td>
-                  
-                    2025-03-07T15:52:50.415467
-                  
-                </td>
-                <td>
-                  
-                    <span class="trend-stable" title="Stable"><i class="bi bi-dash"></i></span>
-                  
-                </td>
-              </tr>
-              
-              <tr>
-                <td>ESG Score</td>
-                <td>
-                  <span class="badge bg-social">social</span>
-                </td>
-                <td>66</td>
-                <td>score</td>
-                <td>
-                  
-                    2025-02-05T15:52:50.415473
-                  
-                </td>
-                <td>
-                  
-                    <span class="trend-stable" title="Stable"><i class="bi bi-dash"></i></span>
-                  
-                </td>
-              </tr>
-              
-              <tr>
-                <td>ESG Score</td>
-                <td>
-                  <span class="badge bg-social">social</span>
-                </td>
-                <td>67</td>
-                <td>score</td>
-                <td>
-                  
-                    2025-01-06T15:52:50.415477
-                  
-                </td>
-                <td>
-                  
-                    <span class="trend-stable" title="Stable"><i class="bi bi-dash"></i></span>
-                  
-                </td>
-              </tr>
-              
-              <tr>
-                <td>ESG Score</td>
-                <td>
-                  <span class="badge bg-social">social</span>
-                </td>
-                <td>70</td>
-                <td>score</td>
-                <td>
-                  
-                    2024-12-07T15:52:50.415481
-                  
-                </td>
-                <td>
-                  
-                    <span class="trend-stable" title="Stable"><i class="bi bi-dash"></i></span>
-                  
-                </td>
-              </tr>
-              
-              <tr>
-                <td>ESG Score</td>
-                <td>
-                  <span class="badge bg-social">social</span>
-                </td>
-                <td>70</td>
-                <td>score</td>
-                <td>
-                  
-                    2024-11-07T15:52:50.415487
-                  
-                </td>
-                <td>
-                  
-                    <span class="trend-stable" title="Stable"><i class="bi bi-dash"></i></span>
-                  
-                </td>
-              </tr>
-              
-              <tr>
-                <td>ESG Score</td>
-                <td>
-                  <span class="badge bg-social">social</span>
-                </td>
-                <td>76</td>
-                <td>score</td>
-                <td>
-                  
-                    2024-10-08T15:52:50.415491
-                  
-                </td>
-                <td>
-                  
-                    <span class="trend-stable" title="Stable"><i class="bi bi-dash"></i></span>
-                  
-                </td>
-              </tr>
-              
-            </tbody>
-          </table>
+        
+        <div class="fc-grid">
+            <!-- Carbon Emissions KPI -->
+            <div class="fc-card">
+                <div class="fc-card-header">
+                    <h3 class="fc-card-title">Carbon Emissions</h3>
+                    <div class="fc-card-icon">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"></path><polyline points="16 17 21 12 16 7"></polyline><line x1="21" y1="12" x2="9" y2="12"></line></svg>
+                    </div>
+                </div>
+                <div class="fc-card-value">12,450 t</div>
+                <div class="fc-card-change positive">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m6 9 6-6 6 6"/><path d="M6 12h12"/><path d="M6 15h12"/><path d="M6 18h12"/></svg>
+                    -12% from last quarter
+                </div>
+                <div class="fc-card-description">Total CO2 equivalent emissions across all operations.</div>
+                <div class="fc-card-footer">
+                    <button class="fc-card-action" onclick="showDeepDive('carbon-emissions')">
+                        Details <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 18 15 12 9 6"></polyline></svg>
+                    </button>
+                </div>
+            </div>
+            
+            <!-- Energy Consumption KPI -->
+            <div class="fc-card">
+                <div class="fc-card-header">
+                    <h3 class="fc-card-title">Energy Consumption</h3>
+                    <div class="fc-card-icon">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M13 2 3 14h9l-1 8 10-12h-9l1-8z"/></svg>
+                    </div>
+                </div>
+                <div class="fc-card-value">8.2M kWh</div>
+                <div class="fc-card-change positive">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m6 9 6-6 6 6"/><path d="M6 12h12"/><path d="M6 15h12"/><path d="M6 18h12"/></svg>
+                    -3% from last quarter
+                </div>
+                <div class="fc-card-description">Total energy usage across all facilities.</div>
+                <div class="fc-card-footer">
+                    <button class="fc-card-action" onclick="showDeepDive('energy-consumption')">
+                        Details <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 18 15 12 9 6"></polyline></svg>
+                    </button>
+                </div>
+            </div>
+            
+            <!-- Water Usage KPI -->
+            <div class="fc-card">
+                <div class="fc-card-header">
+                    <h3 class="fc-card-title">Water Usage</h3>
+                    <div class="fc-card-icon">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22a7 7 0 0 0 7-7c0-2-1-3.9-3-5.5s-3.5-4-4-6.5c-.5 2.5-2 4.9-4 6.5C6 11.1 5 13 5 15a7 7 0 0 0 7 7z"/></svg>
+                    </div>
+                </div>
+                <div class="fc-card-value">356K m³</div>
+                <div class="fc-card-change positive">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m6 9 6-6 6 6"/><path d="M6 12h12"/><path d="M6 15h12"/><path d="M6 18h12"/></svg>
+                    -5% from last quarter
+                </div>
+                <div class="fc-card-description">Total water consumption across operations.</div>
+                <div class="fc-card-footer">
+                    <button class="fc-card-action" onclick="showDeepDive('water-usage')">
+                        Details <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 18 15 12 9 6"></polyline></svg>
+                    </button>
+                </div>
+            </div>
         </div>
-      </div>
-      <div class="card-footer d-flex justify-content-between align-items-center">
-        <div>
-          <span class="text-muted">Showing 30 metrics</span>
-        </div>
-        <nav aria-label="Page navigation">
-          <ul class="pagination pagination-sm mb-0">
-            <li class="page-item disabled">
-              <a class="page-link" href="#" tabindex="-1" aria-disabled="true">Previous</a>
-            </li>
-            <li class="page-item active"><a class="page-link" href="#">1</a></li>
-            <li class="page-item"><a class="page-link" href="#">2</a></li>
-            <li class="page-item"><a class="page-link" href="#">3</a></li>
-            <li class="page-item">
-              <a class="page-link" href="#">Next</a>
-            </li>
-          </ul>
-        </nav>
-      </div>
     </div>
     
-    <!-- Filter Modal -->
-    <div class="filter-modal" id="filter-modal">
-      <div class="filter-modal-content">
-        <div class="filter-modal-header">
-          <h3>Filter Metrics</h3>
-          <button class="close-modal" id="close-filter-modal">&times;</button>
+    <!-- Recommended Actions -->
+    <div class="fc-section">
+        <div class="fc-section-header">
+            <h2 class="fc-section-title">
+                <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="8" y1="6" x2="21" y2="6"></line><line x1="8" y1="12" x2="21" y2="12"></line><line x1="8" y1="18" x2="21" y2="18"></line><line x1="3" y1="6" x2="3.01" y2="6"></line><line x1="3" y1="12" x2="3.01" y2="12"></line><line x1="3" y1="18" x2="3.01" y2="18"></line></svg>
+                Recommended Actions
+            </h2>
         </div>
-        <div class="filter-modal-body">
-          <div class="filter-group">
-            <label>Categories</label>
-            <div class="filter-options">
-              
-              <div class="filter-option">
-                <input type="checkbox" id="category-emissions" name="category" value="emissions" checked>
-                <label for="category-emissions">emissions</label>
-              </div>
-              
-              <div class="filter-option">
-                <input type="checkbox" id="category-energy" name="category" value="energy" checked>
-                <label for="category-energy">energy</label>
-              </div>
-              
-              <div class="filter-option">
-                <input type="checkbox" id="category-social" name="category" value="social" checked>
-                <label for="category-social">social</label>
-              </div>
-              
-              <div class="filter-option">
-                <input type="checkbox" id="category-waste" name="category" value="waste" checked>
-                <label for="category-waste">waste</label>
-              </div>
-              
-              <div class="filter-option">
-                <input type="checkbox" id="category-water" name="category" value="water" checked>
-                <label for="category-water">water</label>
-              </div>
-              
+        
+        <div class="fc-action-items">
+            <div class="fc-action-item">
+                <div class="fc-action-icon">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M13 2 3 14h9l-1 8 10-12h-9l1-8z"/></svg>
+                </div>
+                <div class="fc-action-content">
+                    <h4 class="fc-action-title">Optimize HVAC Systems in Factory B</h4>
+                    <p class="fc-action-description">Factory B shows higher energy consumption for cooling compared to other facilities. Consider optimizing HVAC systems to achieve potential 8-10% energy savings.</p>
+                    <div class="fc-action-meta">
+                        <span class="fc-action-priority high">High Priority</span>
+                        <span>Est. savings: $45K/year</span>
+                    </div>
+                </div>
             </div>
-          </div>
-          
-          <div class="filter-group">
-            <label>Trend</label>
-            <div class="filter-options">
-              <div class="filter-option">
-                <input type="checkbox" id="trend-improving" name="trend" value="improving" checked>
-                <label for="trend-improving">Improving</label>
-              </div>
-              <div class="filter-option">
-                <input type="checkbox" id="trend-worsening" name="trend" value="worsening" checked>
-                <label for="trend-worsening">Worsening</label>
-              </div>
-              <div class="filter-option">
-                <input type="checkbox" id="trend-stable" name="trend" value="stable" checked>
-                <label for="trend-stable">Stable</label>
-              </div>
+            
+            <div class="fc-action-item">
+                <div class="fc-action-icon">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 12h6"/><path d="M12 3v6"/><path d="M7.5 7.5l3 3"/><path d="M16.5 7.5 12 12l4.5 4.5"/><path d="M12 16.5V21"/><path d="M7.5 16.5l-3 3"/><path d="M6 16.5H3"/><path d="M3 7.5V3h4.5"/><path d="M13.5 3h7.5v7.5"/><path d="M21 16.5V21h-4.5"/></svg>
+                </div>
+                <div class="fc-action-content">
+                    <h4 class="fc-action-title">Expand Solar Panel Installation</h4>
+                    <p class="fc-action-description">Based on current energy usage patterns and available roof space, expanding solar panel installation at HQ would increase renewable energy share by approximately 5%.</p>
+                    <div class="fc-action-meta">
+                        <span class="fc-action-priority medium">Medium Priority</span>
+                        <span>Est. savings: $28K/year</span>
+                    </div>
+                </div>
             </div>
-          </div>
-          
-          <div class="filter-group">
-            <label>Date Range</label>
-            <div class="row">
-              <div class="col-md-6 mb-2">
-                <input type="date" class="form-control" id="date-from">
-              </div>
-              <div class="col-md-6 mb-2">
-                <input type="date" class="form-control" id="date-to">
-              </div>
+            
+            <div class="fc-action-item">
+                <div class="fc-action-icon">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22a7 7 0 0 0 7-7c0-2-1-3.9-3-5.5s-3.5-4-4-6.5c-.5 2.5-2 4.9-4 6.5C6 11.1 5 13 5 15a7 7 0 0 0 7 7z"/></svg>
+                </div>
+                <div class="fc-action-content">
+                    <h4 class="fc-action-title">Implement Water Recycling in Production</h4>
+                    <p class="fc-action-description">Analysis shows potential for 20% reduction in water usage by implementing closed-loop water recycling systems in production processes.</p>
+                    <div class="fc-action-meta">
+                        <span class="fc-action-priority">Standard Priority</span>
+                        <span>Est. savings: $18K/year</span>
+                    </div>
+                </div>
             </div>
-          </div>
         </div>
-        <div class="filter-modal-footer">
-          <button class="btn btn-outline-secondary" id="reset-filters">Reset</button>
-          <button class="btn btn-primary" id="apply-filters">Apply Filters</button>
-        </div>
-      </div>
     </div>
-  </div>
-
-      </main>
+    
+    <!-- Deep Dive Modal -->
+    <div class="fc-modal-backdrop" id="deep-dive-modal">
+        <div class="fc-modal">
+            <div class="fc-modal-header">
+                <h3 class="fc-modal-title" id="deep-dive-title">Carbon Emissions Analysis</h3>
+                <button class="fc-modal-close">&times;</button>
+            </div>
+            <div class="fc-modal-body">
+                <div class="fc-modal-chart" id="deep-dive-chart"></div>
+                <div id="deep-dive-content">
+                    <!-- Content will be populated dynamically -->
+                </div>
+            </div>
+        </div>
     </div>
-  </div>
-  
-  <!-- Footer -->
-  <footer class="footer mt-auto py-3 footer-theme">
-  <div class="container-fluid">
-    <div class="row align-items-center">
-      <div class="col-lg-3 mb-3 mb-lg-0 text-center text-lg-start">
-        <img src="/static/img/logo-horizontal.svg" alt="SustainaTrend™" height="28" class="d-none d-lg-inline-block mb-2">
-        <div class="footer-brand d-lg-none d-inline-block">SustainaTrend™</div>
-      </div>
-      
-      <div class="col-lg-6 mb-3 mb-lg-0">
-        <div class="row">
-          <div class="col-6 col-md-3 mb-2">
-            <h6 class="footer-heading">Platform</h6>
-            <ul class="nav flex-column">
-              <li class="nav-item"><a href="/dashboard" class="nav-link footer-link px-0">Dashboard</a></li>
-              <li class="nav-item"><a href="/trend-analysis" class="nav-link footer-link px-0">Trend Analysis</a></li>
-              <li class="nav-item"><a href="/sustainability-stories" class="nav-link footer-link px-0">Stories</a></li>
-              <li class="nav-item"><a href="/search" class="nav-link footer-link px-0">Search</a></li>
-            </ul>
-          </div>
-          <div class="col-6 col-md-3 mb-2">
-            <h6 class="footer-heading">Analytics</h6>
-            <ul class="nav flex-column">
-              <li class="nav-item"><a href="/analytics-dashboard" class="nav-link footer-link px-0">Dashboard</a></li>
-              <li class="nav-item"><a href="/realestate-trends" class="nav-link footer-link px-0">Real Estate</a></li>
-              <li class="nav-item"><a href="/strategy-simulation" class="nav-link footer-link px-0">Strategy</a></li>
-              <li class="nav-item"><a href="/esrs-framework" class="nav-link footer-link px-0">ESRS Framework</a></li>
-            </ul>
-          </div>
-          <div class="col-6 col-md-3 mb-2">
-            <h6 class="footer-heading">Resources</h6>
-            <ul class="nav flex-column">
-              <li class="nav-item"><a href="#" class="nav-link footer-link px-0">Documentation</a></li>
-              <li class="nav-item"><a href="#" class="nav-link footer-link px-0">API</a></li>
-              <li class="nav-item"><a href="#" class="nav-link footer-link px-0">Community</a></li>
-              <li class="nav-item"><a href="#" class="nav-link footer-link px-0">Support</a></li>
-            </ul>
-          </div>
-          <div class="col-6 col-md-3 mb-2">
-            <h6 class="footer-heading">Company</h6>
-            <ul class="nav flex-column">
-              <li class="nav-item"><a href="#" class="nav-link footer-link px-0">About</a></li>
-              <li class="nav-item"><a href="#" class="nav-link footer-link px-0">Blog</a></li>
-              <li class="nav-item"><a href="#" class="nav-link footer-link px-0">Careers</a></li>
-              <li class="nav-item"><a href="#" class="nav-link footer-link px-0">Contact</a></li>
-            </ul>
-          </div>
-        </div>
-      </div>
-      
-      <div class="col-lg-3 text-center text-lg-end">
-        <div class="d-flex gap-3 justify-content-center justify-content-lg-end mb-3">
-          <a href="#" class="footer-social-link" aria-label="LinkedIn">
-            <i class="bi bi-linkedin"></i>
-          </a>
-          <a href="#" class="footer-social-link" aria-label="Twitter">
-            <i class="bi bi-twitter-x"></i>
-          </a>
-          <a href="#" class="footer-social-link" aria-label="GitHub">
-            <i class="bi bi-github"></i>
-          </a>
-          <a href="#" class="footer-social-link" aria-label="YouTube">
-            <i class="bi bi-youtube"></i>
-          </a>
-        </div>
-        <div class="text-muted small">
-          <span>© 2025 SustainaTrend™</span>
-          <span class="mx-2">|</span>
-          <a href="#" class="footer-link-sm">Terms</a>
-          <span class="mx-1">·</span>
-          <a href="#" class="footer-link-sm">Privacy</a>
-        </div>
-      </div>
+    
+    <!-- Toast Notification -->
+    <div class="fc-toast" id="toast">
+        <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"></path><polyline points="22 4 12 14.01 9 11.01"></polyline></svg>
+        <span id="toast-message">Action completed</span>
     </div>
-  </div>
-</footer>
+</div>
 
-<style>
-.footer-theme {
-  background-color: var(--card-bg);
-  border-top: 1px solid var(--border-color);
-  transition: background-color 0.3s ease, border-color 0.3s ease;
-}
+            </main>
+            
+            <footer>
+                <div class="container">
+                    <div class="row">
+                        <div class="col-md-6">
+                            <p>&copy; 2025 SustainaTrend™ Intelligence Platform</p>
+                        </div>
+                        <div class="col-md-6 text-end">
+                            <a href="#" class="text-decoration-none">Privacy Policy</a> | 
+                            <a href="#" class="text-decoration-none">Terms of Service</a>
+                        </div>
+                    </div>
+                </div>
+            </footer>
+        </div>
+    </div>
 
-.footer-brand {
-  font-weight: 700;
-  color: var(--primary-color);
-  font-size: 1.25rem;
-}
-
-.footer-heading {
-  font-weight: 600;
-  font-size: 0.875rem;
-  margin-bottom: 0.75rem;
-  color: var(--primary-color);
-}
-
-.footer-link {
-  color: var(--text-color);
-  font-size: 0.875rem;
-  padding: 0.25rem 0;
-  opacity: 0.8;
-  transition: opacity 0.2s ease, color 0.2s ease;
-}
-
-.footer-link:hover {
-  opacity: 1;
-  color: var(--primary-color);
-}
-
-.footer-link-sm {
-  color: var(--text-muted);
-  text-decoration: none;
-  transition: color 0.2s ease;
-}
-
-.footer-link-sm:hover {
-  color: var(--primary-color);
-}
-
-.footer-social-link {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  width: 36px;
-  height: 36px;
-  border-radius: 50%;
-  background-color: rgba(var(--bs-primary-rgb), 0.1);
-  color: var(--primary-color);
-  transition: all 0.2s ease;
-}
-
-.footer-social-link:hover {
-  background-color: var(--primary-color);
-  color: white;
-  transform: translateY(-2px);
-}
-
-/* Hide full footer on very small screens */
-@media (max-width: 575.98px) {
-  .footer-theme .container-fluid {
-    padding: 0;
-  }
-  
-  .footer-theme .row > div:not(:last-child) {
-    display: none;
-  }
-  
-  .footer-theme .col-lg-3:last-child {
-    margin-bottom: 0;
-  }
-}
-</style>
-
-  <!-- Toast container for notifications -->
-  <div id="toastContainer" class="toast-container position-fixed bottom-0 end-0 p-3">
-    <!-- Toasts will be dynamically added here -->
-  </div>
-  
-  <!-- Bootstrap JS -->
-  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
-  
-  <!-- SustainaTrend Theme Manager -->
-  <script src="/static/js/theme-manager.js"></script>
-  
-  <!-- Common JS -->
-  <script src="/static/js/common.js"></script>
-  
-  <!-- Page-specific scripts -->
-  
-<script src="/static/js/visualization-utils.js"></script>
-<script>
-  // Pass metrics data to JavaScript
-  window.metricsData = [{"id": 1, "name": "Carbon Emissions", "category": "emissions", "value": 46, "unit": "tons CO2e", "timestamp": "2025-03-07T15:52:50.415323"}, {"id": 2, "name": "Carbon Emissions", "category": "emissions", "value": 46, "unit": "tons CO2e", "timestamp": "2025-02-05T15:52:50.415341"}, {"id": 3, "name": "Carbon Emissions", "category": "emissions", "value": 46, "unit": "tons CO2e", "timestamp": "2025-01-06T15:52:50.415347"}, {"id": 4, "name": "Carbon Emissions", "category": "emissions", "value": 39, "unit": "tons CO2e", "timestamp": "2024-12-07T15:52:50.415351"}, {"id": 5, "name": "Carbon Emissions", "category": "emissions", "value": 38, "unit": "tons CO2e", "timestamp": "2024-11-07T15:52:50.415359"}, {"id": 6, "name": "Carbon Emissions", "category": "emissions", "value": 40, "unit": "tons CO2e", "timestamp": "2024-10-08T15:52:50.415363"}, {"id": 7, "name": "Energy Consumption", "category": "energy", "value": 143, "unit": "MWh", "timestamp": "2025-03-07T15:52:50.415373"}, {"id": 8, "name": "Energy Consumption", "category": "energy", "value": 139, "unit": "MWh", "timestamp": "2025-02-05T15:52:50.415379"}, {"id": 9, "name": "Energy Consumption", "category": "energy", "value": 159, "unit": "MWh", "timestamp": "2025-01-06T15:52:50.415383"}, {"id": 10, "name": "Energy Consumption", "category": "energy", "value": 106, "unit": "MWh", "timestamp": "2024-12-07T15:52:50.415387"}, {"id": 11, "name": "Energy Consumption", "category": "energy", "value": 92, "unit": "MWh", "timestamp": "2024-11-07T15:52:50.415391"}, {"id": 12, "name": "Energy Consumption", "category": "energy", "value": 107, "unit": "MWh", "timestamp": "2024-10-08T15:52:50.415394"}, {"id": 13, "name": "Water Usage", "category": "water", "value": 246, "unit": "kiloliters", "timestamp": "2025-03-07T15:52:50.415400"}, {"id": 14, "name": "Water Usage", "category": "water", "value": 254, "unit": "kiloliters", "timestamp": "2025-02-05T15:52:50.415404"}, {"id": 15, "name": "Water Usage", "category": "water", "value": 271, "unit": "kiloliters", "timestamp": "2025-01-06T15:52:50.415408"}, {"id": 16, "name": "Water Usage", "category": "water", "value": 258, "unit": "kiloliters", "timestamp": "2024-12-07T15:52:50.415412"}, {"id": 17, "name": "Water Usage", "category": "water", "value": 268, "unit": "kiloliters", "timestamp": "2024-11-07T15:52:50.415415"}, {"id": 18, "name": "Water Usage", "category": "water", "value": 256, "unit": "kiloliters", "timestamp": "2024-10-08T15:52:50.415419"}, {"id": 19, "name": "Waste Generation", "category": "waste", "value": 94, "unit": "tons", "timestamp": "2025-03-07T15:52:50.415424"}, {"id": 20, "name": "Waste Generation", "category": "waste", "value": 85, "unit": "tons", "timestamp": "2025-02-05T15:52:50.415427"}, {"id": 21, "name": "Waste Generation", "category": "waste", "value": 71, "unit": "tons", "timestamp": "2025-01-06T15:52:50.415431"}, {"id": 22, "name": "Waste Generation", "category": "waste", "value": 75, "unit": "tons", "timestamp": "2024-12-07T15:52:50.415435"}, {"id": 23, "name": "Waste Generation", "category": "waste", "value": 71, "unit": "tons", "timestamp": "2024-11-07T15:52:50.415439"}, {"id": 24, "name": "Waste Generation", "category": "waste", "value": 74, "unit": "tons", "timestamp": "2024-10-08T15:52:50.415442"}, {"id": 25, "name": "ESG Score", "category": "social", "value": 67, "unit": "score", "timestamp": "2025-03-07T15:52:50.415467"}, {"id": 26, "name": "ESG Score", "category": "social", "value": 66, "unit": "score", "timestamp": "2025-02-05T15:52:50.415473"}, {"id": 27, "name": "ESG Score", "category": "social", "value": 67, "unit": "score", "timestamp": "2025-01-06T15:52:50.415477"}, {"id": 28, "name": "ESG Score", "category": "social", "value": 70, "unit": "score", "timestamp": "2024-12-07T15:52:50.415481"}, {"id": 29, "name": "ESG Score", "category": "social", "value": 70, "unit": "score", "timestamp": "2024-11-07T15:52:50.415487"}, {"id": 30, "name": "ESG Score", "category": "social", "value": 76, "unit": "score", "timestamp": "2024-10-08T15:52:50.415491"}];
-  window.categories = ["emissions", "energy", "social", "waste", "water"];
-</script>
-<script src="/static/js/dashboard.js"></script>
-
+    <!-- Bootstrap Bundle with Popper -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/js/bootstrap.bundle.min.js"></script>
+    
+    <!-- jQuery -->
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    
+    <!-- Theme Toggle Script -->
+    <script>
+        $(document).ready(function() {
+            // Sidebar toggle
+            $('#sidebarCollapse').on('click', function() {
+                $('#sidebar').toggleClass('active');
+                $('#content').toggleClass('active');
+            });
+            
+            // Theme toggle
+            $('#themeSwitch').change(function() {
+                if($(this).is(':checked')) {
+                    // Dark mode
+                    $('html').removeClass('light-mode').addClass('dark-mode');
+                    // Store preference
+                    localStorage.setItem('theme', 'dark-mode');
+                } else {
+                    // Light mode
+                    $('html').removeClass('dark-mode').addClass('light-mode');
+                    // Store preference
+                    localStorage.setItem('theme', 'light-mode');
+                }
+            });
+            
+            // Check for saved theme preference
+            const savedTheme = localStorage.getItem('theme');
+            if(savedTheme) {
+                if(savedTheme === 'dark-mode') {
+                    $('#themeSwitch').prop('checked', true);
+                    $('html').removeClass('light-mode').addClass('dark-mode');
+                } else {
+                    $('#themeSwitch').prop('checked', false);
+                    $('html').removeClass('dark-mode').addClass('light-mode');
+                }
+            }
+        });
+    </script>
+    
+    
 </body>
 </html>
