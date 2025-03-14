@@ -783,120 +783,86 @@ def allowed_file(filename):
 @strategy_bp.route('/strategy-hub/storytelling')
 def strategy_hub_storytelling():
     """
-    Storytelling Hub page - central access point for storytelling features integrated with Strategy Hub
+    Storytelling Hub page - redirects to modular storytelling implementation
     """
-    logger.info("Strategy Hub Storytelling route called")
+    logger.info("Strategy Hub Storytelling route accessed - redirecting to modular implementation")
     
+    # Get category and audience filters to pass along to the new implementation
+    category = request.args.get('category', 'all')
+    audience = request.args.get('audience', 'all')
+    
+    # Redirect to the new modular storytelling implementation
     try:
-        # Get navigation context
-        nav_context = get_context_for_template()
-        
-        # Get category filter
-        category = request.args.get('category', 'all')
-        audience = request.args.get('audience', 'all')
-        
-        # Get stories from storytelling module if available
-        if STORYTELLING_AVAILABLE:
-            try:
-                stories = get_enhanced_stories(audience=audience, category=category)
-                logger.info(f"Fetched {len(stories)} stories from storytelling module")
-            except Exception as e:
-                logger.warning(f"Error fetching stories from storytelling module: {str(e)}")
-                stories = get_data_driven_stories()
-        else:
-            # Create a minimal set of mock stories
-            stories = [
-                {
-                    "id": 1,
-                    "title": "Carbon Emissions Reduction Success",
-                    "content": "Our organization achieved a 15% reduction in carbon emissions over the past quarter.",
-                    "category": "emissions",
-                    "audience": "board",
-                    "timestamp": datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
-                    "recommendations": [
-                        "Continue investment in renewable energy sources",
-                        "Expand carbon offset programs"
-                    ]
-                },
-                {
-                    "id": 2,
-                    "title": "Water Conservation Initiative Results",
-                    "content": "The water conservation program implemented last year has resulted in a 20% decrease in water usage.",
-                    "category": "water",
-                    "audience": "sustainability_team",
-                    "timestamp": datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
-                    "recommendations": [
-                        "Analyze most effective water-saving technologies",
-                        "Develop training program for facility managers"
-                    ]
-                }
-            ]
-        
-        return render_template(
-            "strategy/storytelling.html", 
-            page_title="Sustainability Storytelling",
-            stories=stories,
-            category=category,
-            audience=audience,
-            **nav_context
-        )
+        # Try to construct the URL using url_for with the query parameters
+        url = url_for('storytelling.storytelling_home', category=category, audience=audience)
+        return redirect(url)
     except Exception as e:
-        logger.error(f"Error in storytelling hub route: {str(e)}")
+        logger.error(f"Error redirecting to new storytelling implementation: {str(e)}")
         logger.error(traceback.format_exc())
         
-        # Fallback to simpler template
-        return render_template(
-            "sustainability_stories.html", 
-            error=str(e)
-        )
+        # Fallback - try direct redirect with query parameters
+        query_params = []
+        if category != 'all':
+            query_params.append(f"category={category}")
+        if audience != 'all':
+            query_params.append(f"audience={audience}")
+            
+        query_string = "&".join(query_params)
+        redirect_url = f"/storytelling/{'' if not query_string else '?' + query_string}"
+        
+        return redirect(redirect_url)
 
 @strategy_bp.route('/api/strategy-hub/generate-story', methods=['POST'])
 def api_strategy_hub_generate_story():
-    """API endpoint for generating a sustainability story from the Strategy Hub"""
+    """
+    API endpoint for generating a sustainability story from the Strategy Hub
+    DEPRECATED: This endpoint forwards to the new implementation
+    """
+    logger.warning("DEPRECATED: Using old API endpoint for story generation - forwarding to new implementation")
+    
     try:
         # Get request data
         data = request.json or {}
         
-        # Extract parameters
-        topic = data.get('topic', 'sustainability')
-        template = data.get('template', 'success')
+        # Extract parameters and forward to the new endpoint
+        topic = data.get('topic', 'sustainability')  # This is called 'category' in the new implementation 
         audience = data.get('audience', 'board')
+        
+        # Create a UUID for the story
+        story_id = str(uuid.uuid4())
         
         # Check if storytelling module is available
         if not STORYTELLING_AVAILABLE:
             return jsonify({
                 'success': False,
-                'error': 'Storytelling module is not available'
+                'error': 'Storytelling module is not available',
+                'deprecated': True,
+                'message': 'This API endpoint is deprecated. Please use /storytelling/api/stories/generate instead.'
             }), 500
         
-        # Generate stories using the storytelling module
-        try:
-            stories = get_enhanced_stories(audience=audience, category=topic)
-            
-            # If stories were generated, return the first one
-            if stories:
-                return jsonify({
-                    'success': True,
-                    'story': stories[0]
-                })
-            else:
-                return jsonify({
-                    'success': False,
-                    'error': 'No stories generated'
-                }), 404
-        except Exception as e:
-            logger.error(f"Error generating story: {str(e)}")
-            return jsonify({
-                'success': False,
-                'error': f'Error generating story: {str(e)}'
-            }), 500
+        # Return a notice about the API endpoint being deprecated
+        return jsonify({
+            'success': True,
+            'deprecated': True,
+            'message': 'This API endpoint is deprecated. Please use /storytelling/api/stories/generate instead.',
+            'story': {
+                'id': story_id,
+                'title': f'Sustainability story for {topic}',
+                'content': f'This API is deprecated. Please use the new endpoint at /storytelling/api/stories/generate with parameters: category="{topic}", audience="{audience}"',
+                'audience': audience,
+                'category': topic,
+                'timestamp': datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+            }
+        })
     
     except Exception as e:
-        logger.error(f"Error in generate story API: {str(e)}")
+        logger.error(f"Error in deprecated generate story API: {str(e)}")
         logger.error(traceback.format_exc())
         return jsonify({
             'success': False,
-            'error': str(e)
+            'error': str(e),
+            'deprecated': True,
+            'message': 'This API endpoint is deprecated. Please use /storytelling/api/stories/generate instead.'
         }), 500
         
 @strategy_bp.route('/api/storytelling/generate', methods=['POST'])
@@ -1190,99 +1156,54 @@ def strategy_hub_document_view(document_id):
 def strategy_hub_generate_story(document_id):
     """
     Generate a sustainability story from a document analysis
+    DEPRECATED: This route redirects to the new modular storytelling implementation
     """
-    logger.info(f"Strategy Hub Generate Story route called for document: {document_id}")
+    logger.info(f"Strategy Hub Generate Story route called for document: {document_id} - redirecting to new implementation")
     
     try:
-        # Check if document processor and storytelling are available
+        # Check if document processor is available - this is a required dependency
         if not DOCUMENT_PROCESSOR_AVAILABLE:
+            logger.error("Document processor is not available for document-to-story generation")
             return render_template('error.html', message="Document processor is not available"), 500
             
-        if not STORYTELLING_AVAILABLE:
-            return render_template('error.html', message="Storytelling module is not available"), 500
+        # Get audience and category from query params or default values
+        audience = request.args.get('audience', 'board')
+        category = request.args.get('category', 'emissions')
         
-        # Get document info from session if it exists
-        document_info = session.get('last_document', None)
-        
-        if not document_info or document_info.get('filename') != document_id:
-            # Try to load the document if it's stored on disk
-            file_path = os.path.join(UPLOAD_FOLDER, document_id)
-            if os.path.exists(file_path):
-                # Process the document
-                result = document_processor.process_document(file_path)
-                document_info = {
-                    'filename': document_id,
-                    'path': file_path,
-                    'result': result,
-                    'timestamp': datetime.now().isoformat()
-                }
-            else:
-                # Document not found
-                return render_template('error.html', message=f"Document {document_id} not found"), 404
-        
-        # Prepare document data for storytelling
-        document_data = {
-            'title': document_info.get('filename', 'Unknown Document'),
-            'content': '',
-            'insights': [],
-            'metrics': []
-        }
-        
-        # Extract document content if available
-        if document_info.get('result'):
-            result = document_info['result']
+        # Redirect to the new modular storytelling implementation with the document ID
+        try:
+            # Try to construct the URL using url_for with the query parameters
+            url = url_for('storytelling.document_to_story', 
+                         document_id=document_id, 
+                         audience=audience, 
+                         category=category)
+            logger.warning(f"DEPRECATED: Redirecting document story request to new implementation at {url}")
+            return redirect(url)
+        except Exception as e:
+            logger.error(f"Error redirecting to new storytelling implementation: {str(e)}")
+            logger.error(traceback.format_exc())
             
-            # Get document content
-            if 'text' in result:
-                document_data['content'] = result['text']
+            # Fallback - try direct redirect with query parameters
+            query_params = []
+            if audience:
+                query_params.append(f"audience={audience}")
+            if category:
+                query_params.append(f"category={category}")
+                
+            query_string = "&".join(query_params)
+            redirect_url = f"/storytelling/document/{document_id}{'?' if query_string else ''}{query_string}"
             
-            # Get insights if available
-            if 'analysis' in result and 'executive_summary' in result['analysis']:
-                document_data['insights'].append(result['analysis']['executive_summary'])
-            
-            # Get metrics if available
-            if 'analysis' in result and 'metrics' in result['analysis']:
-                for category, metrics in result['analysis']['metrics'].items():
-                    for metric in metrics:
-                        document_data['metrics'].append({
-                            'name': metric.get('name', 'Unknown'),
-                            'value': metric.get('value', 'N/A'),
-                            'unit': metric.get('unit', ''),
-                            'category': category
-                        })
-        
-        # Get navigation context
-        nav_context = get_context_for_template()
-        
-        # Render story generation form
-        return render_template(
-            "strategy/story_generator.html",
-            page_title="Generate Story from Document",
-            document=document_info,
-            document_data=document_data,
-            audience_options=[
-                {"id": "board", "name": "Board of Directors"},
-                {"id": "investors", "name": "Investors"},
-                {"id": "sustainability_team", "name": "Sustainability Team"},
-                {"id": "employees", "name": "Employees"},
-                {"id": "customers", "name": "Customers"},
-                {"id": "regulators", "name": "Regulators"}
-            ],
-            category_options=[
-                {"id": "emissions", "name": "Carbon Emissions"},
-                {"id": "water", "name": "Water Management"},
-                {"id": "energy", "name": "Energy"},
-                {"id": "waste", "name": "Waste Management"},
-                {"id": "social", "name": "Social Impact"},
-                {"id": "governance", "name": "Governance"},
-                {"id": "all", "name": "All Categories"}
-            ],
-            **nav_context
-        )
+            logger.warning(f"DEPRECATED: Redirecting document story request to new implementation at {redirect_url} (fallback method)")
+            return redirect(redirect_url)
     except Exception as e:
-        logger.error(f"Error generating story from document: {str(e)}")
+        logger.error(f"Error in document story generation redirect: {str(e)}")
         logger.error(traceback.format_exc())
-        return render_template('error.html', message=f"Error generating story: {str(e)}"), 500
+        
+        # Create a minimal error message
+        return render_template(
+            'error.html', 
+            message=f"Error redirecting to new storytelling implementation: {str(e)}"
+        ), 500
 
 # Consolidated Strategy Hub implementation
 @strategy_bp.route('/unified-strategy-hub')

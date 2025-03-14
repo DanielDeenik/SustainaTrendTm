@@ -28,8 +28,8 @@ sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 from flask import Blueprint, render_template, request, jsonify, current_app, url_for, redirect
 
 # Import sustainability storytelling utilities
-from sustainability_storytelling import get_enhanced_stories
-from navigation_config import get_context_for_template
+from frontend.sustainability_storytelling import get_enhanced_stories, get_data_driven_stories
+from frontend.navigation_config import get_context_for_template
 
 # Configure logging
 logger = logging.getLogger(__name__)
@@ -171,13 +171,24 @@ def generate_lcm_story(story_id: str, audience: str, category: str, prompt: str,
         document_content = document_data.get('content', '')[:1000]  # Limit size for embedding
         embedding_text += f" Based on document: {document_title}. Content: {document_content}"
     
-    # Generate embedding
+    # Generate embedding with OpenAI API v1.0 compatibility
     try:
-        embedding_response = openai.Embedding.create(
-            input=embedding_text,
-            model="text-embedding-ada-002"
-        )
-        embedding = embedding_response['data'][0]['embedding']
+        # Check which OpenAI API version we're using
+        if hasattr(openai, 'Embedding'):
+            # Using older openai < 1.0.0
+            embedding_response = openai.Embedding.create(
+                input=embedding_text,
+                model="text-embedding-ada-002"
+            )
+            embedding = embedding_response['data'][0]['embedding']
+        else:
+            # Using newer openai >= 1.0.0
+            client = openai.OpenAI(api_key=os.getenv("OPENAI_API_KEY"))
+            embedding_response = client.embeddings.create(
+                input=embedding_text,
+                model="text-embedding-ada-002"
+            )
+            embedding = embedding_response.data[0].embedding
         
         # Query Pinecone for similar stories if available
         retrieved_stories = []
@@ -223,10 +234,23 @@ def generate_lcm_story(story_id: str, audience: str, category: str, prompt: str,
                 pinecone_client = Pinecone(api_key=os.getenv("PINECONE_API_KEY"))
                 
                 story_text = f"{story['title']} {story['content']}"
-                new_embedding = openai.Embedding.create(
-                    input=story_text,
-                    model="text-embedding-ada-002"
-                )['data'][0]['embedding']
+                
+                # Check which OpenAI API version we're using
+                if hasattr(openai, 'Embedding'):
+                    # Using older openai < 1.0.0
+                    embedding_response = openai.Embedding.create(
+                        input=story_text,
+                        model="text-embedding-ada-002"
+                    )
+                    new_embedding = embedding_response['data'][0]['embedding']
+                else:
+                    # Using newer openai >= 1.0.0
+                    client = openai.OpenAI(api_key=os.getenv("OPENAI_API_KEY"))
+                    embedding_response = client.embeddings.create(
+                        input=story_text,
+                        model="text-embedding-ada-002"
+                    )
+                    new_embedding = embedding_response.data[0].embedding
                 
                 # Remove large fields before storing
                 story_metadata = story.copy()
@@ -331,19 +355,34 @@ def create_lcm_enhanced_story(
         }}
         """
         
-        # Generate the story with LCM
-        response = openai.ChatCompletion.create(
-            model="gpt-4",
-            messages=[
-                {"role": "system", "content": system_prompt},
-                {"role": "user", "content": user_prompt}
-            ],
-            temperature=0.7,
-            max_tokens=1000
-        )
-        
-        # Extract JSON from response
-        response_text = response.choices[0].message.content.strip()
+        # Generate the story with LCM using OpenAI API v1.0 compatibility
+        if hasattr(openai, 'ChatCompletion'):
+            # Using older openai < 1.0.0
+            response = openai.ChatCompletion.create(
+                model="gpt-4",
+                messages=[
+                    {"role": "system", "content": system_prompt},
+                    {"role": "user", "content": user_prompt}
+                ],
+                temperature=0.7,
+                max_tokens=1000
+            )
+            # Extract JSON from response
+            response_text = response.choices[0].message.content.strip()
+        else:
+            # Using newer openai >= 1.0.0
+            client = openai.OpenAI(api_key=os.getenv("OPENAI_API_KEY"))
+            response = client.chat.completions.create(
+                model="gpt-4",
+                messages=[
+                    {"role": "system", "content": system_prompt},
+                    {"role": "user", "content": user_prompt}
+                ],
+                temperature=0.7,
+                max_tokens=1000
+            )
+            # Extract JSON from response
+            response_text = response.choices[0].message.content.strip()
         
         # Handle different JSON formats in response
         try:
@@ -533,10 +572,60 @@ def storytelling_home(category='all'):
         Rendered template with storytelling UI
     """
     # Import directly to ensure we're using the latest version
-    from frontend.story_operations import PINECONE_AVAILABLE, OPENAI_AVAILABLE
+    try:
+        from frontend.story_operations import PINECONE_AVAILABLE, OPENAI_AVAILABLE
+        pinecone_status = "Available" if PINECONE_AVAILABLE else "Unavailable"
+        openai_status = "Available" if OPENAI_AVAILABLE else "Unavailable"
+        lcm_status = "Enabled" if PINECONE_AVAILABLE and OPENAI_AVAILABLE else "Disabled"
+    except ImportError:
+        logger.warning("Story operations module not available, using default values")
+        PINECONE_AVAILABLE = False
+        OPENAI_AVAILABLE = False
+        pinecone_status = "Unavailable"
+        openai_status = "Unavailable"
+        lcm_status = "Disabled"
     
     # Get stories from the base module or generate them with category filter
-    stories = get_enhanced_stories(category=category if category != 'all' else None)
+    logger.info(f"Generating enhanced stories for audience: all, category: {category if category != 'all' else None}, prompt: None, document_data: not provided")
+    
+    # Convert category to None if 'all' is selected
+    category_filter = None if category == 'all' else category
+    
+    try:
+        # Use imported function from sustainability_storytelling
+        stories = get_enhanced_stories(audience='all', category=category_filter)
+        logger.info(f"Generated {len(stories)} enhanced stories")
+    except Exception as e:
+        logger.error(f"Error generating enhanced stories: {e}")
+        stories = []
+    
+    # If no stories found and not specifically filtered, generate a default story
+    if not stories:
+        logger.info("No matching stories found, generating a default story")
+        # Generate a default story with a unique ID
+        story_id = str(uuid.uuid4())
+        default_story = {
+            "id": story_id,
+            "title": "Welcome to Sustainability Storytelling",
+            "content": "This is your central hub for creating data-driven sustainability narratives. Generate your first story by clicking the 'Create New Story' button above.",
+            "category": "general" if category == 'all' else category,
+            "audience": "all",
+            "timestamp": datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
+            "recommendations": [
+                "Try creating a story with a specific sustainability focus like emissions or water usage.",
+                "Explore different audience types for targeted storytelling."
+            ]
+        }
+        stories = [default_story]
+        logger.info(f"Generated default story with ID: {story_id}")
+        
+        # Try to save the default story for future use
+        try:
+            from frontend.story_operations import save_new_story
+            save_new_story(default_story)
+            logger.info(f"Saved default story with ID: {story_id}")
+        except Exception as e:
+            logger.warning(f"Could not save default story: {e}")
     
     # Pass to template with navigation context
     context = get_context_for_template()
@@ -546,10 +635,47 @@ def storytelling_home(category='all'):
         'active_page': 'storytelling',
         'selected_category': category,
         'storytelling_available': STORYTELLING_AVAILABLE,
-        'lcm_available': PINECONE_AVAILABLE and OPENAI_AVAILABLE
+        'pinecone_status': pinecone_status,
+        'openai_status': openai_status,
+        'lcm_status': lcm_status
     })
     
-    return render_template(DEFAULT_TEMPLATE, **context)
+    try:
+        logger.info(f"Attempting to render template: {DEFAULT_TEMPLATE} with context: stories={len(stories)}, page_title={context['page_title']}")
+        return render_template(DEFAULT_TEMPLATE, **context)
+    except Exception as e:
+        logger.error(f"Error rendering storytelling template: {e}")
+        # Try with a simple fallback template
+        fallback_template = "storytelling/main.html"
+        logger.info(f"Trying fallback template: {fallback_template}")
+        try:
+            return render_template(fallback_template, **context)
+        except Exception as e2:
+            logger.error(f"Error rendering fallback template: {e2}")
+            # Try another fallback
+            try:
+                logger.info("Trying direct template: sustainability_storytelling_dark.html")
+                return render_template("sustainability_storytelling_dark.html", **context)
+            except Exception as e3:
+                logger.error(f"Error rendering direct template: {e3}")
+                # Last resort fallback - render basic HTML
+                html_content = f"""
+                <html>
+                <head><title>Sustainability Storytelling</title></head>
+                <body>
+                    <h1>Sustainability Storytelling</h1>
+                    <p>Stories count: {len(stories)}</p>
+                    <a href="{url_for('storytelling.create_story')}">Create New Story</a>
+                    <hr>
+                    <h2>Debug Information</h2>
+                    <p>ERROR: Template rendering failed</p>
+                    <p>Original error: {str(e)}</p>
+                    <p>Fallback error: {str(e2)}</p>
+                    <p>Direct template error: {str(e3)}</p>
+                </body>
+                </html>
+                """
+                return html_content
 
 @storytelling_bp.route('/api/stories', methods=['GET'])
 def api_get_stories():
@@ -604,6 +730,7 @@ def api_get_story(story_id):
         }), 404
 
 @storytelling_bp.route('/api/stories/generate', methods=['POST'])
+@storytelling_bp.route('/api/generate-story', methods=['POST'])
 def api_generate_story():
     """
     API endpoint to generate a new story
@@ -625,7 +752,7 @@ def api_generate_story():
     # Generate a unique ID for the story
     story_id = f"{audience}-{category}-{uuid.uuid4()}"
     
-    # Generate the story
+    # Generate the story using our local function
     story = get_ai_generated_story(story_id, audience, category, prompt, document_data)
     
     # Save the generated story using our story_operations module
