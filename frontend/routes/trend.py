@@ -49,30 +49,5 @@ def trend_analysis():
         **nav_context  # Include all navigation context
     )
 
-@trend_bp.route('/real-estate-sustainability')
-def real_estate_sustainability():
-    """
-    Real Estate Sustainability Intelligence
-    Specialized dashboard for real estate sustainability metrics
-    """
-    logger.info("Real estate sustainability route called")
-    
-    # Include navigation for the template
-    nav_context = get_context_for_template()
-    
-    # Get real estate sustainability metrics
-    metrics = get_sustainability_metrics(category="real_estate")
-    
-    # Format metrics for JSON serialization
-    formatted_metrics = json.dumps(metrics, default=lambda o: o.isoformat() if isinstance(o, datetime) else str(o))
-    
-    # Use the consolidated dark themed template
-    logger.info("Using consolidated dark themed template for real estate sustainability")
-    return render_template(
-        "finchat_dark_dashboard.html", 
-        page_title="Real Estate Sustainability Intelligence",
-        template_type="realestate",
-        metrics=metrics,
-        metrics_json=formatted_metrics,
-        **nav_context  # Include all navigation context
-    )
+# Route removed to consolidate real estate functionality in realestate_bp blueprint
+# Users should use /realestate/dashboard instead

@@ -373,51 +373,14 @@ def configure_routes(app):
     """
     Configure Flask routes for Monetization Strategies
     
+    This function is kept for backward compatibility but no longer registers routes directly.
+    All routes are now registered via the monetization blueprint in routes/monetization.py
+    
     Args:
         app: Flask application
     """
-    from flask import render_template, request, jsonify
-    
-    @app.route('/monetization-strategies', methods=['GET'])
-    def monetization_strategies_dashboard():
-        """Monetization Strategies Dashboard"""
-        return render_template('monetization.html', monetization_strategies=get_monetization_strategies())
-    
-    @app.route('/api/monetization/analyze', methods=['POST'])
-    def api_monetization_analyze():
-        """API endpoint for analyzing document for monetization opportunities"""
-        data = request.get_json()
-        if not data or 'document_text' not in data:
-            return jsonify({
-                'success': False,
-                'error': 'Missing document_text parameter'
-            }), 400
-        
-        document_text = data['document_text']
-        analysis_results = analyze_monetization_opportunities(document_text)
-        
-        return jsonify({
-            'success': True,
-            'results': analysis_results
-        })
-    
-    @app.route('/api/monetization/opportunities', methods=['POST'])
-    def api_monetization_opportunities():
-        """API endpoint for generating monetization opportunities"""
-        data = request.get_json()
-        if not data or 'document_text' not in data:
-            return jsonify({
-                'success': False,
-                'error': 'Missing document_text parameter'
-            }), 400
-        
-        document_text = data['document_text']
-        opportunities = generate_monetization_opportunities(document_text)
-        
-        return jsonify({
-            'success': True,
-            'opportunities': opportunities
-        })
+    # Routes have been moved to routes/monetization.py
+    pass
 
 def generate_strategy_consulting_insights(document_text: str, industry: str = "General") -> Dict[str, Any]:
     """
@@ -700,52 +663,16 @@ def register_routes(app):
     """
     Register the Monetization Strategies routes with a Flask application
     
+    This function is kept for backward compatibility but no longer registers routes directly.
+    All routes are now registered via the monetization blueprint in routes/monetization.py
+    
     Args:
         app: Flask application
     """
     configure_routes(app)
     
-    # Import strategy simulation module
-    from flask import render_template, request, jsonify
+    # Routes have been moved to routes/monetization.py blueprint
     
-    # Add integrated strategy consulting route
-    @app.route('/monetization-opportunities/strategic-plan', methods=['GET'])
-    def integrated_strategy_plan():
-        """Integrated Strategy Plan combining monetization with consulting frameworks"""
-        company_name = request.args.get('company', 'Your Company')
-        industry = request.args.get('industry', 'Technology')
-        
-        return render_template(
-            'integrated_strategy.html', 
-            company_name=company_name,
-            industry=industry,
-            monetization_strategies=get_monetization_strategies(),
-            page_title="Integrated Strategic Plan"
-        )
-    
-    # Add API endpoint for generating integrated strategic plan
-    @app.route('/api/monetization/strategic-plan', methods=['POST'])
-    def api_strategic_plan():
-        """API endpoint for generating integrated strategic plan"""
-        data = request.get_json()
-        if not data:
-            return jsonify({
-                'success': False,
-                'error': 'Missing request data'
-            }), 400
-        
-        company_name = data.get('company_name', 'Your Company')
-        industry = data.get('industry', 'Technology')
-        document_text = data.get('document_text', '')
-        
-        # Generate integrated strategic plan
-        plan = generate_integrated_strategic_plan(company_name, industry, document_text)
-        
-        return jsonify({
-            'success': True,
-            'plan': plan
-        })
-        
     logger.info("Integrated Strategy Consulting routes registered in Monetization module")
     
     # Import additional strategy framework data
@@ -766,50 +693,6 @@ def register_routes(app):
             }
         }
     
-    # Add integrated strategy consulting features to monetization route
-    @app.route('/monetization-strategy-consulting')
-    def monetization_strategy_consulting():
-        """Integrated Monetization & Strategy Consulting Dashboard"""
-        from flask import render_template, redirect, url_for
-        
-        strategies = get_monetization_strategies()
-        frameworks = STRATEGY_FRAMEWORKS
-        return render_template(
-            'monetization_strategy.html',
-            monetization_strategies=strategies,
-            strategy_frameworks=frameworks,
-            page_title="Monetization & Strategy Consulting",
-            active_nav="monetization-strategy-consulting"
-        )
-    
-    # Add strategy framework selection route
-    @app.route('/monetization-strategy/framework/<framework_id>')
-    def monetization_strategy_framework(framework_id):
-        """Strategy Framework Details View"""
-        from flask import render_template, redirect, url_for
-        
-        if framework_id not in STRATEGY_FRAMEWORKS:
-            return redirect(url_for('monetization_strategy_consulting'))
-        
-        framework = STRATEGY_FRAMEWORKS[framework_id]
-        strategies = get_monetization_strategies()
-        
-        return render_template(
-            'monetization_framework.html',
-            framework=framework,
-            framework_id=framework_id,
-            monetization_strategies=strategies,
-            page_title=f"{framework['name']} - Strategy Framework",
-            active_nav="monetization-strategy-consulting"
-        )
-    
-    # Add additional API endpoint for accessing strategy frameworks
-    @app.route('/api/monetization/strategy-frameworks', methods=['GET'])
-    def api_strategy_frameworks():
-        """API endpoint for getting available strategy frameworks"""
-        from flask import jsonify
-        
-        return jsonify({
-            'success': True,
-            'frameworks': STRATEGY_FRAMEWORKS
-        })
+    # All routes have been moved to routes/monetization.py blueprint
+    # Keeping this comment here to indicate where routes used to be
+    pass

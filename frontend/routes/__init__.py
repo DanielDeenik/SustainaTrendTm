@@ -17,15 +17,13 @@ def register_blueprints(app):
     # Import blueprints
     from .analytics import analytics_bp
     from .trend import trend_bp
-    # Import the real estate blueprint
-    import sys
-    import os
-    sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
-    from realestate_sustainability import realestate_bp
+    from .monetization import monetization_bp
+    from .realestate import realestate_bp
     
     # Register blueprints
     app.register_blueprint(analytics_bp)
     app.register_blueprint(trend_bp)
     app.register_blueprint(realestate_bp)
+    app.register_blueprint(monetization_bp)
     
     logger.info("All blueprints registered successfully")

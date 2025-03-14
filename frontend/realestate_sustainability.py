@@ -740,7 +740,8 @@ def realestate_trend_analysis():
         **nav_context  # Include all navigation context
     )
     
-@realestate_bp.route('/realestate-unified-dashboard')
+@realestate_bp.route('/realestate/dashboard')
+@realestate_bp.route('/realestate-unified-dashboard')  # Keep for backward compatibility
 def realestate_unified_dashboard():
     """Unified Real Estate Sustainability Dashboard with BREEAM & Extended Metrics"""
     # Get category filter if provided
