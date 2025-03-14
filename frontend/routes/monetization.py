@@ -1,10 +1,13 @@
 """
 Monetization Strategies routes for SustainaTrend Intelligence Platform
+
+This module now redirects all routes to the consolidated Strategy Hub,
+maintaining the API endpoints for backward compatibility.
 """
 
 import json
 import logging
-from flask import Blueprint, render_template, request, jsonify
+from flask import Blueprint, render_template, request, jsonify, redirect, url_for
 
 # Import necessary functions from centralized utils module
 import sys
@@ -19,26 +22,23 @@ from monetization_strategies import (
     generate_integrated_strategic_plan
 )
 
-# Import strategy frameworks
+# Import strategy frameworks for API endpoints (if available) or use fallback
 try:
     from strategy_simulation import STRATEGY_FRAMEWORKS
 except ImportError:
     # Fallback if the strategy_simulation module is not available
     STRATEGY_FRAMEWORKS = {
         "porters": {
-            "id": "porters",
             "name": "Porter's Five Forces",
             "description": "Analyze competitive forces shaping sustainability positioning",
             "icon": "chart-bar"
         },
         "swot": {
-            "id": "swot",
             "name": "SWOT Analysis",
             "description": "Evaluate strengths, weaknesses, opportunities and threats",
             "icon": "grid-2x2"
         },
         "bcg": {
-            "id": "bcg",
             "name": "BCG Growth-Share Matrix",
             "description": "Prioritize investments based on market growth and share",
             "icon": "pie-chart"
@@ -54,28 +54,12 @@ logger = logging.getLogger(__name__)
 @monetization_bp.route('/monetization-strategies')
 @monetization_bp.route('/monetization-opportunities')  # Added route to match navigation
 def monetization_strategies_dashboard():
-    """Monetization Strategies Dashboard"""
-    logger.info("Monetization strategies dashboard route called")
-    
-    # Include navigation for the template
-    nav_context = get_context_for_template()
-    
-    # Get monetization strategies data
-    strategies = get_monetization_strategies()
-    
-    # Format for JSON serialization
-    formatted_strategies = json.dumps(strategies)
-    
-    # Use the consolidated dark themed template
-    logger.info("Using consolidated dark themed template for monetization strategies")
-    return render_template(
-        "finchat_dark_dashboard.html", 
-        page_title="Strategies",
-        template_type="monetization",
-        strategies=strategies,
-        strategies_json=formatted_strategies,
-        **nav_context  # Include all navigation context
-    )
+    """
+    Monetization Strategies Dashboard - Redirects to Strategy Hub
+    All monetization functionality is now consolidated in the Strategy Hub
+    """
+    logger.info("Redirecting monetization route to Strategy Hub")
+    return redirect(url_for('strategy.strategy_hub'))
 
 @monetization_bp.route('/api/monetization/analyze', methods=['POST'])
 def api_monetization_analyze():
@@ -117,25 +101,12 @@ def api_monetization_opportunities():
 
 @monetization_bp.route('/monetization-opportunities/strategic-plan')
 def integrated_strategy_plan():
-    """Integrated Strategy Plan combining monetization with consulting frameworks"""
-    logger.info("Monetization strategic plan route called")
-    
-    company_name = request.args.get('company', 'Your Company')
-    industry = request.args.get('industry', 'Technology')
-    
-    # Include navigation for the template
-    nav_context = get_context_for_template()
-    
-    return render_template(
-        "finchat_dark_dashboard.html", 
-        page_title="Strategic Plan",
-        template_type="monetization",
-        section="strategic-plan",
-        company_name=company_name,
-        industry=industry,
-        frameworks=STRATEGY_FRAMEWORKS,
-        **nav_context
-    )
+    """
+    Integrated Strategy Plan - Redirects to Strategy Hub
+    All strategic planning is now consolidated in the Strategy Hub
+    """
+    logger.info("Redirecting monetization strategic plan to Strategy Hub")
+    return redirect(url_for('strategy.strategy_hub'))
 
 @monetization_bp.route('/api/monetization/strategic-plan', methods=['POST'])
 def api_strategic_plan():
@@ -162,55 +133,28 @@ def api_strategic_plan():
 
 @monetization_bp.route('/monetization-strategy-consulting')
 def monetization_strategy_consulting():
-    """Monetization Strategy Consulting Dashboard"""
-    logger.info("Monetization strategy consulting route called")
-    
-    # Include navigation for the template
-    nav_context = get_context_for_template()
-    
-    return render_template(
-        "finchat_dark_dashboard.html", 
-        page_title="Strategy Consulting",
-        template_type="monetization",
-        section="consulting",
-        frameworks=STRATEGY_FRAMEWORKS,
-        **nav_context
-    )
+    """
+    Monetization Strategy Consulting Dashboard - Redirects to Strategy Hub
+    All consulting functionality is now consolidated in the Strategy Hub
+    """
+    logger.info("Redirecting monetization strategy consulting to Strategy Hub")
+    return redirect(url_for('strategy.strategy_hub'))
 
 @monetization_bp.route('/monetization-strategy/framework/<framework_id>')
 def monetization_strategy_framework(framework_id):
-    """Specific Monetization Strategy Framework"""
-    logger.info(f"Monetization strategy framework route called: {framework_id}")
-    
-    # Include navigation for the template
-    nav_context = get_context_for_template()
-    
-    # Get the specific framework
-    framework = STRATEGY_FRAMEWORKS.get(framework_id)
-    
-    if not framework:
-        return render_template('error.html', message=f"Framework {framework_id} not found"), 404
-    
-    # Get related strategies
-    strategies = [s for s in get_monetization_strategies().values() 
-                 if framework_id in s.get('frameworks', [])]
-    
-    return render_template(
-        "finchat_dark_dashboard.html", 
-        page_title=f"{framework.get('name')} Framework",
-        template_type="monetization",
-        section="framework",
-        framework_id=framework_id,
-        framework=framework,
-        strategies=strategies,
-        **nav_context
-    )
+    """
+    Specific Monetization Strategy Framework - Redirects to Strategy Hub
+    All framework analysis is now consolidated in the Strategy Hub
+    """
+    logger.info(f"Redirecting monetization framework {framework_id} to Strategy Hub")
+    return redirect(url_for('strategy.strategy_framework', framework_id=framework_id))
 
 @monetization_bp.route('/api/monetization/strategy-frameworks')
 def api_strategy_frameworks():
-    """API endpoint for getting available strategy frameworks"""
-    
-    return jsonify({
-        'success': True,
-        'frameworks': STRATEGY_FRAMEWORKS
-    })
+    """
+    API endpoint for getting available strategy frameworks
+    This endpoint is maintained for backward compatibility
+    """
+    # Forward the request to the Strategy Hub API endpoint
+    logger.info("Redirecting strategy frameworks API request to Strategy Hub API")
+    return redirect(url_for('strategy.api_strategy_frameworks'))

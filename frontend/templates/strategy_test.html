@@ -1,0 +1,27 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Strategy Test</title>
+</head>
+<body>
+    <h1>Strategy Test Page</h1>
+    
+    <h2>Monetization Strategies:</h2>
+    <ul>
+    {% for strategy_id, strategy in monetization_strategies.items() %}
+        <li>
+            {{ strategy_id }}: {{ strategy.name }} ({{ strategy.default_potential }}%)
+        </li>
+    {% endfor %}
+    </ul>
+    
+    <h2>Strategy Frameworks:</h2>
+    <ul>
+    {% for framework_id, framework in frameworks.items() %}
+        <li>
+            {{ framework_id }}: {{ framework.name }}
+        </li>
+    {% endfor %}
+    </ul>
+</body>
+</html>

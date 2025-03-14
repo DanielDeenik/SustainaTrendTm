@@ -339,6 +339,52 @@ def generate_monetization_opportunities(document_text: str) -> Dict[str, Any]:
     }
 
 # Export monetization strategies for UI display
+# Create a direct dictionary constant with strategies for reliability
+PRELOADED_MONETIZATION_STRATEGIES = {
+    "M1": {
+        "name": "AI-Driven Sustainability Trend Monetization",
+        "description": "Monetization strategies based on AI-powered trend detection and analysis",
+        "icon": "chart-line",
+        "short_description": "Monetization strategies based on AI-powered trend detection and analysis...",
+        "default_potential": 85
+    },
+    "M2": {
+        "name": "Consulting Services Model",
+        "description": "Advisory and implementation services for sustainability reporting and improvements",
+        "icon": "handshake",
+        "short_description": "Advisory and implementation services for sustainability reporting and improvements...",
+        "default_potential": 65
+    },
+    "M3": {
+        "name": "SaaS Subscription Platform",
+        "description": "Cloud-based sustainability intelligence platform with tiered subscription options",
+        "icon": "cloud",
+        "short_description": "Cloud-based sustainability intelligence platform with tiered subscription options...",
+        "default_potential": 85
+    },
+    "M4": {
+        "name": "Sustainability Data Marketplace",
+        "description": "Platform for buying and selling anonymized sustainability datasets and metrics",
+        "icon": "database",
+        "short_description": "Platform for buying and selling anonymized sustainability datasets and metrics...",
+        "default_potential": 65
+    },
+    "M5": {
+        "name": "Certification and Verification",
+        "description": "Revenue from verifying sustainability claims and certifying compliance",
+        "icon": "certificate",
+        "short_description": "Revenue from verifying sustainability claims and certifying compliance...",
+        "default_potential": 45
+    },
+    "M6": {
+        "name": "AI-Generated Reporting as a Service",
+        "description": "Automated generation of sustainability reports and regulatory filings",
+        "icon": "file-chart-line",
+        "short_description": "Automated generation of sustainability reports and regulatory filings...",
+        "default_potential": 85
+    }
+}
+
 def get_monetization_strategies() -> Dict[str, Dict[str, Any]]:
     """
     Get monetization strategies for UI display
@@ -346,7 +392,11 @@ def get_monetization_strategies() -> Dict[str, Dict[str, Any]]:
     Returns:
         Dictionary with monetization strategies information and default potential values
     """
-    # Add default potential values for UI display
+    # First try to return the preloaded strategies for reliability
+    if PRELOADED_MONETIZATION_STRATEGIES:
+        return PRELOADED_MONETIZATION_STRATEGIES
+        
+    # This is now a fallback if the preloaded strategies are somehow empty
     strategies = {}
     
     for strategy_id, strategy_data in MONETIZATION_FRAMEWORK.items():

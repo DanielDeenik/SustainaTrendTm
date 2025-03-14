@@ -75,16 +75,13 @@ def get_navigation_structure():
                         "icon": "fa-chart-network"
                     },
                     {
-                        "id": "strategies",
-                        "title": "Sustainability Strategies",
-                        "url": "/sustainability-strategies",
-                        "icon": "fa-chess-board"
-                    },
-                    {
-                        "id": "monetization",
-                        "title": "Monetization",
-                        "url": "/monetization-opportunities",
-                        "icon": "fa-dollar-sign"
+                        "id": "strategy",
+                        "title": "Strategy Hub",
+                        "url": "/strategy-hub",
+                        "icon": "fa-chess-board",
+                        "badge": "New",
+                        "badge_color": "success",
+                        "description": "Unified strategy, simulation & monetization center"
                     }
                 ]
             },
