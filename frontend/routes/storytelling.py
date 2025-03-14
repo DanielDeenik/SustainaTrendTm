@@ -29,6 +29,7 @@ from flask import Blueprint, render_template, request, jsonify, current_app, url
 
 # Import sustainability storytelling utilities
 from frontend.sustainability_storytelling import get_enhanced_stories, get_data_driven_stories
+from frontend.sustainability_storytelling import get_ai_generated_story
 from frontend.navigation_config import get_context_for_template
 
 # Configure logging
@@ -758,11 +759,70 @@ def api_generate_story():
     # Save the generated story using our story_operations module
     if story and 'id' in story:
         save_new_story(story)
+
+@storytelling_bp.route('/api/generate-multiple', methods=['POST'])
+def api_generate_multiple_stories():
+    """
+    API endpoint to generate multiple stories based on different audiences and categories
     
-    return jsonify({
-        'status': 'success',
-        'story': story
-    })
+    Expected payload:
+    {
+        "count": 3,  // Optional, default is to generate one story per audience-category pair
+        "audiences": ["investors", "customers", "employees"],
+        "categories": ["climate", "waste", "emissions"],
+        "prompt": "Optional prompt that applies to all stories"
+    }
+    
+    Returns:
+        JSON response with multiple generated stories
+    """
+    # Import directly to ensure we're using the latest version
+    from frontend.story_operations import save_new_story
+    
+    data = request.json or {}
+    
+    # Parse parameters
+    audiences = data.get('audiences', ['all'])
+    categories = data.get('categories', ['all'])
+    prompt = data.get('prompt', '')
+    count = data.get('count', None)  # Optional story count limit
+    document_data = data.get('document_data')
+    
+    stories = []
+    generated_count = 0
+    
+    logger.info(f"Generating multiple stories. Audiences: {audiences}, Categories: {categories}")
+    
+    # Generate requested combinations
+    for audience in audiences:
+        for category in categories:
+            # Check if we've hit the requested count
+            if count is not None and generated_count >= count:
+                break
+                
+            # Generate a unique ID for the story
+            story_id = f"{audience}-{category}-{uuid.uuid4()}"
+            
+            # Generate the story using our local function
+            try:
+                story = get_ai_generated_story(story_id, audience, category, prompt, document_data)
+                
+                # Save the generated story using our story_operations module
+                if story and 'id' in story:
+                    save_new_story(story)
+                    stories.append(story)
+                    generated_count += 1
+                    
+            except Exception as e:
+                logger.error(f"Error generating story for audience={audience}, category={category}: {e}")
+                # Continue with other stories if one fails
+                
+        # Check if we've hit the requested count (after completing a category)
+        if count is not None and generated_count >= count:
+            break
+    
+    logger.info(f"Generated {len(stories)} stories")
+    return jsonify({"stories": stories, "count": len(stories)})
 
 @storytelling_bp.route('/create')
 def create_story():

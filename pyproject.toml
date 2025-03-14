@@ -44,7 +44,7 @@ dependencies = [
     "pymongo>=4.11.2",
     "motor>=3.7.0",
     "bson>=0.5.10",
-    "pinecone>=6.0.2",
+    "pinecone-client==2.2.4",
 ]
 
 [[tool.uv.index]]

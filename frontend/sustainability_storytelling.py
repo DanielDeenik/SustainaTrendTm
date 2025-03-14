@@ -10,14 +10,16 @@ Key features:
 2. Stakeholder-specific storytelling options (Board, Sustainability Teams, Investors)
 3. Interactive story card generation with AI-driven insights
 4. CSRD/ESG compliance narrative integration
+5. Latent Concept Models (LCM) with OpenAI embeddings and Pinecone vector storage
 """
 import random
 import logging
 import json
 import re
 import uuid
+import os
 from datetime import datetime
-from typing import Dict, List, Any, Optional
+from typing import Dict, List, Any, Optional, Tuple
 
 try:
     from flask import Blueprint, request, jsonify, render_template, current_app, redirect, url_for
@@ -36,6 +38,77 @@ try:
 except ImportError:
     VISUALIZATION_AVAILABLE = False
     logging.warning("Visualization libraries not available. Chart generation will be limited.")
+
+# Set default values
+PINECONE_AVAILABLE = False
+OPENAI_AVAILABLE = False
+INDEX_NAME = "sustainability-storytelling"
+
+# Get logger
+logger = logging.getLogger(__name__)
+
+# Function to initialize services (can be called later)
+def initialize_ai_services():
+    """Initialize AI services for storytelling (Pinecone and OpenAI)"""
+    global PINECONE_AVAILABLE, OPENAI_AVAILABLE, INDEX_NAME
+    
+    # Pinecone for vector storage
+    try:
+        # Import Pinecone utilities from the relative path
+        import sys
+        import os
+        
+        # Verify current directory
+        current_dir = os.path.dirname(os.path.abspath(__file__))
+        logger.info(f"Current directory: {current_dir}")
+        
+        # Import directly without using 'frontend' prefix
+        from initialize_pinecone import (
+            initialize_pinecone, 
+            get_index_name, 
+            is_pinecone_available,
+            test_pinecone_connection
+        )
+        
+        # Initialize Pinecone
+        logger.info("Initializing Pinecone...")
+        init_success = initialize_pinecone()
+        available = is_pinecone_available()
+        test_success = test_pinecone_connection() if available else False
+        
+        logger.info(f"Pinecone initialization status: init={init_success}, available={available}, test={test_success}")
+        
+        if init_success and available and test_success:
+            PINECONE_AVAILABLE = True
+            INDEX_NAME = get_index_name()
+            logger.info(f"Pinecone initialized successfully with index: {INDEX_NAME}")
+        else:
+            logger.warning("Pinecone initialization failed. Using fallback story generation.")
+    except Exception as e:
+        logger.warning(f"Error initializing Pinecone: {e}")
+        logger.warning("Pinecone integration not available. Using fallback story generation.")
+
+    # AI model for embeddings
+    try:
+        import openai
+        
+        # Initialize OpenAI
+        OPENAI_API_KEY = os.getenv("OPENAI_API_KEY")
+        if OPENAI_API_KEY:
+            if hasattr(openai, 'api_key'):
+                openai.api_key = OPENAI_API_KEY
+            OPENAI_AVAILABLE = True
+            logger.info("OpenAI initialized successfully")
+        else:
+            logger.warning("OpenAI API key not found. Using fallback story generation.")
+    except Exception as e:
+        logger.warning(f"Error initializing OpenAI: {e}")
+        logger.warning("OpenAI not available. Using fallback story generation.")
+    
+    return PINECONE_AVAILABLE and OPENAI_AVAILABLE
+
+# Try to initialize services immediately
+initialize_ai_services()
 
 # Configure logging
 logger = logging.getLogger(__name__)
@@ -119,6 +192,408 @@ def get_data_driven_stories():
     
     return stories
 
+def get_lcm_story(audience='all', category='all', prompt=None, document_data=None):
+    """
+    Generate a story using Latent Concept Models with OpenAI and Pinecone
+    
+    This function leverages OpenAI embeddings and Pinecone vector storage to create
+    semantically rich, data-driven stories that understand sustainability concepts
+    and their relationships.
+    
+    Args:
+        audience: Target audience for the story
+        category: Sustainability category filter
+        prompt: Optional custom prompt to guide story generation
+        document_data: Optional document data to use as source
+        
+    Returns:
+        Dictionary containing the generated story
+    """
+    story_id = str(uuid.uuid4())
+    logger.info(f"Generating LCM story with id={story_id}, audience={audience}, category={category}, prompt={prompt}")
+    
+    # Check if we can use OpenAI and Pinecone for LCM
+    if OPENAI_AVAILABLE and PINECONE_AVAILABLE:
+        try:
+            # Create embedding text for the query
+            embedding_text = f"Generate a sustainability story for audience: {audience}, category: {category}."
+            if prompt:
+                embedding_text += f" Focus on: {prompt}."
+            
+            if document_data:
+                # Extract key information from document
+                document_title = document_data.get('title', '')
+                document_content = document_data.get('content', '')[:1000]  # Limit size for embedding
+                embedding_text += f" Based on document: {document_title}. Content: {document_content}"
+            
+            # Generate embedding with OpenAI API v1.0 compatibility
+            try:
+                # Check which OpenAI API version we're using
+                if hasattr(openai, 'Embedding'):
+                    # Using older openai < 1.0.0
+                    embedding_response = openai.Embedding.create(
+                        input=embedding_text,
+                        model="text-embedding-ada-002"
+                    )
+                    embedding = embedding_response['data'][0]['embedding']
+                else:
+                    # Using newer openai >= 1.0.0
+                    client = openai.OpenAI(api_key=os.getenv("OPENAI_API_KEY"))
+                    embedding_response = client.embeddings.create(
+                        input=embedding_text,
+                        model="text-embedding-ada-002"
+                    )
+                    embedding = embedding_response.data[0].embedding
+                
+                # Query Pinecone for similar stories
+                retrieved_stories = []
+                
+                try:
+                    # Import here to avoid issues if not available
+                    import pinecone
+                    from initialize_pinecone import get_index_name, is_pinecone_available
+                    
+                    if is_pinecone_available():
+                        # Initialize pinecone
+                        pinecone.init(api_key=os.getenv("PINECONE_API_KEY"))
+                        current_index_name = get_index_name()
+                        
+                        # Create index connection
+                        index = pinecone.Index(current_index_name)
+                        query_results = index.query(
+                            vector=embedding,
+                            top_k=3,
+                            include_metadata=True
+                        )
+                        
+                        # Extract stories from query results
+                        for match in query_results.matches:
+                            if match.score > 0.7 and match.metadata:  # Only use if similarity is high enough
+                                retrieved_stories.append(match.metadata)
+                    
+                    logger.info(f"Retrieved {len(retrieved_stories)} similar stories from Pinecone")
+                except Exception as e:
+                    logger.error(f"Error querying Pinecone: {e}")
+                    # Continue with empty retrieved_stories
+                
+                # Generate LCM story with OpenAI
+                story = create_lcm_story(
+                    story_id,
+                    audience,
+                    category,
+                    prompt,
+                    document_data,
+                    retrieved_stories
+                )
+                
+                # Store the new story in Pinecone for future retrieval
+                try:
+                    # Create story text for embedding
+                    story_text = f"{story['title']} {story['content']}"
+                    
+                    # Generate embedding for the story
+                    if hasattr(openai, 'Embedding'):
+                        # Using older openai < 1.0.0
+                        embedding_response = openai.Embedding.create(
+                            input=story_text,
+                            model="text-embedding-ada-002"
+                        )
+                        new_embedding = embedding_response['data'][0]['embedding']
+                    else:
+                        # Using newer openai >= 1.0.0
+                        client = openai.OpenAI(api_key=os.getenv("OPENAI_API_KEY"))
+                        embedding_response = client.embeddings.create(
+                            input=story_text,
+                            model="text-embedding-ada-002"
+                        )
+                        new_embedding = embedding_response.data[0].embedding
+                    
+                    # Remove large fields before storing
+                    story_metadata = story.copy()
+                    if 'chart_data' in story_metadata:
+                        del story_metadata['chart_data']
+                    
+                    # Store in Pinecone if available
+                    # Import here to avoid issues if not available
+                    import pinecone
+                    from initialize_pinecone import get_index_name, is_pinecone_available
+                    
+                    if is_pinecone_available():
+                        # Initialize pinecone
+                        pinecone.init(api_key=os.getenv("PINECONE_API_KEY"))
+                        current_index_name = get_index_name()
+                        
+                        # Create index connection and store the story
+                        index = pinecone.Index(current_index_name)
+                        index.upsert(
+                            vectors=[
+                                {
+                                    "id": story_id,
+                                    "values": new_embedding,
+                                    "metadata": story_metadata
+                                }
+                            ]
+                        )
+                        logger.info(f"Successfully stored LCM story in Pinecone with ID {story_id}")
+                    else:
+                        logger.info(f"Pinecone not available. Skipping storage of story with ID {story_id}")
+                except Exception as e:
+                    logger.error(f"Error storing story in Pinecone: {e}")
+                    # Continue without storing in Pinecone
+                
+                return story
+            
+            except Exception as e:
+                logger.error(f"Error generating OpenAI embedding: {e}")
+                # Fall back to standard story
+        
+        except Exception as e:
+            logger.error(f"Error in LCM story generation: {e}")
+            # Fall back to standard story
+    
+    # If LCM generation failed or not available, fall back to basic story generation
+    logger.info("Using fallback story generation (non-LCM)")
+    fallback_stories = get_data_driven_stories()
+    
+    # Filter by category if necessary
+    if category != 'all':
+        fallback_stories = [s for s in fallback_stories if s['category'] == category]
+    
+    # Return first matching story or create a default one
+    if fallback_stories:
+        story = fallback_stories[0]
+        story['id'] = story_id  # Use the same ID we generated
+        story['lcm_generated'] = False
+        return story
+    else:
+        # Create a minimal default story
+        return {
+            "id": story_id,
+            "title": f"Default Story for {category}",
+            "content": f"This is a default sustainability story for the {category} category.",
+            "category": category if category != 'all' else "emissions",
+            "audience": audience,
+            "timestamp": datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
+            "lcm_generated": False,
+            "insights": [
+                f"Default insight for {category} category.",
+                "Sustainability performance varies across different metrics.",
+                "Data-driven decision making improves sustainability outcomes."
+            ],
+            "recommendations": [
+                f"Establish baseline metrics for {category}.",
+                "Implement data collection procedures.",
+                "Set improvement targets based on industry benchmarks."
+            ]
+        }
+
+def create_lcm_story(
+    story_id: str, 
+    audience: str, 
+    category: str, 
+    prompt: Optional[str], 
+    document_data: Optional[Dict[str, Any]], 
+    retrieved_stories: List[Dict[str, Any]]
+) -> Dict[str, Any]:
+    """
+    Create an enhanced story using Latent Concept Models with OpenAI
+    
+    Args:
+        story_id: UUID for the story
+        audience: Target audience
+        category: Sustainability category
+        prompt: Custom prompt
+        document_data: Document data
+        retrieved_stories: Retrieved similar stories from Pinecone
+        
+    Returns:
+        LCM-enhanced story
+    """
+    # Start with basic story structure
+    story = {
+        "id": story_id,
+        "title": "",
+        "content": "",
+        "category": category if category != 'all' else "emissions",
+        "audience": audience if audience != 'all' else "board",
+        "timestamp": datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
+        "lcm_generated": True,
+        "insights": [],
+        "recommendations": []
+    }
+    
+    # Use OpenAI API to generate a story with retrieved context
+    try:
+        # Create base prompt
+        system_prompt = """You are an expert sustainability storyteller who creates compelling data-driven narratives
+        that highlight environmental and social impact. Generate a concise, engaging story that translates technical 
+        sustainability data into actionable insights."""
+        
+        # Format user prompt
+        user_prompt = f"Create a sustainability story for audience: {audience}, category: {category}."
+        
+        if prompt:
+            user_prompt += f"\nFocus on: {prompt}."
+            
+        if document_data:
+            doc_title = document_data.get('title', 'Sustainability Document')
+            doc_content = document_data.get('content', '')[:1500]  # Limit content size
+            user_prompt += f"\n\nBased on document: {doc_title}\nContent: {doc_content}"
+        
+        # Add context from retrieved stories
+        if retrieved_stories:
+            user_prompt += "\n\nIncorporate insights from these related sustainability topics:"
+            for i, rs in enumerate(retrieved_stories[:2], 1):  # Use up to 2 stories for context
+                user_prompt += f"\n{i}. {rs.get('title', 'Related Story')}: {rs.get('content', '')[:300]}"
+        
+        # Complete the prompt with specific instructions
+        user_prompt += f"""\n\nStructure the story with:
+        1. A compelling title that focuses on {category} for {audience} audience
+        2. A concise narrative (2-3 paragraphs)
+        3. Three key insights (one sentence each)
+        4. Two actionable recommendations (one sentence each)
+        
+        Make the story punchy, focused on impact, and convert technical terms into business value.
+        Format your response as JSON with the following fields: {{
+            "title": "The story title",
+            "content": "The narrative content",
+            "insights": ["Insight 1", "Insight 2", "Insight 3"],
+            "recommendations": ["Recommendation 1", "Recommendation 2"]
+        }}
+        """
+        
+        # Generate the story with LCM using OpenAI API v1.0 compatibility
+        if hasattr(openai, 'ChatCompletion'):
+            # Using older openai < 1.0.0
+            response = openai.ChatCompletion.create(
+                model="gpt-4",
+                messages=[
+                    {"role": "system", "content": system_prompt},
+                    {"role": "user", "content": user_prompt}
+                ],
+                temperature=0.7,
+                max_tokens=1000
+            )
+            # Extract JSON from response
+            response_text = response.choices[0].message.content.strip()
+        else:
+            # Using newer openai >= 1.0.0
+            client = openai.OpenAI(api_key=os.getenv("OPENAI_API_KEY"))
+            response = client.chat.completions.create(
+                model="gpt-4",
+                messages=[
+                    {"role": "system", "content": system_prompt},
+                    {"role": "user", "content": user_prompt}
+                ],
+                temperature=0.7,
+                max_tokens=1000
+            )
+            # Extract JSON from response
+            response_text = response.choices[0].message.content.strip()
+        
+        # Handle different JSON formats in response
+        try:
+            # Try parsing the entire response as JSON
+            story_data = json.loads(response_text)
+        except json.JSONDecodeError:
+            # Extract JSON object if embedded in text (with markdown code blocks, etc.)
+            import re
+            json_match = re.search(r'```json\s*(.*?)\s*```', response_text, re.DOTALL)
+            if json_match:
+                try:
+                    story_data = json.loads(json_match.group(1))
+                except json.JSONDecodeError:
+                    # Still failed, extract key parts manually
+                    story_data = extract_story_elements_manually(response_text)
+            else:
+                # No json blocks, try to extract elements manually
+                story_data = extract_story_elements_manually(response_text)
+        
+        # Update story with generated content
+        story['title'] = story_data.get('title', f"Story about {category} for {audience}")
+        story['content'] = story_data.get('content', "")
+        story['insights'] = story_data.get('insights', [])
+        story['recommendations'] = story_data.get('recommendations', [])
+        
+        logger.info(f"Successfully generated LCM story: {story['title']}")
+        return story
+    
+    except Exception as e:
+        logger.error(f"Error generating story with OpenAI: {e}")
+        
+        # Create a fallback story with default content
+        story['title'] = f"Story about {category} for {audience}"
+        story['content'] = f"This story focuses on sustainability insights related to {category}."
+        story['insights'] = [
+            f"Sustainability performance in {category} requires continuous monitoring.",
+            "Data-driven decision making improves sustainability outcomes.",
+            "Stakeholder engagement is essential for sustainability success."
+        ]
+        story['recommendations'] = [
+            f"Establish clear metrics for tracking {category} performance.",
+            "Integrate sustainability data into regular business reporting."
+        ]
+        story['lcm_generated'] = False
+        
+        return story
+
+def extract_story_elements_manually(text: str) -> Dict[str, Any]:
+    """
+    Extract story elements manually from text response
+    
+    Args:
+        text: Raw text response from OpenAI
+        
+    Returns:
+        Dictionary with story elements
+    """
+    # Initialize story data
+    story_data = {
+        "title": "",
+        "content": "",
+        "insights": [],
+        "recommendations": []
+    }
+    
+    # Extract title
+    title_match = re.search(r'(?:title[:\s]*|#\s*)(.*?)(?:\n|$)', text, re.IGNORECASE)
+    if title_match:
+        story_data["title"] = title_match.group(1).strip()
+    
+    # Extract content - any paragraphs not clearly part of insights or recommendations
+    content_lines = []
+    for line in text.split('\n'):
+        line = line.strip()
+        if (line and 
+            not line.startswith(('#', 'Title:', 'Content:', 'Insights:', 'Recommendations:')) and
+            not re.match(r'^(\d+\.|\*|\-)\s*(insight|recommendation)', line, re.IGNORECASE) and
+            len(line) > 30):  # Assume longer lines are content
+            content_lines.append(line)
+    
+    # Take the first few paragraphs as content
+    content_paragraphs = content_lines[:3]
+    story_data["content"] = ' '.join(content_paragraphs)
+    
+    # Extract insights
+    insights = []
+    insight_pattern = re.compile(r'(?:insight[:\s]*|^\d+\.|\*|\-)\s*(.*?)(?:\n|$)', re.IGNORECASE | re.MULTILINE)
+    for match in insight_pattern.finditer(text):
+        insight = match.group(1).strip()
+        if insight and not insight.startswith(('title', 'content', 'recommendation')):
+            insights.append(insight)
+    story_data["insights"] = insights[:3]  # Take up to 3 insights
+    
+    # Extract recommendations
+    recommendations = []
+    recommendation_pattern = re.compile(r'(?:recommendation[:\s]*|^\d+\.|\*|\-)\s*(.*?)(?:\n|$)', re.IGNORECASE | re.MULTILINE)
+    for match in recommendation_pattern.finditer(text):
+        recommendation = match.group(1).strip()
+        if recommendation and not recommendation.startswith(('title', 'content', 'insight')):
+            recommendations.append(recommendation)
+    story_data["recommendations"] = recommendations[:2]  # Take up to 2 recommendations
+    
+    return story_data
+
 def get_enhanced_stories(audience='all', category='all', prompt=None, document_data=None):
     """
     Generate enhanced stories with the three core elements of data storytelling:
@@ -138,7 +613,27 @@ def get_enhanced_stories(audience='all', category='all', prompt=None, document_d
     Returns:
         List of enhanced story dictionaries
     """
+    # Ensure category is not None
+    if category is None:
+        category = 'all'
+        
     logger.info(f"Generating enhanced stories for audience: {audience}, category: {category}, prompt: {prompt}, document_data: {'provided' if document_data else 'not provided'}")
+    
+    # Try to initialize AI services if not already done
+    if not PINECONE_AVAILABLE or not OPENAI_AVAILABLE:
+        logger.info("AI services not fully initialized, attempting re-initialization")
+        initialize_ai_services()
+    
+    # Try to generate a story using LCM first
+    lcm_story = get_lcm_story(audience, category, prompt, document_data)
+    
+    if lcm_story and lcm_story.get('lcm_generated', False):
+        # LCM story was successfully generated
+        logger.info("Generated LCM story successfully")
+        return [lcm_story]
+        
+    # If LCM failed or is not available, generate stories using the standard approach
+    logger.info("Falling back to standard story generation")
     
     # Base stories to enhance
     base_stories = get_data_driven_stories()

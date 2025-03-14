@@ -44,84 +44,15 @@ def initialize_pinecone() -> bool:
         return False
     
     try:
-        # Try with the new SDK first
+        # Using pinecone-client v2.2.4 for compatibility
+        logger.info("Initializing Pinecone with v2.2.4")
+        import pinecone
+        
+        # Initialize with pinecone-client API
         try:
-            logger.info("Using the latest Pinecone SDK")
-            from pinecone import Pinecone, ServerlessSpec
-            
-            # Initialize Pinecone client
-            pc = Pinecone(api_key=PINECONE_API_KEY)
-            logger.info("Pinecone client initialized successfully")
-            
-            # List available indexes
-            indexes = pc.list_indexes().names()
-            logger.info(f"Available indexes: {indexes}")
-            
-            # First check if our default index exists
-            if DEFAULT_INDEX_NAME in indexes:
-                logger.info(f"Index '{DEFAULT_INDEX_NAME}' already exists")
-                # Connect to the existing index
-                index = pc.Index(DEFAULT_INDEX_NAME)
-                stats = index.describe_index_stats()
-                logger.info(f"Index stats: {stats}")
-                current_index_name = DEFAULT_INDEX_NAME
-                pinecone_available = True
-                return True
-            
-            # If no default index, try to use any available index
-            if indexes:
-                # Use the first available index
-                alt_index_name = indexes[0]
-                logger.info(f"Using existing index '{alt_index_name}' instead of creating new one")
-                
-                # Connect to existing index
-                try:
-                    index = pc.Index(alt_index_name)
-                    logger.info(f"Successfully connected to alternative index: {alt_index_name}")
-                    # Store index name for later reference
-                    current_index_name = alt_index_name
-                    pinecone_available = True
-                    return True
-                except Exception as e:
-                    logger.error(f"Error connecting to alternative index: {e}")
-            
-            # If we got here, we need to create a new index
-            # This will only work on paid plans with correct region settings
-            try:
-                logger.info(f"Creating new index: {DEFAULT_INDEX_NAME}")
-                # Use gcp-starter for free tier
-                pc.create_index(
-                    name=DEFAULT_INDEX_NAME,
-                    dimension=DIMENSION,
-                    metric="cosine",
-                    spec=ServerlessSpec(cloud="gcp", region="us-central1")
-                )
-                
-                logger.info(f"Created new index '{DEFAULT_INDEX_NAME}' with dimension {DIMENSION}")
-                
-                # Wait for index initialization
-                logger.info("Waiting for index initialization...")
-                sleep(10)  # Wait for index to initialize
-                
-                # Connect to the new index
-                index = pc.Index(DEFAULT_INDEX_NAME)
-                logger.info(f"Connected to new index '{DEFAULT_INDEX_NAME}'")
-                current_index_name = DEFAULT_INDEX_NAME
-                pinecone_available = True
-                return True
-            except Exception as e:
-                logger.error(f"Error creating new index: {e}")
-                logger.warning("Using fallback mode without Pinecone")
-                return False
-                
-        except ImportError:
-            # Fallback for older Pinecone SDK version
-            logger.warning("Using legacy Pinecone SDK (deprecated)")
-            import pinecone
-            
-            # Initialize with the older API - use gcp-starter for free tier
-            pinecone.init(api_key=PINECONE_API_KEY, environment="gcp-starter")
-            logger.info("Legacy Pinecone client initialized")
+            # Simple initialization with API key only (let Pinecone determine the best environment)
+            pinecone.init(api_key=PINECONE_API_KEY)
+            logger.info("Pinecone client initialized successfully with v2.2.4")
             
             # Check if index exists
             existing_indexes = pinecone.list_indexes()
@@ -175,9 +106,13 @@ def initialize_pinecone() -> bool:
                 logger.error(f"Error creating new index: {e}")
                 logger.warning("Using fallback mode without Pinecone")
                 return False
+                
+        except Exception as e:
+            logger.error(f"Error initializing Pinecone: {e}")
+            return False
             
     except Exception as e:
-        logger.error(f"Error initializing Pinecone: {e}")
+        logger.error(f"Error importing Pinecone: {e}")
         return False
 
 
@@ -195,48 +130,14 @@ def test_pinecone_connection() -> bool:
         return False
     
     try:
-        # Try with the new SDK first
+        # Using pinecone-client v2.2.4 for compatibility
+        logger.info("Testing Pinecone connection with v2.2.4")
+        import pinecone
+        
         try:
-            from pinecone import Pinecone
-            
-            # Initialize Pinecone client
-            pc = Pinecone(api_key=PINECONE_API_KEY)
-            logger.info("Pinecone client initialized successfully")
-            
-            # List available indexes
-            indexes = pc.list_indexes().names()
-            logger.info(f"Available indexes: {indexes}")
-            
-            if current_index_name in indexes:
-                # Connect to the index
-                index = pc.Index(current_index_name)
-                stats = index.describe_index_stats()
-                logger.info(f"Index stats: {stats}")
-                logger.info("Pinecone connectivity test: SUCCESS")
-                pinecone_available = True
-                return True
-            elif indexes:
-                # Use first available index
-                alt_index_name = indexes[0]
-                logger.info(f"Current index not found, using '{alt_index_name}' instead")
-                index = pc.Index(alt_index_name)
-                stats = index.describe_index_stats()
-                logger.info(f"Index stats for '{alt_index_name}': {stats}")
-                current_index_name = alt_index_name
-                pinecone_available = True
-                return True
-            else:
-                logger.error("No indexes found. Using fallback mode.")
-                return False
-                
-        except ImportError:
-            # Fallback to older SDK
-            logger.warning("Using legacy Pinecone SDK for testing")
-            import pinecone
-            
-            # Initialize with older API
-            pinecone.init(api_key=PINECONE_API_KEY, environment="gcp-starter")
-            logger.info("Legacy Pinecone client initialized for testing")
+            # Simple initialization with API key only (let Pinecone determine the best environment)
+            pinecone.init(api_key=PINECONE_API_KEY)
+            logger.info("Pinecone client initialized successfully for testing")
             
             # List available indexes
             indexes = pinecone.list_indexes()
@@ -264,8 +165,12 @@ def test_pinecone_connection() -> bool:
                 logger.error("No indexes found. Using fallback mode.")
                 return False
                 
+        except Exception as e:
+            logger.error(f"Error testing Pinecone connection: {e}")
+            return False
+            
     except Exception as e:
-        logger.error(f"Error testing Pinecone connection: {e}")
+        logger.error(f"Error importing Pinecone for testing: {e}")
         return False
 
 
@@ -275,8 +180,51 @@ def get_index_name() -> str:
 
 
 def is_pinecone_available() -> bool:
-    """Check if Pinecone is available"""
-    return pinecone_available
+    """
+    Check if Pinecone is available
+    
+    This method first checks the global flag, and then attempts a connection
+    test if the flag is False. This provides a more reliable check, especially
+    in environments with intermittent connectivity.
+    
+    Returns:
+        bool: True if Pinecone is available, False otherwise
+    """
+    global pinecone_available
+    
+    # First, check our cached status
+    if pinecone_available:
+        return True
+        
+    # If not available, attempt a lightweight test
+    if PINECONE_API_KEY:
+        try:
+            import pinecone
+            
+            try:
+                # Simple initialization with minimal overhead
+                pinecone.init(api_key=PINECONE_API_KEY)
+                
+                # Just try to list indexes - don't need to actually connect
+                try:
+                    pinecone.list_indexes()
+                    # If we get here, connectivity is working
+                    pinecone_available = True
+                    return True
+                except Exception:
+                    # Network connectivity issue with Pinecone API
+                    return False
+                    
+            except Exception:
+                # Error during initialization
+                return False
+                
+        except ImportError:
+            # Pinecone library not available
+            return False
+    
+    # No API key
+    return False
 
 
 if __name__ == "__main__":
