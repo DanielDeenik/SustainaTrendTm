@@ -66,6 +66,26 @@ def get_real_estate_metrics() -> List[Dict[str, Any]]:
     try:
         metrics = generate_mock_realestate_metrics()
         logger.info(f"Generated {len(metrics)} real estate sustainability metrics")
+        
+        # Enhance metrics with change data required by the template
+        for metric in metrics:
+            # Add change percentage (random for demonstration)
+            change_percent = round(np.random.uniform(1.0, 5.0), 1)
+            
+            # Determine if this is a positive or negative change 
+            # For some metrics like carbon, lower is better
+            lower_is_better = metric['category'] in ['carbon_footprint'] or 'rating' in metric['unit']
+            
+            # Randomly decide if trend is up or down
+            trend_up = np.random.choice([True, False])
+            
+            # Determine if this is a positive change (improvement)
+            is_positive = (trend_up and not lower_is_better) or (not trend_up and lower_is_better)
+            
+            # Add the fields needed by the template
+            metric['change'] = change_percent  
+            metric['change_type'] = 'positive' if is_positive else 'negative'
+        
         return metrics
     except Exception as e:
         logger.error(f"Error generating real estate metrics: {str(e)}")
@@ -649,35 +669,30 @@ def get_realestate_trend_analysis(category: Optional[str] = None) -> Dict[str, A
         'category_counts': category_counts
     }
 
-def configure_routes(app):
-    """
-    Configure Flask routes for real estate sustainability intelligence
+# Create blueprint
+realestate_bp = Blueprint('realestate', __name__)
+
+# Configure logging
+logger = logging.getLogger(__name__)
+
+@realestate_bp.route('/realestate-trends')
+def realestate_trend_analysis():
+    """Real Estate Sustainability Trend Analysis dashboard with theme support"""
+    # Get category filter if provided
+    category = request.args.get('category', None)
     
-    Args:
-        app: Flask application
-    """
-    @app.route('/realestate-trends')
-    def realestate_trend_analysis():
-        """Real Estate Sustainability Trend Analysis dashboard with theme support"""
-        # Get category filter if provided
-        category = request.args.get('category', None)
-        
-        # Get theme preference (default to dark theme)
-        theme = request.args.get('theme', 'dark')
-        
-        # Get trend data
-        trend_data = get_realestate_trend_analysis(category)
-        
-        # Use the appropriate template based on the theme
-        template_name = "realestate_trend_analysis.html"
-        if theme == 'dark':
-            template_name = "realestate_trend_analysis_dark.html"
-            logger.info("Using Finchat dark theme for real estate trend analysis")
-        else:
-            logger.info("Using light theme for real estate trend analysis")
-        
-        # Prepare additional metrics for the updated page
-        additional_metrics = {
+    # Get trend data
+    trend_data = get_realestate_trend_analysis(category)
+    
+    # Get metrics data for the dashboard
+    metrics = get_real_estate_metrics()
+    
+    # Include navigation for the template
+    from navigation_config import get_context_for_template
+    nav_context = get_context_for_template()
+    
+    # Prepare additional metrics for the updated page
+    additional_metrics = {
             'energy_efficiency': {
                 'avg_value': round(np.mean([m['value'] for m in trend_data['metrics'] if m['category'] == 'energy_efficiency']), 1) if trend_data.get('metrics') else 68.5,
                 'change': '+4.2%',
@@ -700,248 +715,258 @@ def configure_routes(app):
             },
         }
         
-        # Regional performance data
-        regions = ['North', 'South', 'East', 'West', 'Central']
-        regional_data = {
-            'labels': regions,
-            'energy_efficiency': [round(np.random.uniform(60, 85), 1) for _ in regions],
-            'carbon_footprint': [round(np.random.uniform(25, 45), 1) for _ in regions],
-            'green_financing': [round(np.random.uniform(10, 25), 1) for _ in regions]
-        }
-        
-        return render_template(
-            template_name,
-            trends=trend_data['trends'],
-            trend_chart_data=json.dumps(trend_data['chart_data']),
-            category=category or 'all',
-            categories=REALESTATE_CATEGORIES,
-            sort="virality",
-            current_theme=theme,
-            additional_metrics=additional_metrics,
-            regional_data=json.dumps(regional_data, cls=NumPyJSONEncoder)
-        )
+    # Regional performance data
+    regions = ['North', 'South', 'East', 'West', 'Central']
+    regional_data = {
+        'labels': regions,
+        'energy_efficiency': [round(np.random.uniform(60, 85), 1) for _ in regions],
+        'carbon_footprint': [round(np.random.uniform(25, 45), 1) for _ in regions],
+        'green_financing': [round(np.random.uniform(10, 25), 1) for _ in regions]
+    }
     
-    @app.route('/realestate-unified-dashboard')
-    def realestate_unified_dashboard():
-        """Unified Real Estate Sustainability Dashboard with BREEAM & Extended Metrics"""
-        # Get category filter if provided
-        category = request.args.get('category', None)
-        
-        # Get trend data
-        trend_data = get_realestate_trend_analysis(category)
-        
-        # The theme is now handled by the base template and context processor
-        logger.info("Rendering unified real estate dashboard with dynamic theme support")
-        
-        return render_template(
-            "realestate_unified_dashboard.html",
-            trends=trend_data['trends'],
-            trend_chart_data=json.dumps(trend_data['chart_data'], cls=NumPyJSONEncoder),
-            category=category or 'all',
-            categories=REALESTATE_CATEGORIES,
-            sort="virality"
-        )
+    logger.info("Rendering real estate trend analysis in consolidated dashboard template")
     
-    @app.route('/api-realestate-gemini-search', methods=['GET', 'POST'])
-    def api_realestate_gemini_search():
-        """API endpoint for Gemini-powered real estate sustainability search"""
-        if request.method == 'POST':
-            data = request.get_json()
-            query = data.get('query', '') if data else ''
-        else:
-            query = request.args.get('query', '')
+    return render_template(
+        "finchat_dark_dashboard.html",
+        template_type="realestate",
+        trends=trend_data['trends'],
+        trend_chart_data=json.dumps(trend_data['chart_data']),
+        category=category or 'all',
+        categories=REALESTATE_CATEGORIES,
+        sort="virality",
+        metrics=metrics,  # Add metrics data for the dashboard
+        additional_metrics=additional_metrics,
+        regional_data=json.dumps(regional_data, cls=NumPyJSONEncoder),
+        **nav_context  # Include all navigation context
+    )
+    
+@realestate_bp.route('/realestate-unified-dashboard')
+def realestate_unified_dashboard():
+    """Unified Real Estate Sustainability Dashboard with BREEAM & Extended Metrics"""
+    # Get category filter if provided
+    category = request.args.get('category', None)
+    
+    # Get trend data
+    trend_data = get_realestate_trend_analysis(category)
+    
+    # Get metrics data for the dashboard
+    metrics = get_real_estate_metrics()
+    
+    # Include navigation for the template
+    from navigation_config import get_context_for_template
+    nav_context = get_context_for_template()
+    
+    logger.info("Rendering unified real estate dashboard in consolidated template")
+    
+    return render_template(
+        "finchat_dark_dashboard.html",
+        template_type="realestate",
+        trends=trend_data['trends'],
+        trend_chart_data=json.dumps(trend_data['chart_data'], cls=NumPyJSONEncoder),
+        category=category or 'all',
+        categories=REALESTATE_CATEGORIES,
+        sort="virality",
+        view_mode="unified",
+        metrics=metrics,  # Add metrics data for the dashboard
+        **nav_context  # Include all navigation context
+    )
+    
+@realestate_bp.route('/api-realestate-gemini-search', methods=['GET', 'POST'])
+def api_realestate_gemini_search():
+    """API endpoint for Gemini-powered real estate sustainability search"""
+    if request.method == 'POST':
+        data = request.get_json()
+        query = data.get('query', '') if data else ''
+    else:
+        query = request.args.get('query', '')
+    
+    try:
+        # Import the Gemini search controller
+        from gemini_search import GeminiSearchController
         
-        try:
-            # Import the Gemini search controller
-            from gemini_search import GeminiSearchController
+        # Initialize the Gemini search controller
+        gemini_controller = GeminiSearchController()
+        
+        # Convert the async function to sync using asyncio.run
+        import asyncio
+        response = asyncio.run(gemini_controller.enhanced_search(
+            query=query,
+            mode="gemini",
+            max_results=5
+        ))
+        
+        # Process the response to extract the most relevant content
+        if response and 'results' in response and len(response['results']) > 0:
+            first_result = response['results'][0]
+            content_html = f"""
+            <div class="mb-3">{first_result.get('snippet', '')}</div>
+            <div class="st-gemini-source-info">
+                <a href="{first_result.get('url', '#')}" target="_blank" class="st-gemini-source-link">
+                    {first_result.get('title', 'Source')} <i class="bi bi-box-arrow-up-right ms-1"></i>
+                </a>
+            </div>
+            """
             
-            # Initialize the Gemini search controller
-            gemini_controller = GeminiSearchController()
-            
-            # Convert the async function to sync using asyncio.run
-            import asyncio
-            response = asyncio.run(gemini_controller.enhanced_search(
-                query=query,
-                mode="gemini",
-                max_results=5
-            ))
-            
-            # Process the response to extract the most relevant content
-            if response and 'results' in response and len(response['results']) > 0:
-                first_result = response['results'][0]
-                content_html = f"""
-                <div class="mb-3">{first_result.get('snippet', '')}</div>
-                <div class="st-gemini-source-info">
-                    <a href="{first_result.get('url', '#')}" target="_blank" class="st-gemini-source-link">
-                        {first_result.get('title', 'Source')} <i class="bi bi-box-arrow-up-right ms-1"></i>
-                    </a>
+            # Add more in-depth analysis if available
+            if 'analysis' in response:
+                content_html += f"""
+                <div class="alert alert-info mt-3">
+                    <i class="bi bi-info-circle"></i> <strong>Insight:</strong> {response['analysis'].get('summary', '')}
                 </div>
                 """
-                
-                # Add more in-depth analysis if available
-                if 'analysis' in response:
-                    content_html += f"""
-                    <div class="alert alert-info mt-3">
-                        <i class="bi bi-info-circle"></i> <strong>Insight:</strong> {response['analysis'].get('summary', '')}
-                    </div>
-                    """
-                
-                return jsonify({
-                    'success': True,
-                    'content': content_html,
-                    'query': query,
-                    'result_count': len(response.get('results', []))
-                })
-            else:
-                # If no results, return a formatted message
-                return jsonify({
-                    'success': False,
-                    'content': """
-                    <div class="alert alert-warning">
-                        <i class="bi bi-exclamation-triangle"></i> No specific information found for this query. 
-                        Please try one of the suggested questions or rephrase your query.
-                    </div>
-                    """,
-                    'query': query,
-                    'result_count': 0
-                })
-                
-        except Exception as e:
-            # Log the error
-            app.logger.error(f"Error in Gemini search: {str(e)}")
             
-            # Return a formatted error message
+            return jsonify({
+                'success': True,
+                'content': content_html,
+                'query': query,
+                'result_count': len(response.get('results', []))
+            })
+        else:
+            # If no results, return a formatted message
             return jsonify({
                 'success': False,
-                'content': f"""
-                <div class="alert alert-danger">
-                    <i class="bi bi-exclamation-triangle-fill"></i> <strong>Error:</strong> 
-                    Unable to process your query at this time. Please try again later.
+                'content': """
+                <div class="alert alert-warning">
+                    <i class="bi bi-exclamation-triangle"></i> No specific information found for this query. 
+                    Please try one of the suggested questions or rephrase your query.
                 </div>
-                <div class="small text-muted">Error details: {str(e)}</div>
                 """,
                 'query': query,
-                'error': str(e)
+                'result_count': 0
             })
-    
-    @app.route('/api/realestate-updates')
-    def api_realestate_updates():
-        """API endpoint for recent updates in real estate sustainability metrics"""
-        # This provides a regular JSON API for recent updates
-        # Different from the SSE endpoint which provides real-time streaming
+            
+    except Exception as e:
+        # Log the error
+        logger.error(f"Error in Gemini search: {str(e)}")
         
+        # Return a formatted error message
         return jsonify({
-            'updates': [
-                {
-                    'type': 'breeam',
-                    'title': 'BREEAM Rating Updated',
-                    'description': 'Marina Heights has achieved "Excellent" BREEAM certification after recent renovations.',
-                    'timestamp': datetime.now().isoformat()
-                },
-                {
-                    'type': 'energy',
-                    'title': 'Energy Consumption Alert',
-                    'description': 'Eastern Complex showing unusual energy consumption patterns in the last 24 hours.',
-                    'timestamp': (datetime.now() - timedelta(minutes=15)).isoformat()
-                },
-                {
-                    'type': 'carbon',
-                    'title': 'Carbon Reduction Achievement',
-                    'description': 'Healthcare Center has achieved carbon neutrality goal for Q1 2025.',
-                    'timestamp': (datetime.now() - timedelta(minutes=35)).isoformat()
-                }
-            ]
+            'success': False,
+            'content': f"""
+            <div class="alert alert-danger">
+                <i class="bi bi-exclamation-triangle-fill"></i> <strong>Error:</strong> 
+                Unable to process your query at this time. Please try again later.
+            </div>
+            <div class="small text-muted">Error details: {str(e)}</div>
+            """,
+            'query': query,
+            'error': str(e)
         })
+    
+@realestate_bp.route('/api/realestate-updates')
+def api_realestate_updates():
+    """API endpoint for recent updates in real estate sustainability metrics"""
+    # This provides a regular JSON API for recent updates
+    # Different from the SSE endpoint which provides real-time streaming
+    
+    return jsonify({
+        'updates': [
+            {
+                'type': 'breeam',
+                'title': 'BREEAM Rating Updated',
+                'description': 'Marina Heights has achieved "Excellent" BREEAM certification after recent renovations.',
+                'timestamp': datetime.now().isoformat()
+            },
+            {
+                'type': 'energy',
+                'title': 'Energy Consumption Alert',
+                'description': 'Eastern Complex showing unusual energy consumption patterns in the last 24 hours.',
+                'timestamp': (datetime.now() - timedelta(minutes=15)).isoformat()
+            },
+            {
+                'type': 'carbon',
+                'title': 'Carbon Reduction Achievement',
+                'description': 'Healthcare Center has achieved carbon neutrality goal for Q1 2025.',
+                'timestamp': (datetime.now() - timedelta(minutes=35)).isoformat()
+            }
+        ]
+    })
             
-    @app.route('/api/realestate-trends')
-    def api_realestate_trends():
-        """API endpoint for real estate sustainability trend data"""
-        # Get category filter if provided
-        category = request.args.get('category', None)
+@realestate_bp.route('/api/realestate-trends')
+def api_realestate_trends():
+    """API endpoint for real estate sustainability trend data"""
+    # Get category filter if provided
+    category = request.args.get('category', None)
+    
+    # Get trend data
+    trend_data = get_realestate_trend_analysis(category)
+    
+    # Use our custom NumPyJSONEncoder to handle numpy data types
+    return jsonify(trend_data)
         
-        # Get trend data
-        trend_data = get_realestate_trend_analysis(category)
+@realestate_bp.route('/api/realestate-realtime-updates')
+def realestate_realtime_updates():
+    """
+    Server-Sent Events endpoint for real-time dashboard updates
+    Provides real-time MongoDB data streaming for SimCorp One-inspired UI
+    """
+    def generate():
+        # Initial SSE message to establish connection
+        yield "data: {\"event\": \"connected\", \"message\": \"Real-time updates established\"}\n\n"
         
-        # Use our custom NumPyJSONEncoder to handle numpy data types
-        return app.response_class(
-            response=json.dumps(trend_data, cls=NumPyJSONEncoder),
-            status=200,
-            mimetype='application/json'
-        )
-        
-    @app.route('/api/realestate-realtime-updates')
-    def realestate_realtime_updates():
-        """
-        Server-Sent Events endpoint for real-time dashboard updates
-        Provides real-time MongoDB data streaming for SimCorp One-inspired UI
-        """
-        def generate():
-            # Initial SSE message to establish connection
-            yield "data: {\"event\": \"connected\", \"message\": \"Real-time updates established\"}\n\n"
-            
-            # In a production environment, this would use a MongoDB change stream
-            # For now, we'll simulate real-time updates with periodic data
-            count = 0
-            try:
-                while True:
-                    count += 1
-                    # Check if client closed connection
-                    if request.headers.get('Accept') != 'text/event-stream':
-                        break
-                        
-                    # Generate simulated update data
-                    if count % 3 == 0:
-                        # BREEAM metrics update
-                        update_data = {
-                            "event": "breeam_update",
-                            "component": "breeam",
-                            "data": {
-                                "property_id": f"PROP-{random.randint(1000, 9999)}",
-                                "score": round(random.uniform(70, 95), 1),
-                                "category": random.choice(["management", "health", "energy", "water", "materials"]),
-                                "timestamp": datetime.now().isoformat()
-                            }
-                        }
-                    elif count % 3 == 1:
-                        # Energy metrics update
-                        update_data = {
-                            "event": "energy_update",
-                            "component": "energy",
-                            "data": {
-                                "property_id": f"PROP-{random.randint(1000, 9999)}",
-                                "consumption": round(random.uniform(80, 150), 1),
-                                "unit": "kWh/m²",
-                                "trend": random.choice(["decreasing", "stable", "increasing"]),
-                                "timestamp": datetime.now().isoformat()
-                            }
-                        }
-                    else:
-                        # Carbon metrics update
-                        update_data = {
-                            "event": "carbon_update",
-                            "component": "carbon",
-                            "data": {
-                                "property_id": f"PROP-{random.randint(1000, 9999)}",
-                                "emissions": round(random.uniform(20, 50), 1),
-                                "unit": "kgCO₂e/m²",
-                                "reduction": round(random.uniform(5, 25), 1),
-                                "timestamp": datetime.now().isoformat()
-                            }
-                        }
-                        
-                    yield f"data: {json.dumps(update_data)}\n\n"
-                    time.sleep(5)  # Send update every 5 seconds
+        # In a production environment, this would use a MongoDB change stream
+        # For now, we'll simulate real-time updates with periodic data
+        count = 0
+        try:
+            while True:
+                count += 1
+                # Check if client closed connection
+                if request.headers.get('Accept') != 'text/event-stream':
+                    break
                     
-            except GeneratorExit:
-                logger.info("Client closed SSE connection")
-            except Exception as e:
-                logger.error(f"Error in SSE stream: {str(e)}")
+                # Generate simulated update data
+                if count % 3 == 0:
+                    # BREEAM metrics update
+                    update_data = {
+                        "event": "breeam_update",
+                        "component": "breeam",
+                        "data": {
+                            "property_id": f"PROP-{random.randint(1000, 9999)}",
+                            "score": round(random.uniform(70, 95), 1),
+                            "category": random.choice(["management", "health", "energy", "water", "materials"]),
+                            "timestamp": datetime.now().isoformat()
+                        }
+                    }
+                elif count % 3 == 1:
+                    # Energy metrics update
+                    update_data = {
+                        "event": "energy_update",
+                        "component": "energy",
+                        "data": {
+                            "property_id": f"PROP-{random.randint(1000, 9999)}",
+                            "consumption": round(random.uniform(80, 150), 1),
+                            "unit": "kWh/m²",
+                            "trend": random.choice(["decreasing", "stable", "increasing"]),
+                            "timestamp": datetime.now().isoformat()
+                        }
+                    }
+                else:
+                    # Carbon metrics update
+                    update_data = {
+                        "event": "carbon_update",
+                        "component": "carbon",
+                        "data": {
+                            "property_id": f"PROP-{random.randint(1000, 9999)}",
+                            "emissions": round(random.uniform(20, 50), 1),
+                            "unit": "kgCO₂e/m²",
+                            "reduction": round(random.uniform(5, 25), 1),
+                            "timestamp": datetime.now().isoformat()
+                        }
+                    }
+                    
+                yield f"data: {json.dumps(update_data)}\n\n"
+                time.sleep(5)  # Send update every 5 seconds
                 
-        return Response(stream_with_context(generate()), 
-                      mimetype='text/event-stream',
-                      headers={'Cache-Control': 'no-cache', 
-                                'Connection': 'keep-alive',
-                                'X-Accel-Buffering': 'no'})
+        except GeneratorExit:
+            logger.info("Client closed SSE connection")
+        except Exception as e:
+            logger.error(f"Error in SSE stream: {str(e)}")
+            
+    return Response(stream_with_context(generate()), 
+                  mimetype='text/event-stream',
+                  headers={'Cache-Control': 'no-cache', 
+                            'Connection': 'keep-alive',
+                            'X-Accel-Buffering': 'no'})
 
 def register_routes(app):
     """
@@ -950,5 +975,5 @@ def register_routes(app):
     Args:
         app: Flask application
     """
-    configure_routes(app)
-    logger.info("Real Estate Sustainability routes registered")
+    app.register_blueprint(realestate_bp)
+    logger.info("Real Estate Sustainability blueprint registered")
