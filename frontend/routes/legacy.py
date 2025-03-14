@@ -21,7 +21,7 @@ def sustainability_stories_redirect():
     to the new modular storytelling blueprint
     """
     logger.info("Legacy sustainability stories route accessed - redirecting to new blueprint")
-    return redirect(url_for('storytelling.storytelling_hub'))
+    return redirect(url_for('storytelling.storytelling_home'))
 
 # Route for legacy analytics
 @legacy_bp.route('/analytics')

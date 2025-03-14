@@ -405,14 +405,20 @@ def get_enhanced_stories(audience='all', category='all', prompt=None, document_d
     if not enhanced_stories:
         logger.info(f"No matching stories found, generating a default story")
         
+        # Handle None values with fallbacks
+        category_display = 'Overview' if not category or category == 'all' else category.capitalize()
+        audience_display = 'All Stakeholders' if not audience or audience == 'all' else audience.capitalize()
+        category_text = 'all sustainability topics' if not category or category == 'all' else category
+        audience_text = 'all audiences' if not audience or audience == 'all' else audience
+        
         default_story = {
             "id": str(uuid.uuid4()),
-            "title": f"Sustainability Report: {category.capitalize() if category != 'all' else 'Overview'} for {audience.capitalize() if audience != 'all' else 'All Stakeholders'}",
-            "content": f"This sustainability analysis focuses on {category if category != 'all' else 'all sustainability topics'} with emphasis on {audience if audience != 'all' else 'all audiences'}. " + 
+            "title": f"Sustainability Report: {category_display} for {audience_display}",
+            "content": f"This sustainability analysis focuses on {category_text} with emphasis on {audience_text}. " + 
                       (prompt if prompt else "Our organization continues to make progress toward sustainability goals through dedicated initiatives and stakeholder engagement."),
-            "category": category if category != 'all' else "general",
+            "category": "general" if not category or category == 'all' else category,
             "impact": "positive",
-            "audience": audience if audience != 'all' else "general",
+            "audience": "general" if not audience or audience == 'all' else audience,
             "date": datetime.now().strftime("%Y-%m-%d"),
             "timestamp": datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
             "custom_prompt_generated": True if prompt else False,
@@ -1540,7 +1546,7 @@ def register_routes(app):
         category = request.args.get('category', 'all')
         
         # Redirect to the new blueprint route with parameters
-        return redirect(url_for('storytelling.storytelling_hub', audience=audience, category=category))
+        return redirect(url_for('storytelling.storytelling_home', audience=audience, category=category))
     
     # Register the API endpoints
     @app.route('/api/storytelling')

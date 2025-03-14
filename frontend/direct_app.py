@@ -2042,7 +2042,7 @@ def sustainability_stories():
     try:
         logger.info("Sustainability stories page requested - redirecting to new storytelling hub")
         # Redirect to the new storytelling hub
-        return redirect(url_for('storytelling.storytelling_hub'))
+        return redirect(url_for('storytelling.storytelling_home'))
     except Exception as e:
         logger.error(f"Error in sustainability stories redirect: {str(e)}")
         traceback.print_exc()

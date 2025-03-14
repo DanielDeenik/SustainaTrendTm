@@ -161,11 +161,11 @@
     <div class="d-flex flex-wrap align-items-center justify-content-between mb-3">
         <h4 class="mb-0">Your Stories</h4>
         <div>
-            <a href="{{ url_for('storytelling.storytelling_hub', category='all') }}" class="btn btn-sm {% if selected_category == 'all' %}btn-primary{% else %}btn-outline-primary{% endif %}">All</a>
-            <a href="{{ url_for('storytelling.storytelling_hub', category='emissions') }}" class="btn btn-sm {% if selected_category == 'emissions' %}btn-primary{% else %}btn-outline-primary{% endif %}">Emissions</a>
-            <a href="{{ url_for('storytelling.storytelling_hub', category='water') }}" class="btn btn-sm {% if selected_category == 'water' %}btn-primary{% else %}btn-outline-primary{% endif %}">Water</a>
-            <a href="{{ url_for('storytelling.storytelling_hub', category='waste') }}" class="btn btn-sm {% if selected_category == 'waste' %}btn-primary{% else %}btn-outline-primary{% endif %}">Waste</a>
-            <a href="{{ url_for('storytelling.storytelling_hub', category='energy') }}" class="btn btn-sm {% if selected_category == 'energy' %}btn-primary{% else %}btn-outline-primary{% endif %}">Energy</a>
+            <a href="{{ url_for('storytelling.storytelling_home', category='all') }}" class="btn btn-sm {% if selected_category == 'all' %}btn-primary{% else %}btn-outline-primary{% endif %}">All</a>
+            <a href="{{ url_for('storytelling.storytelling_home', category='emissions') }}" class="btn btn-sm {% if selected_category == 'emissions' %}btn-primary{% else %}btn-outline-primary{% endif %}">Emissions</a>
+            <a href="{{ url_for('storytelling.storytelling_home', category='water') }}" class="btn btn-sm {% if selected_category == 'water' %}btn-primary{% else %}btn-outline-primary{% endif %}">Water</a>
+            <a href="{{ url_for('storytelling.storytelling_home', category='waste') }}" class="btn btn-sm {% if selected_category == 'waste' %}btn-primary{% else %}btn-outline-primary{% endif %}">Waste</a>
+            <a href="{{ url_for('storytelling.storytelling_home', category='energy') }}" class="btn btn-sm {% if selected_category == 'energy' %}btn-primary{% else %}btn-outline-primary{% endif %}">Energy</a>
         </div>
     </div>
 </div>

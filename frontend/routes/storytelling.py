@@ -44,44 +44,38 @@ UNIFIED_TEMPLATE = "finchat_dark_dashboard.html"  # Unified dashboard template
 
 # Pinecone integration
 try:
-    from pinecone import Pinecone, ServerlessSpec
-    from dotenv import load_dotenv
+    # Use our improved, flexible Pinecone initialization logic
+    from frontend.initialize_pinecone import (
+        initialize_pinecone, 
+        get_index_name, 
+        is_pinecone_available,
+        test_pinecone_connection
+    )
     
-    # Load environment variables
-    load_dotenv()
+    logger.info("Initializing Pinecone for LCM storytelling integration")
     
-    # Initialize Pinecone client if API key is available
-    PINECONE_API_KEY = os.getenv("PINECONE_API_KEY")
-    PINECONE_ENVIRONMENT = os.getenv("PINECONE_ENVIRONMENT", "aws")
-    
-    if PINECONE_API_KEY:
-        logger.info("Initializing Pinecone for LCM storytelling integration")
+    # Initialize Pinecone using our robust initialization function
+    if initialize_pinecone():
+        PINECONE_AVAILABLE = is_pinecone_available()
+        INDEX_NAME = get_index_name()
+        logger.info(f"Connected to Pinecone index: {INDEX_NAME}")
         
-        # Create Pinecone client
-        pinecone_client = Pinecone(api_key=PINECONE_API_KEY)
-        
-        # Create index if it doesn't exist
-        INDEX_NAME = "sustainability-storytelling"
-        
-        # Check if index exists or skip creation entirely
-        index_names = pinecone_client.list_indexes().names()
-        
-        if INDEX_NAME in index_names:
-            logger.info(f"Pinecone index already exists: {INDEX_NAME}")
-            # Connect to existing index
-            index = pinecone_client.Index(INDEX_NAME)
-            PINECONE_AVAILABLE = True
-            logger.info("Pinecone initialized successfully for LCM storytelling")
+        # Verify the connection works
+        if test_pinecone_connection():
+            logger.info("Successfully verified Pinecone connection for LCM storytelling")
         else:
-            # Skip index creation for now and use fallback
-            logger.warning(f"Pinecone index '{INDEX_NAME}' not found. Using fallback story generation.")
+            logger.warning("Pinecone connection test failed. Using fallback story generation.")
             PINECONE_AVAILABLE = False
     else:
-        logger.warning("Pinecone API key not found, using fallback story generation")
+        # If initialization failed, use fallback
+        logger.warning(f"Pinecone index initialization failed. Using fallback story generation.")
         PINECONE_AVAILABLE = False
-except ImportError:
-    logger.warning("Pinecone or dotenv not available, using fallback story generation")
+        INDEX_NAME = "sustainability-storytelling"  # Default name for reference
+except Exception as e:
+    logger.error(f"Error connecting to Pinecone: {e}")
+    logger.warning("Using fallback story generation due to Pinecone connection error.")
     PINECONE_AVAILABLE = False
+    INDEX_NAME = "sustainability-storytelling"  # Default name for reference
 
 # AI embeddings for LCM
 try:
@@ -190,6 +184,11 @@ def generate_lcm_story(story_id: str, audience: str, category: str, prompt: str,
         
         if PINECONE_AVAILABLE:
             try:
+                from pinecone import Pinecone  # Importing here to avoid issues if not available
+                
+                # Create Pinecone client
+                pinecone_client = Pinecone(api_key=os.getenv("PINECONE_API_KEY"))
+                
                 index = pinecone_client.Index(INDEX_NAME)
                 query_results = index.query(
                     vector=embedding,
@@ -218,6 +217,11 @@ def generate_lcm_story(story_id: str, audience: str, category: str, prompt: str,
         # Store the new story in Pinecone for future retrieval (if available)
         if PINECONE_AVAILABLE:
             try:
+                from pinecone import Pinecone  # Importing here to avoid issues if not available
+                
+                # Create Pinecone client
+                pinecone_client = Pinecone(api_key=os.getenv("PINECONE_API_KEY"))
+                
                 story_text = f"{story['title']} {story['content']}"
                 new_embedding = openai.Embedding.create(
                     input=story_text,
@@ -410,9 +414,6 @@ def generate_chart_data_for_story(story: Dict[str, Any], category: str) -> Dict[
     Returns:
         Chart data for visualization
     """
-    # In a production environment, this would be generated from real data
-    # For now, create plausible sample data based on category
-    
     # Time periods for x-axis
     time_periods = ["Q1", "Q2", "Q3", "Q4"]
     
@@ -431,224 +432,428 @@ def generate_chart_data_for_story(story: Dict[str, Any], category: str) -> Dict[
         metric = "Energy Efficiency (%)"
     elif category == "waste":
         # Waste reduction (downward trend is positive)
-        y_values = [120, 100, 85, 70]
-        metric = "Waste Generated (tons)"
+        y_values = [85, 75, 68, 55]
+        metric = "Waste Production (tons)"
     elif category == "social":
         # Social impact score (upward trend is positive)
         y_values = [65, 72, 78, 85]
         metric = "Social Impact Score"
     elif category == "governance":
         # Governance score (upward trend is positive)
-        y_values = [75, 78, 82, 87]
-        metric = "Governance Rating"
+        y_values = [70, 75, 82, 88]
+        metric = "Governance Score"
     else:
-        # Default sustainability index (upward trend is positive)
-        y_values = [60, 68, 75, 83]
-        metric = "Sustainability Index"
+        # Generic sustainability score (upward trend is positive)
+        y_values = [60, 68, 75, 82]
+        metric = "Sustainability Score"
     
-    # Create chart data
+    # Create chart data in format suitable for recharts
     chart_data = {
-        "type": "line",
-        "title": f"{story['title']} - Performance Trend",
-        "x_axis": {
-            "title": "Time Period",
-            "data": time_periods
-        },
-        "y_axis": {
-            "title": metric,
-            "data": y_values
-        },
-        "trend": "positive" if y_values[-1] > y_values[0] else "negative",
-        "percentage_change": calculate_percentage_change(y_values[0], y_values[-1])
+        "type": "line",  # Default chart type
+        "title": f"{metric} Trend",
+        "xAxis": {"dataKey": "quarter", "label": "Quarter"},
+        "yAxis": {"label": metric},
+        "data": [{"quarter": q, "value": v} for q, v in zip(time_periods, y_values)]
     }
     
     return chart_data
 
-def calculate_percentage_change(start_value: float, end_value: float) -> float:
+def get_story_by_id(story_id: str) -> Optional[Dict[str, Any]]:
     """
-    Calculate percentage change between two values
+    Get a story by its ID, either from Pinecone or generated on-demand
     
     Args:
-        start_value: Starting value
-        end_value: Ending value
+        story_id: UUID of the story to retrieve
         
     Returns:
-        Percentage change
+        Story dictionary or None if not found
     """
-    if start_value == 0:
-        return 0
+    # Try to retrieve from Pinecone first if available
+    if PINECONE_AVAILABLE and OPENAI_AVAILABLE:
+        try:
+            from pinecone import Pinecone
+            
+            # Create Pinecone client
+            pinecone_client = Pinecone(api_key=os.getenv("PINECONE_API_KEY"))
+            
+            # Query Pinecone for the story by ID
+            try:
+                index = pinecone_client.Index(INDEX_NAME)
+                result = index.fetch(ids=[story_id])
+                
+                if result.vectors and story_id in result.vectors:
+                    # Extract metadata (the story content)
+                    story = result.vectors[story_id].metadata
+                    
+                    # Ensure the story has an ID
+                    if story:
+                        story['id'] = story_id
+                        
+                        # Generate chart data if not present
+                        if 'chart_data' not in story and 'category' in story:
+                            story['chart_data'] = generate_chart_data_for_story(story, story['category'])
+                            
+                        return story
+            except Exception as e:
+                logger.error(f"Error fetching story from Pinecone: {e}")
+        except Exception as e:
+            logger.error(f"Error connecting to Pinecone for story retrieval: {e}")
     
-    return round(((end_value - start_value) / abs(start_value)) * 100, 1)
+    # Generate a new story if we couldn't find it
+    logger.info(f"Story {story_id} not found in Pinecone, generating a new one")
+    
+    # Parse story ID components if it's in the expected format
+    try:
+        # Our UUIDs might encode metadata like audience-category-timestamp, 
+        # but we'll use defaults if we can't parse
+        parts = story_id.split('-')
+        if len(parts) >= 3:
+            audience = parts[0]
+            category = parts[1]
+        else:
+            audience = 'all'
+            category = 'emissions'
+    except:
+        audience = 'all'
+        category = 'emissions'
+    
+    return get_ai_generated_story(story_id, audience, category)
 
-# Routes
-@storytelling_bp.route('/', methods=['GET'])
-def storytelling_hub():
+# Blueprint routes
+@storytelling_bp.route('/')
+@storytelling_bp.route('/<category>')
+def storytelling_home(category='all'):
     """
-    Main storytelling hub page
+    Storytelling home page
+    
+    Args:
+        category: Category filter for stories (default: 'all')
+    
+    Returns:
+        Rendered template with storytelling UI
     """
-    logger.info("Storytelling hub accessed")
+    # Import directly to ensure we're using the latest version
+    from frontend.story_operations import PINECONE_AVAILABLE, OPENAI_AVAILABLE
     
-    # Get parameters
-    audience = request.args.get('audience', 'all')
-    category = request.args.get('category', 'all')
+    # Get stories from the base module or generate them with category filter
+    stories = get_enhanced_stories(category=category if category != 'all' else None)
     
-    # Generate a new story ID
-    story_id = str(uuid.uuid4())
+    # Pass to template with navigation context
+    context = get_context_for_template()
+    context.update({
+        'page_title': 'Sustainability Storytelling',
+        'stories': stories,
+        'active_page': 'storytelling',
+        'selected_category': category,
+        'storytelling_available': STORYTELLING_AVAILABLE,
+        'lcm_available': PINECONE_AVAILABLE and OPENAI_AVAILABLE
+    })
     
-    # Get navigation context
-    nav_context = get_context_for_template()
-    
-    # Get AI-generated stories with LCM
-    stories = get_enhanced_stories(audience=audience, category=category)
-    
-    # Check if Pinecone and OpenAI are available
-    pinecone_status = "Available" if PINECONE_AVAILABLE else "Not Available"
-    openai_status = "Available" if OPENAI_AVAILABLE else "Not Available"
-    lcm_status = "Enabled" if PINECONE_AVAILABLE and OPENAI_AVAILABLE else "Disabled (fallback mode)"
-    
-    # Render the unified template with template_type=storytelling
-    return render_template(
-        'strategy/storytelling.html',
-        page_title="AI Storytelling Hub",
-        active_nav="storytelling",
-        stories=stories,
-        story_id=story_id,
-        selected_audience=audience,
-        selected_category=category,
-        template_type='storytelling',
-        storytelling_available=STORYTELLING_AVAILABLE,
-        pinecone_status=pinecone_status,
-        openai_status=openai_status, 
-        lcm_status=lcm_status,
-        **nav_context
-    )
-
-@storytelling_bp.route('/create', methods=['GET', 'POST'])
-def create_story():
-    """
-    Create a new story using AI agent
-    """
-    if request.method == 'POST':
-        # Get form data
-        audience = request.form.get('audience', 'all')
-        category = request.form.get('category', 'all')
-        prompt = request.form.get('prompt', '')
-        
-        # Generate a new story ID
-        story_id = str(uuid.uuid4())
-        
-        # Generate story with AI agent
-        story = get_ai_generated_story(story_id, audience, category, prompt)
-        
-        # Redirect to view the generated story
-        return redirect(url_for('storytelling.view_story', story_id=story_id))
-    else:
-        # Show story creation form
-        nav_context = get_context_for_template()
-        
-        return render_template(
-            'strategy/storytelling_create.html',
-            page_title="Create AI Story",
-            active_nav="storytelling",
-            template_type='storytelling_create',
-            **nav_context
-        )
-
-@storytelling_bp.route('/view/<story_id>', methods=['GET'])
-def view_story(story_id):
-    """
-    View a specific story by ID
-    """
-    logger.info(f"Viewing story with id={story_id}")
-    
-    # In a production environment, we would retrieve the story from a database
-    # For this implementation, we'll generate a story with the given ID
-    audience = request.args.get('audience', 'all')
-    category = request.args.get('category', 'all')
-    
-    # Get AI-generated story
-    story = get_ai_generated_story(story_id, audience, category)
-    
-    # Get navigation context
-    nav_context = get_context_for_template()
-    
-    # Render the story view template
-    return render_template(
-        'strategy/storytelling_view.html',
-        page_title=f"Story: {story['title']}",
-        active_nav="storytelling",
-        story=story,
-        template_type='storytelling_view',
-        **nav_context
-    )
-
-# API Endpoints
-@storytelling_bp.route('/api/generate', methods=['POST'])
-def api_generate_story():
-    """
-    API endpoint for generating a story
-    """
-    logger.info("API story generation endpoint called")
-    
-    # Validate request
-    if not request.is_json:
-        return jsonify({
-            'error': True,
-            'message': 'Invalid request format. JSON required.'
-        }), 400
-        
-    # Get request data
-    data = request.json
-    
-    # Extract parameters
-    audience = data.get('audience')
-    category = data.get('category')
-    prompt = data.get('prompt')
-    
-    # Validate required parameters
-    if not all([audience, category, prompt]):
-        return jsonify({
-            'error': True,
-            'message': 'Missing required parameters. Please provide audience, category, and prompt.'
-        }), 400
-    
-    # Generate a new story ID
-    story_id = str(uuid.uuid4())
-    
-    # Generate story with AI agent
-    story = get_ai_generated_story(story_id, audience, category, prompt)
-    
-    # Return the generated story
-    return jsonify(story)
+    return render_template(DEFAULT_TEMPLATE, **context)
 
 @storytelling_bp.route('/api/stories', methods=['GET'])
 def api_get_stories():
     """
-    API endpoint for getting stories
-    """
-    logger.info("API get stories endpoint called")
+    API endpoint to get stories
     
-    # Get parameters
+    Returns:
+        JSON response with stories
+    """
+    # Parse query parameters
     audience = request.args.get('audience', 'all')
     category = request.args.get('category', 'all')
+    limit = int(request.args.get('limit', 5))
     
-    # Get stories
+    # Get stories from the base module
     stories = get_enhanced_stories(audience=audience, category=category)
     
-    # Return the stories
+    # Limit the number of stories
+    stories = stories[:limit]
+    
     return jsonify({
-        'success': True,
-        'stories': stories,
-        'count': len(stories)
+        'status': 'success',
+        'stories': stories
     })
 
-# Function to register the blueprint
-def register_storytelling_blueprint(app):
+@storytelling_bp.route('/api/story/<story_id>', methods=['GET'])
+def api_get_story(story_id):
     """
-    Register the storytelling blueprint with the application
+    API endpoint to get a specific story by ID
     
     Args:
-        app: Flask application
+        story_id: UUID of the story
+        
+    Returns:
+        JSON response with the story
     """
-    app.register_blueprint(storytelling_bp)
-    logger.info("Storytelling blueprint registered successfully")
+    # Import directly to ensure we're using the latest version
+    from frontend.story_operations import get_story_by_id
+    
+    # Get story by ID
+    story = get_story_by_id(story_id)
+    
+    if story:
+        return jsonify({
+            'status': 'success',
+            'story': story
+        })
+    else:
+        return jsonify({
+            'status': 'error',
+            'message': f'Story with ID {story_id} not found'
+        }), 404
+
+@storytelling_bp.route('/api/stories/generate', methods=['POST'])
+def api_generate_story():
+    """
+    API endpoint to generate a new story
+    
+    Returns:
+        JSON response with the generated story
+    """
+    # Import directly to ensure we're using the latest version
+    from frontend.story_operations import save_new_story
+    
+    data = request.json or {}
+    
+    # Parse parameters
+    audience = data.get('audience', 'all')
+    category = data.get('category', 'all')
+    prompt = data.get('prompt', '')
+    document_data = data.get('document_data')
+    
+    # Generate a unique ID for the story
+    story_id = f"{audience}-{category}-{uuid.uuid4()}"
+    
+    # Generate the story
+    story = get_ai_generated_story(story_id, audience, category, prompt, document_data)
+    
+    # Save the generated story using our story_operations module
+    if story and 'id' in story:
+        save_new_story(story)
+    
+    return jsonify({
+        'status': 'success',
+        'story': story
+    })
+
+@storytelling_bp.route('/create')
+def create_story():
+    """
+    Create a new story form page
+    
+    Returns:
+        Rendered template with story creation form
+    """
+    # Import directly to ensure we're using the latest version
+    from frontend.story_operations import PINECONE_AVAILABLE, OPENAI_AVAILABLE
+    
+    # Pass to template with navigation context
+    context = get_context_for_template()
+    context.update({
+        'page_title': 'Create Sustainability Story',
+        'active_page': 'storytelling',
+        'storytelling_available': STORYTELLING_AVAILABLE,
+        'lcm_available': PINECONE_AVAILABLE and OPENAI_AVAILABLE
+    })
+    
+    return render_template('strategy/create_story.html', **context)
+
+@storytelling_bp.route('/story/<story_id>')
+def view_story(story_id):
+    """
+    View a specific story
+    
+    Args:
+        story_id: UUID of the story
+        
+    Returns:
+        Rendered template with the story
+    """
+    # Import directly to ensure we're using the latest version
+    from frontend.story_operations import get_story_by_id
+    from frontend.story_operations import PINECONE_AVAILABLE, OPENAI_AVAILABLE
+    
+    # Get story by ID
+    story = get_story_by_id(story_id)
+    
+    if story:
+        # Pass to template with navigation context
+        context = get_context_for_template()
+        context.update({
+            'page_title': story.get('title', 'Sustainability Story'),
+            'story': story,
+            'active_page': 'storytelling',
+            'storytelling_available': STORYTELLING_AVAILABLE,
+            'lcm_available': PINECONE_AVAILABLE and OPENAI_AVAILABLE
+        })
+        
+        return render_template('strategy/story_detail.html', **context)
+    else:
+        return render_template('error.html', error=f'Story with ID {story_id} not found'), 404
+
+@storytelling_bp.route('/api/story/<story_id>/view', methods=['POST'])
+def api_record_story_view(story_id):
+    """
+    API endpoint to record a view for a story
+    
+    Args:
+        story_id: ID of the story
+        
+    Returns:
+        JSON with success status
+    """
+    try:
+        # Import directly to ensure we're using the latest version
+        from frontend.story_operations import get_story_by_id, update_story
+        
+        # Get the story
+        story = get_story_by_id(story_id)
+        
+        if not story:
+            return jsonify({
+                'success': False,
+                'error': 'Story not found'
+            }), 404
+        
+        # Increment view count (simple in-memory implementation)
+        if 'views' not in story:
+            story['views'] = 0
+        story['views'] += 1
+        
+        # Update the story in the storage
+        update_story(story_id, story)
+        
+        return jsonify({
+            'success': True,
+            'views': story['views']
+        })
+    except Exception as e:
+        logger.error(f"Error recording story view: {str(e)}")
+        return jsonify({
+            'success': False,
+            'error': str(e)
+        }), 500
+
+@storytelling_bp.route('/api/story/<story_id>/delete', methods=['POST'])
+def api_delete_story(story_id):
+    """
+    API endpoint to delete a story
+    
+    Args:
+        story_id: ID of the story
+        
+    Returns:
+        JSON with success status
+    """
+    try:
+        # Import directly to ensure we're using the latest version
+        from frontend.story_operations import get_story_by_id, delete_story
+        
+        # Check if the story exists first
+        story = get_story_by_id(story_id)
+        
+        if not story:
+            return jsonify({
+                'success': False,
+                'error': 'Story not found'
+            }), 404
+        
+        # Delete the story
+        success = delete_story(story_id)
+        
+        return jsonify({
+            'success': success,
+            'message': 'Story deleted successfully' if success else 'Failed to delete story'
+        })
+    except Exception as e:
+        logger.error(f"Error deleting story: {str(e)}")
+        return jsonify({
+            'success': False,
+            'error': str(e)
+        }), 500
+
+@storytelling_bp.route('/api/story/<story_id>/export/pdf')
+def api_export_story_pdf(story_id):
+    """
+    Export a story as PDF
+    
+    Args:
+        story_id: ID of the story
+        
+    Returns:
+        PDF file download
+    """
+    try:
+        # Import directly to ensure we're using the latest version
+        from frontend.story_operations import get_story_by_id
+        from flask import make_response
+        
+        # Get the story
+        story = get_story_by_id(story_id)
+        
+        if not story:
+            return render_template('error.html', error='Story not found'), 404
+        
+        # Generate PDF
+        from fpdf import FPDF
+        
+        # Create PDF instance
+        pdf = FPDF()
+        pdf.add_page()
+        
+        # Set font
+        pdf.set_font("Arial", "B", 16)
+        
+        # Title
+        pdf.cell(0, 10, story.get('title', 'Sustainability Story'), 0, 1, 'C')
+        
+        # Metadata
+        pdf.set_font("Arial", "I", 10)
+        pdf.cell(0, 10, f"Category: {story.get('category', 'General')}", 0, 1)
+        pdf.cell(0, 10, f"Audience: {story.get('audience', 'All')}", 0, 1)
+        if 'timestamp' in story:
+            pdf.cell(0, 10, f"Created: {story.get('timestamp')}", 0, 1)
+        
+        # Content
+        pdf.set_font("Arial", "", 12)
+        pdf.ln(10)
+        
+        # Split content into paragraphs and add to PDF
+        content = story.get('content', '')
+        paragraphs = content.split('\n\n') if '\n\n' in content else [content]
+        
+        for paragraph in paragraphs:
+            pdf.multi_cell(0, 10, paragraph)
+            pdf.ln(5)
+        
+        # Recommendations
+        if 'recommendations' in story and story['recommendations']:
+            pdf.ln(10)
+            pdf.set_font("Arial", "B", 14)
+            pdf.cell(0, 10, "Recommendations", 0, 1)
+            pdf.set_font("Arial", "", 12)
+            
+            for recommendation in story['recommendations']:
+                pdf.cell(0, 10, "• " + recommendation, 0, 1)
+        
+        # Footer
+        pdf.ln(15)
+        pdf.set_font("Arial", "I", 8)
+        pdf.cell(0, 10, "Generated by SustainaTrend™ Intelligence Platform", 0, 1, 'C')
+        
+        # Create response
+        pdf_output = pdf.output(dest='S')
+        if isinstance(pdf_output, str):
+            pdf_bytes = pdf_output.encode('latin-1')
+        else:
+            pdf_bytes = pdf_output
+        
+        response = make_response(pdf_bytes)
+        response.headers['Content-Type'] = 'application/pdf'
+        response.headers['Content-Disposition'] = f'attachment; filename=sustainability_story_{story_id}.pdf'
+        
+        return response
+    except Exception as e:
+        logger.error(f"Error exporting story as PDF: {str(e)}")
+        return render_template('error.html', error=f'Error exporting story: {str(e)}'), 500
