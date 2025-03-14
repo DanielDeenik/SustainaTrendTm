@@ -1,0 +1,470 @@
+{% extends "layouts/base_clean.html" %}
+
+{% set active_page = 'strategy_hub' %}
+
+{% block header_title %}
+<i class="fas fa-upload me-2"></i> Upload Document
+{% endblock %}
+
+{% block header_actions %}
+<a href="{{ url_for('strategy.strategy_hub_documents') }}" class="btn btn-sm btn-outline-secondary">All Documents</a>
+<a href="{{ url_for('strategy.unified_strategy_hub') }}" class="btn btn-sm btn-outline-secondary">Back to Hub</a>
+{% endblock %}
+
+{% block extra_css %}
+<style>
+    .upload-area {
+        border: 2px dashed #ddd;
+        border-radius: 1rem;
+        padding: 2rem;
+        text-align: center;
+        margin-bottom: 2rem;
+        transition: all 0.3s;
+    }
+    
+    .upload-area:hover, .upload-area.drag-over {
+        border-color: var(--bs-primary);
+        background-color: rgba(var(--bs-primary-rgb), 0.05);
+    }
+    
+    .upload-icon {
+        font-size: 3rem;
+        color: #6c757d;
+        margin-bottom: 1rem;
+    }
+    
+    .upload-area:hover .upload-icon, .upload-area.drag-over .upload-icon {
+        color: var(--bs-primary);
+    }
+    
+    .file-info {
+        margin-top: 1rem;
+        display: none;
+    }
+    
+    .file-preview {
+        border-radius: 0.5rem;
+        overflow: hidden;
+        max-width: 100%;
+        max-height: 200px;
+        margin: 1rem 0;
+    }
+    
+    .file-type-icon {
+        font-size: 3rem;
+        margin: 1rem 0;
+    }
+    
+    .btn-upload {
+        margin-top: 1rem;
+    }
+    
+    .progress {
+        margin-top: 1rem;
+        display: none;
+    }
+    
+    .type-guide {
+        background-color: rgba(var(--bs-primary-rgb), 0.05);
+        border-radius: 0.5rem;
+        padding: 1.5rem;
+    }
+    
+    .supported-format {
+        display: inline-block;
+        padding: 0.3rem 0.6rem;
+        margin: 0.2rem;
+        background-color: rgba(var(--bs-primary-rgb), 0.1);
+        color: var(--bs-primary);
+        border-radius: 0.25rem;
+        font-size: 0.85rem;
+    }
+    
+    .upload-processing {
+        display: none;
+    }
+    
+    /* Document type specific icons */
+    .file-pdf {
+        color: #dc3545;
+    }
+    
+    .file-excel {
+        color: #198754;
+    }
+    
+    .file-word {
+        color: #0d6efd;
+    }
+    
+    .file-ppt {
+        color: #fd7e14;
+    }
+    
+    .file-other {
+        color: #6c757d;
+    }
+    
+    /* Dark mode support */
+    @media (prefers-color-scheme: dark) {
+        .upload-area {
+            border-color: #555;
+        }
+        
+        .upload-area:hover, .upload-area.drag-over {
+            border-color: var(--bs-primary);
+            background-color: rgba(var(--bs-primary-rgb), 0.15);
+        }
+        
+        .type-guide {
+            background-color: rgba(var(--bs-primary-rgb), 0.15);
+        }
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="row mb-4">
+    <div class="col-12">
+        <div class="alert alert-info">
+            <i class="fas fa-info-circle me-2"></i> Upload sustainability reports and other ESG documents for AI-powered analysis. The system will automatically extract metrics, analyze compliance, and provide actionable insights.
+        </div>
+    </div>
+</div>
+
+<div class="row">
+    <div class="col-lg-8">
+        <div class="card shadow-sm">
+            <div class="card-body">
+                <form id="documentUploadForm" action="{{ url_for('strategy.strategy_hub_document_upload_process') }}" method="post" enctype="multipart/form-data">
+                    <div class="mb-4 upload-area" id="uploadArea">
+                        <div class="upload-icon">
+                            <i class="fas fa-cloud-upload-alt"></i>
+                        </div>
+                        <h4>Drag & Drop Document</h4>
+                        <p class="text-muted">or click to browse files</p>
+                        <input type="file" name="document" id="documentInput" class="d-none" accept=".pdf,.doc,.docx,.xls,.xlsx,.ppt,.pptx,.txt">
+                    </div>
+                    
+                    <div class="file-info card" id="fileInfo">
+                        <div class="card-body text-center">
+                            <div id="fileTypeIcon" class="file-type-icon file-other">
+                                <i class="fas fa-file-alt"></i>
+                            </div>
+                            <h5 id="fileName">No file selected</h5>
+                            <p id="fileSize" class="text-muted"></p>
+                            <button type="button" class="btn btn-sm btn-outline-danger" id="removeFile">
+                                <i class="fas fa-times me-1"></i> Remove
+                            </button>
+                        </div>
+                    </div>
+                    
+                    <div class="row mb-3">
+                        <div class="col-md-6">
+                            <div class="mb-3">
+                                <label for="documentTitle" class="form-label">Document Title *</label>
+                                <input type="text" class="form-control" id="documentTitle" name="title" required>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="mb-3">
+                                <label for="documentCategory" class="form-label">Document Category *</label>
+                                <select class="form-select" id="documentCategory" name="category" required>
+                                    <option value="" selected disabled>Select a category</option>
+                                    <option value="report">Sustainability Report</option>
+                                    <option value="esg">ESG Disclosure</option>
+                                    <option value="compliance">Compliance Document</option>
+                                    <option value="strategy">Strategy Document</option>
+                                    <option value="data">Data File</option>
+                                    <option value="other">Other</option>
+                                </select>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="mb-3">
+                        <label for="documentDescription" class="form-label">Description</label>
+                        <textarea class="form-control" id="documentDescription" name="description" rows="3" placeholder="Brief description of the document content"></textarea>
+                    </div>
+                    
+                    <div class="mb-3">
+                        <label class="form-label">Processing Options</label>
+                        <div class="form-check">
+                            <input class="form-check-input" type="checkbox" value="true" id="extractMetrics" name="extract_metrics" checked>
+                            <label class="form-check-label" for="extractMetrics">
+                                Extract Sustainability Metrics
+                            </label>
+                        </div>
+                        <div class="form-check">
+                            <input class="form-check-input" type="checkbox" value="true" id="analyzeCompliance" name="analyze_compliance" checked>
+                            <label class="form-check-label" for="analyzeCompliance">
+                                Analyze Regulatory Compliance
+                            </label>
+                        </div>
+                        <div class="form-check">
+                            <input class="form-check-input" type="checkbox" value="true" id="useOcr" name="use_ocr">
+                            <label class="form-check-label" for="useOcr">
+                                Use OCR (for scanned documents)
+                            </label>
+                        </div>
+                    </div>
+                    
+                    <div class="progress mb-3">
+                        <div class="progress-bar progress-bar-striped progress-bar-animated" role="progressbar" style="width: 0%" id="uploadProgress"></div>
+                    </div>
+                    
+                    <div class="d-grid">
+                        <button type="submit" class="btn btn-primary btn-lg btn-upload" id="uploadButton" disabled>
+                            <i class="fas fa-upload me-2"></i> Upload & Analyze
+                        </button>
+                    </div>
+                </form>
+                
+                <div class="text-center py-5 upload-processing" id="processingIndicator">
+                    <div class="spinner-border text-primary mb-3" role="status">
+                        <span class="visually-hidden">Processing...</span>
+                    </div>
+                    <h4>Processing Document</h4>
+                    <p class="text-muted">This may take a few minutes depending on document size and complexity.</p>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <div class="col-lg-4">
+        <div class="card shadow-sm mb-4">
+            <div class="card-header">
+                <h5 class="mb-0">Upload Guidelines</h5>
+            </div>
+            <div class="card-body">
+                <h6>Supported Document Types:</h6>
+                <div class="mb-3">
+                    <span class="supported-format"><i class="fas fa-file-pdf me-1"></i> PDF</span>
+                    <span class="supported-format"><i class="fas fa-file-word me-1"></i> Word</span>
+                    <span class="supported-format"><i class="fas fa-file-excel me-1"></i> Excel</span>
+                    <span class="supported-format"><i class="fas fa-file-powerpoint me-1"></i> PowerPoint</span>
+                    <span class="supported-format"><i class="fas fa-file-alt me-1"></i> Text</span>
+                </div>
+                
+                <h6>Size Limit:</h6>
+                <p>Maximum 25MB per file</p>
+                
+                <h6>Processing Time:</h6>
+                <p>Typically 1-3 minutes, depending on document size and complexity</p>
+                
+                <div class="alert alert-warning">
+                    <i class="fas fa-shield-alt me-2"></i> Your documents are processed securely and not shared with third parties.
+                </div>
+            </div>
+        </div>
+        
+        <div class="card shadow-sm type-guide">
+            <div class="card-body">
+                <h5>What to upload?</h5>
+                <ul class="mb-0">
+                    <li>Annual sustainability reports</li>
+                    <li>ESG disclosure documents</li>
+                    <li>CSRD compliance reports</li>
+                    <li>Carbon disclosure assessments</li>
+                    <li>Climate transition plans</li>
+                    <li>Sustainability strategy documents</li>
+                </ul>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        const uploadArea = document.getElementById('uploadArea');
+        const documentInput = document.getElementById('documentInput');
+        const fileInfo = document.getElementById('fileInfo');
+        const fileName = document.getElementById('fileName');
+        const fileSize = document.getElementById('fileSize');
+        const fileTypeIcon = document.getElementById('fileTypeIcon');
+        const removeFile = document.getElementById('removeFile');
+        const uploadButton = document.getElementById('uploadButton');
+        const uploadProgress = document.getElementById('uploadProgress');
+        const progressBar = document.querySelector('.progress');
+        const processingIndicator = document.getElementById('processingIndicator');
+        const documentForm = document.getElementById('documentUploadForm');
+        
+        // Handle click on upload area
+        uploadArea.addEventListener('click', function() {
+            documentInput.click();
+        });
+        
+        // Handle drag events
+        ['dragenter', 'dragover', 'dragleave', 'drop'].forEach(eventName => {
+            uploadArea.addEventListener(eventName, preventDefaults, false);
+        });
+        
+        function preventDefaults(e) {
+            e.preventDefault();
+            e.stopPropagation();
+        }
+        
+        ['dragenter', 'dragover'].forEach(eventName => {
+            uploadArea.addEventListener(eventName, highlight, false);
+        });
+        
+        ['dragleave', 'drop'].forEach(eventName => {
+            uploadArea.addEventListener(eventName, unhighlight, false);
+        });
+        
+        function highlight() {
+            uploadArea.classList.add('drag-over');
+        }
+        
+        function unhighlight() {
+            uploadArea.classList.remove('drag-over');
+        }
+        
+        uploadArea.addEventListener('drop', handleDrop, false);
+        
+        function handleDrop(e) {
+            const dt = e.dataTransfer;
+            const files = dt.files;
+            
+            if (files.length > 0) {
+                documentInput.files = files;
+                handleFiles(files);
+            }
+        }
+        
+        // Handle file selection
+        documentInput.addEventListener('change', function() {
+            if (this.files.length > 0) {
+                handleFiles(this.files);
+            }
+        });
+        
+        function handleFiles(files) {
+            const file = files[0];
+            
+            // Display file info
+            fileName.textContent = file.name;
+            fileSize.textContent = formatFileSize(file.size);
+            
+            // Set appropriate icon based on file type
+            fileTypeIcon.className = 'file-type-icon';
+            if (file.name.endsWith('.pdf')) {
+                fileTypeIcon.className += ' file-pdf';
+                fileTypeIcon.innerHTML = '<i class="fas fa-file-pdf"></i>';
+            } else if (file.name.endsWith('.xlsx') || file.name.endsWith('.xls') || file.name.endsWith('.csv')) {
+                fileTypeIcon.className += ' file-excel';
+                fileTypeIcon.innerHTML = '<i class="fas fa-file-excel"></i>';
+            } else if (file.name.endsWith('.docx') || file.name.endsWith('.doc')) {
+                fileTypeIcon.className += ' file-word';
+                fileTypeIcon.innerHTML = '<i class="fas fa-file-word"></i>';
+            } else if (file.name.endsWith('.pptx') || file.name.endsWith('.ppt')) {
+                fileTypeIcon.className += ' file-ppt';
+                fileTypeIcon.innerHTML = '<i class="fas fa-file-powerpoint"></i>';
+            } else {
+                fileTypeIcon.className += ' file-other';
+                fileTypeIcon.innerHTML = '<i class="fas fa-file-alt"></i>';
+            }
+            
+            // Show file info and enable upload button
+            fileInfo.style.display = 'block';
+            uploadButton.disabled = false;
+            
+            // Auto-fill title based on filename
+            const title = document.getElementById('documentTitle');
+            if (!title.value) {
+                title.value = file.name.replace(/\.[^/.]+$/, "");
+            }
+        }
+        
+        // Format file size
+        function formatFileSize(bytes) {
+            if (bytes === 0) return '0 Bytes';
+            
+            const k = 1024;
+            const sizes = ['Bytes', 'KB', 'MB', 'GB'];
+            const i = Math.floor(Math.log(bytes) / Math.log(k));
+            
+            return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + ' ' + sizes[i];
+        }
+        
+        // Remove file
+        removeFile.addEventListener('click', function() {
+            documentInput.value = '';
+            fileInfo.style.display = 'none';
+            uploadButton.disabled = true;
+        });
+        
+        // Handle form submission
+        documentForm.addEventListener('submit', function(e) {
+            e.preventDefault();
+            
+            // Check if a file is selected
+            if (documentInput.files.length === 0) {
+                alert('Please select a file to upload.');
+                return;
+            }
+            
+            // Check file size limit (25MB)
+            if (documentInput.files[0].size > 25 * 1024 * 1024) {
+                alert('File size exceeds the maximum limit of 25MB.');
+                return;
+            }
+            
+            // Show progress bar
+            progressBar.style.display = 'block';
+            
+            // Create FormData object
+            const formData = new FormData(documentForm);
+            
+            // Create AJAX request
+            const xhr = new XMLHttpRequest();
+            
+            xhr.open('POST', documentForm.action, true);
+            
+            // Track upload progress
+            xhr.upload.onprogress = function(e) {
+                if (e.lengthComputable) {
+                    const percentComplete = (e.loaded / e.total) * 100;
+                    uploadProgress.style.width = percentComplete + '%';
+                }
+            };
+            
+            // Handle response
+            xhr.onload = function() {
+                if (xhr.status === 200) {
+                    // Upload complete, now show processing indicator
+                    progressBar.style.display = 'none';
+                    documentForm.style.display = 'none';
+                    processingIndicator.style.display = 'block';
+                    
+                    // Redirect to the document view page after a short delay
+                    setTimeout(function() {
+                        try {
+                            const response = JSON.parse(xhr.responseText);
+                            window.location.href = response.redirect_url;
+                        } catch (e) {
+                            // If response is not JSON, just reload the page
+                            window.location.reload();
+                        }
+                    }, 2000);
+                } else {
+                    // Error
+                    alert('An error occurred during upload: ' + xhr.statusText);
+                    progressBar.style.display = 'none';
+                }
+            };
+            
+            // Handle error
+            xhr.onerror = function() {
+                alert('An error occurred during upload. Please try again.');
+                progressBar.style.display = 'none';
+            };
+            
+            // Send the form data
+            xhr.send(formData);
+        });
+    });
+</script>
+{% endblock %}

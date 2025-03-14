@@ -1,21 +1,43 @@
 """
 Strategy Hub routes for SustainaTrend Intelligence Platform
 
-This module consolidates all strategy, simulation, and monetization routes
-into a single cohesive interface.
+This module consolidates all strategy, simulation, monetization, storytelling and document
+analysis routes into a single cohesive interface.
 """
 
 import json
 import logging
+import os
+import sys
+import traceback
 from datetime import datetime
 from typing import Dict, Any, List, Mapping
-from flask import Blueprint, render_template, request, jsonify, redirect, url_for
-import sys
-import os
+from werkzeug.utils import secure_filename
+from flask import Blueprint, render_template, request, jsonify, redirect, url_for, flash, send_from_directory, session
 sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
 # Import navigation context
 from navigation_config import get_context_for_template
+
+# Import storytelling components (with fallback)
+try:
+    from sustainability_storytelling import get_enhanced_stories, get_mock_stories
+    STORYTELLING_AVAILABLE = True
+    logger = logging.getLogger(__name__)
+    logger.info("Storytelling module loaded successfully")
+except ImportError as e:
+    STORYTELLING_AVAILABLE = False
+    logger = logging.getLogger(__name__)
+    logger.warning(f"Storytelling module not available: {str(e)}")
+
+# Import document processor (with fallback)
+try:
+    from document_processor import DocumentProcessor
+    DOCUMENT_PROCESSOR_AVAILABLE = True
+    logger.info("Document processor module loaded successfully")
+except ImportError as e:
+    DOCUMENT_PROCESSOR_AVAILABLE = False
+    logger.warning(f"Document processor not available: {str(e)}")
 
 # Import monetization functions
 from monetization_strategies import (
@@ -74,15 +96,79 @@ except (ImportError, AttributeError):
 # Configure logging
 logger = logging.getLogger(__name__)
 
+# Configure document upload settings
+UPLOAD_FOLDER = 'frontend/uploads'
+ALLOWED_EXTENSIONS = {'pdf', 'docx', 'xlsx', 'pptx', 'txt', 'csv'}
+MAX_CONTENT_LENGTH = 16 * 1024 * 1024  # 16MB max file size
+
+# Ensure upload folder exists
+os.makedirs(UPLOAD_FOLDER, exist_ok=True)
+
+# Initialize document processor if available
+document_processor = DocumentProcessor() if DOCUMENT_PROCESSOR_AVAILABLE else None
+
 # Create blueprint
 strategy_bp = Blueprint('strategy', __name__)
 
 @strategy_bp.route('/strategy-hub')
 def strategy_hub():
     """
-    Unified Strategy Hub page combining all strategy frameworks and monetization options
+    Redirect from old Strategy Hub to the new unified Strategy Hub
     """
-    logger.info("Strategy Hub route called")
+    logger.info("Strategy Hub route called - redirecting to unified Strategy Hub")
+    
+    # Redirect to the new unified Strategy Hub
+    return redirect(url_for('strategy.unified_strategy_hub'))
+
+# Legacy Strategy Hub implementation kept here for reference
+def legacy_strategy_hub():
+    """
+    Legacy implementation of the Strategy Hub page
+    """
+    # Create a minimal implementation that works reliably
+    return render_template(
+        "strategy_test.html",
+        frameworks=STRATEGY_FRAMEWORKS,
+        monetization_strategies={
+            "M1": {
+                "name": "AI-Driven Sustainability Trend Monetization",
+                "icon": "chart-line",
+                "short_description": "AI-powered trend detection and analysis",
+                "default_potential": 85
+            },
+            "M2": {
+                "name": "Consulting Services Model",
+                "icon": "handshake",
+                "short_description": "Advisory services for sustainability reporting",
+                "default_potential": 65
+            },
+            "M3": {
+                "name": "SaaS Subscription Platform",
+                "icon": "cloud",
+                "short_description": "Cloud-based sustainability platform",
+                "default_potential": 75
+            },
+            "M4": {
+                "name": "Data Marketplace",
+                "icon": "database",
+                "short_description": "Monetize sustainability datasets",
+                "default_potential": 70
+            },
+            "M5": {
+                "name": "Strategic Consulting",
+                "icon": "users",
+                "short_description": "Expert advisory services",
+                "default_potential": 80
+            }
+        }
+    )
+
+@strategy_bp.route('/strategy-hub-full')  
+def strategy_hub_full():
+    """
+    Original full implementation (currently has issues)
+    """
+    logger.info("Strategy Hub full route called")
     
     try:
         # Include navigation for the template
@@ -633,20 +719,453 @@ def strategy_hub_test():
     except Exception as e:
         logger.error(f"Error in test route: {str(e)}")
         return f"Test route error: {str(e)}", 500
+        
+# Helper functions for document uploads
+def allowed_file(filename):
+    """Check if a filename has an allowed extension"""
+    return '.' in filename and filename.rsplit('.', 1)[1].lower() in ALLOWED_EXTENSIONS
+
+# New integrated storytelling routes
+@strategy_bp.route('/strategy-hub/storytelling')
+def strategy_hub_storytelling():
+    """
+    Storytelling Hub page - central access point for storytelling features integrated with Strategy Hub
+    """
+    logger.info("Strategy Hub Storytelling route called")
+    
+    try:
+        # Get navigation context
+        nav_context = get_context_for_template()
+        
+        # Get category filter
+        category = request.args.get('category', 'all')
+        audience = request.args.get('audience', 'all')
+        
+        # Get stories from storytelling module if available
+        if STORYTELLING_AVAILABLE:
+            try:
+                stories = get_enhanced_stories(audience=audience, category=category)
+                logger.info(f"Fetched {len(stories)} stories from storytelling module")
+            except Exception as e:
+                logger.warning(f"Error fetching stories from storytelling module: {str(e)}")
+                stories = get_mock_stories()
+        else:
+            # Create a minimal set of mock stories
+            stories = [
+                {
+                    "id": 1,
+                    "title": "Carbon Emissions Reduction Success",
+                    "content": "Our organization achieved a 15% reduction in carbon emissions over the past quarter.",
+                    "category": "emissions",
+                    "audience": "board",
+                    "timestamp": datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
+                    "recommendations": [
+                        "Continue investment in renewable energy sources",
+                        "Expand carbon offset programs"
+                    ]
+                },
+                {
+                    "id": 2,
+                    "title": "Water Conservation Initiative Results",
+                    "content": "The water conservation program implemented last year has resulted in a 20% decrease in water usage.",
+                    "category": "water",
+                    "audience": "sustainability_team",
+                    "timestamp": datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
+                    "recommendations": [
+                        "Analyze most effective water-saving technologies",
+                        "Develop training program for facility managers"
+                    ]
+                }
+            ]
+        
+        return render_template(
+            "strategy/storytelling.html", 
+            page_title="Sustainability Storytelling",
+            stories=stories,
+            category=category,
+            audience=audience,
+            **nav_context
+        )
+    except Exception as e:
+        logger.error(f"Error in storytelling hub route: {str(e)}")
+        logger.error(traceback.format_exc())
+        
+        # Fallback to simpler template
+        return render_template(
+            "sustainability_stories.html", 
+            error=str(e)
+        )
+
+@strategy_bp.route('/api/strategy-hub/generate-story', methods=['POST'])
+def api_strategy_hub_generate_story():
+    """API endpoint for generating a sustainability story from the Strategy Hub"""
+    try:
+        # Get request data
+        data = request.json or {}
+        
+        # Extract parameters
+        topic = data.get('topic', 'sustainability')
+        template = data.get('template', 'success')
+        audience = data.get('audience', 'board')
+        
+        # Check if storytelling module is available
+        if not STORYTELLING_AVAILABLE:
+            return jsonify({
+                'success': False,
+                'error': 'Storytelling module is not available'
+            }), 500
+        
+        # Generate stories using the storytelling module
+        try:
+            stories = get_enhanced_stories(audience=audience, category=topic)
+            
+            # If stories were generated, return the first one
+            if stories:
+                return jsonify({
+                    'success': True,
+                    'story': stories[0]
+                })
+            else:
+                return jsonify({
+                    'success': False,
+                    'error': 'No stories generated'
+                }), 404
+        except Exception as e:
+            logger.error(f"Error generating story: {str(e)}")
+            return jsonify({
+                'success': False,
+                'error': f'Error generating story: {str(e)}'
+            }), 500
+    
+    except Exception as e:
+        logger.error(f"Error in generate story API: {str(e)}")
+        logger.error(traceback.format_exc())
+        return jsonify({
+            'success': False,
+            'error': str(e)
+        }), 500
+
+# New integrated document upload routes
+@strategy_bp.route('/strategy-hub/documents')
+def strategy_hub_documents():
+    """
+    Documents Hub page - central access point for document uploads and analysis
+    """
+    logger.info("Strategy Hub Documents route called")
+    
+    try:
+        # Get navigation context
+        nav_context = get_context_for_template()
+        
+        # Get stored documents (simplified for now)
+        recent_documents = [
+            {
+                "id": "doc1",
+                "title": "Sustainability Report 2024",
+                "category": "report",
+                "description": "Annual sustainability report with emissions data and ESG metrics.",
+                "timestamp": "2024-03-01",
+                "page_count": 42
+            },
+            {
+                "id": "doc2",
+                "title": "CSRD Compliance Assessment",
+                "category": "compliance",
+                "description": "Assessment of company compliance with CSRD reporting requirements.",
+                "timestamp": "2024-02-15",
+                "page_count": 18
+            }
+        ]
+        
+        return render_template(
+            "strategy/documents.html", 
+            page_title="Document Analysis Hub",
+            recent_documents=recent_documents,
+            document_processor_available=DOCUMENT_PROCESSOR_AVAILABLE,
+            **nav_context
+        )
+    except Exception as e:
+        logger.error(f"Error in documents hub route: {str(e)}")
+        logger.error(traceback.format_exc())
+        
+        # Create a minimal error message
+        return f"Error in documents hub: {str(e)}", 500
+
+@strategy_bp.route('/strategy-hub/document-upload', methods=['GET', 'POST'])
+def strategy_hub_document_upload():
+    """
+    Document upload page and handler for the Strategy Hub
+    """
+    logger.info("Strategy Hub Document Upload route called")
+    
+    # Define upload error (if any)
+    upload_error = None
+    upload_success = None
+    
+    if request.method == 'POST':
+        try:
+            # Check if document processor is available
+            if not DOCUMENT_PROCESSOR_AVAILABLE:
+                upload_error = "Document processor is not available"
+                logger.warning(f"Document upload attempted but processor not available")
+                return render_template(
+                    "strategy/document_upload.html",
+                    upload_error=upload_error
+                )
+            
+            # Check if file is in request
+            if 'document' not in request.files:
+                upload_error = "No file selected"
+                logger.warning("Document upload attempted but no file in request")
+                return render_template(
+                    "strategy/document_upload.html",
+                    upload_error=upload_error
+                )
+                
+            file = request.files['document']
+            
+            # Check if file was selected
+            if file.filename == '':
+                upload_error = "No file selected"
+                logger.warning("Document upload attempted but filename is empty")
+                return render_template(
+                    "strategy/document_upload.html",
+                    upload_error=upload_error
+                )
+                
+            # Check if file has allowed extension
+            if not allowed_file(file.filename):
+                upload_error = f"File type not allowed. Allowed types: {', '.join(ALLOWED_EXTENSIONS)}"
+                logger.warning(f"Document upload attempted with invalid file type: {file.filename}")
+                return render_template(
+                    "strategy/document_upload.html",
+                    upload_error=upload_error
+                )
+                
+            # Save the file
+            filename = secure_filename(file.filename)
+            file_path = os.path.join(UPLOAD_FOLDER, filename)
+            file.save(file_path)
+            logger.info(f"Document uploaded successfully: {filename}")
+            
+            # Process the document if processor is available
+            use_ocr = request.form.get('use_ocr', 'false') == 'true'
+            
+            # Process the document
+            result = document_processor.process_document(file_path, use_ocr=use_ocr)
+            
+            # Store document info in session for retrieval
+            session['last_document'] = {
+                'filename': filename,
+                'path': file_path,
+                'result': result,
+                'timestamp': datetime.now().isoformat()
+            }
+            
+            # Redirect to document view
+            return redirect(url_for('strategy.strategy_hub_document_view', document_id=filename))
+        
+        except Exception as e:
+            upload_error = f"Error uploading document: {str(e)}"
+            logger.error(f"Error in document upload: {str(e)}")
+            logger.error(traceback.format_exc())
+    
+    # Render the upload form for GET requests or after handling POST
+    return render_template(
+        "strategy/document_upload.html",
+        page_title="Upload Document",
+        upload_error=upload_error,
+        upload_success=upload_success,
+        document_processor_available=DOCUMENT_PROCESSOR_AVAILABLE
+    )
+    
+@strategy_bp.route('/strategy-hub/document/<document_id>')
+def strategy_hub_document_view(document_id):
+    """
+    Document analysis view for a specific document
+    """
+    logger.info(f"Strategy Hub Document View route called for document: {document_id}")
+    
+    try:
+        # Get document info from session if it exists
+        document_info = session.get('last_document', None)
+        
+        if not document_info or document_info.get('filename') != document_id:
+            # Try to load the document if it's stored on disk
+            file_path = os.path.join(UPLOAD_FOLDER, document_id)
+            if os.path.exists(file_path) and DOCUMENT_PROCESSOR_AVAILABLE:
+                # Process the document
+                result = document_processor.process_document(file_path)
+                document_info = {
+                    'filename': document_id,
+                    'path': file_path,
+                    'result': result,
+                    'timestamp': datetime.now().isoformat()
+                }
+            else:
+                # Document not found or processor not available
+                return render_template('error.html', message=f"Document {document_id} not found or cannot be processed"), 404
+        
+        # Get navigation context
+        nav_context = get_context_for_template()
+        
+        # Render document view
+        return render_template(
+            "strategy/document_view.html",
+            page_title=f"Document Analysis: {document_id}",
+            document=document_info,
+            **nav_context
+        )
+    except Exception as e:
+        logger.error(f"Error in document view route: {str(e)}")
+        logger.error(traceback.format_exc())
+        
+        # Create a minimal error message
+        return f"Error viewing document: {str(e)}", 500
+
+# Consolidated Strategy Hub implementation
+@strategy_bp.route('/unified-strategy-hub')
+def unified_strategy_hub():
+    """
+    Unified Strategy Hub page with document analysis, storytelling, and strategy frameworks
+    This is the new integrated version that combines all features
+    """
+    logger.info("Unified Strategy Hub route called")
+    
+    try:
+        # Get navigation context
+        nav_context = get_context_for_template()
+        
+        # Get recent documents (simplified for now)
+        recent_documents = [
+            {
+                "id": "doc1",
+                "title": "Sustainability Report 2024",
+                "category": "report",
+                "description": "Annual sustainability report with emissions data and ESG metrics.",
+                "timestamp": "2024-03-01",
+                "page_count": 42
+            },
+            {
+                "id": "doc2",
+                "title": "CSRD Compliance Assessment",
+                "category": "compliance",
+                "description": "Assessment of company compliance with CSRD reporting requirements.",
+                "timestamp": "2024-02-15",
+                "page_count": 18
+            }
+        ]
+        
+        # Get recent stories
+        if STORYTELLING_AVAILABLE:
+            try:
+                # The get_enhanced_stories function doesn't accept a limit parameter
+                recent_stories = get_enhanced_stories(audience='all', category='all')
+                # Limit the stories to 3 after the function call
+                recent_stories = recent_stories[:3] if recent_stories and len(recent_stories) > 3 else recent_stories
+                logger.info(f"Fetched {len(recent_stories)} stories for unified hub")
+            except Exception as e:
+                logger.warning(f"Error fetching stories for unified hub: {str(e)}")
+                # The get_mock_stories function doesn't accept a limit parameter either
+                recent_stories = get_mock_stories()
+                # Limit the stories to 3 after the function call
+                recent_stories = recent_stories[:3] if recent_stories and len(recent_stories) > 3 else recent_stories
+        else:
+            recent_stories = [
+                {
+                    "id": 1,
+                    "title": "Carbon Emissions Reduction Success",
+                    "content": "Our organization achieved a 15% reduction in carbon emissions over the past quarter.",
+                    "category": "emissions",
+                    "audience": "board",
+                    "timestamp": datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
+                    "recommendations": [
+                        "Continue investment in renewable energy sources",
+                        "Expand carbon offset programs"
+                    ]
+                },
+                {
+                    "id": 2,
+                    "title": "Water Conservation Initiative Results",
+                    "content": "The water conservation program implemented last year has resulted in a 20% decrease in water usage.",
+                    "category": "water",
+                    "audience": "sustainability_team",
+                    "timestamp": datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
+                    "recommendations": [
+                        "Analyze most effective water-saving technologies",
+                        "Develop training program for facility managers"
+                    ]
+                }
+            ]
+        
+        # Create hardcoded monetization strategies for the template
+        monetization_strategies = {
+            "M1": {
+                "name": "AI-Driven Sustainability Trend Monetization",
+                "icon": "chart-line",
+                "short_description": "AI-powered trend detection and analysis",
+                "default_potential": 85
+            },
+            "M2": {
+                "name": "Consulting Services Model",
+                "icon": "handshake",
+                "short_description": "Advisory services for sustainability reporting",
+                "default_potential": 65
+            },
+            "M3": {
+                "name": "SaaS Subscription Platform",
+                "icon": "cloud",
+                "short_description": "Cloud-based sustainability platform",
+                "default_potential": 75
+            }
+        }
+        
+        # Render the unified template with active_nav set to "strategy"
+        return render_template(
+            "strategy/strategy_hub.html",
+            page_title="Unified Strategy Hub",
+            active_nav="strategy",  # Set the active navigation item to highlight in sidebar
+            frameworks=STRATEGY_FRAMEWORKS,
+            monetization_strategies=monetization_strategies,
+            recent_documents=recent_documents,
+            recent_stories=recent_stories,
+            document_processor_available=DOCUMENT_PROCESSOR_AVAILABLE,
+            storytelling_available=STORYTELLING_AVAILABLE,
+            **nav_context
+        )
+    except Exception as e:
+        logger.error(f"Error in unified strategy hub: {str(e)}")
+        logger.error(traceback.format_exc())
+        
+        # Create a minimal fallback with required parameters
+        return render_template(
+            "strategy_test.html",
+            active_nav="strategy",  # Set the active navigation item for fallback as well
+            frameworks=STRATEGY_FRAMEWORKS,
+            monetization_strategies={
+                "M1": {
+                    "name": "AI-Driven Sustainability Trend Monetization",
+                    "icon": "chart-line",
+                    "short_description": "AI-powered trend detection and analysis",
+                    "default_potential": 85
+                }
+            },
+            error=str(e)
+        )
 
 # Legacy route redirects
 @strategy_bp.route('/monetization-opportunities')
 @strategy_bp.route('/monetization-strategies')
 def legacy_monetization_redirect():
-    """Redirect legacy monetization routes to strategy hub"""
-    return redirect(url_for('strategy.strategy_hub'))
+    """Redirect legacy monetization routes to unified strategy hub"""
+    return redirect(url_for('strategy.unified_strategy_hub'))
 
 @strategy_bp.route('/sustainability-strategies')
 def legacy_strategies_redirect():
-    """Redirect legacy strategies routes to strategy hub"""
-    return redirect(url_for('strategy.strategy_hub'))
+    """Redirect legacy strategies routes to unified strategy hub"""
+    return redirect(url_for('strategy.unified_strategy_hub'))
 
 @strategy_bp.route('/strategy-simulation')
 def legacy_simulation_redirect():
-    """Redirect legacy simulation routes to strategy hub"""
-    return redirect(url_for('strategy.strategy_hub'))
+    """Redirect legacy simulation routes to unified strategy hub"""
+    return redirect(url_for('strategy.unified_strategy_hub'))

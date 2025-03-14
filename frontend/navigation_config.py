@@ -77,7 +77,7 @@ def get_navigation_structure():
                     {
                         "id": "strategy",
                         "title": "Strategy Hub",
-                        "url": "/strategy-hub",
+                        "url": "/unified-strategy-hub",
                         "icon": "fa-chess-board",
                         "badge": "New",
                         "badge_color": "success",

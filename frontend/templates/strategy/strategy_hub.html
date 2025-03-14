@@ -1,0 +1,497 @@
+{% extends "layouts/finchat_dark_layout.html" %}
+
+{% set active_page = 'strategy_hub' %}
+
+{% block header_title %}
+<i class="fas fa-chess me-2"></i> Strategy Hub
+{% endblock %}
+
+{% block extra_css %}
+<style>
+    .strategy-hub-section {
+        margin-bottom: 2rem;
+    }
+    
+    .dashboard-card {
+        border-radius: 0.75rem;
+        box-shadow: 0 0.125rem 0.25rem rgba(0, 0, 0, 0.075);
+        transition: transform 0.2s, box-shadow 0.2s;
+    }
+    
+    .dashboard-card:hover {
+        transform: translateY(-5px);
+        box-shadow: 0 0.5rem 1rem rgba(0, 0, 0, 0.1);
+    }
+    
+    .card-icon {
+        width: 3rem;
+        height: 3rem;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        border-radius: 0.75rem;
+        font-size: 1.5rem;
+        margin-bottom: 1rem;
+    }
+    
+    .dashboard-section-title {
+        margin-bottom: 1.5rem;
+        display: flex;
+        align-items: center;
+    }
+    
+    .dashboard-section-title i {
+        margin-right: 0.5rem;
+    }
+    
+    .feature-badge {
+        position: absolute;
+        top: 10px;
+        right: 10px;
+        padding: 0.25rem 0.5rem;
+        font-size: 0.7rem;
+        font-weight: 600;
+    }
+    
+    .story-card {
+        transition: transform 0.2s;
+        height: 100%;
+    }
+    
+    .story-card:hover {
+        transform: translateY(-5px);
+    }
+    
+    .story-category {
+        font-size: 0.75rem;
+        padding: 0.25rem 0.5rem;
+        border-radius: 1rem;
+        margin-right: 0.5rem;
+        display: inline-block;
+        background-color: rgba(var(--bs-primary-rgb), 0.15);
+        color: var(--bs-primary);
+    }
+    
+    .story-audience {
+        font-size: 0.75rem;
+        padding: 0.25rem 0.5rem;
+        border-radius: 1rem;
+        display: inline-block;
+        background-color: rgba(33, 37, 41, 0.1);
+        color: #212529;
+    }
+    
+    .document-card {
+        transition: transform 0.2s;
+        height: 100%;
+    }
+    
+    .document-card:hover {
+        transform: translateY(-5px);
+    }
+    
+    .category-badge {
+        position: absolute;
+        top: 10px;
+        right: 10px;
+        font-size: 0.75rem;
+    }
+    
+    .document-icon {
+        font-size: 2rem;
+        margin-bottom: 1rem;
+        color: #6c757d;
+    }
+    
+    .document-pdf {
+        color: #dc3545;
+    }
+    
+    .document-excel {
+        color: #198754;
+    }
+    
+    .document-word {
+        color: #0d6efd;
+    }
+    
+    .document-ppt {
+        color: #fd7e14;
+    }
+    
+    .strategy-card {
+        position: relative;
+        overflow: hidden;
+        transition: transform 0.3s;
+        border-radius: 0.75rem;
+    }
+    
+    .strategy-card:hover {
+        transform: translateY(-5px);
+    }
+    
+    .strategy-card-icon {
+        position: absolute;
+        top: 15px;
+        right: 15px;
+        font-size: 2.5rem;
+        opacity: 0.1;
+    }
+    
+    .potential-indicator {
+        width: 100%;
+        height: 5px;
+        background-color: #e9ecef;
+        margin-top: 1rem;
+        border-radius: 3px;
+        overflow: hidden;
+    }
+    
+    .potential-bar {
+        height: 100%;
+        border-radius: 3px;
+    }
+    
+    .high-potential {
+        background-color: #198754;
+    }
+    
+    .medium-potential {
+        background-color: #fd7e14;
+    }
+    
+    .low-potential {
+        background-color: #dc3545;
+    }
+    
+    /* Dark mode support */
+    @media (prefers-color-scheme: dark) {
+        .story-category {
+            background-color: rgba(var(--bs-primary-rgb), 0.3);
+        }
+        
+        .story-audience {
+            background-color: rgba(248, 249, 250, 0.2);
+            color: #f8f9fa;
+        }
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="row mb-4">
+    <div class="col-12">
+        <div class="alert alert-info">
+            <i class="fas fa-info-circle me-2"></i> Welcome to the Strategy Hub, your unified platform for sustainability strategy development, document analysis, and data-driven storytelling.
+        </div>
+    </div>
+</div>
+
+<!-- Main Actions -->
+<div class="strategy-hub-section">
+    <div class="dashboard-section-title">
+        <i class="fas fa-bolt"></i>
+        <h3 class="mb-0">Quick Actions</h3>
+    </div>
+    
+    <div class="row g-4">
+        <div class="col-md-6 col-lg-3">
+            <div class="card dashboard-card h-100">
+                {% if document_processor_available %}
+                <span class="feature-badge badge bg-success">Available</span>
+                {% else %}
+                <span class="feature-badge badge bg-secondary">Coming Soon</span>
+                {% endif %}
+                <div class="card-body text-center">
+                    <div class="card-icon bg-primary bg-opacity-10 text-primary mx-auto">
+                        <i class="fas fa-file-upload"></i>
+                    </div>
+                    <h5 class="card-title">Upload Document</h5>
+                    <p class="card-text">Upload sustainability reports and documents for AI analysis.</p>
+                    {% if document_processor_available %}
+                    <a href="{{ url_for('strategy.strategy_hub_document_upload') }}" class="btn btn-primary">Upload</a>
+                    {% else %}
+                    <button class="btn btn-secondary" disabled>Coming Soon</button>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+        
+        <div class="col-md-6 col-lg-3">
+            <div class="card dashboard-card h-100">
+                {% if storytelling_available %}
+                <span class="feature-badge badge bg-success">Available</span>
+                {% else %}
+                <span class="feature-badge badge bg-secondary">Coming Soon</span>
+                {% endif %}
+                <div class="card-body text-center">
+                    <div class="card-icon bg-success bg-opacity-10 text-success mx-auto">
+                        <i class="fas fa-chart-line"></i>
+                    </div>
+                    <h5 class="card-title">Create Data Story</h5>
+                    <p class="card-text">Generate data-driven sustainability stories with visualizations.</p>
+                    {% if storytelling_available %}
+                    <a href="{{ url_for('strategy.strategy_hub_storytelling') }}" class="btn btn-success">Create</a>
+                    {% else %}
+                    <button class="btn btn-secondary" disabled>Coming Soon</button>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+        
+        <div class="col-md-6 col-lg-3">
+            <div class="card dashboard-card h-100">
+                <span class="feature-badge badge bg-success">Available</span>
+                <div class="card-body text-center">
+                    <div class="card-icon bg-info bg-opacity-10 text-info mx-auto">
+                        <i class="fas fa-lightbulb"></i>
+                    </div>
+                    <h5 class="card-title">Strategy Frameworks</h5>
+                    <p class="card-text">Explore sustainability strategy frameworks and methodologies.</p>
+                    <a href="#frameworks" class="btn btn-info">Explore</a>
+                </div>
+            </div>
+        </div>
+        
+        <div class="col-md-6 col-lg-3">
+            <div class="card dashboard-card h-100">
+                <span class="feature-badge badge bg-success">Available</span>
+                <div class="card-body text-center">
+                    <div class="card-icon bg-warning bg-opacity-10 text-warning mx-auto">
+                        <i class="fas fa-coins"></i>
+                    </div>
+                    <h5 class="card-title">Monetization</h5>
+                    <p class="card-text">Discover sustainability monetization opportunities and models.</p>
+                    <a href="#monetization" class="btn btn-warning">Discover</a>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Document Repository Section -->
+<div class="strategy-hub-section">
+    <div class="dashboard-section-title d-flex justify-content-between align-items-center">
+        <div>
+            <i class="fas fa-folder-open"></i>
+            <h3 class="mb-0">Document Repository</h3>
+        </div>
+        <a href="{{ url_for('strategy.strategy_hub_documents') }}" class="btn btn-sm btn-outline-primary">View All Documents</a>
+    </div>
+    
+    <div class="row g-4">
+        {% for document in recent_documents %}
+        <div class="col-md-6 col-lg-4">
+            <div class="card document-card h-100 shadow-sm">
+                <div class="card-body">
+                    <span class="category-badge badge bg-primary">{{ document.category }}</span>
+                    <div class="text-center mb-3">
+                        {% if document.id.endswith('.pdf') %}
+                        <div class="document-icon document-pdf">
+                            <i class="fas fa-file-pdf"></i>
+                        </div>
+                        {% elif document.id.endswith('.xlsx') or document.id.endswith('.csv') %}
+                        <div class="document-icon document-excel">
+                            <i class="fas fa-file-excel"></i>
+                        </div>
+                        {% elif document.id.endswith('.docx') or document.id.endswith('.doc') %}
+                        <div class="document-icon document-word">
+                            <i class="fas fa-file-word"></i>
+                        </div>
+                        {% elif document.id.endswith('.pptx') or document.id.endswith('.ppt') %}
+                        <div class="document-icon document-ppt">
+                            <i class="fas fa-file-powerpoint"></i>
+                        </div>
+                        {% else %}
+                        <div class="document-icon">
+                            <i class="fas fa-file-alt"></i>
+                        </div>
+                        {% endif %}
+                    </div>
+                    <h5 class="card-title">{{ document.title }}</h5>
+                    <p class="card-text">{{ document.description }}</p>
+                    <div class="d-flex align-items-center mt-3">
+                        <span class="me-2"><i class="far fa-clock me-1"></i> {{ document.timestamp }}</span>
+                        <span class="badge bg-light text-dark">{{ document.page_count }} pages</span>
+                    </div>
+                </div>
+                <div class="card-footer bg-transparent">
+                    <a href="{{ url_for('strategy.strategy_hub_document_view', document_id=document.id) }}" class="btn btn-outline-primary d-block">
+                        <i class="fas fa-chart-bar me-1"></i> View Analysis
+                    </a>
+                </div>
+            </div>
+        </div>
+        {% endfor %}
+    </div>
+</div>
+
+<!-- Data Stories Section -->
+<div class="strategy-hub-section">
+    <div class="dashboard-section-title d-flex justify-content-between align-items-center">
+        <div>
+            <i class="fas fa-chart-bar"></i>
+            <h3 class="mb-0">Data Stories</h3>
+        </div>
+        <a href="{{ url_for('strategy.strategy_hub_storytelling') }}" class="btn btn-sm btn-outline-success">Create New Story</a>
+    </div>
+    
+    <div class="row g-4">
+        {% for story in recent_stories %}
+        <div class="col-md-6 col-lg-4">
+            <div class="card story-card h-100 shadow-sm">
+                <div class="card-body">
+                    <h5 class="card-title">{{ story.title }}</h5>
+                    <p class="card-text">{{ story.content }}</p>
+                    <div class="d-flex flex-wrap mt-3">
+                        {% if story.category %}
+                        <span class="story-category me-2">{{ story.category }}</span>
+                        {% endif %}
+                        {% if story.audience %}
+                        <span class="story-audience">{{ story.audience }}</span>
+                        {% endif %}
+                    </div>
+                </div>
+                <div class="card-footer bg-transparent">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <small class="text-muted">{{ story.timestamp }}</small>
+                        <a href="{{ url_for('strategy.strategy_hub_storytelling') }}?story_id={{ story.id }}" class="btn btn-sm btn-outline-success">
+                            <i class="fas fa-eye me-1"></i> View
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+        {% endfor %}
+    </div>
+</div>
+
+<!-- Strategy Frameworks Section -->
+<div class="strategy-hub-section" id="frameworks">
+    <div class="dashboard-section-title">
+        <i class="fas fa-sitemap"></i>
+        <h3 class="mb-0">Strategy Frameworks</h3>
+    </div>
+    
+    <div class="row g-4">
+        {% for framework_id, framework in frameworks.items() %}
+        <div class="col-md-6 col-lg-4">
+            <div class="card strategy-card h-100 shadow-sm">
+                <div class="card-body">
+                    <div class="strategy-card-icon">
+                        <i class="fas fa-{{ framework.icon }}"></i>
+                    </div>
+                    <h5 class="card-title">{{ framework.name }}</h5>
+                    <p class="card-text">{{ framework.short_description }}</p>
+                </div>
+                <div class="card-footer bg-transparent">
+                    <button class="btn btn-outline-secondary d-block w-100" data-bs-toggle="modal" data-bs-target="#frameworkModal{{ framework_id }}">
+                        <i class="fas fa-info-circle me-1"></i> Learn More
+                    </button>
+                </div>
+            </div>
+        </div>
+        {% endfor %}
+    </div>
+</div>
+
+<!-- Monetization Strategies Section -->
+<div class="strategy-hub-section" id="monetization">
+    <div class="dashboard-section-title">
+        <i class="fas fa-coins"></i>
+        <h3 class="mb-0">Monetization Strategies</h3>
+    </div>
+    
+    <div class="row g-4">
+        {% for strategy_id, strategy in monetization_strategies.items() %}
+        <div class="col-md-6 col-lg-4">
+            <div class="card strategy-card h-100 shadow-sm">
+                <div class="card-body">
+                    <div class="strategy-card-icon">
+                        <i class="fas fa-{{ strategy.icon }}"></i>
+                    </div>
+                    <h5 class="card-title">{{ strategy.name }}</h5>
+                    <p class="card-text">{{ strategy.short_description }}</p>
+                    <div class="potential-indicator">
+                        <div class="potential-bar 
+                             {% if strategy.default_potential >= 75 %}high-potential
+                             {% elif strategy.default_potential >= 50 %}medium-potential
+                             {% else %}low-potential{% endif %}" 
+                             style="width: {{ strategy.default_potential }}%">
+                        </div>
+                    </div>
+                    <div class="d-flex justify-content-between mt-1">
+                        <small>Potential</small>
+                        <small>{{ strategy.default_potential }}%</small>
+                    </div>
+                </div>
+                <div class="card-footer bg-transparent">
+                    <button class="btn btn-outline-warning d-block w-100" data-bs-toggle="modal" data-bs-target="#monetizationModal{{ strategy_id }}">
+                        <i class="fas fa-lightbulb me-1"></i> Explore Opportunity
+                    </button>
+                </div>
+            </div>
+        </div>
+        {% endfor %}
+    </div>
+</div>
+
+<!-- Framework Modals -->
+{% for framework_id, framework in frameworks.items() %}
+<div class="modal fade" id="frameworkModal{{ framework_id }}" tabindex="-1" aria-labelledby="frameworkModal{{ framework_id }}Label" aria-hidden="true">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="frameworkModal{{ framework_id }}Label">{{ framework.name }}</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <p>{{ framework.description }}</p>
+                <h6>Key Components:</h6>
+                <ul>
+                    {% for component in framework.components %}
+                    <li>{{ component }}</li>
+                    {% endfor %}
+                </ul>
+                <h6>Benefits:</h6>
+                <ul>
+                    {% for benefit in framework.benefits %}
+                    <li>{{ benefit }}</li>
+                    {% endfor %}
+                </ul>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+                {% if framework.tool_url %}
+                <a href="{{ framework.tool_url }}" class="btn btn-primary">Use Framework</a>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+{% endfor %}
+
+<!-- Monetization Modals -->
+{% for strategy_id, strategy in monetization_strategies.items() %}
+<div class="modal fade" id="monetizationModal{{ strategy_id }}" tabindex="-1" aria-labelledby="monetizationModal{{ strategy_id }}Label" aria-hidden="true">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="monetizationModal{{ strategy_id }}Label">{{ strategy.name }}</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <p>{{ strategy.short_description }}</p>
+                <div class="alert alert-info">
+                    <i class="fas fa-info-circle me-2"></i> Detailed monetization strategy analysis coming soon.
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+                <a href="#" class="btn btn-warning">Full Analysis</a>
+            </div>
+        </div>
+    </div>
+</div>
+{% endfor %}
+{% endblock %}

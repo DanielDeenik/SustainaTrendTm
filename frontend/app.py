@@ -4,6 +4,8 @@ SustainaTrend Intelligence Platform - Application Factory
 This file serves as the main entry point for the Flask application with a clean,
 modular blueprint-based architecture.
 """
+import logging
+logger = logging.getLogger(__name__)
 
 import os
 import logging
