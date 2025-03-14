@@ -59,7 +59,7 @@ def get_navigation_structure():
                     {
                         "id": "stories",
                         "title": "AI Storytelling Engine",
-                        "url": "/story-cards",
+                        "url": "/storytelling/",
                         "icon": "fa-newspaper"
                     },
                     {

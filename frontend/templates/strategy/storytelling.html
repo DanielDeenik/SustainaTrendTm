@@ -113,6 +113,46 @@
                 <i class="fas fa-plus me-2"></i> Create New Story
             </a>
         </div>
+        
+        {% if pinecone_status is defined or openai_status is defined or lcm_status is defined %}
+        <div class="mt-4 pt-3 border-top">
+            <h6 class="text-muted mb-2"><i class="fas fa-info-circle me-1"></i> Integration Status</h6>
+            <div class="row g-2 small">
+                {% if pinecone_status is defined %}
+                <div class="col-md-4">
+                    <div class="d-flex align-items-center">
+                        <span class="badge {% if pinecone_status == 'Available' %}bg-success{% else %}bg-warning{% endif %} me-2">
+                            <i class="fas {% if pinecone_status == 'Available' %}fa-check{% else %}fa-exclamation-triangle{% endif %}"></i>
+                        </span>
+                        <span>Pinecone: {{ pinecone_status }}</span>
+                    </div>
+                </div>
+                {% endif %}
+                
+                {% if openai_status is defined %}
+                <div class="col-md-4">
+                    <div class="d-flex align-items-center">
+                        <span class="badge {% if openai_status == 'Available' %}bg-success{% else %}bg-warning{% endif %} me-2">
+                            <i class="fas {% if openai_status == 'Available' %}fa-check{% else %}fa-exclamation-triangle{% endif %}"></i>
+                        </span>
+                        <span>OpenAI: {{ openai_status }}</span>
+                    </div>
+                </div>
+                {% endif %}
+                
+                {% if lcm_status is defined %}
+                <div class="col-md-4">
+                    <div class="d-flex align-items-center">
+                        <span class="badge {% if lcm_status.startswith('Enabled') %}bg-success{% else %}bg-secondary{% endif %} me-2">
+                            <i class="fas {% if lcm_status.startswith('Enabled') %}fa-check{% else %}fa-info-circle{% endif %}"></i>
+                        </span>
+                        <span>LCM: {{ lcm_status }}</span>
+                    </div>
+                </div>
+                {% endif %}
+            </div>
+        </div>
+        {% endif %}
     </div>
 </div>
 

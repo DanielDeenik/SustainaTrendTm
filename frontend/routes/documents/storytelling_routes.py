@@ -22,7 +22,7 @@ except ImportError:
 
 # Import storytelling components
 try:
-    from sustainability_storytelling import get_enhanced_stories, get_mock_stories
+    from sustainability_storytelling import get_enhanced_stories, get_data_driven_stories
     STORYTELLING_AVAILABLE = True
     logging.info("Storytelling module loaded successfully")
 except ImportError as e:
@@ -58,7 +58,7 @@ def storytelling_hub():
                 logger.info(f"Fetched {len(stories)} stories from storytelling module")
             except Exception as e:
                 logger.warning(f"Error fetching stories from storytelling module: {str(e)}")
-                stories = get_mock_stories()
+                stories = get_data_driven_stories()
         else:
             # Create a minimal set of mock stories
             stories = [

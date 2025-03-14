@@ -1,0 +1,8 @@
+[workflow]
+name = "Storytelling Demo"
+entrypoint = "cd frontend && python app.py"
+icon = "storytelling.png"
+description = "Run the Storytelling Interface for SustainaTrend"
+show_logs = true
+always_lint = false
+wait_for_port = 5000

@@ -46,7 +46,7 @@ def get_sustainability_metrics():
         # Return an empty list if service is not available
         return []
 
-def get_mock_stories():
+def get_data_driven_stories():
     """Get mock storytelling data"""
     try:
         # Try to get stories from service
@@ -172,7 +172,7 @@ def register_routes(app):
                 from mongo_stories import get_stories
                 stories = get_stories(limit=10)
             except ImportError:
-                stories = get_mock_stories() or []
+                stories = get_data_driven_stories() or []
             
             # Create a story based on audience type
             story_card = create_story_card(

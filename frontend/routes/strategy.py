@@ -22,7 +22,7 @@ from navigation_config import get_context_for_template
 
 # Import storytelling components (with fallback)
 try:
-    from sustainability_storytelling import get_enhanced_stories, get_mock_stories, generate_chart_data
+    from sustainability_storytelling import get_enhanced_stories, get_data_driven_stories, generate_chart_data
     STORYTELLING_AVAILABLE = True
     logger = logging.getLogger(__name__)
     logger.info("Storytelling module loaded successfully")
@@ -36,8 +36,8 @@ except ImportError as e:
         logger.warning("Using fallback get_enhanced_stories function")
         return []
         
-    def get_mock_stories(*args, **kwargs):
-        logger.warning("Using fallback get_mock_stories function")
+    def get_data_driven_stories(*args, **kwargs):
+        logger.warning("Using fallback get_data_driven_stories function")
         return []
         
     def generate_chart_data(*args, **kwargs):
@@ -802,7 +802,7 @@ def strategy_hub_storytelling():
                 logger.info(f"Fetched {len(stories)} stories from storytelling module")
             except Exception as e:
                 logger.warning(f"Error fetching stories from storytelling module: {str(e)}")
-                stories = get_mock_stories()
+                stories = get_data_driven_stories()
         else:
             # Create a minimal set of mock stories
             stories = [
@@ -904,6 +904,13 @@ def api_storytelling_generate():
     """
     Enhanced API endpoint for generating data-driven sustainability stories from user parameters.
     This serves the new storytelling component in the Strategy Hub.
+    
+    Accepts:
+    - audience: Target audience (board, investors, etc.)
+    - category: Sustainability category (emissions, water, etc.)
+    - prompt: Optional text prompt for customization
+    - document_id: Optional ID of processed document to use as source
+    - document_data: Optional document data to use directly
     """
     try:
         # Get request data with better error handling
@@ -919,12 +926,14 @@ def api_storytelling_generate():
         audience = data.get('audience')
         category = data.get('category')
         prompt = data.get('prompt')
+        document_id = data.get('document_id')
+        document_data = data.get('document_data')
         
-        # Validate required parameters
-        if not all([audience, category, prompt]):
+        # Validate required parameters - only audience and category are required
+        if not all([audience, category]):
             return jsonify({
                 'error': True,
-                'message': 'Missing required parameters. Please provide audience, category, and prompt.'
+                'message': 'Missing required parameters. Please provide audience and category.'
             }), 400
         
         logger.info(f"Generating storytelling content for audience={audience}, category={category}")
@@ -936,9 +945,22 @@ def api_storytelling_generate():
                 'message': 'Storytelling module is not available'
             }), 500
         
+        # If document_id is provided but not document_data, try to fetch the document data
+        if document_id and not document_data and DOCUMENT_PROCESSOR_AVAILABLE:
+            try:
+                # Get document from DocumentProcessor
+                logger.info(f"Fetching document data for document_id: {document_id}")
+                document_data = document_processor.get_document_by_id(document_id)
+                
+                if not document_data:
+                    logger.warning(f"Document with ID {document_id} not found")
+            except Exception as e:
+                logger.error(f"Error fetching document data: {str(e)}")
+        
         # Generate stories using the enhanced storytelling module
         try:
-            stories = get_enhanced_stories(audience=audience, category=category, prompt=prompt)
+            stories = get_enhanced_stories(audience=audience, category=category, 
+                                          prompt=prompt, document_data=document_data)
             
             # If stories were generated, enhance the first one with additional metadata
             if stories and len(stories) > 0:
@@ -1163,6 +1185,105 @@ def strategy_hub_document_view(document_id):
         # Create a minimal error message
         return f"Error viewing document: {str(e)}", 500
 
+# Generate story from document route
+@strategy_bp.route('/strategy-hub/document/<document_id>/generate-story')
+def strategy_hub_generate_story(document_id):
+    """
+    Generate a sustainability story from a document analysis
+    """
+    logger.info(f"Strategy Hub Generate Story route called for document: {document_id}")
+    
+    try:
+        # Check if document processor and storytelling are available
+        if not DOCUMENT_PROCESSOR_AVAILABLE:
+            return render_template('error.html', message="Document processor is not available"), 500
+            
+        if not STORYTELLING_AVAILABLE:
+            return render_template('error.html', message="Storytelling module is not available"), 500
+        
+        # Get document info from session if it exists
+        document_info = session.get('last_document', None)
+        
+        if not document_info or document_info.get('filename') != document_id:
+            # Try to load the document if it's stored on disk
+            file_path = os.path.join(UPLOAD_FOLDER, document_id)
+            if os.path.exists(file_path):
+                # Process the document
+                result = document_processor.process_document(file_path)
+                document_info = {
+                    'filename': document_id,
+                    'path': file_path,
+                    'result': result,
+                    'timestamp': datetime.now().isoformat()
+                }
+            else:
+                # Document not found
+                return render_template('error.html', message=f"Document {document_id} not found"), 404
+        
+        # Prepare document data for storytelling
+        document_data = {
+            'title': document_info.get('filename', 'Unknown Document'),
+            'content': '',
+            'insights': [],
+            'metrics': []
+        }
+        
+        # Extract document content if available
+        if document_info.get('result'):
+            result = document_info['result']
+            
+            # Get document content
+            if 'text' in result:
+                document_data['content'] = result['text']
+            
+            # Get insights if available
+            if 'analysis' in result and 'executive_summary' in result['analysis']:
+                document_data['insights'].append(result['analysis']['executive_summary'])
+            
+            # Get metrics if available
+            if 'analysis' in result and 'metrics' in result['analysis']:
+                for category, metrics in result['analysis']['metrics'].items():
+                    for metric in metrics:
+                        document_data['metrics'].append({
+                            'name': metric.get('name', 'Unknown'),
+                            'value': metric.get('value', 'N/A'),
+                            'unit': metric.get('unit', ''),
+                            'category': category
+                        })
+        
+        # Get navigation context
+        nav_context = get_context_for_template()
+        
+        # Render story generation form
+        return render_template(
+            "strategy/story_generator.html",
+            page_title="Generate Story from Document",
+            document=document_info,
+            document_data=document_data,
+            audience_options=[
+                {"id": "board", "name": "Board of Directors"},
+                {"id": "investors", "name": "Investors"},
+                {"id": "sustainability_team", "name": "Sustainability Team"},
+                {"id": "employees", "name": "Employees"},
+                {"id": "customers", "name": "Customers"},
+                {"id": "regulators", "name": "Regulators"}
+            ],
+            category_options=[
+                {"id": "emissions", "name": "Carbon Emissions"},
+                {"id": "water", "name": "Water Management"},
+                {"id": "energy", "name": "Energy"},
+                {"id": "waste", "name": "Waste Management"},
+                {"id": "social", "name": "Social Impact"},
+                {"id": "governance", "name": "Governance"},
+                {"id": "all", "name": "All Categories"}
+            ],
+            **nav_context
+        )
+    except Exception as e:
+        logger.error(f"Error generating story from document: {str(e)}")
+        logger.error(traceback.format_exc())
+        return render_template('error.html', message=f"Error generating story: {str(e)}"), 500
+
 # Consolidated Strategy Hub implementation
 @strategy_bp.route('/unified-strategy-hub')
 def unified_strategy_hub():
@@ -1212,8 +1333,8 @@ def unified_strategy_hub():
                 logger.info(f"Fetched {len(recent_stories)} stories for unified hub")
             except Exception as e:
                 logger.warning(f"Error fetching stories for unified hub: {str(e)}")
-                # The get_mock_stories function doesn't accept a limit parameter either
-                recent_stories = get_mock_stories()
+                # The get_data_driven_stories function doesn't accept a limit parameter either
+                recent_stories = get_data_driven_stories()
                 # Limit the stories to 3 after the function call
                 recent_stories = recent_stories[:3] if recent_stories and len(recent_stories) > 3 else recent_stories
         else:

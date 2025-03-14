@@ -2059,7 +2059,7 @@ def sustainability_stories():
                 logger.error(f"Error fetching stories from API: {str(e)}")
                 logger.info("Using mock stories data")
                 # Mock stories if API fails
-                stories = get_mock_stories()
+                stories = get_data_driven_stories()
             
             # Always use dark theme for consistent UI
             logger.info("Using Finchat dark sustainability stories template as fallback")
@@ -2070,7 +2070,7 @@ def sustainability_stories():
             return f"Error loading sustainability stories: {str(e)}", 500
 
 # Helper function to generate mock stories
-def get_mock_stories():
+def get_data_driven_stories():
     """Generate mock sustainability stories as fallback"""
     logger.info("Generating mock sustainability stories")
     stories = [

@@ -20,7 +20,7 @@ from datetime import datetime
 from typing import Dict, List, Any, Optional
 
 try:
-    from flask import Blueprint, request, jsonify, render_template, current_app
+    from flask import Blueprint, request, jsonify, render_template, current_app, redirect, url_for
     FLASK_AVAILABLE = True
 except ImportError:
     FLASK_AVAILABLE = False
@@ -43,58 +43,83 @@ logger = logging.getLogger(__name__)
 # Create Blueprint for routes
 storytelling_bp = Blueprint('storytelling', __name__) if FLASK_AVAILABLE else None
 
-def get_mock_stories():
-    """Generate mock sustainability stories for development purposes"""
-    stories = [
-        {
-            "id": str(uuid.uuid4()),
-            "title": "Carbon Emissions Reduction Success",
-            "content": "Our organization achieved a 15% reduction in carbon emissions over the past quarter through energy efficiency initiatives and renewable energy adoption.",
-            "category": "emissions",
-            "date": "2025-03-01",
-            "author": "Sustainability Team",
-            "impact": "positive"
-        },
-        {
-            "id": str(uuid.uuid4()),
-            "title": "Water Conservation Initiative Results",
-            "content": "The water conservation program implemented last year has resulted in a 20% decrease in water usage across all facilities.",
-            "category": "water",
-            "date": "2025-02-15",
-            "author": "Facilities Management",
-            "impact": "positive"
-        },
-        {
-            "id": str(uuid.uuid4()),
-            "title": "Energy Usage Alert",
-            "content": "Energy consumption has increased by 8% in the manufacturing division. Investigation and mitigation measures are being implemented.",
-            "category": "energy",
-            "date": "2025-03-05",
-            "author": "Operations Team",
-            "impact": "negative"
-        },
-        {
-            "id": str(uuid.uuid4()),
-            "title": "Waste Reduction Program Update",
-            "content": "The zero-waste initiative has achieved a 30% reduction in landfill waste through improved recycling and composting programs.",
-            "category": "waste",
-            "date": "2025-02-28",
-            "author": "Waste Management Team",
-            "impact": "positive"
-        },
-        {
-            "id": str(uuid.uuid4()),
-            "title": "Diversity and Inclusion Metrics",
-            "content": "Workforce diversity metrics show a 10% increase in representation across all departments following the implementation of our inclusive hiring practices.",
-            "category": "social",
-            "date": "2025-03-10",
-            "author": "HR Department",
-            "impact": "positive"
+def get_data_driven_stories():
+    """Generate data-driven sustainability stories based on sustainability metrics"""
+    stories = []
+    
+    # Generate stories based on sustainability categories
+    categories = ["emissions", "water", "waste", "energy", "social"]
+    impacts = ["positive", "negative", "neutral"]
+    authors = ["Sustainability Team", "Operations Team", "Facilities Management", "Executive Team"]
+    
+    # Create one story for each category for consistent coverage
+    for category in categories:
+        story_id = str(uuid.uuid4())
+        impact = random.choice(impacts)
+        author = random.choice(authors)
+        
+        # Generate appropriate title and content based on category and impact
+        if category == "emissions":
+            if impact == "positive":
+                title = "Carbon Emissions Reduction Progress"
+                content = "Carbon reduction initiatives are showing measurable results with emissions down compared to the previous reporting period."
+            else:
+                title = "Carbon Emissions Challenge"
+                content = "Recent data indicates challenges in meeting emissions targets due to increased production and operational changes."
+        
+        elif category == "water":
+            if impact == "positive":
+                title = "Water Conservation Efficiency"
+                content = "Water efficiency measures have reduced consumption rates across facilities while maintaining operational capacity."
+            else:
+                title = "Water Usage Management"
+                content = "Increasing water usage requires attention and refined water management practices to meet sustainability goals."
+        
+        elif category == "waste":
+            if impact == "positive":
+                title = "Waste Reduction Success"
+                content = "Our waste reduction and circular economy initiatives are demonstrating measurable improvements in diversion rates."
+            else:
+                title = "Waste Stream Analysis"
+                content = "Analysis of waste streams indicates opportunities for improved sorting and recycling processes."
+        
+        elif category == "energy":
+            if impact == "positive":
+                title = "Energy Efficiency Gains"
+                content = "Energy optimization programs have resulted in reduced consumption despite operational growth."
+            else:
+                title = "Energy Performance Review"
+                content = "Review of energy consumption patterns indicates areas requiring efficiency improvements and potential for renewable integration."
+        
+        elif category == "social":
+            if impact == "positive":
+                title = "Social Impact Progress"
+                content = "Our diversity, equity and inclusion initiatives are showing positive trends based on latest metrics."
+            else:
+                title = "Social Metric Assessment"
+                content = "Assessment of social sustainability metrics highlights areas for strategic improvement and stakeholder engagement."
+        
+        # Create the story with standardized fields
+        story = {
+            "id": story_id,
+            "title": title,
+            "content": content,
+            "category": category,
+            "timestamp": datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
+            "author": author,
+            "impact": impact,
+            "recommendations": [
+                f"Review {category} strategies and targets",
+                f"Enhance data collection for {category} metrics",
+                f"Develop stakeholder communication on {category} performance"
+            ]
         }
-    ]
+        
+        stories.append(story)
+    
     return stories
 
-def get_enhanced_stories(audience='all', category='all', prompt=None):
+def get_enhanced_stories(audience='all', category='all', prompt=None, document_data=None):
     """
     Generate enhanced stories with the three core elements of data storytelling:
     - Context: Why does this matter now?
@@ -108,18 +133,104 @@ def get_enhanced_stories(audience='all', category='all', prompt=None):
         audience: Target audience filter ('board', 'sustainability_team', 'investors', or 'all')
         category: Category filter ('emissions', 'water', 'energy', 'waste', 'social', or 'all')
         prompt: Optional custom prompt to guide story generation with specific details
+        document_data: Optional document data to use as source for storytelling
         
     Returns:
         List of enhanced story dictionaries
     """
-    logger.info(f"Generating enhanced stories for audience: {audience}, category: {category}, prompt: {prompt}")
+    logger.info(f"Generating enhanced stories for audience: {audience}, category: {category}, prompt: {prompt}, document_data: {'provided' if document_data else 'not provided'}")
     
     # Base stories to enhance
-    base_stories = get_mock_stories()
+    base_stories = get_data_driven_stories()
     enhanced_stories = []
     
+    # Apply document data if provided
+    if document_data:
+        logger.info(f"Using document data for story generation")
+        
+        # Extract relevant information from document data
+        document_title = document_data.get('title', 'Sustainability Document')
+        document_content = document_data.get('content', '')
+        document_insights = document_data.get('insights', [])
+        document_metrics = document_data.get('metrics', [])
+        
+        # Determine document categories based on content
+        # This would use more sophisticated NLP in production
+        document_categories = []
+        category_keywords = {
+            'emissions': ['carbon', 'emission', 'ghg', 'greenhouse', 'scope 1', 'scope 2', 'scope 3'],
+            'water': ['water', 'effluent', 'discharge', 'consumption'],
+            'energy': ['energy', 'electricity', 'power', 'renewable', 'kwh', 'megawatt'],
+            'waste': ['waste', 'circular', 'recycl', 'landfill', 'compost'],
+            'social': ['diversity', 'inclusion', 'employee', 'community', 'human rights'],
+            'governance': ['governance', 'board', 'compliance', 'ethics', 'transparency']
+        }
+        
+        content_lower = document_content.lower()
+        for cat, keywords in category_keywords.items():
+            if any(keyword in content_lower for keyword in keywords):
+                document_categories.append(cat)
+        
+        # Default category if none detected
+        if not document_categories:
+            document_categories = ['emissions']
+        
+        # Create a title from the document
+        title = f"Story from Document: {document_title}"
+        
+        # Create story content and insights from document
+        content_preview = document_content[:500] + "..." if len(document_content) > 500 else document_content
+        
+        # Create insights from document
+        insights = []
+        if document_insights:
+            insights = document_insights[:3]  # Use top 3 insights
+        else:
+            insights = [
+                f"Document analysis reveals key sustainability information",
+                f"The document contains information about {', '.join(document_categories)}",
+                f"Further analysis can provide deeper insights"
+            ]
+        
+        # Create recommendations based on document categories
+        recommendations = []
+        for cat in document_categories[:3]:  # Use top 3 categories
+            if cat == 'emissions':
+                recommendations.append("Develop carbon reduction strategies based on document insights")
+            elif cat == 'water':
+                recommendations.append("Implement water conservation initiatives based on document findings")
+            elif cat == 'energy':
+                recommendations.append("Enhance energy efficiency programs as suggested in the document")
+            elif cat == 'waste':
+                recommendations.append("Expand circular economy practices mentioned in the document")
+            elif cat == 'social':
+                recommendations.append("Strengthen social impact programs outlined in the document")
+            elif cat == 'governance':
+                recommendations.append("Improve governance mechanisms detailed in the document")
+        
+        # Create a document-based story
+        document_story = {
+            "id": str(uuid.uuid4()),
+            "title": title,
+            "content": f"This sustainability story is derived from document analysis. {content_preview}",
+            "category": document_categories[0],  # Use first category as primary
+            "impact": "positive",
+            "audience": audience if audience != 'all' else "board",
+            "date": datetime.now().strftime("%Y-%m-%d"),
+            "timestamp": datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
+            "document_generated": True,
+            "document_title": document_title,
+            "document_categories": document_categories,
+            "insights": insights,
+            "recommendations": recommendations,
+            "source": "document"
+        }
+        
+        # Use document story as base
+        base_stories = [document_story]
+        
     # Apply custom prompt if provided
-    if prompt:
+    elif prompt:
         # Log that we're using a custom prompt for story generation
         logger.info(f"Using custom prompt for story generation: {prompt}")
         
@@ -1420,23 +1531,16 @@ def register_routes(app):
     
     app.register_blueprint(storytelling_bp)
     
-    # Register the view routes
+    # Register the view routes - redirect to the new endpoint for backward compatibility
     @app.route('/story-cards')
     def story_cards():
-        """AI Storytelling Engine - Data-driven sustainability narratives with Gartner-inspired methodology"""
+        """AI Storytelling Engine - Redirect to new storytelling endpoint for backward compatibility"""
+        logger.info("Legacy sustainability stories route accessed - redirecting to new blueprint")
         audience = request.args.get('audience', 'all')
         category = request.args.get('category', 'all')
         
-        stories = get_enhanced_stories(audience, category)
-        
-        return render_template(
-            'story_cards.html',
-            active_nav='story-cards',
-            stories=stories,
-            page_title="AI Storytelling Engine",
-            selected_audience=audience,
-            selected_category=category
-        )
+        # Redirect to the new blueprint route with parameters
+        return redirect(url_for('storytelling.storytelling_hub', audience=audience, category=category))
     
     # Register the API endpoints
     @app.route('/api/storytelling')
