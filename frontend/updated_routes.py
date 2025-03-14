@@ -104,9 +104,18 @@ def register_routes(app):
     def monetization_strategies_dashboard():
         """Monetization strategies dashboard for sustainability intelligence"""
         logger.info("Monetization strategies dashboard called")
+        
+        # Include navigation for the template
+        from navigation_config import get_context_for_template
+        nav_context = get_context_for_template()
+        
+        # Use analytics_dashboard_dark.html with template_type="monetization"
+        logger.info("Using dark themed monetization template")
         return render_template(
-            'monetization_framework.html',
-            page_title="Monetization Strategies Framework"
+            'analytics_dashboard_dark.html',
+            page_title="Monetization Strategies Framework",
+            template_type="monetization",
+            **nav_context  # Include all navigation context
         )
     
     @app.route('/api/monetization-strategy', methods=['POST'])
@@ -313,15 +322,23 @@ def register_routes(app):
         audience = request.args.get('audience', 'all')
         category = request.args.get('category', 'all')
         
+        # Include navigation for the template
+        from navigation_config import get_context_for_template
+        nav_context = get_context_for_template()
+        
         # Get enhanced stories
         stories = get_enhanced_stories(audience, category)
         
+        # Use the dark themed template for storytelling
+        logger.info("Using dark themed storytelling template")
         return render_template(
-            "sustainability_storytelling_sustainatrend.html",
+            "analytics_dashboard_dark.html",
             page_title="Sustainability Storytelling",
             stories=stories,
             audience=audience,
-            category=category
+            category=category,
+            template_type="storytelling",
+            **nav_context  # Include all navigation context
         )
         
     # Helper function for getting enhanced stories
@@ -404,13 +421,20 @@ def register_routes(app):
         """Home AI Trends Feed - Main entry point with sustainability trends"""
         logger.info("Home route called")
         
+        # Include navigation for the template
+        from navigation_config import get_context_for_template
+        nav_context = get_context_for_template()
+        
         # Get current API status for display
         api_status = get_api_status()
         
+        # Use finchat_dark_dashboard.html for consistent dark theme UI
+        logger.info("Using Finchat dark dashboard template")
         return render_template(
-            "index.html", 
+            "finchat_dark_dashboard.html", 
             page_title="SustainaTrend™ Intelligence Platform",
-            api_status=api_status
+            api_status=api_status,
+            **nav_context  # Include all navigation context
         )
     
     # Dashboard page
@@ -419,17 +443,24 @@ def register_routes(app):
         """Unified dashboard page combining sustainability metrics and key indicators"""
         logger.info("Dashboard route called")
         
+        # Include navigation for the template
+        from navigation_config import get_context_for_template
+        nav_context = get_context_for_template()
+        
         # Get sustainability metrics
         metrics = get_sustainability_metrics()
         
         # Format metrics for dashboard display
         formatted_metrics = json.dumps(metrics, default=lambda o: o.isoformat() if isinstance(o, datetime) else str(o))
         
+        # Use the dark themed dashboard
+        logger.info("Using Finchat dark dashboard template")
         return render_template(
-            "sustainatrend_inspired_dashboard.html", 
+            "finchat_dark_dashboard.html", 
             page_title="Sustainability Intelligence Dashboard",
             metrics=metrics,
-            metrics_json=formatted_metrics
+            metrics_json=formatted_metrics,
+            **nav_context  # Include all navigation context
         )
     
     # API metrics endpoint
@@ -469,11 +500,19 @@ def register_routes(app):
         query = request.args.get('query', '')
         model = request.args.get('model', 'hybrid')
         
+        # Include navigation for the template
+        from navigation_config import get_context_for_template
+        nav_context = get_context_for_template()
+        
+        # Use dark themed search template via analytics dashboard
+        logger.info("Using dark themed search template")
         return render_template(
-            "search.html",
+            "analytics_dashboard_dark.html",
             page_title="Sustainability Intelligence Search",
             query=query,
-            model=model
+            model=model,
+            template_type="copilot",  # Use Co-Pilot UI for search
+            **nav_context  # Include all navigation context
         )
     
     # API search suggestions endpoint
@@ -519,11 +558,53 @@ def register_routes(app):
         category = request.args.get('category', 'all')
         sort = request.args.get('sort', 'virality')
         
+        # Include navigation for the template
+        from navigation_config import get_context_for_template
+        nav_context = get_context_for_template()
+        
+        # Get trend data for the template
+        try:
+            from mongo_trends import get_trends
+            trends = get_trends(limit=50)
+        except (ImportError, Exception) as e:
+            logger.warning(f"Failed to get trends from MongoDB: {e}")
+            # Use fallback trends
+            trends = [
+                {
+                    "name": "Carbon Neutrality Pledges",
+                    "category": "Climate Action",
+                    "virality_score": 87,
+                    "sentiment": 0.78,
+                    "mentions": 1458,
+                    "timestamp": datetime.now() - timedelta(days=3)
+                },
+                {
+                    "name": "ESG Reporting Standards",
+                    "category": "Governance",
+                    "virality_score": 92,
+                    "sentiment": 0.65,
+                    "mentions": 2104,
+                    "timestamp": datetime.now() - timedelta(days=1)
+                },
+                {
+                    "name": "Circular Economy Initiatives",
+                    "category": "Resource Efficiency",
+                    "virality_score": 76,
+                    "sentiment": 0.81,
+                    "mentions": 873,
+                    "timestamp": datetime.now() - timedelta(days=5)
+                }
+            ]
+        
+        # Use the dark themed template
+        logger.info("Using dark themed trend analysis template")
         return render_template(
-            "trend_analysis_sustainatrend.html", 
+            "realestate_trend_analysis_dark.html", 
             page_title="Sustainability Trend Analysis",
             category=category,
-            sort=sort
+            sort=sort,
+            trends=trends,
+            **nav_context  # Include all navigation context
         )
     
     # API trends endpoint
@@ -604,14 +685,22 @@ def register_routes(app):
         except ImportError:
             mongo_status = "MongoDB client not available"
         
+        # Include navigation for the template
+        from navigation_config import get_context_for_template
+        nav_context = get_context_for_template()
+        
+        # Use the dark themed template for debug info
+        logger.info("Using dark themed debug template")
         return render_template(
-            'debug.html', 
+            'analytics_dashboard_dark.html', 
             routes=routes,
             python_version=python_version,
             flask_version=flask_version,
             mongo_status=mongo_status,
             api_status=get_api_status(),
-            page_title="Debug - Registered Routes"
+            template_type="debug",
+            page_title="Debug - Registered Routes",
+            **nav_context  # Include all navigation context
         )
     
     # Document upload page
@@ -620,9 +709,17 @@ def register_routes(app):
         """Document upload page for sustainability document analysis"""
         logger.info("Document upload route called")
         
+        # Include navigation for the template
+        from navigation_config import get_context_for_template
+        nav_context = get_context_for_template()
+        
+        # Use analytics_dashboard_dark.html with template_type="documents"
+        logger.info("Using dark themed document upload template")
         return render_template(
-            "document_upload_sustainatrend.html",
-            page_title="Sustainability Document Upload & Analysis"
+            "analytics_dashboard_dark.html",
+            page_title="Sustainability Document Upload & Analysis",
+            template_type="documents",
+            **nav_context  # Include all navigation context
         )
         
     # Document upload processing
@@ -708,21 +805,29 @@ def register_routes(app):
         uploads_dir = os.path.join(os.getcwd(), 'frontend', 'uploads')
         file_path = os.path.join(uploads_dir, document_id)
         
+        # Include navigation for the template
+        from navigation_config import get_context_for_template
+        nav_context = get_context_for_template()
+        
         # Check if file exists
         if not os.path.exists(file_path):
             logger.error(f"Document not found: {file_path}")
             return render_template(
-                "error.html",
+                "analytics_dashboard_dark.html",
                 error_message="Document not found. It may have been deleted or the ID is invalid.",
-                page_title="Document Not Found"
+                template_type="debug",
+                page_title="Document Not Found",
+                **nav_context
             ), 404
         
         # Check if document processor is available
         if document_processor is None:
             return render_template(
-                "error.html",
+                "analytics_dashboard_dark.html",
                 error_message="Document processing functionality is not available",
-                page_title="Processing Error"
+                template_type="debug",
+                page_title="Processing Error",
+                **nav_context
             ), 500
         
         # Process document
@@ -732,19 +837,25 @@ def register_routes(app):
             # For demo purposes, add document_id to result
             result['document_id'] = document_id
             
+            # Use the dark themed template for document analysis
+            logger.info("Using dark themed document analysis template")
             return render_template(
-                "document_analysis.html",
+                "analytics_dashboard_dark.html",
                 result=result,
                 document_id=document_id,
-                page_title="Sustainability Document Analysis"
+                template_type="documents",
+                page_title="Sustainability Document Analysis",
+                **nav_context  # Include all navigation context
             )
             
         except Exception as e:
             logger.error(f"Error analyzing document: {e}")
             return render_template(
-                "error.html",
+                "analytics_dashboard_dark.html",
                 error_message=f"Error analyzing document: {str(e)}",
-                page_title="Analysis Error"
+                template_type="debug",
+                page_title="Analysis Error",
+                **nav_context
             ), 500
     
     # API status dashboard
@@ -755,10 +866,19 @@ def register_routes(app):
         
         api_status = get_api_status()
         
+        # Use the dark themed template for API status
+        logger.info("Using dark themed API status template")
+        
+        # Include navigation for the template
+        from navigation_config import get_context_for_template
+        nav_context = get_context_for_template()
+        
         return render_template(
-            "api_status.html",
+            "analytics_dashboard_dark.html",
             api_status=api_status,
-            page_title="API Status Dashboard"
+            template_type="debug",
+            page_title="API Status Dashboard",
+            **nav_context  # Include all navigation context
         )
     
     # Real Estate Sustainability page
@@ -767,9 +887,51 @@ def register_routes(app):
         """Real Estate Sustainability - Specialized insights for the real estate sector"""
         logger.info("Real estate sustainability route called")
         
+        # Include navigation for the template
+        from navigation_config import get_context_for_template
+        nav_context = get_context_for_template()
+        
+        # Get trend data for the template
+        try:
+            from mongo_trends import get_trends
+            trends = get_trends(limit=50)
+        except (ImportError, Exception) as e:
+            logger.warning(f"Failed to get trends from MongoDB: {e}")
+            # Use fallback trends
+            trends = [
+                {
+                    "name": "Green Building Certifications",
+                    "category": "Real Estate",
+                    "virality_score": 83,
+                    "sentiment": 0.75,
+                    "mentions": 1289,
+                    "timestamp": datetime.now() - timedelta(days=2)
+                },
+                {
+                    "name": "Net Zero Buildings",
+                    "category": "Real Estate",
+                    "virality_score": 90,
+                    "sentiment": 0.82,
+                    "mentions": 1965,
+                    "timestamp": datetime.now() - timedelta(days=1)
+                },
+                {
+                    "name": "Sustainable Urban Planning",
+                    "category": "Real Estate",
+                    "virality_score": 79,
+                    "sentiment": 0.77,
+                    "mentions": 943,
+                    "timestamp": datetime.now() - timedelta(days=4)
+                }
+            ]
+        
+        # Use the dark themed template
+        logger.info("Using dark themed real estate sustainability template")
         return render_template(
-            "realestate_sustainatrend.html",
-            page_title="Real Estate Sustainability"
+            "realestate_trend_analysis_dark.html",
+            page_title="Real Estate Sustainability",
+            trends=trends,
+            **nav_context  # Include all navigation context
         )
         
     # Register error handlers
@@ -777,10 +939,19 @@ def register_routes(app):
     def page_not_found(e):
         """Handle 404 errors"""
         logger.warning(f"404 error: {request.path}")
+        
+        # Include navigation for the template
+        from navigation_config import get_context_for_template
+        nav_context = get_context_for_template()
+        
+        # Use the dark themed template for error pages
+        logger.info("Using dark themed error template")
         return render_template(
-            'error.html',
+            'analytics_dashboard_dark.html',
             error_message="The page you're looking for doesn't exist.",
-            page_title="Page Not Found"
+            template_type="debug",  # Use debug layout for errors
+            page_title="Page Not Found",
+            **nav_context  # Include all navigation context
         ), 404
     
     logger.info("All routes registered successfully")

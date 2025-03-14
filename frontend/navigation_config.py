@@ -164,5 +164,6 @@ def get_context_for_template():
     
     return {
         "nav_sections": nav_sections,
-        "user_menu": user_menu
+        "user_menu": user_menu,
+        "nav_structure": navigation  # Add complete navigation structure for debug view
     }

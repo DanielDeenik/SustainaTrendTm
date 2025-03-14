@@ -24,4 +24,4 @@ fi
 # Start the Flask frontend application
 cd frontend
 echo "Starting Flask application on port $PORT..."
-python direct_app.py
+python app.py

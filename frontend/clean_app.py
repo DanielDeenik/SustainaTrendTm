@@ -75,33 +75,19 @@ def create_app():
     
     # Import and register routes
     try:
-        # Try to use the updated consolidated routes first
+        # Use the updated consolidated routes
         from updated_routes import register_routes
         register_routes(app)
         logger.info("Consolidated routes registered successfully")
     except ImportError as e:
-        logger.warning(f"Failed to register consolidated routes: {e}")
-        # Try to use the cleaned, streamlined routes next
+        logger.error(f"Failed to register routes: {e}")
+        # In case of import error, use fallback
+        logger.warning("Using direct_app.py as fallback")
         try:
-            from cleaned_routes import register_routes
-            register_routes(app)
-            logger.info("Streamlined routes registered successfully")
-        except ImportError as e:
-            logger.warning(f"Failed to register streamlined routes: {e}")
-            # Fall back to original routes if needed
-            try:
-                from routes import register_routes
-                register_routes(app)
-                logger.info("Original routes registered successfully")
-            except ImportError as e:
-                logger.error(f"Failed to register original routes: {e}")
-                # In case of import error, use fallback
-                logger.warning("Using direct_app.py as fallback")
-                try:
-                    from direct_app import app as direct_app
-                    app = direct_app
-                except ImportError:
-                    logger.error("Failed to import direct_app.py as fallback")
+            from direct_app import app as direct_app
+            app = direct_app
+        except ImportError:
+            logger.error("Failed to import direct_app.py as fallback")
     
     # Document query API routes are now handled in updated_routes.py
     logger.info("Document query API routes are now registered via updated_routes.py")
