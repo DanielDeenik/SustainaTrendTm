@@ -93,7 +93,7 @@ def get_mock_stories():
     ]
     return stories
 
-def get_enhanced_stories(audience='all', category='all'):
+def get_enhanced_stories(audience='all', category='all', prompt=None):
     """
     Generate enhanced stories with the three core elements of data storytelling:
     - Context: Why does this matter now?
@@ -106,15 +106,38 @@ def get_enhanced_stories(audience='all', category='all'):
     Args:
         audience: Target audience filter ('board', 'sustainability_team', 'investors', or 'all')
         category: Category filter ('emissions', 'water', 'energy', 'waste', 'social', or 'all')
+        prompt: Optional custom prompt to guide story generation with specific details
         
     Returns:
         List of enhanced story dictionaries
     """
-    logger.info(f"Generating enhanced stories for audience: {audience}, category: {category}")
+    logger.info(f"Generating enhanced stories for audience: {audience}, category: {category}, prompt: {prompt}")
     
     # Base stories to enhance
     base_stories = get_mock_stories()
     enhanced_stories = []
+    
+    # Apply custom prompt if provided
+    if prompt:
+        # Log that we're using a custom prompt for story generation
+        logger.info(f"Using custom prompt for story generation: {prompt}")
+        # In a production environment, we would use an AI service here
+        # For now, we'll modify our story content based on the prompt
+        
+        # Create a "custom" flag to mark stories generated from prompt
+        custom_story_flag = True
+        
+        # Create a simple custom story based on the prompt if none are found
+        if not base_stories and prompt:
+            base_stories = [{
+                "id": 1000,
+                "title": f"Custom Story: {prompt[:30]}...",
+                "content": f"Generated story based on the prompt: {prompt}",
+                "category": category if category != 'all' else "emissions",
+                "impact": "positive",
+                "date": datetime.now().strftime("%Y-%m-%d"),
+                "custom_prompt_generated": True
+            }]
     
     # Define audience-specific elements
     audience_elements = {
@@ -148,6 +171,13 @@ def get_enhanced_stories(audience='all', category='all'):
             
         # Create enhanced version of each story
         enhanced_story = story.copy()
+        
+        # If prompt is provided, augment the story content with the prompt
+        if prompt and not story.get('custom_prompt_generated', False):
+            # Update the story content to include information from the prompt
+            story_content = story.get('content', '')
+            enhanced_story['content'] = f"{story_content} {prompt}"
+            enhanced_story['prompt_enhanced'] = True
         
         # Add the three core elements of data storytelling
         enhanced_story["storytelling_elements"] = {

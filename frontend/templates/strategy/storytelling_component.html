@@ -1,0 +1,293 @@
+<!-- Storytelling Component for Strategy Hub -->
+<div class="card shadow-lg dark:bg-gray-800 dark:border-gray-700 mb-4">
+    <div class="card-header d-flex justify-content-between align-items-center bg-primary text-white dark:bg-gray-700">
+        <h5 class="mb-0">Sustainability Storytelling</h5>
+        <button type="button" class="btn btn-sm btn-outline-light" data-bs-toggle="modal" data-bs-target="#storytellingModal">
+            <i class="fas fa-plus-circle me-1"></i> Create Story
+        </button>
+    </div>
+    <div class="card-body">
+        <div class="row">
+            <!-- Recent Stories Section -->
+            <div class="col-md-12">
+                <h6 class="text-muted mb-3">Recent Stories</h6>
+                {% if recent_stories and recent_stories|length > 0 %}
+                    <div class="list-group story-list">
+                        {% for story in recent_stories %}
+                            <div class="list-group-item list-group-item-action flex-column align-items-start dark:bg-gray-800 dark:text-gray-200 dark:border-gray-700 border-0 rounded mb-2">
+                                <div class="d-flex w-100 justify-content-between">
+                                    <h5 class="mb-1">{{ story.title }}</h5>
+                                    <small class="text-muted">{{ story.timestamp }}</small>
+                                </div>
+                                <p class="mb-1 text-truncate">{{ story.content[:100] }}{% if story.content|length > 100 %}...{% endif %}</p>
+                                <div class="d-flex justify-content-between align-items-center mt-2">
+                                    <small class="text-muted">
+                                        <span class="badge bg-primary me-2">{{ story.category|capitalize }}</span>
+                                        <span class="badge bg-secondary">{{ story.audience|capitalize }}</span>
+                                    </small>
+                                    <button class="btn btn-sm btn-outline-primary view-story-btn" 
+                                            data-story-id="{{ story.id }}"
+                                            data-story-title="{{ story.title }}"
+                                            data-story-content="{{ story.content }}"
+                                            data-story-category="{{ story.category }}"
+                                            data-story-audience="{{ story.audience }}"
+                                            data-story-prompt="{{ story.prompt|default('') }}"
+                                            data-prompt-enhanced="{{ 'true' if story.prompt_enhanced|default(false) else 'false' }}"
+                                            data-custom-prompt-generated="{{ 'true' if story.custom_prompt_generated|default(false) else 'false' }}">
+                                        View
+                                    </button>
+                                </div>
+                            </div>
+                        {% endfor %}
+                    </div>
+                {% else %}
+                    <div class="alert alert-info dark:bg-gray-700 dark:text-gray-200 dark:border-gray-600">
+                        <i class="fas fa-info-circle me-2"></i> No recent stories available. Create a new story using the button above.
+                    </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Story Creation Modal -->
+<div class="modal fade" id="storytellingModal" tabindex="-1" aria-labelledby="storytellingModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content dark:bg-gray-800 dark:text-gray-200 dark:border-gray-700">
+            <div class="modal-header bg-primary text-white dark:bg-gray-700">
+                <h5 class="modal-title" id="storytellingModalLabel">Create Sustainability Story</h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <form id="storyGenerationForm">
+                    <div class="mb-3">
+                        <label for="storyAudience" class="form-label">Target Audience</label>
+                        <select class="form-select dark:bg-gray-700 dark:text-gray-200 dark:border-gray-600" id="storyAudience" required>
+                            <option value="" disabled selected>Select audience</option>
+                            <option value="board">Board of Directors</option>
+                            <option value="investors">Investors</option>
+                            <option value="sustainability_team">Sustainability Team</option>
+                            <option value="employees">Employees</option>
+                            <option value="customers">Customers</option>
+                            <option value="regulators">Regulators</option>
+                        </select>
+                    </div>
+                    <div class="mb-3">
+                        <label for="storyCategory" class="form-label">Sustainability Category</label>
+                        <select class="form-select dark:bg-gray-700 dark:text-gray-200 dark:border-gray-600" id="storyCategory" required>
+                            <option value="" disabled selected>Select category</option>
+                            <option value="emissions">Carbon Emissions</option>
+                            <option value="water">Water Management</option>
+                            <option value="energy">Energy Efficiency</option>
+                            <option value="waste">Waste Reduction</option>
+                            <option value="social">Social Impact</option>
+                            <option value="governance">Governance</option>
+                            <option value="biodiversity">Biodiversity</option>
+                            <option value="climate">Climate Resilience</option>
+                        </select>
+                    </div>
+                    <div class="mb-3">
+                        <label for="storyPrompt" class="form-label">Custom Prompt (Optional)</label>
+                        <textarea class="form-control dark:bg-gray-700 dark:text-gray-200 dark:border-gray-600" id="storyPrompt" rows="3" placeholder="Enter any specific details to include in the story..."></textarea>
+                    </div>
+                    <div class="alert alert-danger d-none" id="storyGenerationError"></div>
+                </form>
+                <div class="story-generation-spinner d-none">
+                    <div class="d-flex justify-content-center align-items-center my-4">
+                        <div class="spinner-border text-primary" role="status">
+                            <span class="visually-hidden">Loading...</span>
+                        </div>
+                        <span class="ms-3">Generating story...</span>
+                    </div>
+                </div>
+            </div>
+            <div class="modal-footer dark:border-gray-700">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                <button type="button" class="btn btn-primary" id="generateStoryBtn">Generate Story</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Story View Modal -->
+<div class="modal fade" id="viewStoryModal" tabindex="-1" aria-labelledby="viewStoryModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content dark:bg-gray-800 dark:text-gray-200 dark:border-gray-700">
+            <div class="modal-header bg-primary text-white dark:bg-gray-700">
+                <h5 class="modal-title" id="viewStoryModalLabel">Story Details</h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <h4 id="viewStoryTitle" class="mb-3"></h4>
+                <div class="d-flex mb-3">
+                    <span class="badge bg-primary me-2" id="viewStoryCategory"></span>
+                    <span class="badge bg-secondary" id="viewStoryAudience"></span>
+                </div>
+                <div class="mb-4">
+                    <h6 class="text-muted">Story Content:</h6>
+                    <div id="viewStoryContent" class="p-3 bg-light dark:bg-gray-700 rounded"></div>
+                </div>
+                <div id="viewStoryPromptContainer" class="mb-4 d-none">
+                    <h6 class="text-muted">Generated From Prompt:</h6>
+                    <div id="viewStoryPrompt" class="p-3 bg-light dark:bg-gray-700 rounded"></div>
+                </div>
+                <div id="viewStoryInsights" class="mb-4 d-none">
+                    <h6 class="text-muted">Key Insights:</h6>
+                    <ul class="list-group list-group-flush dark:bg-gray-800">
+                        <!-- Insights will be populated here dynamically -->
+                    </ul>
+                </div>
+                <div id="viewStoryRecommendations" class="d-none">
+                    <h6 class="text-muted">Recommendations:</h6>
+                    <ul class="list-group list-group-flush dark:bg-gray-800">
+                        <!-- Recommendations will be populated here dynamically -->
+                    </ul>
+                </div>
+            </div>
+            <div class="modal-footer dark:border-gray-700">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+                <button type="button" class="btn btn-primary" id="downloadStoryBtn">Download</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Storytelling Component JavaScript -->
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // Generate Story Button Click
+    document.getElementById('generateStoryBtn').addEventListener('click', function() {
+        const audience = document.getElementById('storyAudience').value;
+        const category = document.getElementById('storyCategory').value;
+        const prompt = document.getElementById('storyPrompt').value;
+        const errorElement = document.getElementById('storyGenerationError');
+        const spinnerElement = document.querySelector('.story-generation-spinner');
+        
+        // Validate inputs
+        if (!audience || !category) {
+            errorElement.textContent = 'Please select both audience and category.';
+            errorElement.classList.remove('d-none');
+            return;
+        }
+        
+        // Hide error if previously shown
+        errorElement.classList.add('d-none');
+        
+        // Show spinner
+        spinnerElement.classList.remove('d-none');
+        document.getElementById('generateStoryBtn').disabled = true;
+        
+        // Prepare data with custom prompt if provided
+        const requestData = {
+            audience: audience,
+            category: category,
+            prompt: prompt,
+            custom_prompt_generated: prompt ? true : false
+        };
+        
+        // Set default prompt if none provided
+        if (!prompt) {
+            requestData.prompt = `Generate a sustainability story about ${category} for ${audience} audience`;
+            requestData.custom_prompt_generated = false;
+        }
+        
+        // Make API call to generate story
+        fetch('/api/storytelling/generate', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify(requestData),
+        })
+        .then(response => response.json())
+        .then(data => {
+            // Hide spinner
+            spinnerElement.classList.add('d-none');
+            document.getElementById('generateStoryBtn').disabled = false;
+            
+            if (data.error) {
+                // Show error
+                errorElement.textContent = data.message || 'Error generating story. Please try again.';
+                errorElement.classList.remove('d-none');
+            } else {
+                // Success - close modal and reload page to show new story
+                $('#storytellingModal').modal('hide');
+                window.location.reload();
+            }
+        })
+        .catch(error => {
+            // Hide spinner
+            spinnerElement.classList.add('d-none');
+            document.getElementById('generateStoryBtn').disabled = false;
+            
+            // Show error
+            errorElement.textContent = 'Network error. Please try again.';
+            errorElement.classList.remove('d-none');
+            console.error('Error:', error);
+        });
+    });
+    
+    // View Story Button Click
+    document.querySelectorAll('.view-story-btn').forEach(button => {
+        button.addEventListener('click', function() {
+            const storyId = this.getAttribute('data-story-id');
+            const storyTitle = this.getAttribute('data-story-title');
+            const storyContent = this.getAttribute('data-story-content');
+            const storyCategory = this.getAttribute('data-story-category');
+            const storyAudience = this.getAttribute('data-story-audience');
+            const storyPrompt = this.getAttribute('data-story-prompt');
+            const promptEnhanced = this.getAttribute('data-prompt-enhanced') === 'true';
+            const customPromptGenerated = this.getAttribute('data-custom-prompt-generated') === 'true';
+            
+            // Populate modal
+            document.getElementById('viewStoryTitle').textContent = storyTitle;
+            document.getElementById('viewStoryContent').textContent = storyContent;
+            document.getElementById('viewStoryCategory').textContent = storyCategory.charAt(0).toUpperCase() + storyCategory.slice(1);
+            document.getElementById('viewStoryAudience').textContent = storyAudience.charAt(0).toUpperCase() + storyAudience.slice(1);
+            
+            // Handle prompt information
+            const promptContainer = document.getElementById('viewStoryPromptContainer');
+            const promptElement = document.getElementById('viewStoryPrompt');
+            
+            if (storyPrompt && (promptEnhanced || customPromptGenerated)) {
+                promptElement.textContent = storyPrompt;
+                promptContainer.classList.remove('d-none');
+            } else {
+                promptContainer.classList.add('d-none');
+            }
+            
+            // Show modal
+            $('#viewStoryModal').modal('show');
+        });
+    });
+    
+    // Download Story Button
+    document.getElementById('downloadStoryBtn').addEventListener('click', function() {
+        const title = document.getElementById('viewStoryTitle').textContent;
+        const content = document.getElementById('viewStoryContent').textContent;
+        const category = document.getElementById('viewStoryCategory').textContent;
+        const audience = document.getElementById('viewStoryAudience').textContent;
+        const promptContainer = document.getElementById('viewStoryPromptContainer');
+        const promptElement = document.getElementById('viewStoryPrompt');
+        
+        // Create text content
+        let text = `${title}\n\nCategory: ${category}\nAudience: ${audience}\n\n${content}`;
+        
+        // Add prompt information if available
+        if (!promptContainer.classList.contains('d-none') && promptElement.textContent) {
+            text += `\n\nGenerated from prompt: ${promptElement.textContent}`;
+        }
+        
+        // Create blob and download
+        const blob = new Blob([text], { type: 'text/plain' });
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = `${title.replace(/[^a-z0-9]/gi, '_').toLowerCase()}.txt`;
+        document.body.appendChild(a);
+        a.click();
+        document.body.removeChild(a);
+        URL.revokeObjectURL(url);
+    });
+});
+</script>

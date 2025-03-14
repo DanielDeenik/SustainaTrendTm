@@ -10,6 +10,7 @@ import logging
 import os
 import sys
 import traceback
+import uuid
 from datetime import datetime
 from typing import Dict, Any, List, Mapping
 from werkzeug.utils import secure_filename
@@ -883,6 +884,92 @@ def api_strategy_hub_generate_story():
         return jsonify({
             'success': False,
             'error': str(e)
+        }), 500
+        
+@strategy_bp.route('/api/storytelling/generate', methods=['POST'])
+def api_storytelling_generate():
+    """
+    Enhanced API endpoint for generating data-driven sustainability stories from user parameters.
+    This serves the new storytelling component in the Strategy Hub.
+    """
+    try:
+        # Get request data with better error handling
+        if not request.is_json:
+            return jsonify({
+                'error': True,
+                'message': 'Invalid request format. JSON required.'
+            }), 400
+            
+        data = request.json
+        
+        # Extract parameters with proper validation
+        audience = data.get('audience')
+        category = data.get('category')
+        prompt = data.get('prompt')
+        
+        # Validate required parameters
+        if not all([audience, category, prompt]):
+            return jsonify({
+                'error': True,
+                'message': 'Missing required parameters. Please provide audience, category, and prompt.'
+            }), 400
+        
+        logger.info(f"Generating storytelling content for audience={audience}, category={category}")
+        
+        # Check if storytelling module is available
+        if not STORYTELLING_AVAILABLE:
+            return jsonify({
+                'error': True,
+                'message': 'Storytelling module is not available'
+            }), 500
+        
+        # Generate stories using the enhanced storytelling module
+        try:
+            stories = get_enhanced_stories(audience=audience, category=category, prompt=prompt)
+            
+            # If stories were generated, enhance the first one with additional metadata
+            if stories and len(stories) > 0:
+                story = stories[0]
+                
+                # Enhance response with additional useful fields for the UI
+                response = {
+                    'title': story.get('title', f"{category.capitalize()} Story for {audience.capitalize()}"),
+                    'content': story.get('content', ''),
+                    'audience': audience,
+                    'category': category,
+                    'timestamp': story.get('timestamp', datetime.now().strftime("%Y-%m-%d %H:%M:%S")),
+                    'insights': story.get('insights', []),
+                    'recommendations': story.get('recommendations', []),
+                    'id': story.get('id', str(uuid.uuid4())),
+                    'prompt': prompt,
+                    'prompt_enhanced': story.get('prompt_enhanced', False),
+                    'custom_prompt_generated': story.get('custom_prompt_generated', False)
+                }
+                
+                # Extract or create chart data if available
+                if 'chart_data' in story:
+                    response['chart_data'] = story['chart_data']
+                
+                return jsonify(response)
+            else:
+                return jsonify({
+                    'error': True,
+                    'message': 'No stories could be generated with the provided parameters.'
+                }), 404
+        except Exception as e:
+            logger.error(f"Error generating story: {str(e)}")
+            logger.error(traceback.format_exc())
+            return jsonify({
+                'error': True,
+                'message': f'Error generating story: {str(e)}'
+            }), 500
+    
+    except Exception as e:
+        logger.error(f"Error in storytelling generate API: {str(e)}")
+        logger.error(traceback.format_exc())
+        return jsonify({
+            'error': True,
+            'message': str(e)
         }), 500
 
 # New integrated document upload routes
