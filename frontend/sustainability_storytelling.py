@@ -15,6 +15,7 @@ import random
 import logging
 import json
 import re
+import uuid
 from datetime import datetime
 from typing import Dict, List, Any, Optional
 
@@ -46,7 +47,7 @@ def get_mock_stories():
     """Generate mock sustainability stories for development purposes"""
     stories = [
         {
-            "id": 1,
+            "id": str(uuid.uuid4()),
             "title": "Carbon Emissions Reduction Success",
             "content": "Our organization achieved a 15% reduction in carbon emissions over the past quarter through energy efficiency initiatives and renewable energy adoption.",
             "category": "emissions",
@@ -55,7 +56,7 @@ def get_mock_stories():
             "impact": "positive"
         },
         {
-            "id": 2,
+            "id": str(uuid.uuid4()),
             "title": "Water Conservation Initiative Results",
             "content": "The water conservation program implemented last year has resulted in a 20% decrease in water usage across all facilities.",
             "category": "water",
@@ -64,7 +65,7 @@ def get_mock_stories():
             "impact": "positive"
         },
         {
-            "id": 3,
+            "id": str(uuid.uuid4()),
             "title": "Energy Usage Alert",
             "content": "Energy consumption has increased by 8% in the manufacturing division. Investigation and mitigation measures are being implemented.",
             "category": "energy",
@@ -73,7 +74,7 @@ def get_mock_stories():
             "impact": "negative"
         },
         {
-            "id": 4,
+            "id": str(uuid.uuid4()),
             "title": "Waste Reduction Program Update",
             "content": "The zero-waste initiative has achieved a 30% reduction in landfill waste through improved recycling and composting programs.",
             "category": "waste",
@@ -82,7 +83,7 @@ def get_mock_stories():
             "impact": "positive"
         },
         {
-            "id": 5,
+            "id": str(uuid.uuid4()),
             "title": "Diversity and Inclusion Metrics",
             "content": "Workforce diversity metrics show a 10% increase in representation across all departments following the implementation of our inclusive hiring practices.",
             "category": "social",
@@ -121,23 +122,75 @@ def get_enhanced_stories(audience='all', category='all', prompt=None):
     if prompt:
         # Log that we're using a custom prompt for story generation
         logger.info(f"Using custom prompt for story generation: {prompt}")
+        
         # In a production environment, we would use an AI service here
-        # For now, we'll modify our story content based on the prompt
+        # For now, we'll create a more sophisticated custom story based on the prompt
         
-        # Create a "custom" flag to mark stories generated from prompt
-        custom_story_flag = True
+        # Create a title from the prompt
+        if len(prompt) > 50:
+            title = f"{prompt[:47]}..."
+        else:
+            title = prompt
+            
+        # Clean up title and capitalize
+        title = title.strip()
+        if not title.endswith(('.', '!', '?')):
+            title = f"{title}."
+        title = f"Custom Story: {title}"
         
-        # Create a simple custom story based on the prompt if none are found
-        if not base_stories and prompt:
-            base_stories = [{
-                "id": 1000,
-                "title": f"Custom Story: {prompt[:30]}...",
-                "content": f"Generated story based on the prompt: {prompt}",
-                "category": category if category != 'all' else "emissions",
-                "impact": "positive",
-                "date": datetime.now().strftime("%Y-%m-%d"),
-                "custom_prompt_generated": True
-            }]
+        # Create a more detailed story content based on audience and category
+        audience_focus = {
+            'board': "strategic implications and financial impacts",
+            'investors': "long-term value creation and competitive advantages",
+            'sustainability_team': "implementation details and technical metrics",
+            'employees': "workplace impacts and employee engagement opportunities",
+            'customers': "product benefits and brand reputation",
+            'regulators': "compliance measures and risk mitigation",
+            'all': "organizational impacts across all stakeholders"
+        }
+        
+        category_focus = {
+            'emissions': "carbon emissions and climate action",
+            'water': "water management and conservation",
+            'energy': "energy efficiency and renewable sources",
+            'waste': "waste reduction and circular economy principles",
+            'social': "social impact and community engagement",
+            'governance': "leadership practices and ethical standards",
+            'biodiversity': "ecosystem health and biodiversity protection",
+            'climate': "climate resilience and adaptation strategies",
+            'all': "comprehensive sustainability performance"
+        }
+        
+        # Generate a content template
+        audience_text = audience_focus.get(audience, audience_focus['all'])
+        category_text = category_focus.get(category, category_focus['all'])
+        
+        # Create a custom story with the prompt embedded
+        custom_story = {
+            "id": str(uuid.uuid4()),
+            "title": title,
+            "content": f"This sustainability story focuses on {category_text} with emphasis on {audience_text}. {prompt}",
+            "category": category if category != 'all' else "emissions",
+            "impact": "positive",
+            "audience": audience if audience != 'all' else "board",
+            "date": datetime.now().strftime("%Y-%m-%d"),
+            "timestamp": datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
+            "custom_prompt_generated": True,
+            "prompt": prompt,
+            "insights": [
+                f"Analysis of {category_text} reveals opportunities for improvement.",
+                f"Stakeholder analysis shows {audience_text} is a key consideration.",
+                f"Custom insights based on prompt: {prompt[:50]}..."
+            ],
+            "recommendations": [
+                f"Develop targeted {category_text} strategies.",
+                f"Communicate results effectively to {audience_text}.",
+                f"Implement a measurement system to track progress."
+            ]
+        }
+        
+        # Use the custom story as our base if a prompt is provided
+        base_stories = [custom_story]
     
     # Define audience-specific elements
     audience_elements = {
@@ -172,12 +225,39 @@ def get_enhanced_stories(audience='all', category='all', prompt=None):
         # Create enhanced version of each story
         enhanced_story = story.copy()
         
-        # If prompt is provided, augment the story content with the prompt
+        # If prompt is provided and this isn't already a custom prompt story, enhance it
         if prompt and not story.get('custom_prompt_generated', False):
-            # Update the story content to include information from the prompt
+            # Create a more sophisticated prompt enhancement
             story_content = story.get('content', '')
-            enhanced_story['content'] = f"{story_content} {prompt}"
+            
+            # Generate a contextual connector between the story and the prompt
+            connectors = [
+                "This directly relates to",
+                "This connects with",
+                "Additionally, consider that",
+                "This insight is complemented by",
+                "This finding is especially relevant when considering",
+                "To put this in perspective"
+            ]
+            
+            connector = random.choice(connectors)
+            enhanced_content = f"{story_content} {connector} {prompt}"
+            
+            enhanced_story['content'] = enhanced_content
+            enhanced_story['prompt'] = prompt
             enhanced_story['prompt_enhanced'] = True
+            
+            # Add insights from the prompt
+            if 'insights' not in enhanced_story:
+                enhanced_story['insights'] = []
+                
+            enhanced_story['insights'].append(f"Custom insight: {prompt[:50]}...")
+            
+            # Add a recommendation based on the prompt
+            if 'recommendations' not in enhanced_story:
+                enhanced_story['recommendations'] = []
+                
+            enhanced_story['recommendations'].append(f"Consider {prompt[:50]}... in your sustainability strategy.")
         
         # Add the three core elements of data storytelling
         enhanced_story["storytelling_elements"] = {
@@ -209,7 +289,184 @@ def get_enhanced_stories(audience='all', category='all', prompt=None):
             enhanced_stories.append(enhanced_story)
     
     logger.info(f"Generated {len(enhanced_stories)} enhanced stories")
+    
+    # If no stories were generated, create a default one to ensure there's always content
+    if not enhanced_stories:
+        logger.info(f"No matching stories found, generating a default story")
+        
+        default_story = {
+            "id": str(uuid.uuid4()),
+            "title": f"Sustainability Report: {category.capitalize() if category != 'all' else 'Overview'} for {audience.capitalize() if audience != 'all' else 'All Stakeholders'}",
+            "content": f"This sustainability analysis focuses on {category if category != 'all' else 'all sustainability topics'} with emphasis on {audience if audience != 'all' else 'all audiences'}. " + 
+                      (prompt if prompt else "Our organization continues to make progress toward sustainability goals through dedicated initiatives and stakeholder engagement."),
+            "category": category if category != 'all' else "general",
+            "impact": "positive",
+            "audience": audience if audience != 'all' else "general",
+            "date": datetime.now().strftime("%Y-%m-%d"),
+            "timestamp": datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
+            "custom_prompt_generated": True if prompt else False,
+            "prompt": prompt if prompt else None,
+            "recommendations": [
+                f"Review {category if category != 'all' else 'sustainability'} metrics regularly",
+                f"Engage with {audience if audience != 'all' else 'all stakeholders'} on progress",
+                "Implement a data-driven sustainability strategy"
+            ]
+        }
+        
+        enhanced_stories = [default_story]
+        logger.info(f"Generated default story with ID: {default_story['id']}")
+    
     return enhanced_stories
+
+def generate_chart_data(story_category="emissions", time_period="quarterly", chart_type=None):
+    """
+    Generate chart data for a sustainability story visualization
+    
+    Args:
+        story_category: Category of sustainability story (emissions, water, energy, etc.)
+        time_period: Time period for data (quarterly, monthly, yearly)
+        chart_type: Optional specific chart type or None for auto-selection
+        
+    Returns:
+        Dictionary with chart data and metadata
+    """
+    logger.info(f"Generating chart data for {story_category}, period: {time_period}, chart type: {chart_type}")
+    
+    # Generate time periods based on specified frequency
+    if time_period == "quarterly":
+        periods = ["Q1", "Q2", "Q3", "Q4"]
+        year = datetime.now().year
+        labels = [f"{year-1} {p}" for p in periods] + [f"{year} {p}" for p in periods[:2]]
+    elif time_period == "monthly":
+        periods = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"]
+        year = datetime.now().year
+        labels = [f"{p} {year-1}" for p in periods[-6:]] + [f"{p} {year}" for p in periods[:6]]
+    else:  # yearly
+        year = datetime.now().year
+        labels = [str(y) for y in range(year-5, year+1)]
+    
+    # Create appropriate data based on category
+    if story_category == "emissions":
+        # Generate realistic-looking emissions data with a reduction trend
+        values = [100, 95, 92, 88, 84, 79, 75, 72]
+        target_values = [100, 90, 80, 70, 60, 50, 40, 30]
+        industry_avg = [100, 98, 96, 94, 92, 90, 88, 86]
+        
+        # Auto-select an appropriate chart type if not specified
+        if not chart_type:
+            chart_type = "line"
+            
+        return {
+            "chart_type": chart_type,
+            "title": "Carbon Emissions Reduction Progress",
+            "labels": labels[-8:],
+            "datasets": [
+                {
+                    "label": "Actual Emissions",
+                    "data": values[-len(labels):],
+                    "borderColor": "#36A2EB",
+                    "backgroundColor": "rgba(54, 162, 235, 0.2)",
+                    "tension": 0.3
+                },
+                {
+                    "label": "Reduction Target",
+                    "data": target_values[-len(labels):],
+                    "borderColor": "#FF6384",
+                    "backgroundColor": "rgba(255, 99, 132, 0.1)",
+                    "borderDash": [5, 5],
+                    "tension": 0.1
+                },
+                {
+                    "label": "Industry Average",
+                    "data": industry_avg[-len(labels):],
+                    "borderColor": "#4BC0C0",
+                    "backgroundColor": "rgba(75, 192, 192, 0.1)",
+                    "borderDash": [2, 2],
+                    "tension": 0.1
+                }
+            ],
+            "axes": {
+                "y": {
+                    "title": "CO2e (tons, indexed to base year)",
+                    "min": 0
+                },
+                "x": {
+                    "title": "Time Period"
+                }
+            }
+        }
+    elif story_category == "water":
+        # Water usage efficiency data with improvement trend
+        values = [120, 118, 115, 110, 102, 95, 90, 85]
+        target_values = [120, 110, 100, 90, 80, 70, 60, 50]
+        
+        # Auto-select an appropriate chart type if not specified
+        if not chart_type:
+            chart_type = "bar"
+            
+        return {
+            "chart_type": chart_type,
+            "title": "Water Usage Efficiency",
+            "labels": labels[-8:],
+            "datasets": [
+                {
+                    "label": "Actual Usage",
+                    "data": values[-len(labels):],
+                    "backgroundColor": "rgba(54, 162, 235, 0.6)",
+                    "borderColor": "#36A2EB",
+                    "borderWidth": 1
+                },
+                {
+                    "label": "Target Usage",
+                    "data": target_values[-len(labels):],
+                    "backgroundColor": "rgba(255, 99, 132, 0.2)",
+                    "borderColor": "#FF6384",
+                    "borderWidth": 1,
+                    "type": "line"
+                }
+            ],
+            "axes": {
+                "y": {
+                    "title": "Water usage (kL per unit production)",
+                    "min": 0
+                },
+                "x": {
+                    "title": "Time Period"
+                }
+            }
+        }
+    else:
+        # Generic sustainability metric with improvement trend
+        values = [50, 55, 60, 65, 70, 75, 77, 80]
+        
+        # Auto-select an appropriate chart type if not specified
+        if not chart_type:
+            chart_type = "line"
+            
+        return {
+            "chart_type": chart_type,
+            "title": f"{story_category.capitalize()} Performance",
+            "labels": labels[-8:],
+            "datasets": [
+                {
+                    "label": f"{story_category.capitalize()} Score",
+                    "data": values[-len(labels):],
+                    "borderColor": "#36A2EB",
+                    "backgroundColor": "rgba(54, 162, 235, 0.2)",
+                    "tension": 0.4
+                }
+            ],
+            "axes": {
+                "y": {
+                    "title": "Performance Score",
+                    "min": 0,
+                    "max": 100
+                },
+                "x": {
+                    "title": "Time Period"
+                }
+            }
+        }
 
 def generate_context_element(story):
     """Generate the context element for a story (why it matters now)"""

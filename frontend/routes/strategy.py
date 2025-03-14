@@ -22,7 +22,7 @@ from navigation_config import get_context_for_template
 
 # Import storytelling components (with fallback)
 try:
-    from sustainability_storytelling import get_enhanced_stories, get_mock_stories
+    from sustainability_storytelling import get_enhanced_stories, get_mock_stories, generate_chart_data
     STORYTELLING_AVAILABLE = True
     logger = logging.getLogger(__name__)
     logger.info("Storytelling module loaded successfully")
@@ -30,6 +30,19 @@ except ImportError as e:
     STORYTELLING_AVAILABLE = False
     logger = logging.getLogger(__name__)
     logger.warning(f"Storytelling module not available: {str(e)}")
+    
+    # Define fallback functions if imports fail
+    def get_enhanced_stories(*args, **kwargs):
+        logger.warning("Using fallback get_enhanced_stories function")
+        return []
+        
+    def get_mock_stories(*args, **kwargs):
+        logger.warning("Using fallback get_mock_stories function")
+        return []
+        
+    def generate_chart_data(*args, **kwargs):
+        logger.warning("Using fallback generate_chart_data function")
+        return {}
 
 # Import document processor (with fallback)
 try:

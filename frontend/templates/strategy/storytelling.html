@@ -1,14 +1,16 @@
-{% extends "layouts/base_clean.html" %}
+{% extends "layouts/finchat_dark_layout.html" %}
 
-{% set active_page = 'strategy_hub' %}
+{% set active_page = 'storytelling' %}
 
 {% block header_title %}
-<i class="fas fa-newspaper me-2"></i> Sustainability Storytelling
+<i class="fas fa-newspaper me-2"></i> Sustainability Storytelling Hub
 {% endblock %}
 
 {% block header_actions %}
-<a href="{{ url_for('strategy_hub') }}" class="btn btn-sm btn-outline-secondary">Back to Hub</a>
-<button type="button" class="btn btn-sm btn-outline-secondary">Export</button>
+<a href="{{ url_for('strategy.strategy_hub') }}" class="btn btn-sm btn-outline-secondary">Back to Strategy Hub</a>
+<a href="{{ url_for('storytelling.create_story') }}" class="btn btn-primary">
+    <i class="fas fa-plus me-2"></i> Create New Story
+</a>
 {% endblock %}
 
 {% block extra_css %}
@@ -97,71 +99,21 @@
 {% endblock %}
 
 {% block content %}
-<!-- Story Generation Form -->
-<div class="story-generation-form">
-    <h4 class="mb-3">Generate Sustainability Stories</h4>
-    <form id="storyGenerationForm" action="{{ url_for('api_strategy_hub_generate_story') }}" method="POST">
-        <div class="row">
-            <div class="col-md-6 mb-3">
-                <label for="storyTopic" class="form-label">Topic</label>
-                <select class="form-select" id="storyTopic" name="topic">
-                    <option value="emissions">Carbon Emissions</option>
-                    <option value="water">Water Conservation</option>
-                    <option value="waste">Waste Management</option>
-                    <option value="energy">Energy Efficiency</option>
-                    <option value="biodiversity">Biodiversity</option>
-                    <option value="social_impact">Social Impact</option>
-                </select>
-            </div>
-            <div class="col-md-6 mb-3">
-                <label for="storyTemplate" class="form-label">Template</label>
-                <select class="form-select" id="storyTemplate" name="template">
-                    <option value="success">Success Story</option>
-                    <option value="challenge">Challenge & Solution</option>
-                    <option value="future">Future Strategy</option>
-                    <option value="impact">Impact Assessment</option>
-                    <option value="comparison">Peer Comparison</option>
-                </select>
-            </div>
-        </div>
-        
-        <div class="mb-4">
-            <label class="form-label d-block">Target Audience</label>
-            <div class="row audience-selector">
-                <div class="col-md-4 mb-3">
-                    <div class="card audience-card selected h-100" data-audience="board">
-                        <div class="card-body">
-                            <h5 class="card-title"><i class="fas fa-briefcase me-2"></i> Board</h5>
-                            <p class="card-text small">High-level strategic overview with risk analysis and competitive positioning.</p>
-                        </div>
-                    </div>
-                </div>
-                <div class="col-md-4 mb-3">
-                    <div class="card audience-card h-100" data-audience="sustainability_team">
-                        <div class="card-body">
-                            <h5 class="card-title"><i class="fas fa-leaf me-2"></i> Sustainability Team</h5>
-                            <p class="card-text small">Detailed technical analysis with specific actions and implementation metrics.</p>
-                        </div>
-                    </div>
-                </div>
-                <div class="col-md-4 mb-3">
-                    <div class="card audience-card h-100" data-audience="investors">
-                        <div class="card-body">
-                            <h5 class="card-title"><i class="fas fa-chart-line me-2"></i> Investors</h5>
-                            <p class="card-text small">Financial impact analysis with ESG metrics and competitive benchmarking.</p>
-                        </div>
-                    </div>
-                </div>
-                <input type="hidden" id="selectedAudience" name="audience" value="board">
-            </div>
-        </div>
-        
+<!-- Story Generation Card -->
+<div class="card mb-4">
+    <div class="card-header bg-primary text-white">
+        <h4 class="mb-0"><i class="fas fa-magic me-2"></i> Create New Stories</h4>
+    </div>
+    <div class="card-body">
+        <p class="mb-4">
+            Generate data-driven sustainability stories tailored to your specific needs. To create a fully customized story with more options:
+        </p>
         <div class="text-center">
-            <button type="submit" class="btn btn-primary btn-lg generate-button">
-                <i class="fas fa-magic me-2"></i> Generate Story
-            </button>
+            <a href="{{ url_for('storytelling.create_story') }}" class="btn btn-primary btn-lg generate-button">
+                <i class="fas fa-plus me-2"></i> Create New Story
+            </a>
         </div>
-    </form>
+    </div>
 </div>
 
 <!-- Story Results Section -->
@@ -169,11 +121,11 @@
     <div class="d-flex flex-wrap align-items-center justify-content-between mb-3">
         <h4 class="mb-0">Your Stories</h4>
         <div>
-            <a href="{{ url_for('strategy_hub_storytelling', category='all') }}" class="btn btn-sm {% if category == 'all' %}btn-primary{% else %}btn-outline-primary{% endif %}">All</a>
-            <a href="{{ url_for('strategy_hub_storytelling', category='emissions') }}" class="btn btn-sm {% if category == 'emissions' %}btn-primary{% else %}btn-outline-primary{% endif %}">Emissions</a>
-            <a href="{{ url_for('strategy_hub_storytelling', category='water') }}" class="btn btn-sm {% if category == 'water' %}btn-primary{% else %}btn-outline-primary{% endif %}">Water</a>
-            <a href="{{ url_for('strategy_hub_storytelling', category='waste') }}" class="btn btn-sm {% if category == 'waste' %}btn-primary{% else %}btn-outline-primary{% endif %}">Waste</a>
-            <a href="{{ url_for('strategy_hub_storytelling', category='energy') }}" class="btn btn-sm {% if category == 'energy' %}btn-primary{% else %}btn-outline-primary{% endif %}">Energy</a>
+            <a href="{{ url_for('storytelling.storytelling_hub', category='all') }}" class="btn btn-sm {% if selected_category == 'all' %}btn-primary{% else %}btn-outline-primary{% endif %}">All</a>
+            <a href="{{ url_for('storytelling.storytelling_hub', category='emissions') }}" class="btn btn-sm {% if selected_category == 'emissions' %}btn-primary{% else %}btn-outline-primary{% endif %}">Emissions</a>
+            <a href="{{ url_for('storytelling.storytelling_hub', category='water') }}" class="btn btn-sm {% if selected_category == 'water' %}btn-primary{% else %}btn-outline-primary{% endif %}">Water</a>
+            <a href="{{ url_for('storytelling.storytelling_hub', category='waste') }}" class="btn btn-sm {% if selected_category == 'waste' %}btn-primary{% else %}btn-outline-primary{% endif %}">Waste</a>
+            <a href="{{ url_for('storytelling.storytelling_hub', category='energy') }}" class="btn btn-sm {% if selected_category == 'energy' %}btn-primary{% else %}btn-outline-primary{% endif %}">Energy</a>
         </div>
     </div>
 </div>
@@ -205,8 +157,8 @@
                 <div class="d-flex justify-content-between align-items-center">
                     <small class="timestamp"><i class="far fa-clock me-1"></i> {{ story.timestamp }}</small>
                     <div class="btn-group">
-                        <button type="button" class="btn btn-sm btn-outline-secondary">Share</button>
-                        <button type="button" class="btn btn-sm btn-outline-primary" data-story-id="{{ story.id }}">View</button>
+                        <button type="button" class="btn btn-sm btn-outline-secondary share-story-btn" data-story-id="{{ story.id }}">Share</button>
+                        <a href="{{ url_for('storytelling.view_story', story_id=story.id) }}" class="btn btn-sm btn-outline-primary">View</a>
                     </div>
                 </div>
             </div>

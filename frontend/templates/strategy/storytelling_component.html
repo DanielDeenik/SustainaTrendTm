@@ -2,9 +2,9 @@
 <div class="card shadow-lg dark:bg-gray-800 dark:border-gray-700 mb-4">
     <div class="card-header d-flex justify-content-between align-items-center bg-primary text-white dark:bg-gray-700">
         <h5 class="mb-0">Sustainability Storytelling</h5>
-        <button type="button" class="btn btn-sm btn-outline-light" data-bs-toggle="modal" data-bs-target="#storytellingModal">
+        <a href="{{ url_for('storytelling.create_story') }}" class="btn btn-sm btn-outline-light">
             <i class="fas fa-plus-circle me-1"></i> Create Story
-        </button>
+        </a>
     </div>
     <div class="card-body">
         <div class="row">
@@ -25,17 +25,9 @@
                                         <span class="badge bg-primary me-2">{{ story.category|capitalize }}</span>
                                         <span class="badge bg-secondary">{{ story.audience|capitalize }}</span>
                                     </small>
-                                    <button class="btn btn-sm btn-outline-primary view-story-btn" 
-                                            data-story-id="{{ story.id }}"
-                                            data-story-title="{{ story.title }}"
-                                            data-story-content="{{ story.content }}"
-                                            data-story-category="{{ story.category }}"
-                                            data-story-audience="{{ story.audience }}"
-                                            data-story-prompt="{{ story.prompt|default('') }}"
-                                            data-prompt-enhanced="{{ 'true' if story.prompt_enhanced|default(false) else 'false' }}"
-                                            data-custom-prompt-generated="{{ 'true' if story.custom_prompt_generated|default(false) else 'false' }}">
+                                    <a href="{{ url_for('storytelling.view_story', story_id=story.id) }}" class="btn btn-sm btn-outline-primary">
                                         View
-                                    </button>
+                                    </a>
                                 </div>
                             </div>
                         {% endfor %}
@@ -192,7 +184,7 @@ document.addEventListener('DOMContentLoaded', function() {
         }
         
         // Make API call to generate story
-        fetch('/api/storytelling/generate', {
+        fetch('{{ url_for('storytelling.api_generate_story') }}', {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',

@@ -231,7 +231,7 @@
                     <h5 class="card-title">Create Story</h5>
                     <p class="card-text small">Generate data-driven sustainability stories.</p>
                     {% if storytelling_available %}
-                    <a href="{{ url_for('strategy.strategy_hub_storytelling') }}" class="btn btn-success btn-sm">Create</a>
+                    <a href="{{ url_for('storytelling.storytelling_hub') }}" class="btn btn-success btn-sm">Create</a>
                     {% else %}
                     <button class="btn btn-secondary btn-sm" disabled>Coming Soon</button>
                     {% endif %}

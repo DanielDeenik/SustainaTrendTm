@@ -20,6 +20,20 @@ def register_blueprints(app):
     from .realestate import realestate_bp
     from .strategy import strategy_bp
     
+    # Import legacy routes blueprint - for backward compatibility
+    try:
+        from .legacy import legacy_bp
+        logger.info("Legacy routes blueprint imported successfully")
+    except ImportError:
+        logger.warning("Legacy routes blueprint import failed, backward compatibility may be affected")
+    
+    # Import storytelling blueprint - new modular implementation
+    try:
+        from .storytelling import storytelling_bp
+        logger.info("Storytelling blueprint imported successfully")
+    except ImportError:
+        logger.warning("Storytelling blueprint import failed, will rely on strategy hub")
+    
     # Import the monetization blueprint but don't register it - we'll consolidate it into strategy
     try:
         from .monetization import monetization_bp
@@ -33,5 +47,18 @@ def register_blueprints(app):
     app.register_blueprint(realestate_bp)
     # Register strategy blueprint - this contains the consolidated strategy hub
     app.register_blueprint(strategy_bp)
+    # Register storytelling blueprint - modular implementation with UUID-based identification
+    try:
+        app.register_blueprint(storytelling_bp)
+        logger.info("Storytelling blueprint registered successfully")
+    except NameError:
+        logger.warning("Storytelling blueprint not registered due to import failure")
+    
+    # Register legacy routes blueprint - must be last to avoid conflicts
+    try:
+        app.register_blueprint(legacy_bp)
+        logger.info("Legacy routes blueprint registered successfully")
+    except NameError:
+        logger.warning("Legacy routes blueprint not registered due to import failure")
     
     logger.info("All blueprints registered successfully")

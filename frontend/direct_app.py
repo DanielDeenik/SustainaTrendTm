@@ -2035,32 +2035,39 @@ def sustainability():
         traceback.print_exc()
         return f"Error loading sustainability page: {str(e)}", 500
 
-# Add a route for the stories page
+# Add a route for the stories page - redirects to new storytelling blueprint
 @app.route('/sustainability-stories')
 def sustainability_stories():
-    """Sustainability stories page using data from FastAPI backend"""
+    """Sustainability stories page - redirects to new modular storytelling blueprint"""
     try:
-        logger.info("Sustainability stories page requested")
-
-        # Try to fetch stories from backend
-        try:
-            response = requests.get(f"{BACKEND_URL}/api/stories", timeout=10.0)
-            response.raise_for_status()
-            stories = response.json()
-            logger.info(f"Successfully fetched {len(stories)} stories from API")
-        except Exception as e:
-            logger.error(f"Error fetching stories from API: {str(e)}")
-            logger.info("Using mock stories data")
-            # Mock stories if API fails
-            stories = get_mock_stories()
-        
-        # Always use dark theme for consistent UI
-        logger.info("Using Finchat dark sustainability stories template")
-        return render_template("sustainability_storytelling_dark.html", stories=stories)
+        logger.info("Sustainability stories page requested - redirecting to new storytelling hub")
+        # Redirect to the new storytelling hub
+        return redirect(url_for('storytelling.storytelling_hub'))
     except Exception as e:
-        logger.error(f"Error in sustainability stories route: {str(e)}")
+        logger.error(f"Error in sustainability stories redirect: {str(e)}")
         traceback.print_exc()
-        return f"Error loading sustainability stories: {str(e)}", 500
+        
+        # Fallback to legacy route if storytelling blueprint is not available
+        try:
+            # Try to fetch stories from backend
+            try:
+                response = requests.get(f"{BACKEND_URL}/api/stories", timeout=10.0)
+                response.raise_for_status()
+                stories = response.json()
+                logger.info(f"Successfully fetched {len(stories)} stories from API")
+            except Exception as e:
+                logger.error(f"Error fetching stories from API: {str(e)}")
+                logger.info("Using mock stories data")
+                # Mock stories if API fails
+                stories = get_mock_stories()
+            
+            # Always use dark theme for consistent UI
+            logger.info("Using Finchat dark sustainability stories template as fallback")
+            return render_template("sustainability_storytelling_dark.html", stories=stories)
+        except Exception as e:
+            logger.error(f"Error in sustainability stories fallback: {str(e)}")
+            traceback.print_exc()
+            return f"Error loading sustainability stories: {str(e)}", 500
 
 # Helper function to generate mock stories
 def get_mock_stories():
