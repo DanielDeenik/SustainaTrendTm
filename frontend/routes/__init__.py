@@ -40,6 +40,19 @@ def register_blueprints(app):
         logger.info("Monetization blueprint imported successfully")
     except ImportError:
         logger.warning("Monetization blueprint import failed, will rely on strategy hub")
+        
+    # Import science-based targets blueprint
+    try:
+        import sys
+        from pathlib import Path
+        
+        # Add the parent directory to sys.path to allow importing science_based_targets
+        sys.path.append(str(Path(__file__).parent.parent))
+        
+        from science_based_targets import sbti_bp
+        logger.info("Science-Based Targets blueprint imported successfully")
+    except ImportError as e:
+        logger.warning(f"Science-Based Targets blueprint import failed: {str(e)}")
     
     # Register blueprints
     app.register_blueprint(analytics_bp)
@@ -60,5 +73,12 @@ def register_blueprints(app):
         logger.info("Legacy routes blueprint registered successfully")
     except NameError:
         logger.warning("Legacy routes blueprint not registered due to import failure")
+    
+    # Register science-based targets blueprint
+    try:
+        app.register_blueprint(sbti_bp)
+        logger.info("Science-Based Targets blueprint registered successfully")
+    except NameError:
+        logger.warning("Science-Based Targets blueprint not registered due to import failure")
     
     logger.info("All blueprints registered successfully")

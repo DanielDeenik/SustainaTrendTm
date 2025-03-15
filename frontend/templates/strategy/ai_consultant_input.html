@@ -1,0 +1,249 @@
+<!-- AI Consultant Input Component -->
+<div class="strategy-hub-section" id="ai-consultant">
+    <div class="dashboard-section-title d-flex justify-content-between align-items-center">
+        <div>
+            <i class="fas fa-robot"></i>
+            <h3 class="mb-0">AI Strategy Consultant</h3>
+        </div>
+        <button class="btn btn-sm btn-outline-primary" data-bs-toggle="modal" data-bs-target="#aiConsultantInfoModal">
+            <i class="fas fa-info-circle"></i> How It Works
+        </button>
+    </div>
+    
+    <div class="card shadow-sm">
+        <div class="card-body">
+            <p class="card-text">
+                <i class="fas fa-lightbulb text-warning me-2"></i>
+                Enter a sustainability trend or challenge to receive AI-generated strategic analysis and recommendations.
+            </p>
+            
+            <form id="aiConsultantForm" class="mb-4">
+                <div class="row g-3">
+                    <div class="col-md-12">
+                        <label for="trendInput" class="form-label">Sustainability Trend/Challenge</label>
+                        <input type="text" class="form-control bg-darker" id="trendInput" 
+                               placeholder="e.g., Carbon Footprint Transparency, Circular Packaging Solutions" required>
+                    </div>
+                    
+                    <div class="col-md-4">
+                        <label for="industryInput" class="form-label">Industry</label>
+                        <select class="form-select bg-darker" id="industryInput">
+                            <option value="General">General</option>
+                            <option value="Technology">Technology</option>
+                            <option value="Manufacturing">Manufacturing</option>
+                            <option value="Energy">Energy</option>
+                            <option value="Consumer Goods">Consumer Goods</option>
+                            <option value="Financial Services">Financial Services</option>
+                            <option value="Healthcare">Healthcare</option>
+                            <option value="Retail">Retail</option>
+                            <option value="Transportation">Transportation</option>
+                            <option value="Agriculture">Agriculture</option>
+                            <option value="Construction">Construction</option>
+                            <option value="Real Estate">Real Estate</option>
+                        </select>
+                    </div>
+                    
+                    <div class="col-md-4">
+                        <label for="timeframeInput" class="form-label">Timeframe</label>
+                        <select class="form-select bg-darker" id="timeframeInput">
+                            <option value="short">Short Term (1 Year)</option>
+                            <option value="medium" selected>Medium Term (3 Years)</option>
+                            <option value="long">Long Term (5+ Years)</option>
+                        </select>
+                    </div>
+                    
+                    <div class="col-md-4">
+                        <label for="outputFormatInput" class="form-label">Output Format</label>
+                        <select class="form-select bg-darker" id="outputFormatInput">
+                            <option value="summary">Analysis Summary</option>
+                            <option value="detailed">Detailed Analysis</option>
+                            <option value="document">Full Strategy Document</option>
+                        </select>
+                    </div>
+                    
+                    <div class="col-12">
+                        <label class="form-label d-block">Frameworks to Include</label>
+                        <div class="row g-2">
+                            <div class="col-md-3 col-sm-6">
+                                <div class="form-check">
+                                    <input class="form-check-input" type="checkbox" value="STEPPS" id="frameworkStepps" checked>
+                                    <label class="form-check-label" for="frameworkStepps">
+                                        STEPPS Virality
+                                    </label>
+                                </div>
+                            </div>
+                            <div class="col-md-3 col-sm-6">
+                                <div class="form-check">
+                                    <input class="form-check-input" type="checkbox" value="Porter's Five Forces" id="frameworkPorter" checked>
+                                    <label class="form-check-label" for="frameworkPorter">
+                                        Porter's Five Forces
+                                    </label>
+                                </div>
+                            </div>
+                            <div class="col-md-3 col-sm-6">
+                                <div class="form-check">
+                                    <input class="form-check-input" type="checkbox" value="SWOT" id="frameworkSwot">
+                                    <label class="form-check-label" for="frameworkSwot">
+                                        SWOT Analysis
+                                    </label>
+                                </div>
+                            </div>
+                            <div class="col-md-3 col-sm-6">
+                                <div class="form-check">
+                                    <input class="form-check-input" type="checkbox" value="PESTEL" id="frameworkPestel">
+                                    <label class="form-check-label" for="frameworkPestel">
+                                        PESTEL Analysis
+                                    </label>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="d-grid gap-2 mt-4">
+                    <button type="submit" class="btn btn-primary" id="generateAnalysisBtn">
+                        <i class="fas fa-magic me-2"></i> Generate Strategic Analysis
+                    </button>
+                </div>
+            </form>
+            
+            <!-- Loading indicator (initially hidden) -->
+            <div id="analysisLoading" class="text-center my-4" style="display: none;">
+                <div class="spinner-border text-primary" role="status">
+                    <span class="visually-hidden">Analyzing...</span>
+                </div>
+                <p class="mt-2">Your AI strategy consultant is analyzing the trend...</p>
+            </div>
+            
+            <!-- Results container (initially hidden) -->
+            <div id="analysisResults" style="display: none;">
+                <hr>
+                <h4 class="mb-3" id="resultsTrendTitle"></h4>
+                
+                <!-- Analysis Summary Section -->
+                <div class="card bg-darker mb-4">
+                    <div class="card-header d-flex justify-content-between align-items-center">
+                        <h5 class="mb-0">Executive Summary</h5>
+                        <span class="badge bg-primary" id="resultIndustryBadge"></span>
+                    </div>
+                    <div class="card-body">
+                        <p id="analysisSummary"></p>
+                    </div>
+                </div>
+                
+                <!-- Recommendations Section -->
+                <div class="row mb-4">
+                    <div class="col-md-6">
+                        <div class="card bg-darker h-100">
+                            <div class="card-header">
+                                <h5 class="mb-0">Strategic Recommendations</h5>
+                            </div>
+                            <div class="card-body">
+                                <ul class="list-group list-group-flush" id="recommendationsList">
+                                </ul>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-6">
+                        <div class="card bg-darker h-100">
+                            <div class="card-header">
+                                <h5 class="mb-0">Implementation Actions</h5>
+                            </div>
+                            <div class="card-body">
+                                <ul class="list-group list-group-flush" id="actionsList">
+                                </ul>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Opportunities & Threats Section -->
+                <div class="row mb-4">
+                    <div class="col-md-6">
+                        <div class="card bg-darker h-100">
+                            <div class="card-header">
+                                <h5 class="mb-0">
+                                    <i class="fas fa-arrow-up text-success me-2"></i>
+                                    Opportunities
+                                </h5>
+                            </div>
+                            <div class="card-body">
+                                <ul class="list-group list-group-flush" id="opportunitiesList">
+                                </ul>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-6">
+                        <div class="card bg-darker h-100">
+                            <div class="card-header">
+                                <h5 class="mb-0">
+                                    <i class="fas fa-arrow-down text-danger me-2"></i>
+                                    Threats
+                                </h5>
+                            </div>
+                            <div class="card-body">
+                                <ul class="list-group list-group-flush" id="threatsList">
+                                </ul>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Framework Analysis -->
+                <div class="card bg-darker mb-4" id="frameworkAnalysisCard">
+                    <div class="card-header">
+                        <h5 class="mb-0">Framework Analysis</h5>
+                    </div>
+                    <div class="card-body">
+                        <div id="frameworkAnalysisContent">
+                            <!-- Will be populated via JavaScript -->
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Document Generation -->
+                <div class="d-grid gap-2">
+                    <button class="btn btn-outline-success" id="generateDocumentBtn">
+                        <i class="fas fa-file-alt me-2"></i> Generate Complete Strategy Document
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- AI Consultant Info Modal -->
+<div class="modal fade" id="aiConsultantInfoModal" tabindex="-1" aria-labelledby="aiConsultantInfoModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="aiConsultantInfoModalLabel">AI Strategy Consultant</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <h5>How It Works</h5>
+                <p>The AI Strategy Consultant functions as an intelligent management consultant that analyzes sustainability trends and provides actionable strategic recommendations.</p>
+                
+                <h6>Features</h6>
+                <ul>
+                    <li><strong>Automated Trend Assessment</strong> - The AI evaluates sustainability trends using established frameworks.</li>
+                    <li><strong>Strategic Recommendations</strong> - Receive actionable insights based on industry-specific context.</li>
+                    <li><strong>Implementation Planning</strong> - Get concrete steps to implement the recommendations.</li>
+                    <li><strong>Framework Integration</strong> - Analysis incorporates management consulting frameworks as supporting evidence.</li>
+                    <li><strong>Document Generation</strong> - Create comprehensive strategy documents for your organization.</li>
+                </ul>
+                
+                <h6>Supported Frameworks</h6>
+                <ul>
+                    <li><strong>STEPPS Virality Framework</strong> - Analyzes why certain sustainability topics gain traction.</li>
+                    <li><strong>Porter's Five Forces</strong> - Evaluates competitive dynamics and market positioning.</li>
+                    <li><strong>SWOT Analysis</strong> - Identifies strengths, weaknesses, opportunities, and threats.</li>
+                    <li><strong>PESTEL Analysis</strong> - Examines political, economic, social, technological, environmental, and legal factors.</li>
+                </ul>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-primary" data-bs-dismiss="modal">Got It</button>
+            </div>
+        </div>
+    </div>
+</div>

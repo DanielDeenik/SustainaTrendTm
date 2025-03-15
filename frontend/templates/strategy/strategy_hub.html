@@ -195,7 +195,21 @@
     </div>
     
     <div class="row g-4">
-        <div class="col-md-6 col-lg-4 col-xl-2">
+        <div class="col-md-6 col-lg-4 col-xl-3">
+            <div class="card dashboard-card h-100">
+                <span class="feature-badge badge bg-success">New</span>
+                <div class="card-body text-center">
+                    <div class="card-icon bg-primary bg-opacity-10 text-primary mx-auto">
+                        <i class="fas fa-robot"></i>
+                    </div>
+                    <h5 class="card-title">AI Strategy Consultant</h5>
+                    <p class="card-text small">Get AI-powered strategic analysis and recommendations.</p>
+                    <a href="#ai-consultant" class="btn btn-primary btn-sm">Get Started</a>
+                </div>
+            </div>
+        </div>
+        
+        <div class="col-md-6 col-lg-4 col-xl-3">
             <div class="card dashboard-card h-100">
                 {% if document_processor_available %}
                 <span class="feature-badge badge bg-success">Available</span>
@@ -203,13 +217,13 @@
                 <span class="feature-badge badge bg-secondary">Coming Soon</span>
                 {% endif %}
                 <div class="card-body text-center">
-                    <div class="card-icon bg-primary bg-opacity-10 text-primary mx-auto">
+                    <div class="card-icon bg-info bg-opacity-10 text-info mx-auto">
                         <i class="fas fa-file-upload"></i>
                     </div>
                     <h5 class="card-title">Upload Document</h5>
                     <p class="card-text small">Upload sustainability reports for AI analysis.</p>
                     {% if document_processor_available %}
-                    <a href="{{ url_for('strategy.strategy_hub_document_upload') }}" class="btn btn-primary btn-sm">Upload</a>
+                    <a href="{{ url_for('strategy.strategy_hub_document_upload') }}" class="btn btn-info btn-sm">Upload</a>
                     {% else %}
                     <button class="btn btn-secondary btn-sm" disabled>Coming Soon</button>
                     {% endif %}
@@ -217,7 +231,7 @@
             </div>
         </div>
         
-        <div class="col-md-6 col-lg-4 col-xl-2">
+        <div class="col-md-6 col-lg-4 col-xl-3">
             <div class="card dashboard-card h-100">
                 {% if storytelling_available %}
                 <span class="feature-badge badge bg-success">Available</span>
@@ -239,49 +253,7 @@
             </div>
         </div>
         
-        <div class="col-md-6 col-lg-4 col-xl-2">
-            <div class="card dashboard-card h-100">
-                <span class="feature-badge badge bg-success">Available</span>
-                <div class="card-body text-center">
-                    <div class="card-icon bg-info bg-opacity-10 text-info mx-auto">
-                        <i class="fas fa-lightbulb"></i>
-                    </div>
-                    <h5 class="card-title">Frameworks</h5>
-                    <p class="card-text small">Explore sustainability strategy frameworks.</p>
-                    <a href="#frameworks" class="btn btn-info btn-sm">Explore</a>
-                </div>
-            </div>
-        </div>
-        
-        <div class="col-md-6 col-lg-4 col-xl-2">
-            <div class="card dashboard-card h-100">
-                <span class="feature-badge badge bg-success">Available</span>
-                <div class="card-body text-center">
-                    <div class="card-icon bg-warning bg-opacity-10 text-warning mx-auto">
-                        <i class="fas fa-coins"></i>
-                    </div>
-                    <h5 class="card-title">Monetization</h5>
-                    <p class="card-text small">Discover sustainability monetization models.</p>
-                    <a href="#monetization" class="btn btn-warning btn-sm">Discover</a>
-                </div>
-            </div>
-        </div>
-        
-        <div class="col-md-6 col-lg-4 col-xl-2">
-            <div class="card dashboard-card h-100">
-                <span class="feature-badge badge bg-success">Available</span>
-                <div class="card-body text-center">
-                    <div class="card-icon bg-danger bg-opacity-10 text-danger mx-auto">
-                        <i class="fas fa-bullhorn"></i>
-                    </div>
-                    <h5 class="card-title">Marketing</h5>
-                    <p class="card-text small">Sustainability communication strategies.</p>
-                    <a href="#marketing" class="btn btn-danger btn-sm">Strategies</a>
-                </div>
-            </div>
-        </div>
-        
-        <div class="col-md-6 col-lg-4 col-xl-2">
+        <div class="col-md-6 col-lg-4 col-xl-3">
             <div class="card dashboard-card h-100">
                 {% if trend_virality_available %}
                 <span class="feature-badge badge bg-success">Available</span>
@@ -289,13 +261,13 @@
                 <span class="feature-badge badge bg-secondary">Coming Soon</span>
                 {% endif %}
                 <div class="card-body text-center">
-                    <div class="card-icon bg-primary bg-opacity-10 text-primary mx-auto">
+                    <div class="card-icon bg-warning bg-opacity-10 text-warning mx-auto">
                         <i class="fas fa-virus"></i>
                     </div>
-                    <h5 class="card-title">Virality</h5>
-                    <p class="card-text small">Benchmark sustainability trend virality.</p>
+                    <h5 class="card-title">Trend Virality</h5>
+                    <p class="card-text small">Benchmark sustainability trend virality with STEPPS.</p>
                     {% if trend_virality_available %}
-                    <a href="#virality" class="btn btn-primary btn-sm">Analyze</a>
+                    <a href="#virality" class="btn btn-warning btn-sm">Analyze</a>
                     {% else %}
                     <button class="btn btn-secondary btn-sm" disabled>Coming Soon</button>
                     {% endif %}
@@ -304,6 +276,9 @@
         </div>
     </div>
 </div>
+
+<!-- AI Strategy Consultant Section -->
+{% include "strategy/ai_consultant_input.html" %}
 
 <!-- Document Repository Section -->
 <div class="strategy-hub-section">
@@ -435,6 +410,174 @@
     </div>
 </div>
 
+<!-- Science-Based Targets Section -->
+<div class="strategy-hub-section" id="science-targets">
+    <div class="dashboard-section-title d-flex justify-content-between align-items-center">
+        <div>
+            <i class="fas fa-bullseye"></i>
+            <h3 class="mb-0">Science-Based Targets</h3>
+        </div>
+        {% if sbti_available %}
+        <div class="btn-toolbar" role="toolbar">
+            <div class="dropdown me-2">
+                <button class="btn btn-outline-success dropdown-toggle" type="button" id="industryDropdown" data-bs-toggle="dropdown" aria-expanded="false">
+                    <i class="fas fa-industry me-2"></i> Select Industry
+                </button>
+                <ul class="dropdown-menu dropdown-menu-end" aria-labelledby="industryDropdown">
+                    <li><a class="dropdown-item" href="{{ url_for('sbti.science_based_targets_dashboard', industry='technology') }}">Technology</a></li>
+                    <li><a class="dropdown-item" href="{{ url_for('sbti.science_based_targets_dashboard', industry='manufacturing') }}">Manufacturing</a></li>
+                    <li><a class="dropdown-item" href="{{ url_for('sbti.science_based_targets_dashboard', industry='energy') }}">Energy</a></li>
+                    <li><a class="dropdown-item" href="{{ url_for('sbti.science_based_targets_dashboard', industry='retail') }}">Retail</a></li>
+                    <li><a class="dropdown-item" href="{{ url_for('sbti.science_based_targets_dashboard', industry='finance') }}">Finance</a></li>
+                </ul>
+            </div>
+            <button class="btn btn-outline-primary" type="button" data-bs-toggle="collapse" data-bs-target="#referenceCompanySection" aria-expanded="false" aria-controls="referenceCompanySection">
+                <i class="fas fa-building me-2"></i> Reference Companies
+            </button>
+        </div>
+        {% else %}
+        <span class="badge bg-secondary">Feature Coming Soon</span>
+        {% endif %}
+    </div>
+    
+    <!-- Target types with dropdown sections -->
+    <div class="row g-4 mb-4">
+        {% for category_id, category in sbti_categories.items() %}
+        <div class="col-md-4">
+            <div class="card h-100 dashboard-card">
+                <div class="card-header bg-transparent d-flex justify-content-between align-items-center">
+                    <h5 class="mb-0">{{ category.name }}</h5>
+                    <button class="btn btn-sm btn-outline-secondary" type="button" data-bs-toggle="collapse" data-bs-target="#collapse{{ category_id }}" aria-expanded="false">
+                        <i class="fas fa-chevron-down"></i>
+                    </button>
+                </div>
+                <div class="card-body">
+                    {% if category_id == "near_term" %}
+                    <div class="card-icon bg-success bg-opacity-10 text-success mx-auto">
+                        <i class="fas fa-leaf"></i>
+                    </div>
+                    {% elif category_id == "net_zero" %}
+                    <div class="card-icon bg-primary bg-opacity-10 text-primary mx-auto">
+                        <i class="fas fa-globe"></i>
+                    </div>
+                    {% else %}
+                    <div class="card-icon bg-info bg-opacity-10 text-info mx-auto">
+                        <i class="fas fa-industry"></i>
+                    </div>
+                    {% endif %}
+                    <p class="card-text">{{ category.description }}</p>
+                    <div class="text-muted small mb-3">
+                        <i class="fas fa-clock me-1"></i> Timeline: {{ category.timeline }}
+                    </div>
+                    <div class="collapse" id="collapse{{ category_id }}">
+                        <div class="card card-body bg-light mb-3">
+                            <h6 class="card-subtitle mb-2">Recommended Targets:</h6>
+                            <ul class="list-group list-group-flush">
+                                {% if sbti_targets and sbti_targets.categories and category_id in sbti_targets.categories %}
+                                {% for target in sbti_targets.categories[category_id].targets %}
+                                <li class="list-group-item bg-transparent d-flex justify-content-between align-items-center">
+                                    {{ target.target }}
+                                    <span class="badge bg-{% if target.difficulty == 'low' %}success{% elif target.difficulty == 'medium' %}warning{% elif target.difficulty == 'high' %}danger{% else %}secondary{% endif %}">
+                                        {{ target.difficulty }}
+                                    </span>
+                                </li>
+                                {% endfor %}
+                                {% else %}
+                                <li class="list-group-item bg-transparent">No specific targets available</li>
+                                {% endif %}
+                            </ul>
+                        </div>
+                    </div>
+                    <div class="d-grid gap-2">
+                        <a href="{{ url_for('sbti.science_based_targets_dashboard') }}" class="btn btn-outline-{% if category_id == 'near_term' %}success{% elif category_id == 'net_zero' %}primary{% else %}info{% endif %}">
+                            <i class="fas fa-arrow-right me-1"></i> Explore Targets
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+        {% endfor %}
+    </div>
+    
+    <!-- Reference companies collapsible section -->
+    <div class="collapse mb-4" id="referenceCompanySection">
+        <div class="card">
+            <div class="card-header bg-light">
+                <h5 class="mb-0"><i class="fas fa-building me-2"></i> Reference Companies with Science-Based Targets</h5>
+            </div>
+            <div class="card-body">
+                <div class="row">
+                    {% if sbti_reference_companies %}
+                    {% for company in sbti_reference_companies %}
+                    <div class="col-md-6 mb-3">
+                        <div class="card h-100 shadow-sm">
+                            <div class="card-body">
+                                <h5 class="card-title">{{ company.name }}</h5>
+                                <p class="card-text"><strong>Target:</strong> {{ company.target }}</p>
+                                <p class="card-text"><strong>Progress:</strong> 
+                                    <span class="badge bg-{% if company.progress == 'On track' %}success{% else %}warning{% endif %}">
+                                        {{ company.progress }}
+                                    </span>
+                                </p>
+                                <p class="card-text small text-muted">{{ company.details }}</p>
+                            </div>
+                        </div>
+                    </div>
+                    {% endfor %}
+                    {% else %}
+                    <div class="col-12">
+                        <div class="alert alert-info">
+                            <i class="fas fa-info-circle me-2"></i> Reference company data is not available for this industry.
+                        </div>
+                    </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Implementation steps -->
+    {% if sbti_targets and sbti_targets.implementation_steps %}
+    <div class="card mb-4">
+        <div class="card-header bg-light d-flex justify-content-between align-items-center">
+            <h5 class="mb-0"><i class="fas fa-tasks me-2"></i> Implementation Steps</h5>
+            <button class="btn btn-sm btn-outline-secondary" type="button" data-bs-toggle="collapse" data-bs-target="#implementationSteps" aria-expanded="false">
+                <i class="fas fa-chevron-down"></i>
+            </button>
+        </div>
+        <div class="collapse" id="implementationSteps">
+            <div class="card-body">
+                <div class="row">
+                    <div class="col-md-6">
+                        <ol class="list-group list-group-numbered">
+                            {% for step in sbti_targets.implementation_steps %}
+                            <li class="list-group-item d-flex justify-content-between align-items-start">
+                                <div class="ms-2 me-auto">{{ step }}</div>
+                            </li>
+                            {% endfor %}
+                        </ol>
+                    </div>
+                    <div class="col-md-6">
+                        <div class="card h-100">
+                            <div class="card-body">
+                                <h6 class="card-subtitle mb-2 text-muted">Business Benefits</h6>
+                                <ul class="list-group list-group-flush">
+                                    {% for benefit in sbti_targets.business_benefits %}
+                                    <li class="list-group-item bg-transparent">
+                                        <i class="fas fa-check-circle text-success me-2"></i> {{ benefit }}
+                                    </li>
+                                    {% endfor %}
+                                </ul>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    {% endif %}
+</div>
+
 <!-- Marketing Strategies Section -->
 <div class="strategy-hub-section" id="marketing">
     <div class="dashboard-section-title">
@@ -443,23 +586,23 @@
     </div>
     
     <div class="row g-4">
-        {% for strategy_id, strategy in marketing_strategies.items() %}
+        {% for strategy in marketing_strategies %}
         <div class="col-md-6 col-lg-4">
             <div class="card strategy-card h-100 shadow-sm">
                 <div class="card-body">
                     <div class="strategy-card-icon">
-                        <i class="fas fa-{{ strategy.icon }}"></i>
+                        <i class="fas fa-bullhorn"></i>
                     </div>
                     <h5 class="card-title">{{ strategy.name }}</h5>
-                    <p class="card-text">{{ strategy.short_description }}</p>
-                    {% if strategy.target_audience %}
+                    <p class="card-text">{{ strategy.description }}</p>
+                    {% if strategy.category %}
                     <div class="mt-3">
-                        <span class="badge bg-info">{{ strategy.target_audience }}</span>
+                        <span class="badge bg-info">{{ strategy.category }}</span>
                     </div>
                     {% endif %}
                 </div>
                 <div class="card-footer bg-transparent">
-                    <button class="btn btn-outline-info d-block w-100" data-bs-toggle="modal" data-bs-target="#marketingModal{{ strategy_id }}">
+                    <button class="btn btn-outline-info d-block w-100" data-bs-toggle="modal" data-bs-target="#marketingModal{{ strategy.id }}">
                         <i class="fas fa-bullseye me-1"></i> View Strategy
                     </button>
                 </div>
@@ -493,14 +636,14 @@
                 <div class="col-md-6">
                     <h6 class="fw-bold">Component Breakdown</h6>
                     <ul class="list-group list-group-flush">
-                        {% for component, score in trend_data.scores.items() %}
+                        {% for component, data in trend_data.components.items() %}
                         <li class="list-group-item d-flex justify-content-between align-items-center">
-                            <span>{{ stepps_components[component] }}</span>
+                            <span>{{ data.description }}</span>
                             <div class="d-flex align-items-center">
                                 <div class="progress me-2" style="width: 100px; height: 8px;">
-                                    <div class="progress-bar bg-success" role="progressbar" style="width: {{ score }}%" aria-valuenow="{{ score }}" aria-valuemin="0" aria-valuemax="100"></div>
+                                    <div class="progress-bar bg-success" role="progressbar" style="width: {{ data.score * 10 }}%" aria-valuenow="{{ data.score * 10 }}" aria-valuemin="0" aria-valuemax="100"></div>
                                 </div>
-                                <span class="badge bg-success rounded-pill">{{ score }}%</span>
+                                <span class="badge bg-success rounded-pill">{{ data.score * 10 }}%</span>
                             </div>
                         </li>
                         {% endfor %}
@@ -653,21 +796,21 @@
 {% endfor %}
 
 <!-- Marketing Strategy Modals -->
-{% for strategy_id, strategy in marketing_strategies.items() %}
-<div class="modal fade" id="marketingModal{{ strategy_id }}" tabindex="-1" aria-labelledby="marketingModal{{ strategy_id }}Label" aria-hidden="true">
+{% for strategy in marketing_strategies %}
+<div class="modal fade" id="marketingModal{{ strategy.id }}" tabindex="-1" aria-labelledby="marketingModal{{ strategy.id }}Label" aria-hidden="true">
     <div class="modal-dialog modal-lg">
         <div class="modal-content">
             <div class="modal-header">
-                <h5 class="modal-title" id="marketingModal{{ strategy_id }}Label">{{ strategy.name }}</h5>
+                <h5 class="modal-title" id="marketingModal{{ strategy.id }}Label">{{ strategy.name }}</h5>
                 <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
             </div>
             <div class="modal-body">
-                <p>{{ strategy.short_description }}</p>
+                <p>{{ strategy.description }}</p>
                 
-                {% if strategy.target_audience %}
+                {% if strategy.category %}
                 <div class="d-flex align-items-center mb-3">
-                    <span class="fw-bold me-2">Target Audience:</span>
-                    <span class="badge bg-info">{{ strategy.target_audience }}</span>
+                    <span class="fw-bold me-2">Category:</span>
+                    <span class="badge bg-info">{{ strategy.category }}</span>
                 </div>
                 {% endif %}
                 
@@ -737,27 +880,41 @@
                         <thead>
                             <tr>
                                 <th>Company</th>
-                                {% for component in stepps_components %}
-                                <th>{{ stepps_components[component] }}</th>
-                                {% endfor %}
-                                <th>Overall</th>
+                                <th>Score</th>
+                                <th>Rank</th>
                             </tr>
                         </thead>
                         <tbody>
-                            {% for company, scores in benchmark_data.items() %}
+                            {% for ranking in benchmark_data.overall_ranking.ranking %}
                             <tr>
-                                <td><strong>{{ company }}</strong></td>
-                                {% for component in stepps_components %}
+                                <td>
+                                    <strong>{{ ranking.name }}</strong>
+                                    {% if ranking.name == benchmark_data.company_name %}
+                                    <span class="badge bg-primary ms-2">Your Company</span>
+                                    {% endif %}
+                                    {% if ranking.name == benchmark_data.overall_ranking.leader %}
+                                    <span class="badge bg-success ms-2">Leader</span>
+                                    {% endif %}
+                                </td>
                                 <td>
                                     <div class="d-flex align-items-center">
                                         <div class="progress me-2" style="width: 60px; height: 8px;">
-                                            <div class="progress-bar {% if scores[component] >= 75 %}bg-success{% elif scores[component] >= 50 %}bg-warning{% else %}bg-danger{% endif %}" role="progressbar" style="width: {{ scores[component] }}%" aria-valuenow="{{ scores[component] }}" aria-valuemin="0" aria-valuemax="100"></div>
+                                            <div class="progress-bar {% if ranking.score >= 75 %}bg-success{% elif ranking.score >= 50 %}bg-warning{% else %}bg-danger{% endif %}" role="progressbar" style="width: {{ ranking.score }}%" aria-valuenow="{{ ranking.score }}" aria-valuemin="0" aria-valuemax="100"></div>
                                         </div>
-                                        <small>{{ scores[component] }}%</small>
+                                        <small>{{ ranking.score }}%</small>
                                     </div>
                                 </td>
-                                {% endfor %}
-                                <td><strong>{{ scores.overall }}%</strong></td>
+                                <td>
+                                    {% if loop.index == 1 %}
+                                    <span class="badge bg-success">1st</span>
+                                    {% elif loop.index == 2 %}
+                                    <span class="badge bg-primary">2nd</span>
+                                    {% elif loop.index == 3 %}
+                                    <span class="badge bg-info">3rd</span>
+                                    {% else %}
+                                    <span class="badge bg-secondary">{{ loop.index }}th</span>
+                                    {% endif %}
+                                </td>
                             </tr>
                             {% endfor %}
                         </tbody>
@@ -780,6 +937,7 @@
 {% endif %}
 
 {% block extra_js %}
+<script src="{{ url_for('static', filename='js/strategy_ai_consultant.js') }}"></script>
 {% if trend_data %}
 <script src="https://cdn.jsdelivr.net/npm/chart.js@3.7.1/dist/chart.min.js"></script>
 <script>
@@ -797,8 +955,8 @@ document.addEventListener('DOMContentLoaded', function() {
             datasets: [{
                 label: 'Carbon Footprint Transparency',
                 data: [
-                    {% for component, score in trend_data.scores.items() %}
-                    {{ score }},
+                    {% for component, data in trend_data.components.items() %}
+                    {{ data.score * 10 }},
                     {% endfor %}
                 ],
                 backgroundColor: 'rgba(75, 192, 192, 0.2)',
@@ -825,10 +983,10 @@ document.addEventListener('DOMContentLoaded', function() {
     const benchmarkBarChart = new Chart(benchmarkCtx, {
         type: 'bar',
         data: {
-            labels: [{% for company in benchmark_data %}'{{ company }}',{% endfor %}],
+            labels: [{% for ranking in benchmark_data.overall_ranking.ranking %}'{{ ranking.name }}',{% endfor %}],
             datasets: [{
                 label: 'Overall Virality Score',
-                data: [{% for company, scores in benchmark_data.items() %}{{ scores.overall }},{% endfor %}],
+                data: [{% for ranking in benchmark_data.overall_ranking.ranking %}{{ ranking.score }},{% endfor %}],
                 backgroundColor: [
                     'rgba(75, 192, 192, 0.7)',
                     'rgba(153, 102, 255, 0.7)',

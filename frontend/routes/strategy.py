@@ -103,6 +103,49 @@ except ImportError as e:
         "stories": "Stories"
     }
 
+# Import AI Strategy Consultant functions (with fallback)
+try:
+    from strategy_ai_consultant import (
+        analyze_trend,
+        generate_strategy_document,
+        register_routes as register_ai_consultant_routes
+    )
+    AI_CONSULTANT_AVAILABLE = True
+    logger.info("AI Strategy Consultant module loaded successfully")
+except ImportError as e:
+    AI_CONSULTANT_AVAILABLE = False
+    logger.warning(f"AI Strategy Consultant module not available: {str(e)}")
+
+# Import science-based targets functions (with fallback)
+try:
+    import sys
+    from pathlib import Path
+    sys.path.append(str(Path(__file__).parent.parent))
+    
+    from science_based_targets import (
+        generate_science_based_targets,
+        get_sbti_reference_companies,
+        SBTI_CATEGORIES
+    )
+    SBTI_AVAILABLE = True
+    logger.info("Science-Based Targets module loaded successfully")
+except ImportError as e:
+    SBTI_AVAILABLE = False
+    logger.warning(f"Science-Based Targets module not available: {str(e)}")
+    # Fallback constants
+    SBTI_CATEGORIES = {
+        "near_term": {
+            "name": "Near-Term Targets",
+            "description": "Science-based emission reduction targets to be achieved within 5-10 years",
+            "timeline": "5-10 years"
+        },
+        "net_zero": {
+            "name": "Net-Zero Targets", 
+            "description": "Long-term targets to reach net-zero emissions by 2050 at the latest",
+            "timeline": "By 2050"
+        }
+    }
+
 # Import strategy frameworks (if available) or use fallback
 try:
     from strategy_simulation import get_frameworks, analyze_with_framework
@@ -163,6 +206,14 @@ document_processor = DocumentProcessor() if DOCUMENT_PROCESSOR_AVAILABLE else No
 
 # Create blueprint
 strategy_bp = Blueprint('strategy', __name__)
+
+# Register AI Strategy Consultant routes
+if AI_CONSULTANT_AVAILABLE:
+    try:
+        register_ai_consultant_routes(strategy_bp)
+        logger.info("AI Strategy Consultant routes registered successfully")
+    except Exception as e:
+        logger.warning(f"Failed to register AI Strategy Consultant routes: {str(e)}")
 
 @strategy_bp.route('/strategy-hub')
 def strategy_hub():
@@ -1211,12 +1262,14 @@ def unified_strategy_hub():
     """
     Unified Strategy Hub page with document analysis, storytelling, and strategy frameworks
     This is the new integrated version that combines all features including:
+    - AI Strategy Consultant
     - Document analysis and compliance assessment
     - Sustainability storytelling
     - Marketing strategies
     - Monetization opportunities
     - Trend virality benchmarking
     - Strategy frameworks
+    - Science-Based Targets integration
     """
     logger.info("Unified Strategy Hub route called")
     
@@ -1377,6 +1430,38 @@ def unified_strategy_hub():
                 logger.warning(f"Error generating trend virality data: {str(e)}")
                 trend_data = None
                 benchmark_data = None
+                
+        # Get Science-Based Targets data
+        sbti_targets = None
+        sbti_reference_companies = None
+        
+        if SBTI_AVAILABLE:
+            try:
+                # Example company data for generating targets
+                company_data = {
+                    "name": "TechSustain Inc.",
+                    "industry": "Technology",
+                    "base_year_emissions": 1250000,  # tonnes CO2e
+                    "current_year_emissions": 1100000,  # tonnes CO2e
+                    "target_year": 2030,
+                    "revenue": 500000000,  # $500M annual revenue
+                    "employees": 2500,
+                    "scope1_emissions": 300000,  # tonnes CO2e
+                    "scope2_emissions": 800000,  # tonnes CO2e
+                    "current_year": 2025
+                }
+                
+                # Generate science-based targets
+                sbti_targets = generate_science_based_targets(company_data, company_data["industry"])
+                logger.info("Generated science-based targets for example company")
+                
+                # Get reference companies for benchmarking
+                sbti_reference_companies = get_sbti_reference_companies(company_data["industry"])
+                logger.info(f"Retrieved {len(sbti_reference_companies) if sbti_reference_companies else 0} SBTI reference companies")
+            except Exception as e:
+                logger.warning(f"Error generating Science-Based Targets data: {str(e)}")
+                sbti_targets = None
+                sbti_reference_companies = None
         
         # Render the unified template with all components
         return render_template(
@@ -1391,9 +1476,14 @@ def unified_strategy_hub():
             stepps_components=STEPPS_COMPONENTS,  # STEPPS virality components
             trend_data=trend_data,  # Added trend analysis data
             benchmark_data=benchmark_data,  # Added benchmark data
+            sbti_categories=SBTI_CATEGORIES,  # Added Science-Based Targets categories
+            sbti_targets=sbti_targets,  # Added Science-Based Targets data
+            sbti_reference_companies=sbti_reference_companies,  # Added SBTI reference companies
             document_processor_available=DOCUMENT_PROCESSOR_AVAILABLE,
             storytelling_available=STORYTELLING_AVAILABLE,
             trend_virality_available=TREND_VIRALITY_AVAILABLE,  # Added flag for trend virality
+            sbti_available=SBTI_AVAILABLE,  # Added flag for Science-Based Targets
+            ai_consultant_available=AI_CONSULTANT_AVAILABLE,  # Added flag for AI Strategy Consultant
             **nav_context
         )
     except Exception as e:

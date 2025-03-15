@@ -11,6 +11,7 @@ Key features:
 3. Competitor benchmarking for online sustainability presence
 4. Strategic framework integration (Porter's Five Forces, McKinsey 7S)
 5. Data-driven storytelling elements for strategic positioning
+6. Science-Based Targets initiative (SBTi) alignment and recommendation generator
 """
 import json
 import logging
