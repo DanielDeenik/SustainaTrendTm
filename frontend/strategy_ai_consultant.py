@@ -17,6 +17,120 @@ logger = logging.getLogger(__name__)
 # Flag to indicate if the consultant is available
 STRATEGY_AI_CONSULTANT_AVAILABLE = True
 
+def analyze_trend(trend_name: str, industry: str = None, with_stepps: bool = True) -> Dict[str, Any]:
+    """
+    Analyze a sustainability trend for a specific industry
+    
+    Args:
+        trend_name: Name of the trend to analyze
+        industry: Industry context for the analysis (optional)
+        with_stepps: Whether to include STEPPS framework analysis
+        
+    Returns:
+        Dictionary with trend analysis and strategic recommendations
+    """
+    # Log the analysis request
+    logger.info(f"Analyzing trend '{trend_name}' for industry '{industry or 'general'}'")
+    
+    # Create mock trend data for analysis
+    trend_data = {
+        "name": trend_name,
+        "category": _determine_trend_category(trend_name),
+        "trend_direction": "improving",
+        "virality_score": 75,
+        "keywords": trend_name.lower().split()
+    }
+    
+    # Import here to avoid circular imports
+    from trend_virality_benchmarking import analyze_trend_with_stepps
+    
+    # Get STEPPS analysis if requested
+    stepps_analysis = analyze_trend_with_stepps(trend_data) if with_stepps else {}
+    
+    # Generate industry-specific insights
+    industry_insights = _generate_industry_insights(trend_name, industry)
+    
+    # Format the complete analysis
+    analysis = {
+        "trend_name": trend_name,
+        "industry_context": industry or "general",
+        "summary": f"Analysis of '{trend_name}' sustainability trend in the {industry or 'general'} industry context",
+        "strategic_recommendations": _generate_strategic_recommendations(trend_name, industry),
+        "industry_insights": industry_insights,
+        "implementation_timeframe": _estimate_implementation_timeframe(trend_data),
+        "stepps_analysis": stepps_analysis if with_stepps else {}
+    }
+    
+    return analysis
+
+def _determine_trend_category(trend_name: str) -> str:
+    """Determine the most likely category for a trend based on its name"""
+    trend_lower = trend_name.lower()
+    
+    if any(term in trend_lower for term in ["carbon", "emission", "climate", "energy", "renewable"]):
+        return "Climate Action"
+    elif any(term in trend_lower for term in ["circular", "waste", "recycl", "reuse"]):
+        return "Circular Economy"
+    elif any(term in trend_lower for term in ["water", "biodiversity", "forest", "conservation"]):
+        return "Natural Resources"
+    elif any(term in trend_lower for term in ["social", "diversity", "inclusion", "equity", "community"]):
+        return "Social Impact"
+    elif any(term in trend_lower for term in ["governance", "reporting", "disclosure", "compliance"]):
+        return "ESG Governance"
+    elif any(term in trend_lower for term in ["supply", "chain", "procurement", "sourcing"]):
+        return "Supply Chain"
+    else:
+        return "Emerging Trends"
+
+def _generate_strategic_recommendations(trend_name: str, industry: str = None) -> List[str]:
+    """Generate strategic recommendations based on trend and industry"""
+    recommendations = [
+        f"Conduct a comprehensive assessment of how {trend_name} impacts your operations",
+        f"Develop a stakeholder engagement strategy specifically addressing {trend_name}",
+        f"Implement pilot projects to test innovative approaches to {trend_name}"
+    ]
+    
+    if industry:
+        industry_lower = industry.lower()
+        if "tech" in industry_lower or "technology" in industry_lower:
+            recommendations.append(f"Explore digital solutions to measure and manage {trend_name} impacts")
+        elif "manufacturing" in industry_lower:
+            recommendations.append(f"Evaluate production processes for {trend_name} optimization opportunities")
+        elif "finance" in industry_lower:
+            recommendations.append(f"Develop financial products aligned with {trend_name} principles")
+    
+    return recommendations
+
+def _generate_industry_insights(trend_name: str, industry: str = None) -> str:
+    """Generate industry-specific insights for a trend"""
+    if not industry:
+        return f"This trend affects multiple industries and presents cross-sector collaboration opportunities."
+    
+    industry_lower = industry.lower()
+    if "tech" in industry_lower or "technology" in industry_lower:
+        return f"In the technology sector, {trend_name} is driving innovation in digital solutions and creating new market opportunities."
+    elif "manufacturing" in industry_lower:
+        return f"Manufacturing companies implementing {trend_name} strategies are seeing efficiency gains and cost reductions."
+    elif "finance" in industry_lower:
+        return f"Financial institutions are incorporating {trend_name} into risk assessment and investment decision frameworks."
+    elif "retail" in industry_lower:
+        return f"Retailers embracing {trend_name} are strengthening brand loyalty and capturing eco-conscious market segments."
+    elif "energy" in industry_lower:
+        return f"Energy companies are using {trend_name} to navigate the transition to a low-carbon future."
+    else:
+        return f"Companies in the {industry} sector can gain competitive advantage by strategically addressing {trend_name}."
+
+def _estimate_implementation_timeframe(trend_data: Dict[str, Any]) -> str:
+    """Estimate implementation timeframe based on trend complexity"""
+    category = trend_data.get("category", "")
+    
+    if category in ["Climate Action", "Circular Economy"]:
+        return "Long-term (2-5 years)"
+    elif category in ["Supply Chain", "Natural Resources"]:
+        return "Medium-term (1-2 years)"
+    else:
+        return "Short-term (6-12 months)"
+
 class StrategyAIConsultant:
     """
     AI-powered strategy consultant for sustainability strategy development
@@ -26,6 +140,57 @@ class StrategyAIConsultant:
         """Initialize the Strategy AI Consultant"""
         self.strategies_cache = {}
         logger.info("Strategy AI Consultant initialized")
+        
+    def generate_strategy(self, 
+                         company_name: str, 
+                         industry: str, 
+                         focus_areas: Optional[str] = None,
+                         trends: Optional[str] = None) -> Dict[str, Any]:
+        """
+        Generate a comprehensive sustainability strategy
+        
+        Args:
+            company_name: Name of the company
+            industry: Industry of the company
+            focus_areas: Comma-separated focus areas (optional)
+            trends: Specific trends to analyze (optional)
+            
+        Returns:
+            Dictionary with generated strategy and recommendations
+        """
+        # Log request for debugging
+        logger.info(f"Generating strategy for {company_name} in {industry} industry")
+        logger.info(f"Focus areas: {focus_areas}")
+        logger.info(f"Trends to analyze: {trends}")
+
+        # Process focus areas
+        focus_area_list = []
+        if focus_areas:
+            focus_area_list = [area.strip() for area in focus_areas.split(',') if area.strip()]
+        
+        # Generate the main strategy components
+        strategy_components = self._generate_strategy_components(company_name, industry, focus_area_list)
+        
+        # Process trends if provided
+        if trends:
+            extracted_trends = self._extract_trends(trends, industry)
+            # Format the trends for display
+            trend_analysis = self._format_trends_for_display(extracted_trends)
+        else:
+            # Generate default trend analysis
+            trend_analysis = "No specific trends were requested for analysis."
+        
+        # Create the strategy result
+        strategy_result = {
+            "status": "success",
+            "message": "Strategy generated successfully",
+            "company": company_name,
+            "industry": industry,
+            "result": strategy_components,
+            "trend_analysis": trend_analysis
+        }
+        
+        return strategy_result
         
     def generate_legacy_strategy(self, 
                          company_name: str, 
@@ -49,13 +214,8 @@ class StrategyAIConsultant:
         logger.info(f"Focus areas: {focus_areas}")
         logger.info(f"Trends to analyze: {trends}")
         
-        # Return a minimal response to satisfy the return type
-        return {
-            "success": True,
-            "message": "Legacy strategy generation method - use generate_ai_strategy instead",
-            "company": company_name,
-            "industry": industry
-        }
+        # Simply call the new method
+        return self.generate_strategy(company_name, industry, focus_areas, trends)
         
     def generate_ai_strategy(self, 
                            company_name: str, 
@@ -261,11 +421,35 @@ class StrategyAIConsultant:
         
         return result
     
+    def _format_trends_for_display(self, trends: List[Dict[str, Any]]) -> str:
+        """
+        Format extracted trends for display in the strategy result
+        
+        Args:
+            trends: List of trend dictionaries
+            
+        Returns:
+            Formatted string with trend information
+        """
+        if not trends:
+            return "No specific trends were provided for analysis."
+            
+        text = "# Trend Analysis\n\n"
+        
+        for i, trend in enumerate(trends, 1):
+            text += f"## Trend {i}: {trend['name']}\n\n"
+            text += f"{trend['description']}\n\n"
+            text += f"* Category: {trend['category']}\n"
+            text += f"* Impact: {trend['impact']}\n"
+            text += f"* Relevance Score: {trend['relevance']:.2f}/1.0\n\n"
+        
+        return text
+        
     def _generate_strategy_components(self, 
                                      company_name: str, 
                                      industry: str, 
                                      focus_areas: List[str],
-                                     trends_input: Optional[str]) -> Dict[str, Any]:
+                                     trends_input: Optional[str] = None) -> Dict[str, Any]:
         """
         Generate detailed strategy components
         

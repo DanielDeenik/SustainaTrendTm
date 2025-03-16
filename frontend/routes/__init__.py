@@ -20,6 +20,13 @@ def register_blueprints(app):
     from .realestate import realestate_bp
     from .strategy import strategy_bp
     
+    # Import enhanced strategy blueprint - new implementation with Finchat.io-style UI
+    try:
+        from .enhanced_strategy import enhanced_strategy_bp, register_blueprint as register_enhanced_strategy
+        logger.info("Enhanced Strategy Hub blueprint imported successfully")
+    except ImportError as e:
+        logger.warning(f"Enhanced Strategy Hub blueprint import failed: {str(e)}")
+    
     # Import legacy routes blueprint - for backward compatibility
     try:
         from .legacy import legacy_bp
@@ -60,6 +67,14 @@ def register_blueprints(app):
     app.register_blueprint(realestate_bp)
     # Register strategy blueprint - this contains the consolidated strategy hub
     app.register_blueprint(strategy_bp)
+    
+    # Register enhanced strategy blueprint
+    try:
+        register_enhanced_strategy(app)
+        logger.info("Enhanced Strategy Hub blueprint registered successfully")
+    except NameError:
+        logger.warning("Enhanced Strategy Hub blueprint not registered due to import failure")
+    
     # Register storytelling blueprint - modular implementation with UUID-based identification
     try:
         app.register_blueprint(storytelling_bp)

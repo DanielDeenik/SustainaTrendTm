@@ -1,0 +1,632 @@
+<!-- Trend Analyzer Component for the Strategy Hub -->
+<div class="strategy-hub-section" id="trend-analyzer">
+    <div class="dashboard-section-title d-flex justify-content-between align-items-center">
+        <div>
+            <i class="fas fa-chart-line text-success"></i>
+            <h3 class="mb-0">Trend Analyzer</h3>
+        </div>
+        <button class="btn btn-sm btn-outline-success rounded-pill" id="refreshTrendsBtn">
+            <i class="fas fa-sync-alt me-1"></i> Refresh Data
+        </button>
+    </div>
+    
+    <div class="card border-0 shadow-sm bg-dark">
+        <div class="card-body p-4">
+            <!-- Trend Input and Analysis Form -->
+            <div class="row mb-4">
+                <div class="col-lg-8 mb-3 mb-lg-0">
+                    <div class="input-group">
+                        <input type="text" class="form-control bg-darker border-0" id="trendSearchInput" placeholder="Enter a sustainability trend or topic to analyze...">
+                        <button class="btn btn-success" type="button" id="analyzeTrendBtn">
+                            <i class="fas fa-search me-2"></i> Analyze
+                        </button>
+                    </div>
+                </div>
+                <div class="col-lg-4">
+                    <select class="form-select bg-darker border-0" id="industrySelect">
+                        <option value="all" selected>All Industries</option>
+                        <option value="technology">Technology</option>
+                        <option value="manufacturing">Manufacturing</option>
+                        <option value="energy">Energy</option>
+                        <option value="retail">Retail</option>
+                        <option value="finance">Finance</option>
+                        <option value="healthcare">Healthcare</option>
+                        <option value="real-estate">Real Estate</option>
+                        <option value="transportation">Transportation</option>
+                    </select>
+                </div>
+            </div>
+            
+            <!-- Trend Analysis Results Container (initially hidden) -->
+            <div id="trendAnalysisResults" style="display: none;">
+                <div class="row g-4">
+                    <!-- Trend Overview Card -->
+                    <div class="col-lg-6">
+                        <div class="card bg-darker border-0 h-100">
+                            <div class="card-body">
+                                <h5 class="card-title mb-3" id="analyzedTrendTitle">Trend Overview</h5>
+                                <p class="card-text" id="trendDescription"></p>
+                                
+                                <div class="mt-3">
+                                    <h6 class="mb-2">Industry Impact</h6>
+                                    <div class="industry-impact-bars">
+                                        <!-- Dynamic industry impact bars will be added here -->
+                                    </div>
+                                </div>
+                                
+                                <div class="mt-3">
+                                    <h6 class="mb-2">Timeline</h6>
+                                    <div class="d-flex justify-content-between align-items-center">
+                                        <span class="badge bg-primary rounded-pill px-3">Emerging</span>
+                                        <div class="progress flex-grow-1 mx-2" style="height: 8px;">
+                                            <div class="progress-bar bg-success" id="trendMaturityBar" role="progressbar" style="width: 45%" aria-valuenow="45" aria-valuemin="0" aria-valuemax="100"></div>
+                                        </div>
+                                        <span class="badge bg-success rounded-pill px-3">Established</span>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- Virality Analysis Card -->
+                    <div class="col-lg-6">
+                        <div class="card bg-darker border-0 h-100">
+                            <div class="card-body">
+                                <h5 class="card-title mb-3">STEPPS Virality Analysis</h5>
+                                
+                                <div class="row">
+                                    <div class="col-md-6">
+                                        <div class="stepps-score mb-3">
+                                            <div class="d-flex justify-content-between align-items-center mb-1">
+                                                <span>Social Currency</span>
+                                                <span class="badge bg-success rounded-pill" id="socialScore">87</span>
+                                            </div>
+                                            <div class="progress" style="height: 8px;">
+                                                <div class="progress-bar bg-success" role="progressbar" style="width: 87%" aria-valuenow="87" aria-valuemin="0" aria-valuemax="100"></div>
+                                            </div>
+                                        </div>
+                                        
+                                        <div class="stepps-score mb-3">
+                                            <div class="d-flex justify-content-between align-items-center mb-1">
+                                                <span>Triggers</span>
+                                                <span class="badge bg-success rounded-pill" id="triggersScore">76</span>
+                                            </div>
+                                            <div class="progress" style="height: 8px;">
+                                                <div class="progress-bar bg-success" role="progressbar" style="width: 76%" aria-valuenow="76" aria-valuemin="0" aria-valuemax="100"></div>
+                                            </div>
+                                        </div>
+                                        
+                                        <div class="stepps-score mb-3">
+                                            <div class="d-flex justify-content-between align-items-center mb-1">
+                                                <span>Emotion</span>
+                                                <span class="badge bg-success rounded-pill" id="emotionScore">92</span>
+                                            </div>
+                                            <div class="progress" style="height: 8px;">
+                                                <div class="progress-bar bg-success" role="progressbar" style="width: 92%" aria-valuenow="92" aria-valuemin="0" aria-valuemax="100"></div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    
+                                    <div class="col-md-6">
+                                        <div class="stepps-score mb-3">
+                                            <div class="d-flex justify-content-between align-items-center mb-1">
+                                                <span>Public</span>
+                                                <span class="badge bg-warning rounded-pill" id="publicScore">63</span>
+                                            </div>
+                                            <div class="progress" style="height: 8px;">
+                                                <div class="progress-bar bg-warning" role="progressbar" style="width: 63%" aria-valuenow="63" aria-valuemin="0" aria-valuemax="100"></div>
+                                            </div>
+                                        </div>
+                                        
+                                        <div class="stepps-score mb-3">
+                                            <div class="d-flex justify-content-between align-items-center mb-1">
+                                                <span>Practical Value</span>
+                                                <span class="badge bg-success rounded-pill" id="practicalScore">84</span>
+                                            </div>
+                                            <div class="progress" style="height: 8px;">
+                                                <div class="progress-bar bg-success" role="progressbar" style="width: 84%" aria-valuenow="84" aria-valuemin="0" aria-valuemax="100"></div>
+                                            </div>
+                                        </div>
+                                        
+                                        <div class="stepps-score mb-3">
+                                            <div class="d-flex justify-content-between align-items-center mb-1">
+                                                <span>Stories</span>
+                                                <span class="badge bg-success rounded-pill" id="storiesScore">79</span>
+                                            </div>
+                                            <div class="progress" style="height: 8px;">
+                                                <div class="progress-bar bg-success" role="progressbar" style="width: 79%" aria-valuenow="79" aria-valuemin="0" aria-valuemax="100"></div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                                
+                                <div class="mt-3">
+                                    <h6 class="mb-2">Overall Virality Score</h6>
+                                    <div class="d-flex align-items-center">
+                                        <div class="display-6 me-3 text-success" id="overallViralityScore">80</div>
+                                        <div class="progress flex-grow-1" style="height: 16px;">
+                                            <div class="progress-bar bg-success" role="progressbar" style="width: 80%" aria-valuenow="80" aria-valuemin="0" aria-valuemax="100"></div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- Strategy Grid -->
+                    <div class="col-12">
+                        <div class="card bg-darker border-0">
+                            <div class="card-body">
+                                <h5 class="card-title mb-3">Strategic Implications</h5>
+                                
+                                <div class="table-responsive">
+                                    <table class="table table-dark">
+                                        <thead>
+                                            <tr>
+                                                <th scope="col">Impact Area</th>
+                                                <th scope="col">Potential</th>
+                                                <th scope="col">Timeframe</th>
+                                                <th scope="col">Strategic Response</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody id="strategicImplicationsTable">
+                                            <!-- Will be populated dynamically -->
+                                        </tbody>
+                                    </table>
+                                </div>
+                                
+                                <div class="d-grid gap-2 mt-3">
+                                    <button class="btn btn-primary" id="generateStrategyBtn">
+                                        <i class="fas fa-magic me-2"></i> Generate Complete Strategy
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Trending Topics Section -->
+            <div id="trendingTopicsSection">
+                <h5 class="mb-3 mt-4">Trending Sustainability Topics</h5>
+                <div class="row g-3">
+                    <div class="col-md-6 col-lg-4">
+                        <div class="card trend-card bg-darker border-0 h-100 cursor-pointer" data-trend="Carbon Neutrality">
+                            <div class="card-body">
+                                <span class="badge bg-success mb-2">High Virality</span>
+                                <h5 class="card-title mb-1">Carbon Neutrality</h5>
+                                <p class="card-text text-muted small mb-2">Trending in Energy, Manufacturing, Technology</p>
+                                <div class="d-flex align-items-center mt-2">
+                                    <div class="trend-score me-2">
+                                        <strong>92</strong>
+                                    </div>
+                                    <div class="progress flex-grow-1" style="height: 8px;">
+                                        <div class="progress-bar bg-success" role="progressbar" style="width: 92%" aria-valuenow="92" aria-valuemin="0" aria-valuemax="100"></div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="col-md-6 col-lg-4">
+                        <div class="card trend-card bg-darker border-0 h-100 cursor-pointer" data-trend="Circular Economy">
+                            <div class="card-body">
+                                <span class="badge bg-success mb-2">High Virality</span>
+                                <h5 class="card-title mb-1">Circular Economy</h5>
+                                <p class="card-text text-muted small mb-2">Trending in Retail, Manufacturing, Consumer Goods</p>
+                                <div class="d-flex align-items-center mt-2">
+                                    <div class="trend-score me-2">
+                                        <strong>87</strong>
+                                    </div>
+                                    <div class="progress flex-grow-1" style="height: 8px;">
+                                        <div class="progress-bar bg-success" role="progressbar" style="width: 87%" aria-valuenow="87" aria-valuemin="0" aria-valuemax="100"></div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="col-md-6 col-lg-4">
+                        <div class="card trend-card bg-darker border-0 h-100 cursor-pointer" data-trend="ESG Reporting">
+                            <div class="card-body">
+                                <span class="badge bg-success mb-2">High Virality</span>
+                                <h5 class="card-title mb-1">ESG Reporting</h5>
+                                <p class="card-text text-muted small mb-2">Trending in Finance, Real Estate, Energy</p>
+                                <div class="d-flex align-items-center mt-2">
+                                    <div class="trend-score me-2">
+                                        <strong>85</strong>
+                                    </div>
+                                    <div class="progress flex-grow-1" style="height: 8px;">
+                                        <div class="progress-bar bg-success" role="progressbar" style="width: 85%" aria-valuenow="85" aria-valuemin="0" aria-valuemax="100"></div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // Analyze Trend Button
+    const analyzeTrendBtn = document.getElementById('analyzeTrendBtn');
+    const trendSearchInput = document.getElementById('trendSearchInput');
+    const industrySelect = document.getElementById('industrySelect');
+    const trendAnalysisResults = document.getElementById('trendAnalysisResults');
+    const trendingTopicsSection = document.getElementById('trendingTopicsSection');
+    
+    // Trend Cards
+    const trendCards = document.querySelectorAll('.trend-card');
+    
+    if (analyzeTrendBtn && trendSearchInput) {
+        analyzeTrendBtn.addEventListener('click', function() {
+            analyzeTrend(trendSearchInput.value);
+        });
+        
+        trendSearchInput.addEventListener('keypress', function(e) {
+            if (e.key === 'Enter') {
+                analyzeTrend(trendSearchInput.value);
+            }
+        });
+    }
+    
+    if (trendCards) {
+        trendCards.forEach(card => {
+            card.addEventListener('click', function() {
+                const trend = this.getAttribute('data-trend');
+                if (trend && trendSearchInput) {
+                    trendSearchInput.value = trend;
+                    analyzeTrend(trend);
+                }
+            });
+        });
+    }
+    
+    function analyzeTrend(trend) {
+        if (!trend) {
+            alert('Please enter a trend to analyze');
+            return;
+        }
+        
+        // Show loading state
+        analyzeTrendBtn.innerHTML = '<span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span> Analyzing...';
+        analyzeTrendBtn.disabled = true;
+        
+        // Simulated API call delay
+        setTimeout(() => {
+            // Show analysis results
+            trendAnalysisResults.style.display = 'block';
+            trendingTopicsSection.style.display = 'none';
+            
+            // Set trend title and description
+            document.getElementById('analyzedTrendTitle').textContent = trend;
+            
+            // Generate dynamic trend description based on the trend
+            let trendDescription = '';
+            if (trend.toLowerCase().includes('carbon')) {
+                trendDescription = 'Carbon neutrality is a rapidly accelerating sustainability trend focused on balancing carbon emissions with carbon removal. This trend is driven by regulatory pressures, stakeholder expectations, and competitive differentiation opportunities. Organizations across industries are establishing ambitious carbon neutrality goals, with many targeting 2030-2040 timeframes.';
+            } else if (trend.toLowerCase().includes('circular')) {
+                trendDescription = 'Circular economy represents a transformative shift from the traditional linear "take-make-dispose" economic model to one that eliminates waste and pollution, keeps products and materials in use, and regenerates natural systems. This trend is particularly impactful in manufacturing, retail, and consumer goods sectors.';
+            } else if (trend.toLowerCase().includes('esg') || trend.toLowerCase().includes('reporting')) {
+                trendDescription = 'ESG reporting has evolved from a voluntary practice to an essential business function as regulations like the EU\'s CSRD, ISSB standards, and SEC climate disclosure rules create new compliance requirements. Companies are now adopting comprehensive ESG reporting frameworks to satisfy stakeholders and regulatory mandates.';
+            } else {
+                trendDescription = `${trend} represents an emerging sustainability trend with significant implications across multiple industries. Organizations implementing strategic responses to this trend can potentially gain competitive advantages while contributing to sustainability goals and stakeholder expectations.`;
+            }
+            
+            document.getElementById('trendDescription').textContent = trendDescription;
+            
+            // Update STEPPS scores based on trend (in a real implementation, these would come from API)
+            updateSteppsScores(trend);
+            
+            // Update strategic implications
+            updateStrategicImplications(trend, industrySelect.value);
+            
+            // Generate industry impact bars
+            generateIndustryImpactBars(trend);
+            
+            // Reset button
+            analyzeTrendBtn.innerHTML = '<i class="fas fa-search me-2"></i> Analyze';
+            analyzeTrendBtn.disabled = false;
+        }, 1500);
+    }
+    
+    function updateSteppsScores(trend) {
+        // In a real implementation, these scores would come from the API based on the trend
+        // For demo purposes, we're using slightly different scores based on the trend name
+        
+        let baseScores = {
+            social: 85,
+            triggers: 75,
+            emotion: 90,
+            public: 60,
+            practical: 82,
+            stories: 78
+        };
+        
+        // Add some variation based on the trend
+        const trendLength = trend.length;
+        const variation = trendLength % 15 - 7; // creates a range from -7 to +7
+        
+        document.getElementById('socialScore').textContent = Math.min(100, Math.max(40, baseScores.social + variation));
+        document.getElementById('socialScore').parentElement.nextElementSibling.querySelector('.progress-bar').style.width = `${Math.min(100, Math.max(40, baseScores.social + variation))}%`;
+        
+        document.getElementById('triggersScore').textContent = Math.min(100, Math.max(40, baseScores.triggers + variation + 2));
+        document.getElementById('triggersScore').parentElement.nextElementSibling.querySelector('.progress-bar').style.width = `${Math.min(100, Math.max(40, baseScores.triggers + variation + 2))}%`;
+        
+        document.getElementById('emotionScore').textContent = Math.min(100, Math.max(40, baseScores.emotion + variation - 2));
+        document.getElementById('emotionScore').parentElement.nextElementSibling.querySelector('.progress-bar').style.width = `${Math.min(100, Math.max(40, baseScores.emotion + variation - 2))}%`;
+        
+        document.getElementById('publicScore').textContent = Math.min(100, Math.max(40, baseScores.public + variation + 4));
+        document.getElementById('publicScore').parentElement.nextElementSibling.querySelector('.progress-bar').style.width = `${Math.min(100, Math.max(40, baseScores.public + variation + 4))}%`;
+        
+        document.getElementById('practicalScore').textContent = Math.min(100, Math.max(40, baseScores.practical + variation - 1));
+        document.getElementById('practicalScore').parentElement.nextElementSibling.querySelector('.progress-bar').style.width = `${Math.min(100, Math.max(40, baseScores.practical + variation - 1))}%`;
+        
+        document.getElementById('storiesScore').textContent = Math.min(100, Math.max(40, baseScores.stories + variation + 1));
+        document.getElementById('storiesScore').parentElement.nextElementSibling.querySelector('.progress-bar').style.width = `${Math.min(100, Math.max(40, baseScores.stories + variation + 1))}%`;
+        
+        // Calculate and update overall score (average of all scores)
+        const social = parseInt(document.getElementById('socialScore').textContent);
+        const triggers = parseInt(document.getElementById('triggersScore').textContent);
+        const emotion = parseInt(document.getElementById('emotionScore').textContent);
+        const public = parseInt(document.getElementById('publicScore').textContent);
+        const practical = parseInt(document.getElementById('practicalScore').textContent);
+        const stories = parseInt(document.getElementById('storiesScore').textContent);
+        
+        const overall = Math.round((social + triggers + emotion + public + practical + stories) / 6);
+        
+        document.getElementById('overallViralityScore').textContent = overall;
+        document.getElementById('overallViralityScore').nextElementSibling.querySelector('.progress-bar').style.width = `${overall}%`;
+        
+        // Update bar colors based on score
+        updateBarColors();
+        
+        // Update maturity bar based on trend (simulated)
+        let maturityLevel = 45; // default value
+        
+        if (trend.toLowerCase().includes('carbon') || trend.toLowerCase().includes('esg')) {
+            maturityLevel = 75; // more established trends
+        } else if (trend.toLowerCase().includes('circular')) {
+            maturityLevel = 60;
+        } else if (trend.toLowerCase().includes('blockchain') || trend.toLowerCase().includes('ai')) {
+            maturityLevel = 30; // emerging trends
+        }
+        
+        document.getElementById('trendMaturityBar').style.width = `${maturityLevel}%`;
+        document.getElementById('trendMaturityBar').setAttribute('aria-valuenow', maturityLevel);
+    }
+    
+    function updateBarColors() {
+        // Update colors based on scores
+        document.querySelectorAll('.stepps-score').forEach(scoreElement => {
+            const scoreValue = parseInt(scoreElement.querySelector('.badge').textContent);
+            const progressBar = scoreElement.querySelector('.progress-bar');
+            
+            if (scoreValue >= 75) {
+                progressBar.classList.remove('bg-warning', 'bg-danger');
+                progressBar.classList.add('bg-success');
+                scoreElement.querySelector('.badge').classList.remove('bg-warning', 'bg-danger');
+                scoreElement.querySelector('.badge').classList.add('bg-success');
+            } else if (scoreValue >= 50) {
+                progressBar.classList.remove('bg-success', 'bg-danger');
+                progressBar.classList.add('bg-warning');
+                scoreElement.querySelector('.badge').classList.remove('bg-success', 'bg-danger');
+                scoreElement.querySelector('.badge').classList.add('bg-warning');
+            } else {
+                progressBar.classList.remove('bg-success', 'bg-warning');
+                progressBar.classList.add('bg-danger');
+                scoreElement.querySelector('.badge').classList.remove('bg-success', 'bg-warning');
+                scoreElement.querySelector('.badge').classList.add('bg-danger');
+            }
+        });
+        
+        // Update overall score color
+        const overallScore = parseInt(document.getElementById('overallViralityScore').textContent);
+        if (overallScore >= 75) {
+            document.getElementById('overallViralityScore').classList.remove('text-warning', 'text-danger');
+            document.getElementById('overallViralityScore').classList.add('text-success');
+            document.getElementById('overallViralityScore').nextElementSibling.querySelector('.progress-bar').classList.remove('bg-warning', 'bg-danger');
+            document.getElementById('overallViralityScore').nextElementSibling.querySelector('.progress-bar').classList.add('bg-success');
+        } else if (overallScore >= 50) {
+            document.getElementById('overallViralityScore').classList.remove('text-success', 'text-danger');
+            document.getElementById('overallViralityScore').classList.add('text-warning');
+            document.getElementById('overallViralityScore').nextElementSibling.querySelector('.progress-bar').classList.remove('bg-success', 'bg-danger');
+            document.getElementById('overallViralityScore').nextElementSibling.querySelector('.progress-bar').classList.add('bg-warning');
+        } else {
+            document.getElementById('overallViralityScore').classList.remove('text-success', 'text-warning');
+            document.getElementById('overallViralityScore').classList.add('text-danger');
+            document.getElementById('overallViralityScore').nextElementSibling.querySelector('.progress-bar').classList.remove('bg-success', 'bg-warning');
+            document.getElementById('overallViralityScore').nextElementSibling.querySelector('.progress-bar').classList.add('bg-danger');
+        }
+    }
+    
+    function generateIndustryImpactBars(trend) {
+        const industriesContainer = document.querySelector('.industry-impact-bars');
+        industriesContainer.innerHTML = '';
+        
+        // Determine which industries are most impacted by this trend
+        // In a real implementation, this would be determined by the API
+        const industries = [
+            { name: 'Technology', impact: 85 },
+            { name: 'Manufacturing', impact: 75 },
+            { name: 'Energy', impact: 92 },
+            { name: 'Retail', impact: 65 },
+            { name: 'Finance', impact: 70 }
+        ];
+        
+        // Modify impact values based on trend
+        if (trend.toLowerCase().includes('carbon')) {
+            industries.find(i => i.name === 'Energy').impact = 95;
+            industries.find(i => i.name === 'Manufacturing').impact = 88;
+        } else if (trend.toLowerCase().includes('circular')) {
+            industries.find(i => i.name === 'Manufacturing').impact = 94;
+            industries.find(i => i.name === 'Retail').impact = 86;
+        } else if (trend.toLowerCase().includes('esg') || trend.toLowerCase().includes('reporting')) {
+            industries.find(i => i.name === 'Finance').impact = 93;
+            industries.find(i => i.name === 'Energy').impact = 87;
+        }
+        
+        // Sort by impact
+        industries.sort((a, b) => b.impact - a.impact);
+        
+        // Generate bars
+        industries.forEach(industry => {
+            const impactBarHtml = `
+                <div class="mb-2">
+                    <div class="d-flex justify-content-between align-items-center mb-1">
+                        <span>${industry.name}</span>
+                        <span class="badge ${industry.impact >= 75 ? 'bg-success' : industry.impact >= 50 ? 'bg-warning' : 'bg-danger'} rounded-pill">${industry.impact}</span>
+                    </div>
+                    <div class="progress" style="height: 8px;">
+                        <div class="progress-bar ${industry.impact >= 75 ? 'bg-success' : industry.impact >= 50 ? 'bg-warning' : 'bg-danger'}" role="progressbar" style="width: ${industry.impact}%" aria-valuenow="${industry.impact}" aria-valuemin="0" aria-valuemax="100"></div>
+                    </div>
+                </div>
+            `;
+            
+            industriesContainer.innerHTML += impactBarHtml;
+        });
+    }
+    
+    function updateStrategicImplications(trend, industry) {
+        const strategicImplicationsTable = document.getElementById('strategicImplicationsTable');
+        
+        // Clear existing rows
+        strategicImplicationsTable.innerHTML = '';
+        
+        // Generate strategic implications based on trend and industry
+        // In a real implementation, these would come from the API
+        const implications = [];
+        
+        if (trend.toLowerCase().includes('carbon')) {
+            implications.push({
+                area: 'Emissions Reduction',
+                potential: 'High',
+                timeframe: 'Medium-term (1-3 years)',
+                response: 'Develop comprehensive carbon inventory and reduction roadmap with science-based targets'
+            });
+            implications.push({
+                area: 'Energy Transition',
+                potential: 'High',
+                timeframe: 'Long-term (3-5 years)',
+                response: 'Implement renewable energy procurement strategy with PPAs and on-site generation'
+            });
+            implications.push({
+                area: 'Carbon Offsets',
+                potential: 'Medium',
+                timeframe: 'Short-term (6-12 months)',
+                response: 'Establish high-quality carbon offset portfolio with verified projects'
+            });
+        } else if (trend.toLowerCase().includes('circular')) {
+            implications.push({
+                area: 'Product Design',
+                potential: 'High',
+                timeframe: 'Medium-term (1-3 years)',
+                response: 'Redesign products for circularity using recyclable materials and modular design'
+            });
+            implications.push({
+                area: 'Waste Reduction',
+                potential: 'High',
+                timeframe: 'Short-term (6-12 months)',
+                response: 'Implement zero-waste manufacturing processes and packaging solutions'
+            });
+            implications.push({
+                area: 'Circular Business Models',
+                potential: 'Medium',
+                timeframe: 'Long-term (3-5 years)',
+                response: 'Develop product-as-a-service and take-back programs'
+            });
+        } else if (trend.toLowerCase().includes('esg') || trend.toLowerCase().includes('reporting')) {
+            implications.push({
+                area: 'Reporting Framework',
+                potential: 'High',
+                timeframe: 'Short-term (6-12 months)',
+                response: 'Adopt comprehensive ESG reporting framework aligned with ISSB standards'
+            });
+            implications.push({
+                area: 'Data Management',
+                potential: 'High',
+                timeframe: 'Medium-term (1-3 years)',
+                response: 'Implement ESG data collection and management system with audit capabilities'
+            });
+            implications.push({
+                area: 'Stakeholder Engagement',
+                potential: 'Medium',
+                timeframe: 'Short-term (6-12 months)',
+                response: 'Develop targeted ESG disclosures for investors, customers, and regulators'
+            });
+        } else {
+            implications.push({
+                area: 'Strategic Assessment',
+                potential: 'High',
+                timeframe: 'Short-term (3-6 months)',
+                response: `Conduct comprehensive assessment of ${trend} impact on organization's value chain`
+            });
+            implications.push({
+                area: 'Capability Development',
+                potential: 'Medium',
+                timeframe: 'Medium-term (1-2 years)',
+                response: `Build organizational capabilities to leverage ${trend} for competitive advantage`
+            });
+            implications.push({
+                area: 'Innovation Pipeline',
+                potential: 'High',
+                timeframe: 'Long-term (2-4 years)',
+                response: `Integrate ${trend} into product development and innovation pipeline`
+            });
+        }
+        
+        // Add rows to table
+        implications.forEach(implication => {
+            const potentialBadgeClass = implication.potential === 'High' ? 'bg-success' : implication.potential === 'Medium' ? 'bg-warning' : 'bg-danger';
+            
+            const rowHtml = `
+                <tr>
+                    <td>${implication.area}</td>
+                    <td><span class="badge ${potentialBadgeClass}">${implication.potential}</span></td>
+                    <td>${implication.timeframe}</td>
+                    <td>${implication.response}</td>
+                </tr>
+            `;
+            
+            strategicImplicationsTable.innerHTML += rowHtml;
+        });
+        
+        // Add Generate Strategy button functionality
+        const generateStrategyBtn = document.getElementById('generateStrategyBtn');
+        if (generateStrategyBtn) {
+            generateStrategyBtn.addEventListener('click', function() {
+                // In a real implementation, this would call the API to generate a strategy
+                window.location.href = '#ai-consultant';
+                document.getElementById('trendInput').value = trend;
+                // Simulate clicking the Generate Strategic Analysis button
+                setTimeout(() => {
+                    document.getElementById('generateAnalysisBtn').click();
+                }, 500);
+            });
+        }
+    }
+    
+    // Refresh Trends Button
+    const refreshTrendsBtn = document.getElementById('refreshTrendsBtn');
+    if (refreshTrendsBtn) {
+        refreshTrendsBtn.addEventListener('click', function() {
+            // In a real implementation, this would refresh the trends data from the API
+            refreshTrendsBtn.innerHTML = '<span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span> Refreshing...';
+            refreshTrendsBtn.disabled = true;
+            
+            setTimeout(() => {
+                refreshTrendsBtn.innerHTML = '<i class="fas fa-sync-alt me-1"></i> Refresh Data';
+                refreshTrendsBtn.disabled = false;
+                
+                // Reset view
+                trendAnalysisResults.style.display = 'none';
+                trendingTopicsSection.style.display = 'block';
+                trendSearchInput.value = '';
+            }, 1000);
+        });
+    }
+});
+</script>

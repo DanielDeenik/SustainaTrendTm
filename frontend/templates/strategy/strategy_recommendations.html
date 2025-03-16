@@ -1,0 +1,709 @@
+<!-- Strategy Recommendations Component for the Strategy Hub -->
+<div class="strategy-hub-section" id="strategy-recommendations">
+    <div class="dashboard-section-title d-flex justify-content-between align-items-center">
+        <div>
+            <i class="fas fa-lightbulb text-warning"></i>
+            <h3 class="mb-0">Strategic Recommendations</h3>
+        </div>
+        <div>
+            <button class="btn btn-sm btn-outline-primary rounded-pill" id="exportRecommendationsBtn">
+                <i class="fas fa-file-export me-1"></i> Export
+            </button>
+        </div>
+    </div>
+    
+    <div class="card border-0 shadow-sm bg-dark">
+        <div class="card-body p-4">
+            <!-- Strategy Summary Card -->
+            <div class="card bg-darker border-0 mb-4">
+                <div class="card-body">
+                    <h5 class="card-title mb-3"><i class="fas fa-chart-pie me-2 text-primary"></i>Strategy Overview</h5>
+                    <p class="lead" id="strategyOverview">Your AI-powered sustainability strategy focuses on three key pillars: <span class="text-primary">carbon neutrality</span>, <span class="text-success">circular product design</span>, and <span class="text-warning">supply chain transparency</span>. These areas represent the highest-impact opportunities based on your industry profile and sustainability maturity assessment.</p>
+                    
+                    <div class="row g-3 mt-2">
+                        <div class="col-md-4">
+                            <div class="card bg-primary bg-opacity-10 h-100 border-0">
+                                <div class="card-body text-center">
+                                    <div class="display-6 mb-2 text-primary">
+                                        <i class="fas fa-check-circle"></i>
+                                    </div>
+                                    <h6 class="card-title">Strategic Fit</h6>
+                                    <p class="card-text small">Aligned with industry trends and organizational capabilities</p>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-4">
+                            <div class="card bg-success bg-opacity-10 h-100 border-0">
+                                <div class="card-body text-center">
+                                    <div class="display-6 mb-2 text-success">
+                                        <i class="fas fa-chart-line"></i>
+                                    </div>
+                                    <h6 class="card-title">Impact Potential</h6>
+                                    <p class="card-text small">High potential for environmental and business value creation</p>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-4">
+                            <div class="card bg-warning bg-opacity-10 h-100 border-0">
+                                <div class="card-body text-center">
+                                    <div class="display-6 mb-2 text-warning">
+                                        <i class="fas fa-cogs"></i>
+                                    </div>
+                                    <h6 class="card-title">Implementation Complexity</h6>
+                                    <p class="card-text small">Moderate complexity with phased implementation approach</p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Recommendation Cards with Tabs -->
+            <ul class="nav nav-tabs mb-4" id="recommendationTabs" role="tablist">
+                <li class="nav-item" role="presentation">
+                    <button class="nav-link active" id="strategies-tab" data-bs-toggle="tab" data-bs-target="#strategies-tab-pane" type="button" role="tab" aria-controls="strategies-tab-pane" aria-selected="true">
+                        <i class="fas fa-chess me-1"></i> Strategies
+                    </button>
+                </li>
+                <li class="nav-item" role="presentation">
+                    <button class="nav-link" id="actions-tab" data-bs-toggle="tab" data-bs-target="#actions-tab-pane" type="button" role="tab" aria-controls="actions-tab-pane" aria-selected="false">
+                        <i class="fas fa-list-check me-1"></i> Action Plan
+                    </button>
+                </li>
+                <li class="nav-item" role="presentation">
+                    <button class="nav-link" id="kpis-tab" data-bs-toggle="tab" data-bs-target="#kpis-tab-pane" type="button" role="tab" aria-controls="kpis-tab-pane" aria-selected="false">
+                        <i class="fas fa-bullseye me-1"></i> KPIs
+                    </button>
+                </li>
+                <li class="nav-item" role="presentation">
+                    <button class="nav-link" id="risks-tab" data-bs-toggle="tab" data-bs-target="#risks-tab-pane" type="button" role="tab" aria-controls="risks-tab-pane" aria-selected="false">
+                        <i class="fas fa-exclamation-triangle me-1"></i> Risks
+                    </button>
+                </li>
+            </ul>
+            
+            <div class="tab-content" id="recommendationTabContent">
+                <!-- Strategies Tab -->
+                <div class="tab-pane fade show active" id="strategies-tab-pane" role="tabpanel" aria-labelledby="strategies-tab" tabindex="0">
+                    <div class="row g-4">
+                        <div class="col-md-6">
+                            <div class="card recommendation-card h-100 bg-darker border-0">
+                                <div class="card-body p-4">
+                                    <span class="badge bg-success mb-2">High Impact</span>
+                                    <h5 class="card-title mb-2">Carbon Neutrality Roadmap</h5>
+                                    <p class="card-text mb-3">Develop and implement a comprehensive carbon neutrality roadmap with science-based targets across scope 1-3 emissions.</p>
+                                    
+                                    <div class="mt-auto">
+                                        <h6 class="small fw-bold mb-2">Key Benefits</h6>
+                                        <ul class="list-unstyled mb-0">
+                                            <li class="mb-1"><i class="fas fa-check-circle text-success me-2"></i>Regulatory compliance</li>
+                                            <li class="mb-1"><i class="fas fa-check-circle text-success me-2"></i>Cost savings through efficiency</li>
+                                            <li class="mb-1"><i class="fas fa-check-circle text-success me-2"></i>Enhanced brand reputation</li>
+                                        </ul>
+                                    </div>
+                                </div>
+                                <div class="card-footer bg-transparent">
+                                    <div class="d-flex justify-content-between align-items-center">
+                                        <div>
+                                            <span class="text-muted small me-2">Priority:</span>
+                                            <span class="badge bg-primary">High</span>
+                                        </div>
+                                        <div>
+                                            <span class="text-muted small me-2">Timeline:</span>
+                                            <span class="small">18-24 months</span>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="col-md-6">
+                            <div class="card recommendation-card h-100 bg-darker border-0">
+                                <div class="card-body p-4">
+                                    <span class="badge bg-success mb-2">High Impact</span>
+                                    <h5 class="card-title mb-2">Circular Product Design</h5>
+                                    <p class="card-text mb-3">Transform product design processes to incorporate circular economy principles, focusing on recyclability, repairability, and resource efficiency.</p>
+                                    
+                                    <div class="mt-auto">
+                                        <h6 class="small fw-bold mb-2">Key Benefits</h6>
+                                        <ul class="list-unstyled mb-0">
+                                            <li class="mb-1"><i class="fas fa-check-circle text-success me-2"></i>Material cost reduction</li>
+                                            <li class="mb-1"><i class="fas fa-check-circle text-success me-2"></i>Customer loyalty enhancement</li>
+                                            <li class="mb-1"><i class="fas fa-check-circle text-success me-2"></i>Waste reduction compliance</li>
+                                        </ul>
+                                    </div>
+                                </div>
+                                <div class="card-footer bg-transparent">
+                                    <div class="d-flex justify-content-between align-items-center">
+                                        <div>
+                                            <span class="text-muted small me-2">Priority:</span>
+                                            <span class="badge bg-primary">High</span>
+                                        </div>
+                                        <div>
+                                            <span class="text-muted small me-2">Timeline:</span>
+                                            <span class="small">12-18 months</span>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="col-md-6">
+                            <div class="card recommendation-card h-100 bg-darker border-0">
+                                <div class="card-body p-4">
+                                    <span class="badge bg-warning mb-2">Medium Impact</span>
+                                    <h5 class="card-title mb-2">Supply Chain Transparency</h5>
+                                    <p class="card-text mb-3">Implement digital traceability solutions to enhance visibility into the sustainability performance of suppliers and materials.</p>
+                                    
+                                    <div class="mt-auto">
+                                        <h6 class="small fw-bold mb-2">Key Benefits</h6>
+                                        <ul class="list-unstyled mb-0">
+                                            <li class="mb-1"><i class="fas fa-check-circle text-success me-2"></i>Risk reduction</li>
+                                            <li class="mb-1"><i class="fas fa-check-circle text-success me-2"></i>Enhanced reporting capability</li>
+                                            <li class="mb-1"><i class="fas fa-check-circle text-success me-2"></i>Supplier performance improvement</li>
+                                        </ul>
+                                    </div>
+                                </div>
+                                <div class="card-footer bg-transparent">
+                                    <div class="d-flex justify-content-between align-items-center">
+                                        <div>
+                                            <span class="text-muted small me-2">Priority:</span>
+                                            <span class="badge bg-warning">Medium</span>
+                                        </div>
+                                        <div>
+                                            <span class="text-muted small me-2">Timeline:</span>
+                                            <span class="small">18-24 months</span>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="col-md-6">
+                            <div class="card recommendation-card h-100 bg-darker border-0">
+                                <div class="card-body p-4">
+                                    <span class="badge bg-warning mb-2">Medium Impact</span>
+                                    <h5 class="card-title mb-2">Sustainability Governance Structure</h5>
+                                    <p class="card-text mb-3">Establish a robust sustainability governance structure with executive oversight, clear accountability, and integration into business processes.</p>
+                                    
+                                    <div class="mt-auto">
+                                        <h6 class="small fw-bold mb-2">Key Benefits</h6>
+                                        <ul class="list-unstyled mb-0">
+                                            <li class="mb-1"><i class="fas fa-check-circle text-success me-2"></i>Enhanced strategy execution</li>
+                                            <li class="mb-1"><i class="fas fa-check-circle text-success me-2"></i>Improved stakeholder confidence</li>
+                                            <li class="mb-1"><i class="fas fa-check-circle text-success me-2"></i>Better risk management</li>
+                                        </ul>
+                                    </div>
+                                </div>
+                                <div class="card-footer bg-transparent">
+                                    <div class="d-flex justify-content-between align-items-center">
+                                        <div>
+                                            <span class="text-muted small me-2">Priority:</span>
+                                            <span class="badge bg-warning">Medium</span>
+                                        </div>
+                                        <div>
+                                            <span class="text-muted small me-2">Timeline:</span>
+                                            <span class="small">6-12 months</span>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Action Plan Tab -->
+                <div class="tab-pane fade" id="actions-tab-pane" role="tabpanel" aria-labelledby="actions-tab" tabindex="0">
+                    <div class="card bg-darker border-0">
+                        <div class="card-body p-4">
+                            <div class="action-plan-timeline">
+                                <!-- Phase 1 -->
+                                <div class="timeline-phase mb-4">
+                                    <div class="d-flex mb-3 align-items-center">
+                                        <div class="timeline-phase-icon bg-primary text-white me-3">
+                                            <i class="fas fa-flag-checkered"></i>
+                                        </div>
+                                        <h5 class="mb-0">Phase 1: Foundation (Q3 2025 - Q1 2026)</h5>
+                                    </div>
+                                    
+                                    <div class="ms-5">
+                                        <div class="timeline-item mb-3">
+                                            <div class="card bg-dark border-0">
+                                                <div class="card-body">
+                                                    <div class="d-flex justify-content-between">
+                                                        <h6 class="mb-2">Emissions Assessment & Baseline</h6>
+                                                        <span class="badge bg-primary">Q3 2025</span>
+                                                    </div>
+                                                    <p class="card-text">Conduct comprehensive carbon footprint assessment across scope 1-3 emissions to establish baseline and identify hotspots.</p>
+                                                    <div class="d-flex">
+                                                        <span class="badge bg-dark-subtle text-body me-2">Owners: Sustainability, Operations</span>
+                                                        <span class="badge bg-dark-subtle text-body">Priority: High</span>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </div>
+                                        
+                                        <div class="timeline-item mb-3">
+                                            <div class="card bg-dark border-0">
+                                                <div class="card-body">
+                                                    <div class="d-flex justify-content-between">
+                                                        <h6 class="mb-2">Governance Structure Establishment</h6>
+                                                        <span class="badge bg-primary">Q4 2025</span>
+                                                    </div>
+                                                    <p class="card-text">Establish sustainability governance with executive committee, working groups, and department champions.</p>
+                                                    <div class="d-flex">
+                                                        <span class="badge bg-dark-subtle text-body me-2">Owners: Executive Team, HR</span>
+                                                        <span class="badge bg-dark-subtle text-body">Priority: Medium</span>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </div>
+                                        
+                                        <div class="timeline-item mb-3">
+                                            <div class="card bg-dark border-0">
+                                                <div class="card-body">
+                                                    <div class="d-flex justify-content-between">
+                                                        <h6 class="mb-2">Target Setting & Roadmap Development</h6>
+                                                        <span class="badge bg-primary">Q1 2026</span>
+                                                    </div>
+                                                    <p class="card-text">Develop science-based targets and comprehensive implementation roadmap with milestones and KPIs.</p>
+                                                    <div class="d-flex">
+                                                        <span class="badge bg-dark-subtle text-body me-2">Owners: Sustainability, Strategy</span>
+                                                        <span class="badge bg-dark-subtle text-body">Priority: High</span>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                                
+                                <!-- Phase 2 -->
+                                <div class="timeline-phase mb-4">
+                                    <div class="d-flex mb-3 align-items-center">
+                                        <div class="timeline-phase-icon bg-success text-white me-3">
+                                            <i class="fas fa-rocket"></i>
+                                        </div>
+                                        <h5 class="mb-0">Phase 2: Implementation (Q2 2026 - Q1 2027)</h5>
+                                    </div>
+                                    
+                                    <div class="ms-5">
+                                        <div class="timeline-item mb-3">
+                                            <div class="card bg-dark border-0">
+                                                <div class="card-body">
+                                                    <div class="d-flex justify-content-between">
+                                                        <h6 class="mb-2">Circular Design Pilot Projects</h6>
+                                                        <span class="badge bg-success">Q2 2026</span>
+                                                    </div>
+                                                    <p class="card-text">Launch pilot projects applying circular design principles to key product lines to test feasibility and impact.</p>
+                                                    <div class="d-flex">
+                                                        <span class="badge bg-dark-subtle text-body me-2">Owners: Product Development, Innovation</span>
+                                                        <span class="badge bg-dark-subtle text-body">Priority: High</span>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </div>
+                                        
+                                        <div class="timeline-item mb-3">
+                                            <div class="card bg-dark border-0">
+                                                <div class="card-body">
+                                                    <div class="d-flex justify-content-between">
+                                                        <h6 class="mb-2">Supply Chain Transparency Program</h6>
+                                                        <span class="badge bg-success">Q3 2026</span>
+                                                    </div>
+                                                    <p class="card-text">Implement supplier assessment program and digital traceability solution for tier 1 and key tier 2 suppliers.</p>
+                                                    <div class="d-flex">
+                                                        <span class="badge bg-dark-subtle text-body me-2">Owners: Procurement, IT</span>
+                                                        <span class="badge bg-dark-subtle text-body">Priority: Medium</span>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </div>
+                                        
+                                        <div class="timeline-item mb-3">
+                                            <div class="card bg-dark border-0">
+                                                <div class="card-body">
+                                                    <div class="d-flex justify-content-between">
+                                                        <h6 class="mb-2">Energy Efficiency & Renewable Energy</h6>
+                                                        <span class="badge bg-success">Q4 2026 - Q1 2027</span>
+                                                    </div>
+                                                    <p class="card-text">Implement energy efficiency measures and begin renewable energy procurement through PPAs and on-site installations.</p>
+                                                    <div class="d-flex">
+                                                        <span class="badge bg-dark-subtle text-body me-2">Owners: Facilities, Procurement</span>
+                                                        <span class="badge bg-dark-subtle text-body">Priority: High</span>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                                
+                                <!-- Phase 3 -->
+                                <div class="timeline-phase">
+                                    <div class="d-flex mb-3 align-items-center">
+                                        <div class="timeline-phase-icon bg-warning text-white me-3">
+                                            <i class="fas fa-expand-alt"></i>
+                                        </div>
+                                        <h5 class="mb-0">Phase 3: Scaling (Q2 2027 - Q4 2028)</h5>
+                                    </div>
+                                    
+                                    <div class="ms-5">
+                                        <div class="timeline-item mb-3">
+                                            <div class="card bg-dark border-0">
+                                                <div class="card-body">
+                                                    <div class="d-flex justify-content-between">
+                                                        <h6 class="mb-2">Scale Circular Design Principles</h6>
+                                                        <span class="badge bg-warning">Q2-Q3 2027</span>
+                                                    </div>
+                                                    <p class="card-text">Expand circular design principles to all product lines and implement full lifecycle assessment process.</p>
+                                                    <div class="d-flex">
+                                                        <span class="badge bg-dark-subtle text-body me-2">Owners: Product Development, All Business Units</span>
+                                                        <span class="badge bg-dark-subtle text-body">Priority: High</span>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </div>
+                                        
+                                        <div class="timeline-item mb-3">
+                                            <div class="card bg-dark border-0">
+                                                <div class="card-body">
+                                                    <div class="d-flex justify-content-between">
+                                                        <h6 class="mb-2">Expand Supply Chain Program</h6>
+                                                        <span class="badge bg-warning">Q4 2027</span>
+                                                    </div>
+                                                    <p class="card-text">Expand supply chain transparency program to all tiers and implement supplier capacity building initiatives.</p>
+                                                    <div class="d-flex">
+                                                        <span class="badge bg-dark-subtle text-body me-2">Owners: Procurement, Sustainability</span>
+                                                        <span class="badge bg-dark-subtle text-body">Priority: Medium</span>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </div>
+                                        
+                                        <div class="timeline-item mb-3">
+                                            <div class="card bg-dark border-0">
+                                                <div class="card-body">
+                                                    <div class="d-flex justify-content-between">
+                                                        <h6 class="mb-2">Business Model Innovation</h6>
+                                                        <span class="badge bg-warning">Q1-Q4 2028</span>
+                                                    </div>
+                                                    <p class="card-text">Develop and launch innovative business models focused on circularity, servitization, and resource efficiency.</p>
+                                                    <div class="d-flex">
+                                                        <span class="badge bg-dark-subtle text-body me-2">Owners: Strategy, Innovation, All Business Units</span>
+                                                        <span class="badge bg-dark-subtle text-body">Priority: High</span>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- KPIs Tab -->
+                <div class="tab-pane fade" id="kpis-tab-pane" role="tabpanel" aria-labelledby="kpis-tab" tabindex="0">
+                    <div class="row g-4">
+                        <!-- Environmental KPIs -->
+                        <div class="col-lg-6">
+                            <div class="card bg-darker border-0 h-100">
+                                <div class="card-header bg-transparent">
+                                    <h5 class="mb-0"><i class="fas fa-leaf text-success me-2"></i>Environmental KPIs</h5>
+                                </div>
+                                <div class="card-body">
+                                    <div class="kpi-item mb-4">
+                                        <div class="d-flex justify-content-between align-items-center mb-2">
+                                            <h6 class="mb-0">Carbon Emissions Reduction</h6>
+                                            <span class="badge bg-success">30% by 2030</span>
+                                        </div>
+                                        <div class="progress" style="height: 10px;">
+                                            <div class="progress-bar bg-success" role="progressbar" style="width: 30%" aria-valuenow="30" aria-valuemin="0" aria-valuemax="100"></div>
+                                        </div>
+                                        <div class="d-flex justify-content-between align-items-center mt-1">
+                                            <small class="text-muted">Current: 5%</small>
+                                            <small class="text-muted">Target: 30%</small>
+                                        </div>
+                                        <p class="text-muted small mt-2">Measured across Scope 1, 2, and 3 emissions against 2023 baseline.</p>
+                                    </div>
+                                    
+                                    <div class="kpi-item mb-4">
+                                        <div class="d-flex justify-content-between align-items-center mb-2">
+                                            <h6 class="mb-0">Renewable Energy Adoption</h6>
+                                            <span class="badge bg-success">100% by 2030</span>
+                                        </div>
+                                        <div class="progress" style="height: 10px;">
+                                            <div class="progress-bar bg-success" role="progressbar" style="width: 20%" aria-valuenow="20" aria-valuemin="0" aria-valuemax="100"></div>
+                                        </div>
+                                        <div class="d-flex justify-content-between align-items-center mt-1">
+                                            <small class="text-muted">Current: 20%</small>
+                                            <small class="text-muted">Target: 100%</small>
+                                        </div>
+                                        <p class="text-muted small mt-2">Percentage of energy consumed from renewable sources across all operations.</p>
+                                    </div>
+                                    
+                                    <div class="kpi-item mb-4">
+                                        <div class="d-flex justify-content-between align-items-center mb-2">
+                                            <h6 class="mb-0">Circular Material Use</h6>
+                                            <span class="badge bg-success">75% by 2030</span>
+                                        </div>
+                                        <div class="progress" style="height: 10px;">
+                                            <div class="progress-bar bg-success" role="progressbar" style="width: 15%" aria-valuenow="15" aria-valuemin="0" aria-valuemax="100"></div>
+                                        </div>
+                                        <div class="d-flex justify-content-between align-items-center mt-1">
+                                            <small class="text-muted">Current: 15%</small>
+                                            <small class="text-muted">Target: 75%</small>
+                                        </div>
+                                        <p class="text-muted small mt-2">Percentage of materials that are recyclable, recycled, or biodegradable.</p>
+                                    </div>
+                                    
+                                    <div class="kpi-item">
+                                        <div class="d-flex justify-content-between align-items-center mb-2">
+                                            <h6 class="mb-0">Water Use Reduction</h6>
+                                            <span class="badge bg-success">40% by 2030</span>
+                                        </div>
+                                        <div class="progress" style="height: 10px;">
+                                            <div class="progress-bar bg-success" role="progressbar" style="width: 10%" aria-valuenow="10" aria-valuemin="0" aria-valuemax="100"></div>
+                                        </div>
+                                        <div class="d-flex justify-content-between align-items-center mt-1">
+                                            <small class="text-muted">Current: 10%</small>
+                                            <small class="text-muted">Target: 40%</small>
+                                        </div>
+                                        <p class="text-muted small mt-2">Reduction in water consumption per unit of production against 2023 baseline.</p>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <!-- Business Value KPIs -->
+                        <div class="col-lg-6">
+                            <div class="card bg-darker border-0 h-100">
+                                <div class="card-header bg-transparent">
+                                    <h5 class="mb-0"><i class="fas fa-chart-line text-primary me-2"></i>Business Value KPIs</h5>
+                                </div>
+                                <div class="card-body">
+                                    <div class="kpi-item mb-4">
+                                        <div class="d-flex justify-content-between align-items-center mb-2">
+                                            <h6 class="mb-0">Cost Savings from Efficiency</h6>
+                                            <span class="badge bg-primary">$5M by 2028</span>
+                                        </div>
+                                        <div class="progress" style="height: 10px;">
+                                            <div class="progress-bar bg-primary" role="progressbar" style="width: 20%" aria-valuenow="20" aria-valuemin="0" aria-valuemax="100"></div>
+                                        </div>
+                                        <div class="d-flex justify-content-between align-items-center mt-1">
+                                            <small class="text-muted">Current: $1M</small>
+                                            <small class="text-muted">Target: $5M</small>
+                                        </div>
+                                        <p class="text-muted small mt-2">Cost savings from energy, material, and operational efficiency improvements.</p>
+                                    </div>
+                                    
+                                    <div class="kpi-item mb-4">
+                                        <div class="d-flex justify-content-between align-items-center mb-2">
+                                            <h6 class="mb-0">Green Product Revenue</h6>
+                                            <span class="badge bg-primary">40% by 2030</span>
+                                        </div>
+                                        <div class="progress" style="height: 10px;">
+                                            <div class="progress-bar bg-primary" role="progressbar" style="width: 15%" aria-valuenow="15" aria-valuemin="0" aria-valuemax="100"></div>
+                                        </div>
+                                        <div class="d-flex justify-content-between align-items-center mt-1">
+                                            <small class="text-muted">Current: 15%</small>
+                                            <small class="text-muted">Target: 40%</small>
+                                        </div>
+                                        <p class="text-muted small mt-2">Percentage of revenue from products with enhanced sustainability features.</p>
+                                    </div>
+                                    
+                                    <div class="kpi-item mb-4">
+                                        <div class="d-flex justify-content-between align-items-center mb-2">
+                                            <h6 class="mb-0">Supplier Sustainability</h6>
+                                            <span class="badge bg-primary">90% by 2028</span>
+                                        </div>
+                                        <div class="progress" style="height: 10px;">
+                                            <div class="progress-bar bg-primary" role="progressbar" style="width: 25%" aria-valuenow="25" aria-valuemin="0" aria-valuemax="100"></div>
+                                        </div>
+                                        <div class="d-flex justify-content-between align-items-center mt-1">
+                                            <small class="text-muted">Current: 25%</small>
+                                            <small class="text-muted">Target: 90%</small>
+                                        </div>
+                                        <p class="text-muted small mt-2">Percentage of suppliers meeting sustainability requirements and standards.</p>
+                                    </div>
+                                    
+                                    <div class="kpi-item">
+                                        <div class="d-flex justify-content-between align-items-center mb-2">
+                                            <h6 class="mb-0">Sustainability Maturity Score</h6>
+                                            <span class="badge bg-primary">4.5/5 by 2030</span>
+                                        </div>
+                                        <div class="progress" style="height: 10px;">
+                                            <div class="progress-bar bg-primary" role="progressbar" style="width: 50%" aria-valuenow="50" aria-valuemin="0" aria-valuemax="100"></div>
+                                        </div>
+                                        <div class="d-flex justify-content-between align-items-center mt-1">
+                                            <small class="text-muted">Current: 2.5/5</small>
+                                            <small class="text-muted">Target: 4.5/5</small>
+                                        </div>
+                                        <p class="text-muted small mt-2">Composite score measuring organizational sustainability maturity across multiple dimensions.</p>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Risks Tab -->
+                <div class="tab-pane fade" id="risks-tab-pane" role="tabpanel" aria-labelledby="risks-tab" tabindex="0">
+                    <div class="table-responsive">
+                        <table class="table table-dark">
+                            <thead>
+                                <tr>
+                                    <th scope="col">Risk Factor</th>
+                                    <th scope="col">Likelihood</th>
+                                    <th scope="col">Impact</th>
+                                    <th scope="col">Mitigation Approach</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr>
+                                    <td>Regulatory Changes</td>
+                                    <td><span class="badge bg-danger">High</span></td>
+                                    <td><span class="badge bg-warning">Medium</span></td>
+                                    <td>Establish regulatory monitoring system and maintain compliance margin above minimum requirements</td>
+                                </tr>
+                                <tr>
+                                    <td>Supply Chain Disruptions</td>
+                                    <td><span class="badge bg-warning">Medium</span></td>
+                                    <td><span class="badge bg-danger">High</span></td>
+                                    <td>Diversify supplier base and implement robust business continuity planning</td>
+                                </tr>
+                                <tr>
+                                    <td>Technology Implementation Challenges</td>
+                                    <td><span class="badge bg-warning">Medium</span></td>
+                                    <td><span class="badge bg-warning">Medium</span></td>
+                                    <td>Adopt phased implementation approach with pilot projects and clear success criteria</td>
+                                </tr>
+                                <tr>
+                                    <td>Stakeholder Resistance</td>
+                                    <td><span class="badge bg-warning">Medium</span></td>
+                                    <td><span class="badge bg-warning">Medium</span></td>
+                                    <td>Develop comprehensive change management plan with targeted communication and training</td>
+                                </tr>
+                                <tr>
+                                    <td>Resource Constraints</td>
+                                    <td><span class="badge bg-danger">High</span></td>
+                                    <td><span class="badge bg-warning">Medium</span></td>
+                                    <td>Prioritize initiatives based on impact/effort and secure dedicated budget and resources</td>
+                                </tr>
+                                <tr>
+                                    <td>Greenwashing Accusations</td>
+                                    <td><span class="badge bg-success">Low</span></td>
+                                    <td><span class="badge bg-danger">High</span></td>
+                                    <td>Ensure transparent reporting with third-party verification and focus on measurable impacts</td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="d-grid gap-2 d-md-flex justify-content-md-end mt-4">
+                <button class="btn btn-outline-light me-md-2" type="button" id="refreshStrategiesBtn">
+                    <i class="fas fa-sync-alt me-1"></i> Refresh Analysis
+                </button>
+                <button class="btn btn-primary" type="button" id="generateFullReportBtn">
+                    <i class="fas fa-file-alt me-1"></i> Generate Full Report
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+.timeline-phase-icon {
+    width: 36px;
+    height: 36px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.kpi-item .progress-bar {
+    transition: width 1.5s ease-in-out;
+}
+
+.recommendation-card:hover {
+    transform: translateY(-5px);
+    transition: transform 0.3s ease;
+}
+
+.cursor-pointer {
+    cursor: pointer;
+}
+</style>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // Export Recommendations Button
+    const exportRecommendationsBtn = document.getElementById('exportRecommendationsBtn');
+    if (exportRecommendationsBtn) {
+        exportRecommendationsBtn.addEventListener('click', function() {
+            alert('Exporting recommendations as PDF...');
+            // In a real implementation, this would generate and download a PDF
+        });
+    }
+    
+    // Refresh Strategies Button
+    const refreshStrategiesBtn = document.getElementById('refreshStrategiesBtn');
+    if (refreshStrategiesBtn) {
+        refreshStrategiesBtn.addEventListener('click', function() {
+            refreshStrategiesBtn.innerHTML = '<span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span> Refreshing...';
+            refreshStrategiesBtn.disabled = true;
+            
+            // Simulate refresh delay
+            setTimeout(() => {
+                refreshStrategiesBtn.innerHTML = '<i class="fas fa-sync-alt me-1"></i> Refresh Analysis';
+                refreshStrategiesBtn.disabled = false;
+                
+                // Animate progress bars to simulate updated data
+                document.querySelectorAll('.kpi-item .progress-bar').forEach(bar => {
+                    const currentWidth = parseInt(bar.style.width);
+                    const newWidth = Math.min(currentWidth + Math.floor(Math.random() * 10), 100);
+                    bar.style.width = newWidth + '%';
+                    bar.setAttribute('aria-valuenow', newWidth);
+                    
+                    const currentValueElement = bar.closest('.kpi-item').querySelector('.d-flex small:first-child');
+                    if (currentValueElement) {
+                        // Update the current value text
+                        const targetText = bar.closest('.kpi-item').querySelector('.d-flex small:last-child').textContent;
+                        const targetValue = parseInt(targetText.match(/\d+/)[0]);
+                        const newValue = Math.round(targetValue * (newWidth / 100));
+                        
+                        if (currentValueElement.textContent.includes('%')) {
+                            currentValueElement.textContent = 'Current: ' + newValue + '%';
+                        } else if (currentValueElement.textContent.includes('$')) {
+                            currentValueElement.textContent = 'Current: $' + newValue + 'M';
+                        } else if (currentValueElement.textContent.includes('/')) {
+                            currentValueElement.textContent = 'Current: ' + (newValue / 10).toFixed(1) + '/5';
+                        }
+                    }
+                });
+            }, 1500);
+        });
+    }
+    
+    // Generate Full Report Button
+    const generateFullReportBtn = document.getElementById('generateFullReportBtn');
+    if (generateFullReportBtn) {
+        generateFullReportBtn.addEventListener('click', function() {
+            generateFullReportBtn.innerHTML = '<span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span> Generating...';
+            generateFullReportBtn.disabled = true;
+            
+            // Simulate report generation delay
+            setTimeout(() => {
+                generateFullReportBtn.innerHTML = '<i class="fas fa-file-alt me-1"></i> Generate Full Report';
+                generateFullReportBtn.disabled = false;
+                
+                // Show success message
+                alert('Strategy report generated successfully. Check your downloads.');
+                // In a real implementation, this would generate and download a full report
+            }, 2000);
+        });
+    }
+});
+</script>

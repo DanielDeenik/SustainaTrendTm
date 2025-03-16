@@ -1,0 +1,233 @@
+<!-- PDF Uploader Component for the Strategy Hub -->
+<div class="strategy-hub-section" id="pdf-uploader">
+    <div class="dashboard-section-title d-flex justify-content-between align-items-center">
+        <div>
+            <i class="fas fa-file-upload text-primary"></i>
+            <h3 class="mb-0">Document Intelligence</h3>
+        </div>
+        <span class="badge bg-success rounded-pill">New</span>
+    </div>
+    
+    <div class="card border-0 shadow-sm bg-dark">
+        <div class="card-body p-4">
+            <p class="text-muted mb-4">Upload sustainability reports, CSRD documentation, or ESG disclosures for AI-powered analysis and strategy recommendations.</p>
+            
+            <!-- File Upload Form -->
+            <form id="documentUploadForm" class="mb-4" enctype="multipart/form-data">
+                <div class="mb-3">
+                    <label for="documentFile" class="form-label visually-hidden">Upload Document</label>
+                    <div class="input-group">
+                        <input type="file" class="form-control bg-darker border-0" id="documentFile" name="file" accept=".pdf,.docx,.doc,.xlsx,.csv">
+                        <button class="btn btn-primary" type="submit" id="uploadDocumentBtn">
+                            <i class="fas fa-upload me-2"></i> Upload & Analyze
+                        </button>
+                    </div>
+                    <small class="text-muted">Supported formats: PDF, DOCX, XLSX, CSV</small>
+                </div>
+                
+                <div class="mb-3">
+                    <div class="form-check">
+                        <input class="form-check-input" type="checkbox" id="extractEntitiesCheck" checked>
+                        <label class="form-check-label" for="extractEntitiesCheck">
+                            Extract key sustainability metrics and KPIs
+                        </label>
+                    </div>
+                    <div class="form-check">
+                        <input class="form-check-input" type="checkbox" id="benchmarkCheck" checked>
+                        <label class="form-check-label" for="benchmarkCheck">
+                            Compare against industry benchmarks
+                        </label>
+                    </div>
+                    <div class="form-check">
+                        <input class="form-check-input" type="checkbox" id="regulatoryCheck" checked>
+                        <label class="form-check-label" for="regulatoryCheck">
+                            Analyze CSRD/ESRS compliance
+                        </label>
+                    </div>
+                </div>
+            </form>
+            
+            <!-- Upload Progress (Initially Hidden) -->
+            <div id="uploadProgress" class="mt-4" style="display: none;">
+                <div class="d-flex justify-content-between mb-1">
+                    <span>Uploading document...</span>
+                    <span id="uploadProgressPercentage">0%</span>
+                </div>
+                <div class="progress" style="height: 8px;">
+                    <div id="uploadProgressBar" class="progress-bar progress-bar-striped progress-bar-animated" role="progressbar" style="width: 0%" aria-valuenow="0" aria-valuemin="0" aria-valuemax="100"></div>
+                </div>
+            </div>
+            
+            <!-- Analysis Progress (Initially Hidden) -->
+            <div id="analysisProgress" class="mt-4" style="display: none;">
+                <div class="d-flex justify-content-between align-items-center mb-2">
+                    <span>Analyzing document with AI...</span>
+                    <div class="spinner-border spinner-border-sm text-primary" role="status">
+                        <span class="visually-hidden">Analyzing...</span>
+                    </div>
+                </div>
+                <div class="progress" style="height: 8px;">
+                    <div id="analysisProgressBar" class="progress-bar bg-success progress-bar-striped progress-bar-animated" role="progressbar" style="width: 100%" aria-valuenow="100" aria-valuemin="0" aria-valuemax="100"></div>
+                </div>
+                <div id="analysisSteps" class="mt-2 text-muted small">
+                    <p class="mb-1">⚙️ Extracting text content...</p>
+                </div>
+            </div>
+            
+            <!-- Recent Uploads -->
+            <div class="mt-4">
+                <h5 class="mb-3">Recent Documents</h5>
+                <div class="table-responsive">
+                    <table class="table table-dark table-hover">
+                        <thead>
+                            <tr>
+                                <th scope="col">Document</th>
+                                <th scope="col">Date</th>
+                                <th scope="col">Status</th>
+                                <th scope="col">Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for document in recent_documents[:3] %}
+                            <tr>
+                                <td>
+                                    <div class="d-flex align-items-center">
+                                        {% if document.id.endswith('.pdf') %}
+                                        <i class="fas fa-file-pdf text-danger me-2"></i>
+                                        {% elif document.id.endswith('.xlsx') or document.id.endswith('.csv') %}
+                                        <i class="fas fa-file-excel text-success me-2"></i>
+                                        {% elif document.id.endswith('.docx') or document.id.endswith('.doc') %}
+                                        <i class="fas fa-file-word text-primary me-2"></i>
+                                        {% else %}
+                                        <i class="fas fa-file-alt text-secondary me-2"></i>
+                                        {% endif %}
+                                        <span>{{ document.title }}</span>
+                                    </div>
+                                </td>
+                                <td>{{ document.timestamp }}</td>
+                                <td><span class="badge bg-success">Analyzed</span></td>
+                                <td>
+                                    <a href="{{ url_for('strategy.strategy_hub_document_view', document_id=document.id) }}" class="btn btn-sm btn-outline-light">
+                                        <i class="fas fa-chart-bar me-1"></i> View Analysis
+                                    </a>
+                                </td>
+                            </tr>
+                            {% endfor %}
+                            
+                            {% if not recent_documents %}
+                            <tr>
+                                <td colspan="4" class="text-center py-3 text-muted">
+                                    <i class="fas fa-folder-open me-2"></i> No documents uploaded yet
+                                </td>
+                            </tr>
+                            {% endif %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const documentUploadForm = document.getElementById('documentUploadForm');
+    const uploadProgress = document.getElementById('uploadProgress');
+    const uploadProgressBar = document.getElementById('uploadProgressBar');
+    const uploadProgressPercentage = document.getElementById('uploadProgressPercentage');
+    const analysisProgress = document.getElementById('analysisProgress');
+    const analysisSteps = document.getElementById('analysisSteps');
+    
+    if (documentUploadForm) {
+        documentUploadForm.addEventListener('submit', function(event) {
+            event.preventDefault();
+            
+            const fileInput = document.getElementById('documentFile');
+            if (!fileInput.files.length) {
+                alert('Please select a file to upload');
+                return;
+            }
+            
+            const file = fileInput.files[0];
+            const formData = new FormData();
+            formData.append('file', file);
+            formData.append('extract_entities', document.getElementById('extractEntitiesCheck').checked);
+            formData.append('benchmark', document.getElementById('benchmarkCheck').checked);
+            formData.append('regulatory_check', document.getElementById('regulatoryCheck').checked);
+            
+            // Show upload progress
+            uploadProgress.style.display = 'block';
+            
+            // Simulate upload progress (in production, use actual XMLHttpRequest progress event)
+            let progress = 0;
+            const uploadInterval = setInterval(() => {
+                progress += 5;
+                if (progress > 100) {
+                    clearInterval(uploadInterval);
+                    uploadProgress.style.display = 'none';
+                    analysisProgress.style.display = 'block';
+                    simulateAnalysis();
+                    return;
+                }
+                uploadProgressBar.style.width = progress + '%';
+                uploadProgressBar.setAttribute('aria-valuenow', progress);
+                uploadProgressPercentage.textContent = progress + '%';
+            }, 150);
+            
+            // In a real implementation, you would use fetch or XMLHttpRequest to upload the file
+            /*
+            fetch('/api/strategy/upload-document', {
+                method: 'POST',
+                body: formData
+            })
+            .then(response => response.json())
+            .then(data => {
+                // Handle successful upload
+                uploadProgress.style.display = 'none';
+                analysisProgress.style.display = 'block';
+                simulateAnalysis();
+            })
+            .catch(error => {
+                console.error('Error uploading document:', error);
+                uploadProgress.style.display = 'none';
+                alert('Error uploading document. Please try again.');
+            });
+            */
+        });
+    }
+    
+    function simulateAnalysis() {
+        const analysisSteps = [
+            "⚙️ Extracting text content...",
+            "🔍 Identifying sustainability metrics...",
+            "📊 Analyzing ESG disclosures...",
+            "📝 Checking CSRD compliance...",
+            "🌍 Evaluating against industry benchmarks...",
+            "📈 Generating strategic recommendations...",
+            "✅ Analysis complete! Redirecting to results..."
+        ];
+        
+        let currentStep = 0;
+        
+        document.getElementById('analysisSteps').innerHTML = `<p class="mb-1">${analysisSteps[0]}</p>`;
+        
+        const analysisInterval = setInterval(() => {
+            currentStep++;
+            
+            if (currentStep >= analysisSteps.length) {
+                clearInterval(analysisInterval);
+                // Redirect to document view page (in a real implementation)
+                setTimeout(() => {
+                    // window.location.href = '/strategy-hub/documents/view/new-document';
+                    // For the demo, just refresh the page
+                    window.location.reload();
+                }, 1500);
+                return;
+            }
+            
+            // Add new step
+            document.getElementById('analysisSteps').innerHTML += `<p class="mb-1">${analysisSteps[currentStep]}</p>`;
+        }, 1500);
+    }
+});
+</script>

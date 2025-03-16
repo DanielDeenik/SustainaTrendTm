@@ -1329,9 +1329,181 @@ def unified_strategy_hub():
     # Call the implementation function
     return unified_strategy_hub_implementation()
 
-@strategy_bp.route('/api/generate-strategy', methods=['POST'])
-def api_generate_strategy():
-    """API endpoint to generate sustainability strategy using AI consultant"""
+@strategy_bp.route('/api/strategy-hub/upload-data', methods=['POST'])
+def api_upload_data():
+    """API endpoint to upload sustainability data files for analysis"""
+    try:
+        # Check if file was uploaded
+        if 'file' not in request.files:
+            logger.warning("No file part in request")
+            return jsonify({
+                "status": "error",
+                "message": "No file part in the request"
+            }), 400
+            
+        file = request.files['file']
+        
+        # Check if file was selected
+        if file.filename == '':
+            logger.warning("No file selected")
+            return jsonify({
+                "status": "error",
+                "message": "No file selected"
+            }), 400
+            
+        # Check file extension
+        allowed_extensions = {'csv', 'xlsx', 'xls'}
+        if not file.filename.lower().rsplit('.', 1)[1] in allowed_extensions:
+            logger.warning(f"Invalid file extension: {file.filename}")
+            return jsonify({
+                "status": "error",
+                "message": "Invalid file extension. Allowed extensions: csv, xlsx, xls"
+            }), 400
+            
+        # Generate unique file ID
+        file_id = str(uuid.uuid4())
+        
+        # Save file to uploads directory
+        uploads_dir = os.path.join(current_app.root_path, 'uploads')
+        os.makedirs(uploads_dir, exist_ok=True)
+        
+        file_path = os.path.join(uploads_dir, f"{file_id}_{secure_filename(file.filename)}")
+        file.save(file_path)
+        
+        logger.info(f"Data file uploaded successfully: {file.filename}, saved as {file_path}")
+        
+        # Return success response
+        return jsonify({
+            "status": "success",
+            "message": "File uploaded successfully",
+            "fileId": file_id,
+            "redirectUrl": url_for('strategy.strategy_hub_data_analysis', file_id=file_id)
+        })
+        
+    except Exception as e:
+        logger.exception(f"Error uploading data file: {str(e)}")
+        return jsonify({
+            "status": "error",
+            "message": f"An error occurred: {str(e)}"
+        }), 500
+
+@strategy_bp.route('/api/strategy-hub/upload-document', methods=['POST'])
+def api_upload_document():
+    """API endpoint to upload sustainability document for analysis"""
+    try:
+        # Check if file was uploaded
+        if 'file' not in request.files:
+            logger.warning("No file part in request")
+            return jsonify({
+                "status": "error",
+                "message": "No file part in the request"
+            }), 400
+            
+        file = request.files['file']
+        
+        # Check if file was selected
+        if file.filename == '':
+            logger.warning("No file selected")
+            return jsonify({
+                "status": "error",
+                "message": "No file selected"
+            }), 400
+            
+        # Check file extension
+        allowed_extensions = {'pdf', 'docx', 'doc'}
+        if not file.filename.lower().rsplit('.', 1)[1] in allowed_extensions:
+            logger.warning(f"Invalid file extension: {file.filename}")
+            return jsonify({
+                "status": "error",
+                "message": "Invalid file extension. Allowed extensions: pdf, docx, doc"
+            }), 400
+            
+        # Generate unique document ID
+        document_id = str(uuid.uuid4())
+        
+        # Save file to uploads directory
+        uploads_dir = os.path.join(current_app.root_path, 'uploads')
+        os.makedirs(uploads_dir, exist_ok=True)
+        
+        file_path = os.path.join(uploads_dir, f"{document_id}_{secure_filename(file.filename)}")
+        file.save(file_path)
+        
+        logger.info(f"Document uploaded successfully: {file.filename}, saved as {file_path}")
+        
+        # Return success response
+        return jsonify({
+            "status": "success",
+            "message": "Document uploaded successfully",
+            "documentId": document_id,
+            "redirectUrl": url_for('strategy.strategy_hub_document_view', document_id=document_id)
+        })
+        
+    except Exception as e:
+        logger.exception(f"Error uploading document: {str(e)}")
+        return jsonify({
+            "status": "error",
+            "message": f"An error occurred: {str(e)}"
+        }), 500
+
+@strategy_bp.route('/api/strategy-hub/recent-imports', methods=['GET'])
+def api_recent_imports():
+    """API endpoint to get recent data and document imports"""
+    try:
+        # For demonstration, returning mock recent imports
+        # In a production environment, this would fetch from database
+        recent_imports = [
+            {
+                "id": "demo-csv-01",
+                "name": "Emissions Data 2024.csv",
+                "type": "data",
+                "timestamp": "2024-03-15T10:30:00Z",
+                "status": "Complete"
+            },
+            {
+                "id": "demo-pdf-01",
+                "name": "Sustainability Report 2024.pdf",
+                "type": "document",
+                "timestamp": "2024-03-14T15:45:00Z",
+                "status": "Complete"
+            }
+        ]
+        
+        return jsonify({
+            "status": "success",
+            "imports": recent_imports
+        })
+        
+    except Exception as e:
+        logger.exception(f"Error getting recent imports: {str(e)}")
+        return jsonify({
+            "status": "error",
+            "message": f"An error occurred: {str(e)}"
+        }), 500
+
+@strategy_bp.route('/strategy-hub/analysis/<file_id>', methods=['GET'])
+def strategy_hub_data_analysis(file_id):
+    """Page to view analysis of uploaded data file"""
+    try:
+        logger.info(f"Viewing analysis for data file: {file_id}")
+        
+        # For now, render a basic template that displays the file ID
+        # In a production environment, this would load and analyze the file
+        return render_template(
+            "strategy/data_analysis.html",
+            page_title="Data Analysis",
+            active_nav="strategy",
+            file_id=file_id,
+            **get_context_for_template()
+        )
+        
+    except Exception as e:
+        logger.exception(f"Error viewing data analysis: {str(e)}")
+        flash(f"Error loading analysis: {str(e)}", "danger")
+        return redirect(url_for('strategy.unified_strategy_hub'))
+
+@strategy_bp.route('/api/strategy-hub/generate', methods=['POST'])
+def api_strategy_hub_generate():
+    """API endpoint to generate sustainability strategy using AI consultant (strategy hub version)"""
     try:
         # Get request data
         data = request.json
@@ -1640,3 +1812,120 @@ def legacy_strategies_redirect():
 def legacy_simulation_redirect():
     """Redirect legacy simulation routes to unified strategy hub"""
     return redirect(url_for('strategy.unified_strategy_hub'))
+
+# Data Import and Analysis Routes
+
+@strategy_bp.route('/upload-data-file', methods=['POST'])
+def upload_data_file():
+    """
+    Handle data file uploads for the Strategy Hub
+    
+    Accepts file uploads via form submission and stores them in the uploads directory.
+    Returns a redirect to the data analysis page.
+    """
+    logger.info("Data file upload route called")
+    
+    try:
+        # Create upload directory if it doesn't exist
+        upload_dir = os.path.join(current_app.static_folder, 'uploads')
+        os.makedirs(upload_dir, exist_ok=True)
+        
+        # Get form data
+        if 'data_file' not in request.files:
+            flash('No file provided', 'error')
+            return redirect(url_for('strategy.unified_strategy_hub'))
+            
+        file = request.files['data_file']
+        
+        if file.filename == '':
+            flash('No file selected', 'error')
+            return redirect(url_for('strategy.unified_strategy_hub'))
+            
+        # Get other form fields
+        file_type = request.form.get('file_type', 'other')
+        description = request.form.get('description', '')
+        data_origin = request.form.get('data_origin', 'internal')
+        analyze_immediate = 'analyze_immediate' in request.form
+        generate_recommendations = 'generate_recommendations' in request.form
+        
+        # Secure the filename and generate a unique ID
+        filename = secure_filename(file.filename)
+        file_id = f"{uuid.uuid4().hex}_{filename}"
+        file_path = os.path.join(upload_dir, file_id)
+        
+        # Save the file
+        file.save(file_path)
+        
+        # Log upload success
+        logger.info(f"File uploaded successfully: {file_id}, type: {file_type}, origin: {data_origin}")
+        
+        # Save file metadata (in a production environment, this would be in a database)
+        # For this demo, we'll use session storage
+        if 'uploaded_files' not in session:
+            session['uploaded_files'] = []
+            
+        file_metadata = {
+            'id': file_id,
+            'original_filename': filename,
+            'file_type': file_type,
+            'description': description,
+            'data_origin': data_origin,
+            'upload_date': datetime.now().isoformat(),
+            'file_path': file_path,
+            'analyzed': analyze_immediate,
+            'recommendations_generated': generate_recommendations
+        }
+        
+        session['uploaded_files'].insert(0, file_metadata)
+        session.modified = True
+        
+        # Flash success message
+        flash(f'File "{filename}" uploaded successfully', 'success')
+        
+        # Redirect to analysis page if immediate analysis is requested
+        if analyze_immediate:
+            return redirect(url_for('strategy.analyze_data', file_id=file_id))
+        else:
+            return redirect(url_for('strategy.unified_strategy_hub'))
+            
+    except Exception as e:
+        logger.error(f"Error uploading file: {str(e)}")
+        logger.error(traceback.format_exc())
+        flash(f'Error uploading file: {str(e)}', 'error')
+        return redirect(url_for('strategy.unified_strategy_hub'))
+
+@strategy_bp.route('/strategy-hub/analyze/<file_id>')
+def analyze_data(file_id):
+    """
+    Analyze uploaded data file
+    
+    Args:
+        file_id: ID of the uploaded file to analyze
+        
+    Returns:
+        Rendered data analysis template
+    """
+    logger.info(f"Analyze data route called for file ID: {file_id}")
+    
+    try:
+        # In a production environment, this would look up the file in a database
+        # For this demo, we'll use session storage
+        uploaded_files = session.get('uploaded_files', [])
+        file_metadata = next((f for f in uploaded_files if f['id'] == file_id), None)
+        
+        if not file_metadata:
+            flash(f'File with ID {file_id} not found', 'error')
+            return redirect(url_for('strategy.unified_strategy_hub'))
+        
+        # Render analysis template
+        return render_template(
+            'strategy/data_analysis.html',
+            file_id=file_id,
+            file_metadata=file_metadata
+        )
+        
+    except Exception as e:
+        logger.error(f"Error analyzing file: {str(e)}")
+        logger.error(traceback.format_exc())
+        flash(f'Error analyzing file: {str(e)}', 'error')
+        return redirect(url_for('strategy.unified_strategy_hub'))

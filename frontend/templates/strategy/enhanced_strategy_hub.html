@@ -1,0 +1,1343 @@
+{% extends 'base.html' %}
+
+{% block title %}Enhanced Strategy Hub | SustainaTrend™{% endblock %}
+
+{% block head %}
+<!-- Chart.js for interactive visualizations -->
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+<!-- Additional CSS for the enhanced Strategy Hub -->
+<style>
+  :root {
+    --primary-color: #36b37e;
+    --primary-light: #4eca94;
+    --primary-dark: #2d9669;
+    --secondary-color: #0052cc;
+    --secondary-light: #2684ff;
+    --secondary-dark: #0747a6;
+    --accent-color: #ff5630;
+    --accent-light: #ff7452;
+    --accent-dark: #de350b;
+    --dark-bg: #172b4d;
+    --darker-bg: #101e35;
+    --light-text: #f4f5f7;
+    --medium-text: #c1c7d0;
+    --light-bg: #f4f5f7;
+    --card-bg: #1e3357;
+    --card-highlight: #264473;
+    --border-radius: 12px;
+    --card-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+    --transition-speed: 0.2s;
+  }
+
+  .strategy-hub-container {
+    max-width: 1400px;
+    margin: 0 auto;
+    padding: 20px;
+  }
+
+  .strategy-header {
+    margin-bottom: 2rem;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+  }
+  
+  .strategy-title {
+    font-size: 2rem;
+    font-weight: 700;
+    margin-bottom: 0.5rem;
+    background: linear-gradient(45deg, var(--primary-light), var(--primary-color));
+    -webkit-background-clip: text;
+    background-clip: text;
+    -webkit-text-fill-color: transparent;
+    text-fill-color: transparent;
+  }
+  
+  .strategy-subtitle {
+    font-size: 1.1rem;
+    color: var(--medium-text);
+    margin-bottom: 1rem;
+  }
+
+  .hub-tabs {
+    display: flex;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+    margin-bottom: 2rem;
+    overflow-x: auto;
+  }
+
+  .hub-tab {
+    padding: 12px 20px;
+    cursor: pointer;
+    border-bottom: 3px solid transparent;
+    color: var(--medium-text);
+    font-weight: 500;
+    transition: all var(--transition-speed) ease;
+    white-space: nowrap;
+  }
+
+  .hub-tab:hover {
+    color: var(--light-text);
+    border-bottom-color: var(--primary-light);
+  }
+
+  .hub-tab.active {
+    color: var(--primary-light);
+    border-bottom-color: var(--primary-color);
+  }
+
+  .tab-content {
+    display: none;
+  }
+  
+  .tab-content.active {
+    display: block;
+    animation: fadeIn 0.5s ease;
+  }
+  
+  @keyframes fadeIn {
+    from { opacity: 0; }
+    to { opacity: 1; }
+  }
+
+  .hub-card {
+    background-color: var(--card-bg);
+    border-radius: var(--border-radius);
+    padding: 1.5rem;
+    margin-bottom: 1.5rem;
+    box-shadow: var(--card-shadow);
+    transition: transform var(--transition-speed) ease, box-shadow var(--transition-speed) ease;
+  }
+  
+  .hub-card:hover {
+    transform: translateY(-4px);
+    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.2);
+  }
+  
+  .hub-card-title {
+    font-size: 1.25rem;
+    font-weight: 600;
+    margin-bottom: 0.75rem;
+    color: var(--light-text);
+    display: flex;
+    align-items: center;
+  }
+  
+  .hub-card-title i {
+    margin-right: 10px;
+    color: var(--primary-color);
+  }
+
+  .card-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+    gap: 1.5rem;
+  }
+
+  .card-grid-2 {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 1.5rem;
+  }
+  
+  @media (max-width: 768px) {
+    .card-grid, .card-grid-2 {
+      grid-template-columns: 1fr;
+    }
+  }
+
+  .trend-tag {
+    display: inline-block;
+    padding: 4px 10px;
+    border-radius: 50px;
+    font-size: 0.8rem;
+    margin-right: 6px;
+    margin-bottom: 6px;
+    background-color: rgba(54, 179, 126, 0.15);
+    color: var(--primary-light);
+    border: 1px solid rgba(54, 179, 126, 0.3);
+    cursor: pointer;
+    transition: all var(--transition-speed) ease;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+  }
+  
+  .trend-tag:hover {
+    background-color: rgba(54, 179, 126, 0.25);
+    transform: translateY(-2px);
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+  }
+  
+  .pdf-dropzone {
+    border: 2px dashed rgba(255, 255, 255, 0.2);
+    border-radius: var(--border-radius);
+    padding: 2rem;
+    text-align: center;
+    cursor: pointer;
+    transition: all var(--transition-speed) ease;
+  }
+  
+  .pdf-dropzone:hover {
+    border-color: var(--primary-color);
+    background-color: rgba(54, 179, 126, 0.05);
+  }
+  
+  .pdf-icon {
+    font-size: 3rem;
+    color: var(--primary-color);
+    margin-bottom: 1rem;
+  }
+
+  .analysis-options {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 1rem;
+    margin-top: 1rem;
+  }
+  
+  .analysis-option {
+    display: flex;
+    align-items: center;
+  }
+  
+  .analysis-option input {
+    margin-right: 8px;
+  }
+
+  .document-card {
+    background-color: rgba(255, 255, 255, 0.05);
+    border-radius: var(--border-radius);
+    padding: 1rem;
+    display: flex;
+    align-items: center;
+    margin-bottom: 1rem;
+    cursor: pointer;
+    transition: all var(--transition-speed) ease;
+  }
+  
+  .document-card:hover {
+    background-color: rgba(255, 255, 255, 0.1);
+  }
+  
+  .document-icon {
+    font-size: 1.5rem;
+    margin-right: 1rem;
+    color: var(--secondary-light);
+  }
+  
+  .document-info {
+    flex: 1;
+  }
+  
+  .document-title {
+    font-weight: 500;
+    margin-bottom: 4px;
+  }
+  
+  .document-meta {
+    font-size: 0.8rem;
+    color: var(--medium-text);
+  }
+  
+  .document-category {
+    background-color: rgba(38, 132, 255, 0.15);
+    color: var(--secondary-light);
+    padding: 2px 8px;
+    border-radius: 4px;
+    font-size: 0.75rem;
+    margin-left: 0.5rem;
+  }
+
+  .chart-container {
+    height: 300px;
+    width: 100%;
+    margin-top: 1rem;
+  }
+  
+  .trend-score {
+    font-size: 3rem;
+    font-weight: 700;
+    color: var(--primary-color);
+    text-align: center;
+    margin: 1rem 0;
+  }
+  
+  .score-label {
+    font-size: 0.9rem;
+    color: var(--medium-text);
+    text-align: center;
+    margin-bottom: 1rem;
+  }
+  
+  .stepps-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 1rem;
+    margin: 1.5rem 0;
+  }
+  
+  @media (max-width: 768px) {
+    .stepps-grid {
+      grid-template-columns: repeat(2, 1fr);
+    }
+  }
+  
+  @media (max-width: 480px) {
+    .stepps-grid {
+      grid-template-columns: 1fr;
+    }
+  }
+  
+  .stepps-item {
+    background-color: rgba(255, 255, 255, 0.05);
+    border-radius: var(--border-radius);
+    padding: 1rem;
+    text-align: center;
+  }
+  
+  .stepps-score {
+    font-size: 1.5rem;
+    font-weight: 600;
+    margin-bottom: 0.5rem;
+  }
+  
+  .stepps-name {
+    font-size: 0.9rem;
+    font-weight: 500;
+    margin-bottom: 0.25rem;
+  }
+  
+  .stepps-desc {
+    font-size: 0.8rem;
+    color: var(--medium-text);
+  }
+  
+  /* Chart container styling */
+  .chart-container {
+    width: 100%;
+    height: 300px;
+    margin: 1.5rem 0;
+    background-color: rgba(0, 0, 0, 0.2);
+    border-radius: 8px;
+    padding: 1rem;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+  }
+  
+  .industry-impact {
+    margin: 1.5rem 0;
+  }
+  
+  .impact-bar {
+    height: 10px;
+    background-color: rgba(255, 255, 255, 0.1);
+    border-radius: 5px;
+    margin-top: 4px;
+    overflow: hidden;
+  }
+  
+  .impact-fill {
+    height: 100%;
+    background: linear-gradient(90deg, var(--primary-dark), var(--primary-light));
+    border-radius: 5px;
+  }
+  
+  .impact-label {
+    display: flex;
+    justify-content: space-between;
+    font-size: 0.9rem;
+    margin-bottom: 4px;
+  }
+  
+  .strategic-item {
+    background-color: rgba(255, 255, 255, 0.05);
+    border-radius: var(--border-radius);
+    padding: 1rem;
+    margin-bottom: 1rem;
+  }
+  
+  .strategic-header {
+    display: flex;
+    justify-content: space-between;
+    margin-bottom: 0.5rem;
+    align-items: center;
+  }
+  
+  .strategic-area {
+    font-weight: 500;
+  }
+  
+  .strategic-potential {
+    padding: 4px 10px;
+    border-radius: 50px;
+    font-size: 0.8rem;
+  }
+  
+  .potential-high {
+    background-color: rgba(54, 179, 126, 0.15);
+    color: var(--primary-light);
+  }
+  
+  .potential-medium {
+    background-color: rgba(255, 171, 0, 0.15);
+    color: #ffab00;
+  }
+  
+  .potential-low {
+    background-color: rgba(255, 86, 48, 0.15);
+    color: var(--accent-light);
+  }
+  
+  .strategic-timeframe {
+    font-size: 0.8rem;
+    color: var(--medium-text);
+    margin-bottom: 0.5rem;
+  }
+  
+  .strategic-response {
+    font-size: 0.9rem;
+  }
+  
+  .insight-card {
+    background-color: rgba(255, 255, 255, 0.05);
+    border-radius: var(--border-radius);
+    padding: 1.5rem;
+    margin-bottom: 1.5rem;
+    position: relative;
+    overflow: hidden;
+  }
+  
+  .insight-card::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 4px;
+    height: 100%;
+    background: linear-gradient(to bottom, var(--primary-color), var(--secondary-color));
+  }
+  
+  .insight-title {
+    font-size: 1.1rem;
+    font-weight: 600;
+    margin-bottom: 0.75rem;
+  }
+  
+  .insight-body {
+    font-size: 0.95rem;
+    color: var(--medium-text);
+    line-height: 1.5;
+  }
+  
+  .insight-meta {
+    display: flex;
+    justify-content: space-between;
+    margin-top: 1rem;
+    font-size: 0.8rem;
+    color: var(--medium-text);
+  }
+  
+  .insight-source {
+    text-decoration: underline;
+    cursor: pointer;
+  }
+  
+  .insight-metrics {
+    margin-top: 1rem;
+    display: flex;
+    gap: 1rem;
+  }
+  
+  .insight-metric {
+    background-color: rgba(255, 255, 255, 0.05);
+    border-radius: var(--border-radius);
+    padding: 0.5rem 1rem;
+    text-align: center;
+    flex: 1;
+  }
+  
+  .metric-value {
+    font-size: 1.2rem;
+    font-weight: 600;
+    margin-bottom: 0.25rem;
+  }
+  
+  .metric-label {
+    font-size: 0.8rem;
+    color: var(--medium-text);
+  }
+  
+  .action-btn {
+    display: inline-block;
+    padding: 8px 16px;
+    background-color: var(--primary-color);
+    color: white;
+    border-radius: var(--border-radius);
+    cursor: pointer;
+    transition: all var(--transition-speed) ease;
+    border: none;
+    font-weight: 500;
+    text-align: center;
+  }
+  
+  .action-btn:hover {
+    background-color: var(--primary-light);
+  }
+  
+  .action-btn.secondary {
+    background-color: rgba(255, 255, 255, 0.1);
+    color: var(--light-text);
+  }
+  
+  .action-btn.secondary:hover {
+    background-color: rgba(255, 255, 255, 0.2);
+  }
+  
+  .trend-search {
+    display: flex;
+    gap: 1rem;
+    margin-bottom: 1.5rem;
+  }
+  
+  .trend-search input {
+    flex: 1;
+    background-color: rgba(255, 255, 255, 0.05);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    color: var(--light-text);
+    padding: 10px 16px;
+    border-radius: var(--border-radius);
+    font-size: 0.95rem;
+  }
+  
+  .trend-search input:focus {
+    border-color: var(--primary-color);
+    outline: none;
+  }
+  
+  .resource-card {
+    display: flex;
+    background-color: rgba(255, 255, 255, 0.05);
+    border-radius: var(--border-radius);
+    overflow: hidden;
+    margin-bottom: 1rem;
+    transition: all var(--transition-speed) ease;
+  }
+  
+  .resource-card:hover {
+    background-color: rgba(255, 255, 255, 0.1);
+  }
+  
+  .resource-icon {
+    width: 80px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background-color: rgba(54, 179, 126, 0.1);
+    color: var(--primary-color);
+    font-size: 1.5rem;
+  }
+  
+  .resource-content {
+    padding: 1rem;
+    flex: 1;
+  }
+  
+  .resource-title {
+    font-weight: 500;
+    margin-bottom: 0.5rem;
+  }
+  
+  .resource-desc {
+    font-size: 0.9rem;
+    color: var(--medium-text);
+  }
+  
+  .progress-bar {
+    height: 4px;
+    background-color: rgba(255, 255, 255, 0.1);
+    border-radius: 2px;
+    margin-top: 0.5rem;
+    overflow: hidden;
+  }
+  
+  .progress-fill {
+    height: 100%;
+    background: linear-gradient(90deg, var(--primary-color), var(--primary-light));
+    border-radius: 2px;
+  }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="strategy-hub-container">
+  <!-- Header Section -->
+  <div class="strategy-header">
+    <div>
+      <h1 class="strategy-title">AI Insights Strategy Hub</h1>
+      <p class="strategy-subtitle">Transforming sustainability data into strategic insights with AI-powered intelligence</p>
+    </div>
+  </div>
+
+  <!-- Navigation Tabs -->
+  <div class="hub-tabs">
+    <div class="hub-tab active" data-tab="document-intelligence">Document Intelligence</div>
+    <div class="hub-tab" data-tab="trend-analysis">Trend Analysis</div>
+    <div class="hub-tab" data-tab="strategic-recommendations">Strategic Recommendations</div>
+    <div class="hub-tab" data-tab="data-storytelling">Data-Driven Storytelling</div>
+    <div class="hub-tab" data-tab="ai-consultant">AI Strategy Consultant</div>
+  </div>
+
+  <!-- Document Intelligence Tab -->
+  <div class="tab-content active" id="document-intelligence">
+    <div class="card-grid-2">
+      <!-- PDF Uploader -->
+      <div class="hub-card">
+        <div class="hub-card-title">
+          <i class="fas fa-file-pdf"></i> Document Analysis
+        </div>
+        <p>Upload a PDF document to analyze sustainability reporting, extract insights, and identify improvement opportunities.</p>
+        
+        <div class="pdf-dropzone" id="pdf-dropzone">
+          <div class="pdf-icon">
+            <i class="fas fa-file-upload"></i>
+          </div>
+          <p>Drag & drop a document or click to browse</p>
+          <small>Supported formats: PDF, DOCX, XLSX, CSV</small>
+          
+          <div class="analysis-options">
+            <div class="analysis-option">
+              <input type="checkbox" id="extract-entities" checked>
+              <label for="extract-entities">Extract Entities</label>
+            </div>
+            <div class="analysis-option">
+              <input type="checkbox" id="benchmark" checked>
+              <label for="benchmark">Industry Benchmark</label>
+            </div>
+            <div class="analysis-option">
+              <input type="checkbox" id="regulatory-check" checked>
+              <label for="regulatory-check">Regulatory Check</label>
+            </div>
+          </div>
+        </div>
+        
+        <input type="file" id="pdf-upload" style="display: none;" accept=".pdf,.docx,.doc,.xlsx,.xls,.csv">
+        
+        <div style="margin-top: 1rem; text-align: center;">
+          <button class="action-btn" id="upload-btn">Upload Document</button>
+        </div>
+      </div>
+      
+      <!-- Recent Documents -->
+      <div class="hub-card">
+        <div class="hub-card-title">
+          <i class="fas fa-folder-open"></i> Recent Documents
+        </div>
+        <p>Access your recently analyzed documents and reports.</p>
+        
+        <div class="document-list">
+          {% if recent_documents %}
+            {% for doc in recent_documents %}
+              <div class="document-card" data-id="{{ doc.id }}">
+                <div class="document-icon">
+                  {% if doc.id.endswith('.pdf') %}
+                    <i class="fas fa-file-pdf"></i>
+                  {% elif doc.id.endswith('.xlsx') or doc.id.endswith('.xls') %}
+                    <i class="fas fa-file-excel"></i>
+                  {% elif doc.id.endswith('.docx') or doc.id.endswith('.doc') %}
+                    <i class="fas fa-file-word"></i>
+                  {% elif doc.id.endswith('.csv') %}
+                    <i class="fas fa-file-csv"></i>
+                  {% else %}
+                    <i class="fas fa-file-alt"></i>
+                  {% endif %}
+                </div>
+                <div class="document-info">
+                  <div class="document-title">{{ doc.title }}<span class="document-category">{{ doc.category }}</span></div>
+                  <div class="document-meta">{{ doc.timestamp }} • {{ doc.page_count }} pages</div>
+                </div>
+                <div>
+                  <i class="fas fa-chevron-right"></i>
+                </div>
+              </div>
+            {% endfor %}
+          {% else %}
+            <div class="insight-card">
+              <div class="insight-title">No documents found</div>
+              <div class="insight-body">Upload your first document to get started with document intelligence.</div>
+            </div>
+          {% endif %}
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Trend Analysis Tab -->
+  <div class="tab-content" id="trend-analysis">
+    <div class="card-grid-2">
+      <!-- Trend Search -->
+      <div class="hub-card">
+        <div class="hub-card-title">
+          <i class="fas fa-search"></i> Analyze Sustainability Trends
+        </div>
+        <p>Search for emerging sustainability trends and get detailed intelligence on their strategic implications.</p>
+        
+        <div class="trend-search">
+          <input type="text" id="trend-search-input" placeholder="Enter a sustainability trend (e.g., 'Carbon Offsetting')">
+          <button class="action-btn" id="trend-search-btn">Analyze</button>
+        </div>
+        
+        <div>
+          <p>Popular trends:</p>
+          <div style="margin-top: 0.5rem;">
+            <span class="trend-tag" data-trend="Circular Economy">Circular Economy</span>
+            <span class="trend-tag" data-trend="Sustainable Supply Chain">Sustainable Supply Chain</span>
+            <span class="trend-tag" data-trend="Net Zero Transition">Net Zero Transition</span>
+            <span class="trend-tag" data-trend="ESG Reporting">ESG Reporting</span>
+            <span class="trend-tag" data-trend="Carbon Credits">Carbon Credits</span>
+            <span class="trend-tag" data-trend="Renewable Energy">Renewable Energy</span>
+          </div>
+        </div>
+      </div>
+      
+      <!-- Trend Results -->
+      <div class="hub-card" id="trend-results" style="display: none;">
+        <div class="hub-card-title">
+          <i class="fas fa-chart-line"></i> <span id="trend-results-title">Trend Analysis</span>
+        </div>
+        
+        <div class="trend-score" id="trend-virality-score">78</div>
+        <div class="score-label">Virality Score</div>
+        
+        <!-- Interactive STEPPS Radar Chart -->
+        <div class="chart-container">
+          <canvas id="steppsRadarChart"></canvas>
+        </div>
+        
+        <!-- STEPPS Grid Items -->
+        <div class="stepps-grid">
+          <div class="stepps-item">
+            <div class="stepps-score" style="color: #36b37e;">82</div>
+            <div class="stepps-name">Social Currency</div>
+            <div class="stepps-desc">How sharing makes people look</div>
+          </div>
+          <div class="stepps-item">
+            <div class="stepps-score" style="color: #00b8d9;">76</div>
+            <div class="stepps-name">Triggers</div>
+            <div class="stepps-desc">Environmental reminders</div>
+          </div>
+          <div class="stepps-item">
+            <div class="stepps-score" style="color: #6554c0;">85</div>
+            <div class="stepps-name">Emotion</div>
+            <div class="stepps-desc">When we care, we share</div>
+          </div>
+          <div class="stepps-item">
+            <div class="stepps-score" style="color: #ff5630;">65</div>
+            <div class="stepps-name">Public</div>
+            <div class="stepps-desc">Built to show, built to grow</div>
+          </div>
+          <div class="stepps-item">
+            <div class="stepps-score" style="color: #ffab00;">80</div>
+            <div class="stepps-name">Practical Value</div>
+            <div class="stepps-desc">Useful gets shared</div>
+          </div>
+          <div class="stepps-item">
+            <div class="stepps-score" style="color: #00875a;">78</div>
+            <div class="stepps-name">Stories</div>
+            <div class="stepps-desc">Information in narratives</div>
+          </div>
+        </div>
+        
+        <h3 style="margin-top: 2rem; margin-bottom: 1rem;">Industry Impact</h3>
+        
+        <div class="industry-impact">
+          <div class="impact-label">
+            <span>Technology</span>
+            <span>85%</span>
+          </div>
+          <div class="impact-bar">
+            <div class="impact-fill" style="width: 85%;"></div>
+          </div>
+        </div>
+        
+        <div class="industry-impact">
+          <div class="impact-label">
+            <span>Manufacturing</span>
+            <span>75%</span>
+          </div>
+          <div class="impact-bar">
+            <div class="impact-fill" style="width: 75%;"></div>
+          </div>
+        </div>
+        
+        <div class="industry-impact">
+          <div class="impact-label">
+            <span>Energy</span>
+            <span>92%</span>
+          </div>
+          <div class="impact-bar">
+            <div class="impact-fill" style="width: 92%;"></div>
+          </div>
+        </div>
+        
+        <div class="industry-impact">
+          <div class="impact-label">
+            <span>Retail</span>
+            <span>65%</span>
+          </div>
+          <div class="impact-bar">
+            <div class="impact-fill" style="width: 65%;"></div>
+          </div>
+        </div>
+        
+        <div class="industry-impact">
+          <div class="impact-label">
+            <span>Finance</span>
+            <span>70%</span>
+          </div>
+          <div class="impact-bar">
+            <div class="impact-fill" style="width: 70%;"></div>
+          </div>
+        </div>
+      </div>
+    </div>
+    
+    <!-- Strategic Implications -->
+    <div class="hub-card" id="strategic-implications" style="display: none; margin-top: 1.5rem;">
+      <div class="hub-card-title">
+        <i class="fas fa-lightbulb"></i> Strategic Implications
+      </div>
+      
+      <div class="strategic-item">
+        <div class="strategic-header">
+          <div class="strategic-area">Strategic Assessment</div>
+          <div class="strategic-potential potential-high">High Potential</div>
+        </div>
+        <div class="strategic-timeframe">Short-term (3-6 months)</div>
+        <div class="strategic-response">Conduct comprehensive assessment of this trend's impact on organization's value chain</div>
+      </div>
+      
+      <div class="strategic-item">
+        <div class="strategic-header">
+          <div class="strategic-area">Capability Development</div>
+          <div class="strategic-potential potential-medium">Medium Potential</div>
+        </div>
+        <div class="strategic-timeframe">Medium-term (1-2 years)</div>
+        <div class="strategic-response">Build organizational capabilities to leverage this trend for competitive advantage</div>
+      </div>
+      
+      <div class="strategic-item">
+        <div class="strategic-header">
+          <div class="strategic-area">Innovation Pipeline</div>
+          <div class="strategic-potential potential-high">High Potential</div>
+        </div>
+        <div class="strategic-timeframe">Long-term (2-4 years)</div>
+        <div class="strategic-response">Integrate this trend into product development and innovation pipeline</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Strategic Recommendations Tab -->
+  <div class="tab-content" id="strategic-recommendations">
+    <div class="hub-card">
+      <div class="hub-card-title">
+        <i class="fas fa-star"></i> Strategic Recommendations
+      </div>
+      <p>AI-powered strategic recommendations based on your organization's sustainability data and industry benchmarks.</p>
+      
+      <div class="insight-card">
+        <div class="insight-title">Implement Carbon Management System</div>
+        <div class="insight-body">Our AI analysis indicates that implementing a carbon management system could reduce your Scope 1 & 2 emissions by an estimated 22% within 18 months, bringing you in line with industry leaders.</div>
+        <div class="insight-metrics">
+          <div class="insight-metric">
+            <div class="metric-value">22%</div>
+            <div class="metric-label">Potential Reduction</div>
+          </div>
+          <div class="insight-metric">
+            <div class="metric-value">18 mo</div>
+            <div class="metric-label">Implementation Time</div>
+          </div>
+          <div class="insight-metric">
+            <div class="metric-value">$$$</div>
+            <div class="metric-label">Investment Level</div>
+          </div>
+        </div>
+        <div class="insight-meta">
+          <div>Based on <span class="insight-source">GHG Emissions Data 2023</span></div>
+          <div>Generated March 15, 2025</div>
+        </div>
+      </div>
+      
+      <div class="insight-card">
+        <div class="insight-title">Enhance Supply Chain Transparency</div>
+        <div class="insight-body">Your CSRD compliance assessment reveals gaps in supply chain transparency. Implementing blockchain-based tracking for your top 10 suppliers could significantly enhance your reporting capabilities.</div>
+        <div class="insight-metrics">
+          <div class="insight-metric">
+            <div class="metric-value">85%</div>
+            <div class="metric-label">Compliance Improvement</div>
+          </div>
+          <div class="insight-metric">
+            <div class="metric-value">12 mo</div>
+            <div class="metric-label">Implementation Time</div>
+          </div>
+          <div class="insight-metric">
+            <div class="metric-value">$$</div>
+            <div class="metric-label">Investment Level</div>
+          </div>
+        </div>
+        <div class="insight-meta">
+          <div>Based on <span class="insight-source">CSRD Compliance Assessment</span></div>
+          <div>Generated March 10, 2025</div>
+        </div>
+      </div>
+      
+      <div class="insight-card">
+        <div class="insight-title">Develop Circular Economy Initiative</div>
+        <div class="insight-body">Analysis of your sustainability report identifies product lifecycle as a material issue. Developing a circular economy initiative for your main product line could create significant value and reduce resource use.</div>
+        <div class="insight-metrics">
+          <div class="insight-metric">
+            <div class="metric-value">35%</div>
+            <div class="metric-label">Resource Efficiency</div>
+          </div>
+          <div class="insight-metric">
+            <div class="metric-value">24 mo</div>
+            <div class="metric-label">Implementation Time</div>
+          </div>
+          <div class="insight-metric">
+            <div class="metric-value">$$$$</div>
+            <div class="metric-label">Investment Level</div>
+          </div>
+        </div>
+        <div class="insight-meta">
+          <div>Based on <span class="insight-source">Sustainability Report 2024</span></div>
+          <div>Generated March 5, 2025</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Data-Driven Storytelling Tab -->
+  <div class="tab-content" id="data-storytelling">
+    <div class="hub-card">
+      <div class="hub-card-title">
+        <i class="fas fa-book"></i> Data-Driven Storytelling
+      </div>
+      <p>Transform complex sustainability data into compelling narratives that engage stakeholders and drive action.</p>
+      
+      {% if recent_stories %}
+        {% for story in recent_stories %}
+          <div class="insight-card">
+            <div class="insight-title">{{ story.title }}</div>
+            <div class="insight-body">{{ story.content|truncate(200) }}</div>
+            <div class="insight-meta">
+              <div>{{ story.category if story.category else 'General' }}</div>
+              <div>{{ story.timestamp if story.timestamp else 'Recently created' }}</div>
+            </div>
+          </div>
+        {% endfor %}
+      {% else %}
+        <div class="insight-card">
+          <div class="insight-title">No stories found</div>
+          <div class="insight-body">Generate your first data-driven story by analyzing a sustainability document.</div>
+        </div>
+      {% endif %}
+      
+      <div style="margin-top: 1.5rem; text-align: center;">
+        <button class="action-btn" id="create-story-btn">Create New Story</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- AI Strategy Consultant Tab -->
+  <div class="tab-content" id="ai-consultant">
+    <div class="hub-card">
+      <div class="hub-card-title">
+        <i class="fas fa-robot"></i> AI Strategy Consultant
+      </div>
+      <p>Get personalized strategic advice from our AI consultant, tailored to your organization's sustainability goals and challenges.</p>
+      
+      <div style="margin: 2rem 0;">
+        <div style="text-align: center; margin-bottom: 1.5rem;">
+          <div style="font-size: 5rem; color: var(--primary-color);">
+            <i class="fas fa-comment-dots"></i>
+          </div>
+          <h3 style="margin-top: 1rem;">Start a Strategy Consultation</h3>
+          <p style="color: var(--medium-text); margin-top: 0.5rem;">Our AI consultant will analyze your data and provide personalized strategic recommendations</p>
+        </div>
+        
+        <div style="text-align: center;">
+          <button class="action-btn" id="start-consultation-btn">Begin Consultation</button>
+        </div>
+      </div>
+      
+      <div class="card-grid">
+        <div class="resource-card">
+          <div class="resource-icon">
+            <i class="fas fa-leaf"></i>
+          </div>
+          <div class="resource-content">
+            <div class="resource-title">Sustainability Strategy Template</div>
+            <div class="resource-desc">A comprehensive template to develop your sustainability strategy</div>
+          </div>
+        </div>
+        
+        <div class="resource-card">
+          <div class="resource-icon">
+            <i class="fas fa-chart-bar"></i>
+          </div>
+          <div class="resource-content">
+            <div class="resource-title">Materiality Assessment Guide</div>
+            <div class="resource-desc">Step-by-step guide to conducting a materiality assessment</div>
+          </div>
+        </div>
+        
+        <div class="resource-card">
+          <div class="resource-icon">
+            <i class="fas fa-bullseye"></i>
+          </div>
+          <div class="resource-content">
+            <div class="resource-title">Science-Based Targets Toolkit</div>
+            <div class="resource-desc">Tools and resources for setting science-based climate targets</div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- JavaScript for interactive features -->
+<script>
+  document.addEventListener('DOMContentLoaded', function() {
+    // Tab navigation
+    const tabs = document.querySelectorAll('.hub-tab');
+    const tabContents = document.querySelectorAll('.tab-content');
+    
+    tabs.forEach(tab => {
+      tab.addEventListener('click', () => {
+        const tabId = tab.getAttribute('data-tab');
+        
+        // Update active tab
+        tabs.forEach(t => t.classList.remove('active'));
+        tab.classList.add('active');
+        
+        // Show corresponding content
+        tabContents.forEach(content => {
+          content.classList.remove('active');
+          if (content.id === tabId) {
+            content.classList.add('active');
+          }
+        });
+      });
+    });
+    
+    // PDF Uploader
+    const dropzone = document.getElementById('pdf-dropzone');
+    const fileInput = document.getElementById('pdf-upload');
+    const uploadBtn = document.getElementById('upload-btn');
+    
+    // Setup dropzone
+    if (dropzone && fileInput) {
+      dropzone.addEventListener('click', () => {
+        fileInput.click();
+      });
+      
+      dropzone.addEventListener('dragover', (e) => {
+        e.preventDefault();
+        dropzone.style.borderColor = '#36b37e';
+        dropzone.style.backgroundColor = 'rgba(54, 179, 126, 0.05)';
+      });
+      
+      dropzone.addEventListener('dragleave', () => {
+        dropzone.style.borderColor = 'rgba(255, 255, 255, 0.2)';
+        dropzone.style.backgroundColor = 'transparent';
+      });
+      
+      dropzone.addEventListener('drop', (e) => {
+        e.preventDefault();
+        dropzone.style.borderColor = 'rgba(255, 255, 255, 0.2)';
+        dropzone.style.backgroundColor = 'transparent';
+        
+        if (e.dataTransfer.files.length) {
+          fileInput.files = e.dataTransfer.files;
+          handleFileUpload(e.dataTransfer.files[0]);
+        }
+      });
+      
+      fileInput.addEventListener('change', () => {
+        if (fileInput.files.length) {
+          handleFileUpload(fileInput.files[0]);
+        }
+      });
+      
+      if (uploadBtn) {
+        uploadBtn.addEventListener('click', () => {
+          fileInput.click();
+        });
+      }
+    }
+    
+    // Trend Search
+    const trendSearchBtn = document.getElementById('trend-search-btn');
+    const trendSearchInput = document.getElementById('trend-search-input');
+    const trendTags = document.querySelectorAll('.trend-tag');
+    const trendResults = document.getElementById('trend-results');
+    const trendResultsTitle = document.getElementById('trend-results-title');
+    const strategicImplications = document.getElementById('strategic-implications');
+    
+    if (trendSearchBtn && trendSearchInput) {
+      trendSearchBtn.addEventListener('click', () => {
+        const trend = trendSearchInput.value.trim();
+        if (trend) {
+          analyzeTrend(trend);
+        }
+      });
+      
+      trendSearchInput.addEventListener('keypress', (e) => {
+        if (e.key === 'Enter') {
+          const trend = trendSearchInput.value.trim();
+          if (trend) {
+            analyzeTrend(trend);
+          }
+        }
+      });
+    }
+    
+    if (trendTags) {
+      trendTags.forEach(tag => {
+        tag.addEventListener('click', () => {
+          const trend = tag.getAttribute('data-trend');
+          if (trendSearchInput) {
+            trendSearchInput.value = trend;
+          }
+          analyzeTrend(trend);
+        });
+      });
+    }
+    
+    // Document cards
+    const documentCards = document.querySelectorAll('.document-card');
+    if (documentCards) {
+      documentCards.forEach(card => {
+        card.addEventListener('click', () => {
+          const documentId = card.getAttribute('data-id');
+          if (documentId) {
+            window.location.href = `/strategy/document/${documentId}`;
+          }
+        });
+      });
+    }
+    
+    // Create Story Button
+    const createStoryBtn = document.getElementById('create-story-btn');
+    if (createStoryBtn) {
+      createStoryBtn.addEventListener('click', () => {
+        window.location.href = '/storytelling/create';
+      });
+    }
+    
+    // Start Consultation Button
+    const startConsultationBtn = document.getElementById('start-consultation-btn');
+    if (startConsultationBtn) {
+      startConsultationBtn.addEventListener('click', () => {
+        window.location.href = '/strategy/ai-consultant';
+      });
+    }
+    
+    // Function to handle file upload
+    function handleFileUpload(file) {
+      const allowedTypes = [
+        'application/pdf', 
+        'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
+        'application/msword',
+        'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+        'application/vnd.ms-excel',
+        'text/csv'
+      ];
+      
+      if (!allowedTypes.includes(file.type)) {
+        alert('Please select a valid document file (PDF, DOCX, XLSX, or CSV)');
+        return;
+      }
+      
+      // In a real implementation, you would upload the file to the server
+      // For now, just show the filename
+      dropzone.innerHTML = `
+        <div class="pdf-icon">
+          <i class="fas fa-file-${getFileIcon(file.type)}"></i>
+        </div>
+        <p>${file.name}</p>
+        <small>${Math.round(file.size / 1024)} KB</small>
+      `;
+      
+      uploadBtn.textContent = 'Analyze Document';
+      uploadBtn.addEventListener('click', () => {
+        // Create FormData
+        const formData = new FormData();
+        formData.append('file', file);
+        
+        // Get analysis options
+        const extractEntities = document.getElementById('extract-entities')?.checked || false;
+        const benchmark = document.getElementById('benchmark')?.checked || false;
+        const regulatoryCheck = document.getElementById('regulatory-check')?.checked || false;
+        
+        formData.append('extract_entities', extractEntities);
+        formData.append('benchmark', benchmark);
+        formData.append('regulatory_check', regulatoryCheck);
+        
+        // In a real implementation, you would send this to the server
+        uploadBtn.textContent = 'Analyzing...';
+        uploadBtn.disabled = true;
+        
+        // Simulate uploading
+        setTimeout(() => {
+          alert(`Analysis started for ${file.name}. You will be notified when it's complete.`);
+          uploadBtn.textContent = 'Upload Document';
+          uploadBtn.disabled = false;
+          
+          // Reset the dropzone
+          dropzone.innerHTML = `
+            <div class="pdf-icon">
+              <i class="fas fa-file-upload"></i>
+            </div>
+            <p>Drag & drop a document or click to browse</p>
+            <small>Supported formats: PDF, DOCX, XLSX, CSV</small>
+            
+            <div class="analysis-options">
+              <div class="analysis-option">
+                <input type="checkbox" id="extract-entities" checked>
+                <label for="extract-entities">Extract Entities</label>
+              </div>
+              <div class="analysis-option">
+                <input type="checkbox" id="benchmark" checked>
+                <label for="benchmark">Industry Benchmark</label>
+              </div>
+              <div class="analysis-option">
+                <input type="checkbox" id="regulatory-check" checked>
+                <label for="regulatory-check">Regulatory Check</label>
+              </div>
+            </div>
+          `;
+        }, 2000);
+      }, { once: true });
+    }
+    
+    // Function to analyze trends
+    function analyzeTrend(trend) {
+      if (!trend) return;
+      
+      // In a real implementation, you would fetch the analysis from the server
+      // For now, just update the UI with the trend name
+      if (trendResultsTitle) {
+        trendResultsTitle.textContent = trend + ' Analysis';
+      }
+      
+      if (trendResults) {
+        trendResults.style.display = 'block';
+      }
+      
+      if (strategicImplications) {
+        strategicImplications.style.display = 'block';
+      }
+      
+      // Update strategic responses with the trend name
+      const strategicResponses = document.querySelectorAll('.strategic-response');
+      if (strategicResponses) {
+        strategicResponses.forEach(response => {
+          const text = response.textContent;
+          response.textContent = text.replace('this trend', trend);
+        });
+      }
+      
+      // Initialize the STEPPS radar chart
+      initSteppsRadarChart();
+    }
+    
+    // Initialize STEPPS Radar Chart
+    function initSteppsRadarChart() {
+      const ctx = document.getElementById('steppsRadarChart');
+      
+      if (!ctx) return;
+      
+      // Get values from STEPPS grid items
+      const steppsScores = Array.from(document.querySelectorAll('.stepps-score')).map(el => parseInt(el.textContent));
+      const steppsNames = Array.from(document.querySelectorAll('.stepps-name')).map(el => el.textContent);
+      
+      // Create a Chart.js radar chart
+      new Chart(ctx, {
+        type: 'radar',
+        data: {
+          labels: steppsNames,
+          datasets: [{
+            label: 'STEPPS Framework Analysis',
+            data: steppsScores,
+            fill: true,
+            backgroundColor: 'rgba(54, 179, 126, 0.2)',
+            borderColor: '#36b37e',
+            pointBackgroundColor: '#36b37e',
+            pointBorderColor: '#fff',
+            pointHoverBackgroundColor: '#fff',
+            pointHoverBorderColor: '#36b37e'
+          }]
+        },
+        options: {
+          elements: {
+            line: {
+              borderWidth: 3
+            }
+          },
+          scales: {
+            r: {
+              angleLines: {
+                color: 'rgba(255, 255, 255, 0.1)'
+              },
+              grid: {
+                color: 'rgba(255, 255, 255, 0.1)'
+              },
+              pointLabels: {
+                color: '#f4f5f7',
+                font: {
+                  size: 12
+                }
+              },
+              ticks: {
+                backdropColor: 'transparent',
+                color: '#c1c7d0'
+              },
+              suggestedMin: 0,
+              suggestedMax: 100
+            }
+          },
+          plugins: {
+            legend: {
+              display: false
+            },
+            tooltip: {
+              backgroundColor: 'rgba(23, 43, 77, 0.9)',
+              titleColor: '#f4f5f7',
+              bodyColor: '#f4f5f7',
+              borderColor: 'rgba(54, 179, 126, 0.3)',
+              borderWidth: 1
+            }
+          }
+        }
+      });
+    }
+    
+    // Helper function to get file icon based on file type
+    function getFileIcon(fileType) {
+      switch (fileType) {
+        case 'application/pdf':
+          return 'pdf';
+        case 'application/vnd.openxmlformats-officedocument.wordprocessingml.document':
+        case 'application/msword':
+          return 'word';
+        case 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet':
+        case 'application/vnd.ms-excel':
+          return 'excel';
+        case 'text/csv':
+          return 'csv';
+        default:
+          return 'alt';
+      }
+    }
+  });
+</script>
+{% endblock %}

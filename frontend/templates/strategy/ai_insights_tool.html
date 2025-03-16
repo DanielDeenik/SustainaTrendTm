@@ -1,334 +1,426 @@
-{% extends "base_template.html" %}
-
-{% block title %}AI Insights Strategy Tool{% endblock %}
-
-{% block additional_head %}
-<style>
-    /* Custom styles for AI Insights Strategy Tool */
-    .ai-insights-container {
-        background-color: #1e1e2d;
-        border-radius: 10px;
-        padding: 1.5rem;
-        margin-bottom: 1.5rem;
-        box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
-    }
-
-    .ai-insights-header {
-        margin-bottom: 1.5rem;
-        border-bottom: 1px solid #2d2d3d;
-        padding-bottom: 1rem;
-    }
-
-    .ai-insights-tabs {
-        display: flex;
-        border-bottom: 1px solid #2d2d3d;
-        margin-bottom: 1.5rem;
-    }
-
-    .ai-insights-tab {
-        padding: 0.75rem 1.5rem;
-        cursor: pointer;
-        border-bottom: 2px solid transparent;
-        transition: all 0.3s ease;
-        font-weight: 500;
-    }
-
-    .ai-insights-tab.active {
-        border-bottom: 2px solid #6078ea;
-        color: #6078ea;
-    }
-
-    .ai-insights-content {
-        display: none;
-    }
-
-    .ai-insights-content.active {
-        display: block;
-    }
-
-    .ai-input-group {
-        margin-bottom: 1.25rem;
-    }
-
-    .ai-label {
-        display: block;
-        margin-bottom: 0.5rem;
-        font-weight: 500;
-        color: #e0e0e0;
-    }
-
-    .ai-input, .ai-textarea, .ai-select {
-        width: 100%;
-        padding: 0.75rem;
-        background-color: #2a2a3a;
-        border: 1px solid #3a3a4a;
-        border-radius: 6px;
-        color: #f0f0f0;
-        transition: border-color 0.3s ease;
-    }
-
-    .ai-input:focus, .ai-textarea:focus, .ai-select:focus {
-        border-color: #6078ea;
-        outline: none;
-    }
-
-    .ai-textarea {
-        min-height: 100px;
-        resize: vertical;
-    }
-
-    .ai-button {
-        background-color: #6078ea;
-        color: white;
-        border: none;
-        padding: 0.75rem 1.5rem;
-        border-radius: 6px;
-        cursor: pointer;
-        font-weight: 500;
-        transition: background-color 0.3s ease;
-    }
-
-    .ai-button:hover {
-        background-color: #4a5fd7;
-    }
-
-    .ai-button:disabled {
-        background-color: #3a3a4a;
-        cursor: not-allowed;
-    }
-
-    .ai-loading {
-        display: none;
-        align-items: center;
-        justify-content: center;
-        margin-top: 1rem;
-    }
-
-    .ai-loading-spinner {
-        border: 3px solid #3a3a4a;
-        border-radius: 50%;
-        border-top: 3px solid #6078ea;
-        width: 24px;
-        height: 24px;
-        animation: spin 1s linear infinite;
-        margin-right: 0.5rem;
-    }
-
-    @keyframes spin {
-        0% { transform: rotate(0deg); }
-        100% { transform: rotate(360deg); }
-    }
-
-    .ai-strategy-result {
-        background-color: #2a2a3a;
-        border-radius: 6px;
-        padding: 1.5rem;
-        margin-top: 1.25rem;
-        white-space: pre-wrap;
-    }
-
-    .ai-strategy-result h1,
-    .ai-strategy-result h2,
-    .ai-strategy-result h3 {
-        color: #6078ea;
-        margin-top: 1rem;
-        margin-bottom: 0.5rem;
-    }
-
-    .ai-strategy-result ul {
-        padding-left: 1.5rem;
-    }
-
-    .ai-strategy-result strong {
-        color: #f0f0f0;
-    }
-</style>
-{% endblock %}
-
-{% block content %}
-
-<div class="container mt-4">
-    <div class="ai-insights-container">
-        <div class="ai-insights-header">
-            <h2 class="mb-1">AI Insights Strategy Tool</h2>
-            <p class="text-muted">Generate tailored sustainability strategies using AI-powered insights</p>
-        </div>
-
-        <div class="ai-insights-tabs">
-            <div class="ai-insights-tab active" data-target="generate">Generate Strategy</div>
-            <div class="ai-insights-tab" data-target="view">View Recommendations</div>
-        </div>
-
-        <div class="ai-insights-content active" id="generate-content">
-            <form id="ai-strategy-form">
-                <div class="row">
-                    <div class="col-md-6">
-                        <div class="ai-input-group">
-                            <label class="ai-label" for="company-name">Company Name</label>
-                            <input class="ai-input" type="text" id="company-name" placeholder="Enter company name" required>
-                        </div>
-                    </div>
-                    <div class="col-md-6">
-                        <div class="ai-input-group">
-                            <label class="ai-label" for="industry">Industry</label>
-                            <select class="ai-select" id="industry" required>
-                                <option value="">Select industry</option>
-                                <option value="Technology">Technology</option>
-                                <option value="Energy">Energy</option>
-                                <option value="Manufacturing">Manufacturing</option>
-                                <option value="Financial Services">Financial Services</option>
-                                <option value="Healthcare">Healthcare</option>
-                                <option value="Retail">Retail</option>
-                                <option value="Transportation">Transportation</option>
-                                <option value="Agriculture">Agriculture</option>
-                                <option value="Construction">Construction</option>
-                                <option value="Real Estate">Real Estate</option>
-                            </select>
-                        </div>
-                    </div>
+<div class="card shadow-sm mb-4">
+    <div class="card-header bg-dark">
+        <h5 class="card-title mb-0 text-white">
+            <i class="fas fa-robot me-2"></i> AI Strategy Insights
+        </h5>
+    </div>
+    <div class="card-body bg-dark">
+        <!-- AI Strategy Generator Form -->
+        <form id="aiStrategyForm">
+            <div class="mb-3">
+                <label for="companyName" class="form-label">Company or Organization Name</label>
+                <input type="text" class="form-control bg-dark text-light border-secondary" id="companyName" placeholder="e.g., Acme Corporation" required>
+            </div>
+            
+            <div class="mb-3">
+                <label for="industry" class="form-label">Industry</label>
+                <select class="form-select bg-dark text-light border-secondary" id="industry" required>
+                    <option value="" selected disabled>Select industry</option>
+                    <option value="technology">Technology</option>
+                    <option value="manufacturing">Manufacturing</option>
+                    <option value="retail">Retail</option>
+                    <option value="healthcare">Healthcare</option>
+                    <option value="finance">Finance</option>
+                    <option value="energy">Energy</option>
+                    <option value="transportation">Transportation</option>
+                    <option value="hospitality">Hospitality</option>
+                    <option value="construction">Construction</option>
+                    <option value="agriculture">Agriculture</option>
+                    <option value="education">Education</option>
+                    <option value="other">Other</option>
+                </select>
+            </div>
+            
+            <div class="mb-3">
+                <label for="companySize" class="form-label">Company Size</label>
+                <select class="form-select bg-dark text-light border-secondary" id="companySize" required>
+                    <option value="" selected disabled>Select company size</option>
+                    <option value="startup">Startup (1-10 employees)</option>
+                    <option value="small">Small Business (11-50 employees)</option>
+                    <option value="medium">Medium Business (51-250 employees)</option>
+                    <option value="large">Large Business (251-1000 employees)</option>
+                    <option value="enterprise">Enterprise (1000+ employees)</option>
+                </select>
+            </div>
+            
+            <div class="mb-3">
+                <label for="currentChallenges" class="form-label">Current Sustainability Challenges</label>
+                <textarea class="form-control bg-dark text-light border-secondary" id="currentChallenges" rows="3" placeholder="Describe your current sustainability challenges..."></textarea>
+            </div>
+            
+            <div class="mb-3">
+                <label for="strategicGoals" class="form-label">Strategic Goals</label>
+                <div class="form-check">
+                    <input class="form-check-input" type="checkbox" id="goalEmissions" checked>
+                    <label class="form-check-label" for="goalEmissions">
+                        Reduce carbon emissions
+                    </label>
                 </div>
-
-                <div class="ai-input-group">
-                    <label class="ai-label" for="focus-areas">Focus Areas</label>
-                    <input class="ai-input" type="text" id="focus-areas" placeholder="e.g., Carbon Reduction, Water Management, Diversity (comma-separated)">
+                <div class="form-check">
+                    <input class="form-check-input" type="checkbox" id="goalWaste">
+                    <label class="form-check-label" for="goalWaste">
+                        Minimize waste
+                    </label>
                 </div>
-
-                <div class="ai-input-group">
-                    <label class="ai-label" for="trend-input">Sustainability Trends to Analyze</label>
-                    <textarea class="ai-textarea" id="trend-input" placeholder="Enter specific trends you'd like to analyze (one per line), or leave blank for AI-recommended trends"></textarea>
+                <div class="form-check">
+                    <input class="form-check-input" type="checkbox" id="goalWater">
+                    <label class="form-check-label" for="goalWater">
+                        Improve water efficiency
+                    </label>
                 </div>
-
-                <div class="text-end">
-                    <button type="submit" id="generate-button" class="ai-button">Generate Strategy</button>
+                <div class="form-check">
+                    <input class="form-check-input" type="checkbox" id="goalEnergy">
+                    <label class="form-check-label" for="goalEnergy">
+                        Enhance energy efficiency
+                    </label>
                 </div>
-
-                <div class="ai-loading" id="ai-loading">
-                    <div class="ai-loading-spinner"></div>
-                    <span>Generating strategy insights...</span>
+                <div class="form-check">
+                    <input class="form-check-input" type="checkbox" id="goalSupply">
+                    <label class="form-check-label" for="goalSupply">
+                        Sustainable supply chain
+                    </label>
                 </div>
-            </form>
-        </div>
+                <div class="form-check">
+                    <input class="form-check-input" type="checkbox" id="goalReporting">
+                    <label class="form-check-label" for="goalReporting">
+                        Enhance ESG reporting
+                    </label>
+                </div>
+            </div>
 
-        <div class="ai-insights-content" id="view-content">
-            <div id="ai-strategy-output">
-                <p class="text-center text-muted my-5">No strategy generated yet. Use the "Generate Strategy" tab to create a new strategy.</p>
+            <div class="mb-3">
+                <label for="insightType" class="form-label">Insight Type</label>
+                <select class="form-select bg-dark text-light border-secondary" id="insightType" required>
+                    <option value="comprehensive" selected>Comprehensive Strategy</option>
+                    <option value="quick">Quick Recommendations</option>
+                    <option value="regulatory">Regulatory Compliance Focus</option>
+                    <option value="innovation">Innovation Opportunities</option>
+                    <option value="competitive">Competitive Analysis</option>
+                </select>
+            </div>
+            
+            <div class="d-grid">
+                <button type="submit" class="btn btn-primary" id="generateInsightsBtn">
+                    <i class="fas fa-brain me-2"></i> Generate AI Insights
+                </button>
+            </div>
+        </form>
+
+        <!-- Results Section (initially hidden) -->
+        <div id="insightsResults" class="mt-4 d-none">
+            <div class="d-flex justify-content-between align-items-center mb-3">
+                <h6 class="border-bottom pb-2 mb-0">Generated Insights</h6>
+                <div>
+                    <button class="btn btn-sm btn-outline-success me-2" id="exportInsightsBtn">
+                        <i class="fas fa-file-export me-1"></i> Export
+                    </button>
+                    <button class="btn btn-sm btn-outline-secondary" id="resetInsightsBtn">
+                        <i class="fas fa-redo me-1"></i> New
+                    </button>
+                </div>
+            </div>
+            
+            <div id="loadingInsights" class="text-center py-5">
+                <div class="spinner-border text-primary" role="status">
+                    <span class="visually-hidden">Loading...</span>
+                </div>
+                <p class="mt-3">Generating strategic insights with AI...</p>
+                <p class="text-muted small">This may take a moment as we analyze your data against optimal strategies.</p>
+            </div>
+            
+            <div id="insightsContent" class="d-none">
+                <!-- Content will be populated by JavaScript -->
             </div>
         </div>
     </div>
 </div>
 
-{% endblock %}
-
-{% block scripts %}
 <script>
-    document.addEventListener('DOMContentLoaded', function() {
-        // Tab switching
-        const tabs = document.querySelectorAll('.ai-insights-tab');
-        tabs.forEach(tab => {
-            tab.addEventListener('click', function() {
-                // Remove active class from all tabs
-                tabs.forEach(t => t.classList.remove('active'));
-                // Add active class to current tab
-                this.classList.add('active');
-                
-                // Hide all content sections
-                document.querySelectorAll('.ai-insights-content').forEach(content => {
-                    content.classList.remove('active');
-                });
-                
-                // Show selected content
-                const target = this.getAttribute('data-target');
-                document.getElementById(`${target}-content`).classList.add('active');
-            });
-        });
-
-        // Form submission for generating strategy
-        const strategyForm = document.getElementById('ai-strategy-form');
-        strategyForm.addEventListener('submit', function(event) {
+document.addEventListener('DOMContentLoaded', function() {
+    const aiStrategyForm = document.getElementById('aiStrategyForm');
+    const generateInsightsBtn = document.getElementById('generateInsightsBtn');
+    const insightsResults = document.getElementById('insightsResults');
+    const loadingInsights = document.getElementById('loadingInsights');
+    const insightsContent = document.getElementById('insightsContent');
+    const exportInsightsBtn = document.getElementById('exportInsightsBtn');
+    const resetInsightsBtn = document.getElementById('resetInsightsBtn');
+    
+    if (aiStrategyForm) {
+        aiStrategyForm.addEventListener('submit', function(event) {
             event.preventDefault();
             
-            // Get form values
-            const companyName = document.getElementById('company-name').value;
-            const industry = document.getElementById('industry').value;
-            const focusAreas = document.getElementById('focus-areas').value;
-            const trendInput = document.getElementById('trend-input').value;
-            
-            // Validate required fields
-            if (!companyName || !industry) {
-                alert('Company name and industry are required');
-                return;
-            }
-            
-            // Show loading indicator
-            document.getElementById('ai-loading').style.display = 'flex';
-            document.getElementById('generate-button').disabled = true;
-            
-            // Prepare data for API call
-            const requestData = {
-                companyName,
-                industry,
-                focusAreas,
-                trendInput
+            // Collect form data
+            const formData = {
+                company_name: document.getElementById('companyName').value,
+                industry: document.getElementById('industry').value,
+                company_size: document.getElementById('companySize').value,
+                current_challenges: document.getElementById('currentChallenges').value,
+                strategic_goals: [],
+                insight_type: document.getElementById('insightType').value
             };
             
-            // Make API call to generate strategy
-            fetch('/api/generate-strategy', {
+            // Collect checked goals
+            if (document.getElementById('goalEmissions').checked) formData.strategic_goals.push('emissions_reduction');
+            if (document.getElementById('goalWaste').checked) formData.strategic_goals.push('waste_minimization');
+            if (document.getElementById('goalWater').checked) formData.strategic_goals.push('water_efficiency');
+            if (document.getElementById('goalEnergy').checked) formData.strategic_goals.push('energy_efficiency');
+            if (document.getElementById('goalSupply').checked) formData.strategic_goals.push('sustainable_supply_chain');
+            if (document.getElementById('goalReporting').checked) formData.strategic_goals.push('esg_reporting');
+            
+            // Show loading state
+            generateInsightsBtn.innerHTML = '<span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span> Generating...';
+            generateInsightsBtn.disabled = true;
+            insightsResults.classList.remove('d-none');
+            loadingInsights.classList.remove('d-none');
+            insightsContent.classList.add('d-none');
+            
+            // Call API to generate insights
+            fetch('/api/strategy-hub/generate-insights', {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json'
                 },
-                body: JSON.stringify(requestData)
+                body: JSON.stringify(formData)
             })
-            .then(response => response.json())
-            .then(data => {
-                // Hide loading indicator
-                document.getElementById('ai-loading').style.display = 'none';
-                document.getElementById('generate-button').disabled = false;
-                
-                if (data.status === 'success') {
-                    // Display the strategy result
-                    const outputElement = document.getElementById('ai-strategy-output');
-                    
-                    // Convert markdown-like format to HTML
-                    const formattedOutput = formatMarkdown(data.result.result);
-                    outputElement.innerHTML = `<div class="ai-strategy-result">${formattedOutput}</div>`;
-                    
-                    // Switch to the View tab
-                    document.querySelector('.ai-insights-tab[data-target="view"]').click();
-                } else {
-                    // Show error message
-                    alert(`Error: ${data.message}`);
+            .then(response => {
+                if (!response.ok) {
+                    throw new Error('Network response was not ok');
                 }
+                return response.json();
+            })
+            .then(data => {
+                // Display the results
+                displayInsights(data);
+                
+                // Hide loading state
+                loadingInsights.classList.add('d-none');
+                insightsContent.classList.remove('d-none');
+                
+                // Reset button
+                generateInsightsBtn.innerHTML = '<i class="fas fa-brain me-2"></i> Generate AI Insights';
+                generateInsightsBtn.disabled = false;
             })
             .catch(error => {
-                console.error('Error:', error);
-                document.getElementById('ai-loading').style.display = 'none';
-                document.getElementById('generate-button').disabled = false;
-                alert('An error occurred while generating the strategy. Please try again.');
+                console.error('Error generating insights:', error);
+                
+                // Display error message
+                insightsContent.innerHTML = `
+                    <div class="alert alert-danger">
+                        <h6><i class="fas fa-exclamation-triangle me-2"></i> Error Generating Insights</h6>
+                        <p>We encountered an error while generating your strategy insights. Please try again later.</p>
+                        <p class="text-muted small">Error details: ${error.message}</p>
+                    </div>
+                `;
+                
+                // Hide loading state
+                loadingInsights.classList.add('d-none');
+                insightsContent.classList.remove('d-none');
+                
+                // Reset button
+                generateInsightsBtn.innerHTML = '<i class="fas fa-brain me-2"></i> Generate AI Insights';
+                generateInsightsBtn.disabled = false;
             });
         });
+    }
+    
+    // Export insights button
+    if (exportInsightsBtn) {
+        exportInsightsBtn.addEventListener('click', function() {
+            exportToPDF();
+        });
+    }
+    
+    // Reset button
+    if (resetInsightsBtn) {
+        resetInsightsBtn.addEventListener('click', function() {
+            // Reset form
+            aiStrategyForm.reset();
+            
+            // Hide results section
+            insightsResults.classList.add('d-none');
+            
+            // Scroll to form top
+            aiStrategyForm.scrollIntoView({ behavior: 'smooth' });
+        });
+    }
+    
+    function displayInsights(data) {
+        // Create insights content
+        let html = '';
         
-        // Function to convert markdown-like text to HTML
-        function formatMarkdown(text) {
-            if (!text) return '';
+        // Add executive summary
+        html += `
+            <div class="mb-4">
+                <h5 class="mb-3">Executive Summary</h5>
+                <div class="card bg-dark-subtle border-0 p-3">
+                    <p>${data.executive_summary}</p>
+                </div>
+            </div>
+        `;
+        
+        // Add strategic recommendations
+        html += `
+            <div class="mb-4">
+                <h5 class="mb-3">Strategic Recommendations</h5>
+                <div class="list-group">
+        `;
+        
+        data.recommendations.forEach((rec, index) => {
+            let priorityBadge = '';
+            if (rec.priority === 'high') {
+                priorityBadge = '<span class="badge bg-danger ms-2">High Priority</span>';
+            } else if (rec.priority === 'medium') {
+                priorityBadge = '<span class="badge bg-warning ms-2">Medium Priority</span>';
+            } else {
+                priorityBadge = '<span class="badge bg-info ms-2">Standard Priority</span>';
+            }
             
-            // Replace headings
-            text = text.replace(/^# (.+)$/gm, '<h1>$1</h1>');
-            text = text.replace(/^## (.+)$/gm, '<h2>$1</h2>');
-            text = text.replace(/^### (.+)$/gm, '<h3>$1</h3>');
+            html += `
+                <div class="list-group-item bg-dark border-secondary">
+                    <div class="d-flex w-100 justify-content-between">
+                        <h6 class="mb-1">${index + 1}. ${rec.title} ${priorityBadge}</h6>
+                        <small class="text-muted">${rec.timeframe}</small>
+                    </div>
+                    <p class="mb-1">${rec.description}</p>
+                    <div class="d-flex justify-content-between align-items-center mt-2">
+                        <small class="text-muted">Impact: ${rec.impact}</small>
+                        <small class="text-muted">Implementation Complexity: ${rec.complexity}</small>
+                    </div>
+                </div>
+            `;
+        });
+        
+        html += `
+                </div>
+            </div>
+        `;
+        
+        // Add KPIs and metrics
+        html += `
+            <div class="mb-4">
+                <h5 class="mb-3">Key Performance Indicators</h5>
+                <div class="row">
+        `;
+        
+        data.kpis.forEach(kpi => {
+            html += `
+                <div class="col-md-6 mb-3">
+                    <div class="card bg-dark border-secondary h-100">
+                        <div class="card-body">
+                            <h6 class="card-title">${kpi.name}</h6>
+                            <p class="card-text">${kpi.description}</p>
+                            <div class="text-muted small">
+                                <div><strong>Measurement:</strong> ${kpi.measurement}</div>
+                                <div><strong>Target:</strong> ${kpi.target}</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            `;
+        });
+        
+        html += `
+                </div>
+            </div>
+        `;
+        
+        // Add implementation roadmap
+        html += `
+            <div class="mb-4">
+                <h5 class="mb-3">Implementation Roadmap</h5>
+                <div class="card bg-dark border-secondary">
+                    <div class="card-body">
+                        <div class="row">
+                            <div class="col-md-4 mb-3 mb-md-0">
+                                <h6 class="border-bottom pb-2">Short-term (0-6 months)</h6>
+                                <ul class="list-unstyled">
+        `;
+        
+        data.roadmap.short_term.forEach(item => {
+            html += `<li class="mb-2"><i class="fas fa-check-circle text-success me-2"></i>${item}</li>`;
+        });
+        
+        html += `
+                                </ul>
+                            </div>
+                            <div class="col-md-4 mb-3 mb-md-0">
+                                <h6 class="border-bottom pb-2">Medium-term (6-18 months)</h6>
+                                <ul class="list-unstyled">
+        `;
+        
+        data.roadmap.medium_term.forEach(item => {
+            html += `<li class="mb-2"><i class="fas fa-circle text-warning me-2"></i>${item}</li>`;
+        });
+        
+        html += `
+                                </ul>
+                            </div>
+                            <div class="col-md-4">
+                                <h6 class="border-bottom pb-2">Long-term (18+ months)</h6>
+                                <ul class="list-unstyled">
+        `;
+        
+        data.roadmap.long_term.forEach(item => {
+            html += `<li class="mb-2"><i class="fas fa-circle text-info me-2"></i>${item}</li>`;
+        });
+        
+        html += `
+                                </ul>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        `;
+        
+        // Add risk assessment
+        html += `
+            <div class="mb-4">
+                <h5 class="mb-3">Risk Assessment</h5>
+                <div class="table-responsive">
+                    <table class="table table-dark">
+                        <thead>
+                            <tr>
+                                <th>Risk Factor</th>
+                                <th>Likelihood</th>
+                                <th>Impact</th>
+                                <th>Mitigation Strategy</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+        `;
+        
+        data.risks.forEach(risk => {
+            let likelihoodClass = risk.likelihood === 'High' ? 'text-danger' : 
+                               risk.likelihood === 'Medium' ? 'text-warning' : 'text-success';
+            let impactClass = risk.impact === 'High' ? 'text-danger' : 
+                           risk.impact === 'Medium' ? 'text-warning' : 'text-success';
             
-            // Replace bullet points
-            text = text.replace(/^\* (.+)$/gm, '<li>$1</li>');
-            text = text.replace(/(<li>.+<\/li>\n)+/g, '<ul>$&</ul>');
-            
-            // Replace line breaks
-            text = text.replace(/\n\n/g, '<br><br>');
-            
-            // Replace strong/bold
-            text = text.replace(/\*\*(.+?)\*\*/g, '<strong>$1</strong>');
-            
-            return text;
-        }
-    });
+            html += `
+                <tr>
+                    <td>${risk.factor}</td>
+                    <td class="${likelihoodClass}">${risk.likelihood}</td>
+                    <td class="${impactClass}">${risk.impact}</td>
+                    <td>${risk.mitigation}</td>
+                </tr>
+            `;
+        });
+        
+        html += `
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        `;
+        
+        // Set the HTML content
+        insightsContent.innerHTML = html;
+    }
+    
+    function exportToPDF() {
+        // In a real implementation, this would generate a PDF
+        // For now, we'll just show a message
+        alert('Export feature would generate a PDF of the insights in a production environment.');
+    }
+});
 </script>
-{% endblock %}
