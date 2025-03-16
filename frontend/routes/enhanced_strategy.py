@@ -49,12 +49,10 @@ def enhanced_strategy_hub():
     """
     Enhanced Strategy Hub with Finchat.io-level UI and Interactive Components
     
-    This combines all strategy-related features into a modern, tabbed interface:
-    - Document Intelligence with PDF analysis
-    - Trend Analysis with interactive visualization
-    - Strategic Recommendations with implementation roadmap
-    - Data-Driven Storytelling with charts
-    - AI Strategy Consultant
+    This combines all strategy-related features into a modern, 3-dashboard interface:
+    - Strategy Modeler: Document analysis with PDF upload capabilities
+    - Virality Trends: Trend analysis with STEPPS framework visualization
+    - Data Analysis: Flexible data integration from multiple sources
     """
     logger.info("Enhanced Strategy Hub route called")
     

@@ -174,7 +174,16 @@ document.addEventListener('DOMContentLoaded', function() {
             loadingInsights.classList.remove('d-none');
             insightsContent.classList.add('d-none');
             
-            // Call API to generate insights
+            // Check if regulatory compliance focus was selected
+            if (formData.insight_type === 'regulatory') {
+                // Redirect to the Regulatory AI Agent with form data as parameters
+                window.location.href = '/regulatory-ai/?company=' + encodeURIComponent(formData.company_name) 
+                    + '&industry=' + encodeURIComponent(formData.industry)
+                    + '&challenges=' + encodeURIComponent(formData.current_challenges);
+                return; // Exit early
+            }
+            
+            // Call API to generate insights for other types
             fetch('/api/strategy-hub/generate-insights', {
                 method: 'POST',
                 headers: {

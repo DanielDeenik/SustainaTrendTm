@@ -60,6 +60,13 @@ def register_blueprints(app):
         logger.info("Science-Based Targets blueprint imported successfully")
     except ImportError as e:
         logger.warning(f"Science-Based Targets blueprint import failed: {str(e)}")
+        
+    # Import regulatory AI agent blueprint
+    try:
+        from .regulatory_ai_agent import regulatory_ai_bp, register_blueprint as register_regulatory_ai
+        logger.info("Regulatory AI Agent blueprint imported successfully")
+    except ImportError as e:
+        logger.warning(f"Regulatory AI Agent blueprint import failed: {str(e)}")
     
     # Register blueprints
     app.register_blueprint(analytics_bp)
@@ -95,5 +102,12 @@ def register_blueprints(app):
         logger.info("Science-Based Targets blueprint registered successfully")
     except NameError:
         logger.warning("Science-Based Targets blueprint not registered due to import failure")
+    
+    # Register regulatory AI agent blueprint
+    try:
+        register_regulatory_ai(app)
+        logger.info("Regulatory AI Agent blueprint registered successfully")
+    except NameError:
+        logger.warning("Regulatory AI Agent blueprint not registered due to import failure")
     
     logger.info("All blueprints registered successfully")

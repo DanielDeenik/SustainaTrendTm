@@ -214,6 +214,20 @@
         
         <div class="col-md-6 col-lg-4 col-xl-3">
             <div class="card dashboard-card h-100">
+                <span class="feature-badge badge bg-success">Available</span>
+                <div class="card-body text-center">
+                    <div class="card-icon bg-danger bg-opacity-10 text-danger mx-auto">
+                        <i class="fas fa-balance-scale"></i>
+                    </div>
+                    <h5 class="card-title">Regulatory AI Agent</h5>
+                    <p class="card-text small">Analyze regulatory compliance across multiple frameworks.</p>
+                    <a href="{{ url_for('regulatory_ai.index') }}" class="btn btn-danger btn-sm">Analyze</a>
+                </div>
+            </div>
+        </div>
+        
+        <div class="col-md-6 col-lg-4 col-xl-3">
+            <div class="card dashboard-card h-100">
                 {% if document_processor_available %}
                 <span class="feature-badge badge bg-success">Available</span>
                 {% else %}

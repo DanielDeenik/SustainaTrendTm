@@ -103,16 +103,27 @@ except ImportError as e:
     DOCUMENT_PROCESSOR_AVAILABLE = False
     logger.warning(f"Document processor not available: {e}")
 
-# Import ESRS Framework Module
+# Import Regulatory AI Agent Module
 try:
     from monetization_strategies import register_routes as register_monetization_strategies_routes
-    # Keep ESRS import for backward compatibility until fully migrated
+    # Import new Regulatory AI Agent module
     try:
-        from esrs_framework import register_routes as register_esrs_framework_routes
+        from regulatory_ai_agent import register_routes as register_regulatory_ai_agent_routes
+        REGULATORY_AI_AVAILABLE = True
+        logger.info("Regulatory AI Agent module loaded successfully")
     except ImportError:
-        logger.info("ESRS Framework module not found - using Monetization Strategies instead")
-    ESRS_FRAMEWORK_AVAILABLE = True
-    logger.info("ESRS Framework module loaded successfully")
+        REGULATORY_AI_AVAILABLE = False
+        logger.warning("Regulatory AI Agent module not found - fallback to ESRS if available")
+        # Try to import legacy ESRS module as fallback
+        try:
+            from esrs_framework import register_routes as register_esrs_framework_routes
+            ESRS_FRAMEWORK_AVAILABLE = True
+            logger.info("Legacy ESRS Framework module loaded as fallback")
+        except ImportError:
+            ESRS_FRAMEWORK_AVAILABLE = False
+            logger.warning("Legacy ESRS Framework module not found")
+    MONETIZATION_AVAILABLE = True
+    logger.info("Monetization Strategies module loaded successfully")
 except ImportError as e:
     ESRS_FRAMEWORK_AVAILABLE = False
     logger.warning(f"ESRS Framework module not available: {e}")
@@ -191,16 +202,32 @@ if ETHICAL_AI_AVAILABLE:
     register_ethical_ai_routes(app)
     logger.info("Ethical AI Compliance routes registered successfully")
 
+# Register Regulatory AI Agent routes if available
+if REGULATORY_AI_AVAILABLE:
+    # Register Regulatory AI Agent routes
+    try:
+        register_regulatory_ai_agent_routes(app)
+        logger.info("Regulatory AI Agent routes registered successfully")
+    except NameError:
+        logger.warning("Failed to register Regulatory AI Agent routes")
+
 # Register Monetization Strategies routes if available
-if ESRS_FRAMEWORK_AVAILABLE:
-    # Register new Monetization Strategies routes
+if MONETIZATION_AVAILABLE:
+    # Register Monetization Strategies routes
     try:
         register_monetization_strategies_routes(app)
         logger.info("Monetization Strategies routes registered successfully")
     except NameError:
-        # Fall back to ESRS Framework routes for backward compatibility
+        logger.warning("Failed to register Monetization Strategies routes")
+
+# Register legacy ESRS Framework routes if no Regulatory AI Agent but ESRS is available
+if not REGULATORY_AI_AVAILABLE and ESRS_FRAMEWORK_AVAILABLE:
+    # Fall back to ESRS Framework routes for backward compatibility
+    try:
         register_esrs_framework_routes(app)
-        logger.info("ESRS Framework routes registered as fallback")
+        logger.info("Legacy ESRS Framework routes registered as fallback")
+    except NameError:
+        logger.warning("Failed to register legacy ESRS Framework routes")
 
 # Register Marketing Strategies routes if available
 if MARKETING_STRATEGIES_AVAILABLE:
