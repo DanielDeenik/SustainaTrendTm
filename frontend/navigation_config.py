@@ -82,6 +82,15 @@ def get_navigation_structure():
                         "badge": "New",
                         "badge_color": "success",
                         "description": "Unified strategy, simulation & monetization center"
+                    },
+                    {
+                        "id": "strategy-modeling",
+                        "title": "Strategy Modeling",
+                        "url": "/strategy-modeling-tool",
+                        "icon": "fa-chart-line",
+                        "badge": "New",
+                        "badge_color": "primary",
+                        "description": "Interactive strategy modeling with visualizations"
                     }
                 ]
             },

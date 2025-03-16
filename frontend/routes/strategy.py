@@ -225,6 +225,33 @@ def strategy_hub():
     # Redirect to the new unified Strategy Hub
     return redirect(url_for('strategy.unified_strategy_hub'))
 
+@strategy_bp.route('/strategy-modeling-tool')
+def strategy_modeling_tool():
+    """
+    Interactive Strategy Modeling Tool page
+    
+    This page provides an interactive tool for modeling sustainability strategies with:
+    - Adjustable input variables (industry sector, sustainability goals, etc.)
+    - Real-time visualization updates
+    - AI-powered recommendations based on the modeled strategy
+    """
+    logger.info("Strategy Modeling Tool route called")
+    
+    try:
+        # We're using a standalone template that doesn't rely on complex inheritance
+        # and navigation structures, so we can render it directly
+        return render_template(
+            "strategy/strategy_modeling.html",
+            page_title="Strategy Modeling Tool"
+        )
+    except Exception as e:
+        logger.error(f"Error in strategy modeling tool: {str(e)}")
+        logger.error(traceback.format_exc())
+        
+        # Redirect to unified strategy hub in case of error
+        flash("An error occurred loading the Strategy Modeling Tool. Please try again later.", "error")
+        return redirect(url_for('strategy.unified_strategy_hub'))
+
 # Legacy Strategy Hub implementation kept here for reference
 def legacy_strategy_hub():
     """

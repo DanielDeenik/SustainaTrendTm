@@ -1,33 +1,27 @@
-<!-- AI Consultant Input Component -->
-<div class="strategy-hub-section" id="ai-consultant">
-    <div class="dashboard-section-title d-flex justify-content-between align-items-center">
+<!-- AI Strategy Consultant Component - Enhanced Minimalist Version -->
+<div class="strategy-hub-section consultant-section" id="ai-consultant">
+    <div class="dashboard-section-title d-flex justify-content-between align-items-center mb-3">
         <div>
-            <i class="fas fa-robot"></i>
+            <i class="fas fa-robot text-primary"></i>
             <h3 class="mb-0">AI Strategy Consultant</h3>
         </div>
-        <button class="btn btn-sm btn-outline-primary" data-bs-toggle="modal" data-bs-target="#aiConsultantInfoModal">
-            <i class="fas fa-info-circle"></i> How It Works
+        <button class="btn btn-sm btn-outline-consultant rounded-pill" data-bs-toggle="modal" data-bs-target="#aiConsultantInfoModal">
+            <i class="fas fa-info-circle me-1"></i> Info
         </button>
     </div>
     
-    <div class="card shadow-sm">
-        <div class="card-body">
-            <p class="card-text">
-                <i class="fas fa-lightbulb text-warning me-2"></i>
-                Enter a sustainability trend or challenge to receive AI-generated strategic analysis and recommendations.
-            </p>
-            
-            <form id="aiConsultantForm" class="mb-4">
-                <div class="row g-3">
-                    <div class="col-md-12">
-                        <label for="trendInput" class="form-label">Sustainability Trend/Challenge</label>
-                        <input type="text" class="form-control bg-darker" id="trendInput" 
-                               placeholder="e.g., Carbon Footprint Transparency, Circular Packaging Solutions" required>
-                    </div>
-                    
+    <div class="card border-0 shadow-sm bg-dark analysis-card">
+        <div class="card-body p-4">
+            <!-- Minimalist Input Form -->
+            <div id="consultantInputContainer">
+                <div class="mb-3">
+                    <input type="text" class="form-control form-control-lg bg-darker border-0 rounded-pill" id="trendInput" 
+                           placeholder="Enter a sustainability trend or challenge..." required>
+                </div>
+                
+                <div class="row g-3 mb-4">
                     <div class="col-md-4">
-                        <label for="industryInput" class="form-label">Industry</label>
-                        <select class="form-select bg-darker" id="industryInput">
+                        <select class="form-select bg-darker border-0 rounded-pill" id="industryInput">
                             <option value="General">General</option>
                             <option value="Technology">Technology</option>
                             <option value="Manufacturing">Manufacturing</option>
@@ -44,8 +38,7 @@
                     </div>
                     
                     <div class="col-md-4">
-                        <label for="timeframeInput" class="form-label">Timeframe</label>
-                        <select class="form-select bg-darker" id="timeframeInput">
+                        <select class="form-select bg-darker border-0 rounded-pill" id="timeframeInput">
                             <option value="short">Short Term (1 Year)</option>
                             <option value="medium" selected>Medium Term (3 Years)</option>
                             <option value="long">Long Term (5+ Years)</option>
@@ -53,158 +46,169 @@
                     </div>
                     
                     <div class="col-md-4">
-                        <label for="outputFormatInput" class="form-label">Output Format</label>
-                        <select class="form-select bg-darker" id="outputFormatInput">
+                        <select class="form-select bg-darker border-0 rounded-pill" id="outputFormatInput">
                             <option value="summary">Analysis Summary</option>
                             <option value="detailed">Detailed Analysis</option>
-                            <option value="document">Full Strategy Document</option>
+                            <option value="document">Full Document</option>
                         </select>
                     </div>
-                    
-                    <div class="col-12">
-                        <label class="form-label d-block">Frameworks to Include</label>
-                        <div class="row g-2">
-                            <div class="col-md-3 col-sm-6">
-                                <div class="form-check">
-                                    <input class="form-check-input" type="checkbox" value="STEPPS" id="frameworkStepps" checked>
-                                    <label class="form-check-label" for="frameworkStepps">
-                                        STEPPS Virality
-                                    </label>
-                                </div>
-                            </div>
-                            <div class="col-md-3 col-sm-6">
-                                <div class="form-check">
-                                    <input class="form-check-input" type="checkbox" value="Porter's Five Forces" id="frameworkPorter" checked>
-                                    <label class="form-check-label" for="frameworkPorter">
-                                        Porter's Five Forces
-                                    </label>
-                                </div>
-                            </div>
-                            <div class="col-md-3 col-sm-6">
-                                <div class="form-check">
-                                    <input class="form-check-input" type="checkbox" value="SWOT" id="frameworkSwot">
-                                    <label class="form-check-label" for="frameworkSwot">
-                                        SWOT Analysis
-                                    </label>
-                                </div>
-                            </div>
-                            <div class="col-md-3 col-sm-6">
-                                <div class="form-check">
-                                    <input class="form-check-input" type="checkbox" value="PESTEL" id="frameworkPestel">
-                                    <label class="form-check-label" for="frameworkPestel">
-                                        PESTEL Analysis
-                                    </label>
-                                </div>
-                            </div>
-                        </div>
+                </div>
+                
+                <!-- Minimalist Frameworks Toggle -->
+                <div class="d-flex justify-content-between mb-4 align-items-center">
+                    <span class="text-muted small">Selected frameworks:</span>
+                    <div class="framework-pills">
+                        <span class="badge bg-primary-subtle text-primary rounded-pill px-3 py-2 me-2 mb-2 framework-badge active" data-framework="STEPPS">STEPPS</span>
+                        <span class="badge bg-primary-subtle text-primary rounded-pill px-3 py-2 me-2 mb-2 framework-badge active" data-framework="Porter's Five Forces">Porter's</span>
+                        <span class="badge bg-primary-subtle text-primary rounded-pill px-3 py-2 me-2 mb-2 framework-badge" data-framework="SWOT">SWOT</span>
+                        <span class="badge bg-primary-subtle text-primary rounded-pill px-3 py-2 me-2 mb-2 framework-badge" data-framework="PESTEL">PESTEL</span>
                     </div>
                 </div>
                 
-                <div class="d-grid gap-2 mt-4">
-                    <button type="submit" class="btn btn-primary" id="generateAnalysisBtn">
-                        <i class="fas fa-magic me-2"></i> Generate Strategic Analysis
-                    </button>
+                <!-- Hidden checkboxes for compatibility -->
+                <div class="d-none">
+                    <input type="checkbox" id="frameworkStepps" value="STEPPS" checked>
+                    <input type="checkbox" id="frameworkPorter" value="Porter's Five Forces" checked>
+                    <input type="checkbox" id="frameworkSwot" value="SWOT">
+                    <input type="checkbox" id="frameworkPestel" value="PESTEL">
                 </div>
-            </form>
-            
-            <!-- Loading indicator (initially hidden) -->
-            <div id="analysisLoading" class="text-center my-4" style="display: none;">
-                <div class="spinner-border text-primary" role="status">
-                    <span class="visually-hidden">Analyzing...</span>
-                </div>
-                <p class="mt-2">Your AI strategy consultant is analyzing the trend...</p>
+                
+                <form id="aiConsultantForm">
+                    <div class="d-grid">
+                        <button type="submit" class="btn btn-consultant btn-lg rounded-pill" id="generateAnalysisBtn">
+                            <i class="fas fa-magic me-2"></i> Generate Strategic Analysis
+                        </button>
+                    </div>
+                </form>
             </div>
             
-            <!-- Results container (initially hidden) -->
-            <div id="analysisResults" style="display: none;">
-                <hr>
-                <h4 class="mb-3" id="resultsTrendTitle"></h4>
-                
-                <!-- Analysis Summary Section -->
-                <div class="card bg-darker mb-4">
-                    <div class="card-header d-flex justify-content-between align-items-center">
-                        <h5 class="mb-0">Executive Summary</h5>
-                        <span class="badge bg-primary" id="resultIndustryBadge"></span>
+            <!-- Enhanced Loading Indicator -->
+            <div id="analysisLoading" class="text-center my-5 py-4" style="display: none;">
+                <div class="position-relative d-inline-block loading-container">
+                    <div class="spinner-grow text-primary" role="status" style="width: 3rem; height: 3rem;">
+                        <span class="visually-hidden">Analyzing...</span>
                     </div>
-                    <div class="card-body">
-                        <p id="analysisSummary"></p>
+                    <div class="spinner-grow text-primary position-absolute top-0 start-0" role="status" style="width: 3rem; height: 3rem; opacity: 0.3; animation-delay: 0.2s;">
+                        <span class="visually-hidden">Analyzing...</span>
+                    </div>
+                    <div class="spinner-grow text-primary position-absolute top-0 start-0" role="status" style="width: 3rem; height: 3rem; opacity: 0.1; animation-delay: 0.4s;">
+                        <span class="visually-hidden">Analyzing...</span>
+                    </div>
+                </div>
+                <p class="mt-4 text-primary fw-bold">Your AI strategy consultant is analyzing the trend...</p>
+                <div class="progress mt-2" style="height: 6px;">
+                    <div class="progress-bar progress-bar-striped progress-bar-animated" role="progressbar" style="width: 100%"></div>
+                </div>
+            </div>
+            
+            <!-- Results container - Improved Minimalist Design -->
+            <div id="analysisResults" style="display: none;">
+                <div class="d-flex justify-content-between align-items-center mb-4">
+                    <h4 class="mb-0 fw-bold" id="resultsTrendTitle"></h4>
+                    <span class="badge bg-primary rounded-pill px-3 py-2" id="resultIndustryBadge"></span>
+                </div>
+                
+                <!-- Analysis Summary Card -->
+                <div class="card bg-darker border-0 rounded-4 shadow-sm mb-4">
+                    <div class="card-body p-4">
+                        <h5 class="mb-3 text-primary"><i class="fas fa-bullseye me-2"></i>Executive Summary</h5>
+                        <p id="analysisSummary" class="lead"></p>
                     </div>
                 </div>
                 
-                <!-- Recommendations Section -->
-                <div class="row mb-4">
-                    <div class="col-md-6">
-                        <div class="card bg-darker h-100">
-                            <div class="card-header">
-                                <h5 class="mb-0">Strategic Recommendations</h5>
-                            </div>
-                            <div class="card-body">
+                <!-- Tabbed Results for Minimal UI -->
+                <ul class="nav nav-pills nav-fill mb-4" id="analysisResultsTabs" role="tablist">
+                    <li class="nav-item" role="presentation">
+                        <button class="nav-link active" id="recommendations-tab" data-bs-toggle="tab" data-bs-target="#recommendations-tab-pane" type="button" role="tab" aria-controls="recommendations-tab-pane" aria-selected="true">
+                            <i class="fas fa-check-circle me-1"></i> Recommendations
+                        </button>
+                    </li>
+                    <li class="nav-item" role="presentation">
+                        <button class="nav-link" id="actions-tab" data-bs-toggle="tab" data-bs-target="#actions-tab-pane" type="button" role="tab" aria-controls="actions-tab-pane" aria-selected="false">
+                            <i class="fas fa-play-circle me-1"></i> Actions
+                        </button>
+                    </li>
+                    <li class="nav-item" role="presentation">
+                        <button class="nav-link" id="opportunities-tab" data-bs-toggle="tab" data-bs-target="#opportunities-tab-pane" type="button" role="tab" aria-controls="opportunities-tab-pane" aria-selected="false">
+                            <i class="fas fa-arrow-up me-1"></i> Opportunities
+                        </button>
+                    </li>
+                    <li class="nav-item" role="presentation">
+                        <button class="nav-link" id="threats-tab" data-bs-toggle="tab" data-bs-target="#threats-tab-pane" type="button" role="tab" aria-controls="threats-tab-pane" aria-selected="false">
+                            <i class="fas fa-arrow-down me-1"></i> Threats
+                        </button>
+                    </li>
+                    <li class="nav-item" role="presentation">
+                        <button class="nav-link" id="frameworks-tab" data-bs-toggle="tab" data-bs-target="#frameworks-tab-pane" type="button" role="tab" aria-controls="frameworks-tab-pane" aria-selected="false">
+                            <i class="fas fa-chart-network me-1"></i> Frameworks
+                        </button>
+                    </li>
+                </ul>
+                
+                <div class="tab-content" id="analysisResultsTabContent">
+                    <!-- Recommendations Tab -->
+                    <div class="tab-pane fade show active" id="recommendations-tab-pane" role="tabpanel" aria-labelledby="recommendations-tab" tabindex="0">
+                        <div class="card bg-darker border-0 rounded-4 shadow-sm">
+                            <div class="card-body p-4">
                                 <ul class="list-group list-group-flush" id="recommendationsList">
                                 </ul>
                             </div>
                         </div>
                     </div>
-                    <div class="col-md-6">
-                        <div class="card bg-darker h-100">
-                            <div class="card-header">
-                                <h5 class="mb-0">Implementation Actions</h5>
-                            </div>
-                            <div class="card-body">
+                    
+                    <!-- Actions Tab -->
+                    <div class="tab-pane fade" id="actions-tab-pane" role="tabpanel" aria-labelledby="actions-tab" tabindex="0">
+                        <div class="card bg-darker border-0 rounded-4 shadow-sm">
+                            <div class="card-body p-4">
                                 <ul class="list-group list-group-flush" id="actionsList">
                                 </ul>
                             </div>
                         </div>
                     </div>
-                </div>
-                
-                <!-- Opportunities & Threats Section -->
-                <div class="row mb-4">
-                    <div class="col-md-6">
-                        <div class="card bg-darker h-100">
-                            <div class="card-header">
-                                <h5 class="mb-0">
-                                    <i class="fas fa-arrow-up text-success me-2"></i>
-                                    Opportunities
-                                </h5>
-                            </div>
-                            <div class="card-body">
+                    
+                    <!-- Opportunities Tab -->
+                    <div class="tab-pane fade" id="opportunities-tab-pane" role="tabpanel" aria-labelledby="opportunities-tab" tabindex="0">
+                        <div class="card bg-darker border-0 rounded-4 shadow-sm">
+                            <div class="card-body p-4">
                                 <ul class="list-group list-group-flush" id="opportunitiesList">
                                 </ul>
                             </div>
                         </div>
                     </div>
-                    <div class="col-md-6">
-                        <div class="card bg-darker h-100">
-                            <div class="card-header">
-                                <h5 class="mb-0">
-                                    <i class="fas fa-arrow-down text-danger me-2"></i>
-                                    Threats
-                                </h5>
-                            </div>
-                            <div class="card-body">
+                    
+                    <!-- Threats Tab -->
+                    <div class="tab-pane fade" id="threats-tab-pane" role="tabpanel" aria-labelledby="threats-tab" tabindex="0">
+                        <div class="card bg-darker border-0 rounded-4 shadow-sm">
+                            <div class="card-body p-4">
                                 <ul class="list-group list-group-flush" id="threatsList">
                                 </ul>
                             </div>
                         </div>
                     </div>
-                </div>
-                
-                <!-- Framework Analysis -->
-                <div class="card bg-darker mb-4" id="frameworkAnalysisCard">
-                    <div class="card-header">
-                        <h5 class="mb-0">Framework Analysis</h5>
-                    </div>
-                    <div class="card-body">
-                        <div id="frameworkAnalysisContent">
-                            <!-- Will be populated via JavaScript -->
+                    
+                    <!-- Frameworks Tab -->
+                    <div class="tab-pane fade" id="frameworks-tab-pane" role="tabpanel" aria-labelledby="frameworks-tab" tabindex="0">
+                        <div class="card bg-darker border-0 rounded-4 shadow-sm">
+                            <div class="card-body p-4">
+                                <div id="frameworkAnalysisContent">
+                                    <!-- Will be populated via JavaScript -->
+                                </div>
+                            </div>
                         </div>
                     </div>
                 </div>
                 
-                <!-- Document Generation -->
-                <div class="d-grid gap-2">
-                    <button class="btn btn-outline-success" id="generateDocumentBtn">
+                <!-- Document Generation - Minimalist Button -->
+                <div class="d-grid mt-4">
+                    <button class="btn btn-outline-consultant rounded-pill btn-lg" id="generateDocumentBtn">
                         <i class="fas fa-file-alt me-2"></i> Generate Complete Strategy Document
+                    </button>
+                </div>
+                
+                <!-- Back to Analysis Button -->
+                <div class="text-center mt-3">
+                    <button class="btn btn-retry" id="backToAnalysisBtn">
+                        <i class="fas fa-arrow-left me-1"></i> New Analysis
                     </button>
                 </div>
             </div>
@@ -212,37 +216,56 @@
     </div>
 </div>
 
-<!-- AI Consultant Info Modal -->
+<!-- AI Consultant Info Modal - Minimalist Version -->
 <div class="modal fade" id="aiConsultantInfoModal" tabindex="-1" aria-labelledby="aiConsultantInfoModalLabel" aria-hidden="true">
-    <div class="modal-dialog modal-lg">
-        <div class="modal-content">
-            <div class="modal-header">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content bg-dark border-0">
+            <div class="modal-header border-bottom-0">
                 <h5 class="modal-title" id="aiConsultantInfoModalLabel">AI Strategy Consultant</h5>
-                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
             </div>
             <div class="modal-body">
-                <h5>How It Works</h5>
-                <p>The AI Strategy Consultant functions as an intelligent management consultant that analyzes sustainability trends and provides actionable strategic recommendations.</p>
+                <div class="d-flex align-items-center mb-3">
+                    <div class="bg-primary p-3 rounded-circle me-3">
+                        <i class="fas fa-robot text-white fa-2x"></i>
+                    </div>
+                    <div>
+                        <h5 class="mb-1">Intelligent Strategy Analysis</h5>
+                        <p class="mb-0 text-muted">AI-powered strategic insights for sustainability trends</p>
+                    </div>
+                </div>
                 
-                <h6>Features</h6>
-                <ul>
-                    <li><strong>Automated Trend Assessment</strong> - The AI evaluates sustainability trends using established frameworks.</li>
-                    <li><strong>Strategic Recommendations</strong> - Receive actionable insights based on industry-specific context.</li>
-                    <li><strong>Implementation Planning</strong> - Get concrete steps to implement the recommendations.</li>
-                    <li><strong>Framework Integration</strong> - Analysis incorporates management consulting frameworks as supporting evidence.</li>
-                    <li><strong>Document Generation</strong> - Create comprehensive strategy documents for your organization.</li>
-                </ul>
-                
-                <h6>Supported Frameworks</h6>
-                <ul>
-                    <li><strong>STEPPS Virality Framework</strong> - Analyzes why certain sustainability topics gain traction.</li>
-                    <li><strong>Porter's Five Forces</strong> - Evaluates competitive dynamics and market positioning.</li>
-                    <li><strong>SWOT Analysis</strong> - Identifies strengths, weaknesses, opportunities, and threats.</li>
-                    <li><strong>PESTEL Analysis</strong> - Examines political, economic, social, technological, environmental, and legal factors.</li>
-                </ul>
+                <div class="row g-3">
+                    <div class="col-md-6">
+                        <div class="card bg-darker h-100 border-0">
+                            <div class="card-body">
+                                <h6 class="card-title"><i class="fas fa-lightbulb text-warning me-2"></i>Features</h6>
+                                <ul class="list-unstyled">
+                                    <li class="mb-1"><i class="fas fa-check text-success me-2"></i>Trend Assessment</li>
+                                    <li class="mb-1"><i class="fas fa-check text-success me-2"></i>Strategic Recommendations</li>
+                                    <li class="mb-1"><i class="fas fa-check text-success me-2"></i>Implementation Planning</li>
+                                    <li class="mb-1"><i class="fas fa-check text-success me-2"></i>Document Generation</li>
+                                </ul>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-6">
+                        <div class="card bg-darker h-100 border-0">
+                            <div class="card-body">
+                                <h6 class="card-title"><i class="fas fa-chart-network text-primary me-2"></i>Frameworks</h6>
+                                <ul class="list-unstyled">
+                                    <li class="mb-1"><i class="fas fa-check text-success me-2"></i>STEPPS Virality</li>
+                                    <li class="mb-1"><i class="fas fa-check text-success me-2"></i>Porter's Five Forces</li>
+                                    <li class="mb-1"><i class="fas fa-check text-success me-2"></i>SWOT Analysis</li>
+                                    <li class="mb-1"><i class="fas fa-check text-success me-2"></i>PESTEL Analysis</li>
+                                </ul>
+                            </div>
+                        </div>
+                    </div>
+                </div>
             </div>
-            <div class="modal-footer">
-                <button type="button" class="btn btn-primary" data-bs-dismiss="modal">Got It</button>
+            <div class="modal-footer border-top-0">
+                <button type="button" class="btn btn-consultant rounded-pill" data-bs-dismiss="modal">Got It</button>
             </div>
         </div>
     </div>

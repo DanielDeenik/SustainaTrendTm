@@ -3,6 +3,8 @@
  * 
  * Provides client-side functionality for the AI-driven management consultant
  * that analyzes sustainability trends and generates strategic recommendations.
+ * 
+ * Enhanced for minimalist UI with improved interactions and animations.
  */
 
 document.addEventListener('DOMContentLoaded', function() {
@@ -16,13 +18,56 @@ document.addEventListener('DOMContentLoaded', function() {
 function initAIConsultant() {
     const consultantForm = document.getElementById('aiConsultantForm');
     const generateDocumentBtn = document.getElementById('generateDocumentBtn');
+    const backToAnalysisBtn = document.getElementById('backToAnalysisBtn');
+    const frameworkBadges = document.querySelectorAll('.framework-badge');
     
+    // Main form submission handler
     if (consultantForm) {
         consultantForm.addEventListener('submit', handleAnalysisSubmit);
     }
     
+    // Document generation button
     if (generateDocumentBtn) {
         generateDocumentBtn.addEventListener('click', handleDocumentGeneration);
+    }
+    
+    // Back to analysis button
+    if (backToAnalysisBtn) {
+        backToAnalysisBtn.addEventListener('click', function() {
+            document.getElementById('analysisResults').style.display = 'none';
+            document.getElementById('consultantInputContainer').style.display = 'block';
+        });
+    }
+    
+    // Framework badges toggle
+    if (frameworkBadges.length > 0) {
+        frameworkBadges.forEach(badge => {
+            badge.addEventListener('click', function() {
+                const framework = this.getAttribute('data-framework');
+                const checkbox = document.getElementById('framework' + framework.replace(/[^a-zA-Z0-9]/g, ''));
+                
+                // Toggle active class
+                this.classList.toggle('active');
+                
+                // Update corresponding checkbox
+                if (checkbox) {
+                    checkbox.checked = this.classList.contains('active');
+                }
+                
+                // Visual feedback
+                if (this.classList.contains('active')) {
+                    this.classList.remove('bg-primary-subtle');
+                    this.classList.add('bg-primary');
+                    this.classList.remove('text-primary');
+                    this.classList.add('text-white');
+                } else {
+                    this.classList.add('bg-primary-subtle');
+                    this.classList.remove('bg-primary');
+                    this.classList.add('text-primary');
+                    this.classList.remove('text-white');
+                }
+            });
+        });
     }
 }
 
@@ -45,9 +90,13 @@ function handleAnalysisSubmit(event) {
         frameworks.push(checkbox.value);
     });
     
-    // Show loading indicator
+    // Hide input container and show loading indicator
+    document.getElementById('consultantInputContainer').style.display = 'none';
     document.getElementById('analysisLoading').style.display = 'block';
     document.getElementById('analysisResults').style.display = 'none';
+    
+    // Show a progress notification
+    showNotification('Analyzing trend: ' + trendName, 'info');
     
     // Prepare request data
     const requestData = {
@@ -89,12 +138,18 @@ function handleAnalysisSubmit(event) {
             return;
         }
         
-        // Show results container
-        document.getElementById('analysisResults').style.display = 'block';
+        // Show results container with animation
+        const resultsContainer = document.getElementById('analysisResults');
+        resultsContainer.style.display = 'block';
+        resultsContainer.classList.add('fade-in');
+        
+        // Show success notification
+        showNotification('Analysis completed successfully!', 'success');
     })
     .catch(error => {
         console.error('Error:', error);
         document.getElementById('analysisLoading').style.display = 'none';
+        document.getElementById('consultantInputContainer').style.display = 'block';
         
         // Show error message
         showNotification('Error analyzing trend: ' + error.message, 'error');
@@ -103,173 +158,274 @@ function handleAnalysisSubmit(event) {
 
 /**
  * Display summary results from trend analysis
+ * Enhanced for minimalist UI with tabbed interface
  */
 function displaySummaryResults(analysis) {
+    // Hide the input container
+    document.getElementById('consultantInputContainer').style.display = 'none';
+    
     // Set trend title and industry badge
     document.getElementById('resultsTrendTitle').textContent = analysis.trend_name;
     document.getElementById('resultIndustryBadge').textContent = analysis.industry;
     
-    // Set summary
-    document.getElementById('analysisSummary').textContent = analysis.summary;
+    // Set summary with animation
+    const summaryElement = document.getElementById('analysisSummary');
+    summaryElement.textContent = analysis.summary;
+    summaryElement.classList.add('fade-in');
     
-    // Populate recommendations
-    const recommendationsList = document.getElementById('recommendationsList');
-    recommendationsList.innerHTML = '';
+    // For summary view, only populate the recommendations tab
+    populateRecommendations(analysis.recommendations);
     
-    if (analysis.recommendations && analysis.recommendations.length > 0) {
-        analysis.recommendations.forEach(recommendation => {
-            const li = document.createElement('li');
-            li.className = 'list-group-item bg-transparent';
-            li.innerHTML = `<i class="fas fa-check-circle text-success me-2"></i> ${recommendation}`;
-            recommendationsList.appendChild(li);
-        });
-    } else {
-        const li = document.createElement('li');
-        li.className = 'list-group-item bg-transparent text-muted';
-        li.textContent = 'No recommendations available';
-        recommendationsList.appendChild(li);
-    }
+    // Hide other tabs for summary view
+    document.querySelectorAll('#analysisResultsTabs .nav-item').forEach(tab => {
+        if (!tab.querySelector('button').id.includes('recommendations')) {
+            tab.style.display = 'none';
+        }
+    });
     
-    // Hide detailed sections for summary view
-    document.getElementById('actionsList').closest('.col-md-6').style.display = 'none';
-    document.getElementById('opportunitiesList').closest('.row').style.display = 'none';
-    document.getElementById('frameworkAnalysisCard').style.display = 'none';
+    // Activate recommendations tab
+    const recommendationsTab = new bootstrap.Tab(document.getElementById('recommendations-tab'));
+    recommendationsTab.show();
+    
+    // Add animation classes
+    document.querySelectorAll('#analysisResults .card').forEach(card => {
+        card.classList.add('fade-in-up');
+    });
 }
 
 /**
  * Display detailed results from trend analysis
+ * Enhanced for minimalist UI with tabbed interface
  */
 function displayDetailedResults(analysis) {
+    // Hide the input container
+    document.getElementById('consultantInputContainer').style.display = 'none';
+    
     // Set trend title and industry badge
     document.getElementById('resultsTrendTitle').textContent = analysis.trend_name;
     document.getElementById('resultIndustryBadge').textContent = analysis.industry;
     
-    // Set summary
-    document.getElementById('analysisSummary').textContent = analysis.summary;
+    // Set summary with animation
+    const summaryElement = document.getElementById('analysisSummary');
+    summaryElement.textContent = analysis.summary;
+    summaryElement.classList.add('fade-in');
     
-    // Show all detailed sections
-    document.getElementById('actionsList').closest('.col-md-6').style.display = 'block';
-    document.getElementById('opportunitiesList').closest('.row').style.display = 'flex';
-    document.getElementById('frameworkAnalysisCard').style.display = 'block';
+    // Show all tabs for detailed view
+    document.querySelectorAll('#analysisResultsTabs .nav-item').forEach(tab => {
+        tab.style.display = 'block';
+    });
     
-    // Populate recommendations
+    // Populate all tabs
+    populateRecommendations(analysis.recommendations);
+    populateActions(analysis.strategic_actions);
+    populateOpportunities(analysis.opportunities);
+    populateThreats(analysis.threats);
+    populateFrameworks(analysis.assessment);
+    
+    // Activate recommendations tab
+    const recommendationsTab = new bootstrap.Tab(document.getElementById('recommendations-tab'));
+    recommendationsTab.show();
+    
+    // Add animation classes
+    document.querySelectorAll('#analysisResults .card').forEach((card, index) => {
+        card.classList.add('fade-in-up');
+        card.style.animationDelay = `${index * 0.1}s`;
+    });
+}
+
+/**
+ * Populate recommendations tab
+ */
+function populateRecommendations(recommendations) {
     const recommendationsList = document.getElementById('recommendationsList');
     recommendationsList.innerHTML = '';
     
-    if (analysis.recommendations && analysis.recommendations.length > 0) {
-        analysis.recommendations.forEach(recommendation => {
+    if (recommendations && recommendations.length > 0) {
+        recommendations.forEach((recommendation, index) => {
             const li = document.createElement('li');
-            li.className = 'list-group-item bg-transparent';
-            li.innerHTML = `<i class="fas fa-check-circle text-success me-2"></i> ${recommendation}`;
+            li.className = 'list-group-item bg-transparent border-0 py-3';
+            li.innerHTML = `
+                <div class="d-flex">
+                    <div class="me-3 text-success">
+                        <i class="fas fa-check-circle fa-lg"></i>
+                    </div>
+                    <div>
+                        <strong class="d-block mb-1">Recommendation ${index + 1}</strong>
+                        <span>${recommendation}</span>
+                    </div>
+                </div>
+            `;
             recommendationsList.appendChild(li);
         });
     } else {
         const li = document.createElement('li');
-        li.className = 'list-group-item bg-transparent text-muted';
-        li.textContent = 'No recommendations available';
+        li.className = 'list-group-item bg-transparent border-0 py-3 text-center';
+        li.innerHTML = '<i class="fas fa-info-circle me-2"></i> No recommendations available';
         recommendationsList.appendChild(li);
     }
-    
-    // Populate strategic actions
+}
+
+/**
+ * Populate actions tab
+ */
+function populateActions(actions) {
     const actionsList = document.getElementById('actionsList');
     actionsList.innerHTML = '';
     
-    if (analysis.strategic_actions && analysis.strategic_actions.length > 0) {
-        analysis.strategic_actions.forEach(action => {
+    if (actions && actions.length > 0) {
+        actions.forEach((action, index) => {
             const li = document.createElement('li');
-            li.className = 'list-group-item bg-transparent';
-            li.innerHTML = `<i class="fas fa-play-circle text-primary me-2"></i> ${action}`;
+            li.className = 'list-group-item bg-transparent border-0 py-3';
+            li.innerHTML = `
+                <div class="d-flex">
+                    <div class="me-3 text-primary">
+                        <i class="fas fa-play-circle fa-lg"></i>
+                    </div>
+                    <div>
+                        <strong class="d-block mb-1">Action ${index + 1}</strong>
+                        <span>${action}</span>
+                    </div>
+                </div>
+            `;
             actionsList.appendChild(li);
         });
     } else {
         const li = document.createElement('li');
-        li.className = 'list-group-item bg-transparent text-muted';
-        li.textContent = 'No strategic actions available';
+        li.className = 'list-group-item bg-transparent border-0 py-3 text-center';
+        li.innerHTML = '<i class="fas fa-info-circle me-2"></i> No strategic actions available';
         actionsList.appendChild(li);
     }
-    
-    // Populate opportunities
+}
+
+/**
+ * Populate opportunities tab
+ */
+function populateOpportunities(opportunities) {
     const opportunitiesList = document.getElementById('opportunitiesList');
     opportunitiesList.innerHTML = '';
     
-    if (analysis.opportunities && analysis.opportunities.length > 0) {
-        analysis.opportunities.forEach(opportunity => {
+    if (opportunities && opportunities.length > 0) {
+        opportunities.forEach((opportunity, index) => {
             const li = document.createElement('li');
-            li.className = 'list-group-item bg-transparent';
-            li.innerHTML = `<i class="fas fa-plus-circle text-success me-2"></i> ${opportunity}`;
+            li.className = 'list-group-item bg-transparent border-0 py-3';
+            li.innerHTML = `
+                <div class="d-flex">
+                    <div class="me-3 text-success">
+                        <i class="fas fa-arrow-up fa-lg"></i>
+                    </div>
+                    <div>
+                        <strong class="d-block mb-1">Opportunity ${index + 1}</strong>
+                        <span>${opportunity}</span>
+                    </div>
+                </div>
+            `;
             opportunitiesList.appendChild(li);
         });
     } else {
         const li = document.createElement('li');
-        li.className = 'list-group-item bg-transparent text-muted';
-        li.textContent = 'No opportunities available';
+        li.className = 'list-group-item bg-transparent border-0 py-3 text-center';
+        li.innerHTML = '<i class="fas fa-info-circle me-2"></i> No opportunities available';
         opportunitiesList.appendChild(li);
     }
-    
-    // Populate threats
+}
+
+/**
+ * Populate threats tab
+ */
+function populateThreats(threats) {
     const threatsList = document.getElementById('threatsList');
     threatsList.innerHTML = '';
     
-    if (analysis.threats && analysis.threats.length > 0) {
-        analysis.threats.forEach(threat => {
+    if (threats && threats.length > 0) {
+        threats.forEach((threat, index) => {
             const li = document.createElement('li');
-            li.className = 'list-group-item bg-transparent';
-            li.innerHTML = `<i class="fas fa-exclamation-circle text-danger me-2"></i> ${threat}`;
+            li.className = 'list-group-item bg-transparent border-0 py-3';
+            li.innerHTML = `
+                <div class="d-flex">
+                    <div class="me-3 text-danger">
+                        <i class="fas fa-arrow-down fa-lg"></i>
+                    </div>
+                    <div>
+                        <strong class="d-block mb-1">Threat ${index + 1}</strong>
+                        <span>${threat}</span>
+                    </div>
+                </div>
+            `;
             threatsList.appendChild(li);
         });
     } else {
         const li = document.createElement('li');
-        li.className = 'list-group-item bg-transparent text-muted';
-        li.textContent = 'No threats available';
+        li.className = 'list-group-item bg-transparent border-0 py-3 text-center';
+        li.innerHTML = '<i class="fas fa-info-circle me-2"></i> No threats available';
         threatsList.appendChild(li);
     }
-    
-    // Populate framework analysis
+}
+
+/**
+ * Populate frameworks tab
+ */
+function populateFrameworks(assessment) {
     const frameworkAnalysisContent = document.getElementById('frameworkAnalysisContent');
     frameworkAnalysisContent.innerHTML = '';
     
-    if (analysis.assessment && Object.keys(analysis.assessment).length > 0) {
-        Object.keys(analysis.assessment).forEach(framework => {
+    if (assessment && Object.keys(assessment).length > 0) {
+        Object.keys(assessment).forEach(framework => {
             const frameworkDiv = document.createElement('div');
-            frameworkDiv.className = 'mb-4';
+            frameworkDiv.className = 'mb-4 p-3 border-bottom border-secondary';
             
             const frameworkTitle = document.createElement('h5');
-            frameworkTitle.className = 'mb-3';
-            frameworkTitle.textContent = `${framework} Analysis`;
+            frameworkTitle.className = 'mb-3 text-primary';
+            frameworkTitle.innerHTML = `<i class="fas fa-chart-pie me-2"></i>${framework} Analysis`;
             frameworkDiv.appendChild(frameworkTitle);
             
-            const frameworkContent = analysis.assessment[framework];
+            const frameworkContent = assessment[framework];
             
             if (typeof frameworkContent === 'string') {
                 const p = document.createElement('p');
+                p.className = 'lead';
                 p.textContent = frameworkContent;
                 frameworkDiv.appendChild(p);
             } else if (typeof frameworkContent === 'object') {
-                const dl = document.createElement('dl');
-                dl.className = 'row';
+                // Create accordion for each component
+                const accordionId = `accordion-${framework.replace(/\s+/g, '-').toLowerCase()}`;
+                const accordion = document.createElement('div');
+                accordion.className = 'accordion';
+                accordion.id = accordionId;
                 
-                Object.keys(frameworkContent).forEach(key => {
-                    const dt = document.createElement('dt');
-                    dt.className = 'col-sm-3';
-                    dt.textContent = key;
-                    dl.appendChild(dt);
+                Object.keys(frameworkContent).forEach((key, index) => {
+                    const itemId = `${accordionId}-item-${index}`;
+                    const component = document.createElement('div');
+                    component.className = 'accordion-item bg-transparent border-0 mb-2';
                     
-                    const dd = document.createElement('dd');
-                    dd.className = 'col-sm-9';
-                    dd.textContent = frameworkContent[key];
-                    dl.appendChild(dd);
+                    component.innerHTML = `
+                        <h6 class="accordion-header" id="heading-${itemId}">
+                            <button class="accordion-button bg-darker text-white collapsed rounded-3" type="button" 
+                                    data-bs-toggle="collapse" data-bs-target="#collapse-${itemId}" 
+                                    aria-expanded="false" aria-controls="collapse-${itemId}">
+                                ${key}
+                            </button>
+                        </h6>
+                        <div id="collapse-${itemId}" class="accordion-collapse collapse" 
+                             aria-labelledby="heading-${itemId}" data-bs-parent="#${accordionId}">
+                            <div class="accordion-body pt-2 pb-3 px-4">
+                                ${frameworkContent[key]}
+                            </div>
+                        </div>
+                    `;
+                    
+                    accordion.appendChild(component);
                 });
                 
-                frameworkDiv.appendChild(dl);
+                frameworkDiv.appendChild(accordion);
             }
             
             frameworkAnalysisContent.appendChild(frameworkDiv);
         });
     } else {
-        const p = document.createElement('p');
-        p.className = 'text-muted';
-        p.textContent = 'No framework analysis available';
-        frameworkAnalysisContent.appendChild(p);
+        const alert = document.createElement('div');
+        alert.className = 'alert alert-secondary bg-dark text-center border-0';
+        alert.innerHTML = '<i class="fas fa-info-circle me-2"></i> No framework analysis available';
+        frameworkAnalysisContent.appendChild(alert);
     }
 }
 

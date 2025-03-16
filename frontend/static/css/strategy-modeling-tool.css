@@ -1,0 +1,305 @@
+/**
+ * Strategy Modeling Tool - Styling
+ * 
+ * This stylesheet provides styling for the SustainaTrend™ Strategy Modeling Tool,
+ * ensuring a consistent, modern, and intuitive user interface.
+ */
+
+/* Strategy Modeling Container */
+.strategy-modeling-container {
+    margin-bottom: 3rem;
+}
+
+/* Strategy Form Groups */
+.strategy-form-group {
+    margin-bottom: 1.5rem;
+}
+
+.strategy-form-group label {
+    display: block;
+    margin-bottom: 0.5rem;
+    font-weight: 500;
+}
+
+/* Range Slider Styling */
+.range-slider-container {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+}
+
+.range-slider {
+    flex-grow: 1;
+}
+
+.range-value {
+    min-width: 2.5rem;
+    text-align: right;
+    font-weight: 500;
+}
+
+/* Checkbox Group Styling */
+.checkbox-group {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+    gap: 0.75rem;
+}
+
+.checkbox-item {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+.checkbox-item input[type="checkbox"] {
+    margin-top: 0;
+}
+
+/* Strategy Cards */
+.strategy-card {
+    background-color: var(--bs-dark-card);
+    border-radius: 0.5rem;
+    overflow: hidden;
+    margin-bottom: 1.5rem;
+}
+
+.strategy-card-header {
+    background-color: var(--bs-dark-lighter);
+    padding: 1rem;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.strategy-card-title {
+    margin-bottom: 0;
+    font-size: 1.1rem;
+    font-weight: 600;
+}
+
+.strategy-card-body {
+    padding: 1rem;
+}
+
+.strategy-card-footer {
+    background-color: var(--bs-dark-card-footer);
+    padding: 1rem;
+    border-top: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+/* Section Headers */
+.section-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 1.25rem;
+}
+
+.section-title {
+    margin-bottom: 0;
+    font-weight: 600;
+    font-size: 1.2rem;
+}
+
+.section-actions {
+    display: flex;
+    gap: 0.5rem;
+}
+
+/* Strategy Data Card */
+.strategy-data-card {
+    background-color: var(--bs-dark-lighter);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    border-radius: 0.5rem;
+}
+
+.strategy-data-card .card-header {
+    background-color: rgba(0, 0, 0, 0.2);
+    border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.strategy-data-card .card-body {
+    padding: 1rem;
+}
+
+/* Chart Grid */
+.chart-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(400px, 1fr));
+    gap: 1.5rem;
+    margin-bottom: 2rem;
+}
+
+@media (max-width: 768px) {
+    .chart-grid {
+        grid-template-columns: 1fr;
+    }
+}
+
+/* Chart Containers */
+.chart-container {
+    height: 300px;
+    padding: 1rem;
+    position: relative;
+}
+
+/* Model Predictions Styling */
+#model-predictions {
+    margin-bottom: 2rem;
+}
+
+/* AI Suggestions Styling */
+#ai-suggestions {
+    margin-top: 1rem;
+}
+
+/* AI Loading Animation */
+.ai-loading-container {
+    padding: 1.5rem;
+    border-radius: 0.5rem;
+    background-color: rgba(0, 0, 0, 0.2);
+}
+
+/* Enhanced Strategy Insights Cards */
+.strategy-insight-card {
+    background-color: var(--bs-dark-lighter);
+    border-radius: 0.5rem;
+    overflow: hidden;
+    border: 1px solid rgba(255, 255, 255, 0.08);
+    transition: all 0.2s ease-in-out;
+}
+
+.strategy-insight-card:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 5px 15px rgba(0, 0, 0, 0.3);
+    border-color: rgba(var(--bs-primary-rgb), 0.4);
+}
+
+.strategy-insight-header {
+    padding: 0.75rem 1rem;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+}
+
+.strategy-insight-body {
+    padding: 1rem;
+}
+
+.insight-category {
+    font-size: 0.85rem;
+    color: rgba(255, 255, 255, 0.75);
+}
+
+.insight-text {
+    font-size: 1rem;
+    margin-bottom: 0.75rem;
+}
+
+.insight-evidence {
+    padding: 0.75rem;
+    background-color: rgba(0, 0, 0, 0.2);
+    border-radius: 0.375rem;
+    font-size: 0.85rem;
+    color: rgba(255, 255, 255, 0.85);
+}
+
+.evidence-icon {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 24px;
+    height: 24px;
+}
+
+/* Progress bars in AI analysis */
+.progress-bar-animated {
+    animation: progress-bar-stripes 1s linear infinite;
+}
+
+/* Regular suggestion list */
+.suggestion-list {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+}
+
+.suggestion-item {
+    display: flex;
+    align-items: flex-start;
+    gap: 0.75rem;
+    padding: 0.75rem 0;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.suggestion-item:last-child {
+    border-bottom: none;
+}
+
+.suggestion-icon {
+    flex-shrink: 0;
+    margin-top: 0.25rem;
+}
+
+/* Timeline actions for implementation roadmap */
+.timeline-actions {
+    margin-top: 0.5rem;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.5rem;
+}
+
+/* Timeline Styling */
+.timeline {
+    position: relative;
+    padding-left: 2rem;
+}
+
+.timeline::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    bottom: 0;
+    left: 0.5rem;
+    width: 2px;
+    background-color: rgba(255, 255, 255, 0.2);
+}
+
+.timeline-item {
+    position: relative;
+    margin-bottom: 1.5rem;
+}
+
+.timeline-item:last-child {
+    margin-bottom: 0;
+}
+
+.timeline-marker {
+    position: absolute;
+    left: -2rem;
+    top: 0.25rem;
+    width: 1rem;
+    height: 1rem;
+    border-radius: 50%;
+    z-index: 1;
+}
+
+.timeline-content {
+    padding-bottom: 0.5rem;
+}
+
+.timeline-title {
+    margin-bottom: 0.25rem;
+}
+
+/* Custom Color Classes */
+.bg-orange {
+    background-color: #fd7e14;
+}
+
+/* Nav Tab Custom Styling */
+.nav-tabs {
+    border-bottom-color: rgba(255, 255, 255, 0.1);
+}
+
+/* Tooltip Customization */
+.tooltip {
+    --bs-tooltip-bg: var(--bs-dark);
+    --bs-tooltip-color: #fff;
+}

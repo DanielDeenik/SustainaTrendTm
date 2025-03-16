@@ -6,7 +6,10 @@
 <i class="fas fa-chess me-2"></i> Strategy Hub
 {% endblock %}
 
-{% block extra_css %}
+{% block additional_styles %}
+<!-- Include the AI Strategy Consultant CSS -->
+<link rel="stylesheet" href="{{ url_for('static', filename='css/strategy-ai-consultant.css') }}">
+
 <style>
     .strategy-hub-section {
         margin-bottom: 2rem;
