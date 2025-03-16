@@ -26,12 +26,14 @@ regulatory_ai_bp = Blueprint('regulatory_ai', __name__, url_prefix='/regulatory-
 
 # Try to import AI connector module
 try:
-    from frontend.utils.ai_connector import get_generative_ai, generate_embedding
+    from frontend.utils.ai_connector import get_generative_ai, generate_embedding, get_rag_system
     AI_CONNECTOR_AVAILABLE = True
+    RAG_AVAILABLE = True
     logger.info("AI connector module loaded successfully")
-except ImportError:
+except ImportError as e:
     AI_CONNECTOR_AVAILABLE = False
-    logger.warning("AI connector not available, using fallback regulatory assessment")
+    RAG_AVAILABLE = False
+    logger.warning(f"AI connector not available, using fallback regulatory assessment: {str(e)}")
 
 # Regulatory framework data structure
 REGULATORY_FRAMEWORKS = {
@@ -494,8 +496,18 @@ def get_frameworks() -> Dict[str, Dict[str, Any]]:
     """
     return REGULATORY_FRAMEWORKS
 
+def is_rag_available() -> bool:
+    """
+    Check if RAG system is available
+    
+    Returns:
+        Boolean indicating if RAG is available
+    """
+    return RAG_AVAILABLE
+
 # Flask routes
 @regulatory_ai_bp.route('/')
+@regulatory_ai_bp.route('/index')
 def regulatory_ai_dashboard():
     """Regulatory AI Agent Dashboard"""
     frameworks = get_frameworks()
@@ -509,6 +521,9 @@ def regulatory_ai_dashboard():
     # Set pre-filled flag if we have parameters from Strategy Hub
     from_strategy_hub = bool(company and industry)
     
+    # Check if RAG system is available
+    rag_system_available = is_rag_available()
+    
     return render_template('regulatory_ai_agent.html', 
                          frameworks=frameworks,
                          timeline=timeline,
@@ -516,6 +531,7 @@ def regulatory_ai_dashboard():
                          industry=industry,
                          challenges=challenges,
                          from_strategy_hub=from_strategy_hub,
+                         is_rag_available=rag_system_available,
                          page_title="Regulatory AI Agent",
                          active_page="regulatory-ai")
 
@@ -570,6 +586,266 @@ def api_regulatory_frameworks():
         return jsonify(frameworks)
     except Exception as e:
         logger.error(f"Error in regulatory frameworks API: {str(e)}")
+        return jsonify({"error": str(e)}), 500
+
+@regulatory_ai_bp.route('/api/rag-analysis', methods=['POST'])
+def api_rag_analysis():
+    """API endpoint for RAG-powered regulatory analysis (JSON data)"""
+    try:
+        data = request.get_json()
+        
+        # Validate inputs
+        document_text = data.get('document_text', '')
+        query = data.get('query', '')
+        framework_id = data.get('framework_id', 'ESRS')
+        
+        if not document_text:
+            return jsonify({"error": "No document text provided"}), 400
+            
+        if not query:
+            return jsonify({"error": "No query provided"}), 400
+            
+        # Get RAG system if available
+        if RAG_AVAILABLE:
+            try:
+                rag_system = get_rag_system()
+                
+                # Create context by combining document with framework information
+                framework = get_frameworks().get(framework_id, {})
+                framework_context = (
+                    f"Framework: {framework.get('full_name', framework_id)}\n"
+                    f"Description: {framework.get('description', '')}\n"
+                    f"Categories: {json.dumps(framework.get('categories', {}), indent=2)}"
+                )
+                
+                # Combine document with framework context
+                full_context = f"{document_text}\n\n{framework_context}"
+                
+                # Index document in RAG system for future use
+                rag_system.add_document(
+                    document_text=full_context,
+                    metadata={
+                        "framework_id": framework_id,
+                        "document_length": len(document_text),
+                        "analysis_type": "regulatory"
+                    }
+                )
+                
+                # Generate analysis with RAG
+                system_prompt = """
+                You are an expert regulatory compliance consultant specializing in sustainability reporting standards.
+                Analyze the document and provide detailed, expert-level insights on regulatory compliance.
+                Focus on specific requirements, potential gaps, and practical recommendations.
+                Be precise and specific in your analysis, avoiding generic statements.
+                """
+                
+                result = rag_system.generate_with_context(
+                    query=query,
+                    system_prompt=system_prompt,
+                    top_k=5,
+                    max_tokens=1500
+                )
+                
+                # Format response
+                return jsonify({
+                    "analysis": result.get("text", "Error generating analysis"),
+                    "model": result.get("model", "unknown"),
+                    "framework_id": framework_id,
+                    "query": query
+                })
+                
+            except Exception as e:
+                logger.error(f"Error using RAG system: {str(e)}")
+                # Fall back to regular assessment for error response
+                assessment = assess_regulatory_compliance(document_text, framework_id)
+                return jsonify({
+                    "analysis": "Error using advanced RAG analysis. Falling back to standard assessment.",
+                    "assessment": assessment,
+                    "error": str(e)
+                })
+        else:
+            # If RAG is not available, fall back to regular assessment
+            assessment = assess_regulatory_compliance(document_text, framework_id)
+            return jsonify({
+                "analysis": "RAG analysis not available. Using standard assessment.",
+                "assessment": assessment
+            })
+    except Exception as e:
+        logger.error(f"Error in RAG analysis API: {str(e)}")
+        return jsonify({"error": str(e)}), 500
+
+@regulatory_ai_bp.route('/api/rag-analysis-form', methods=['POST'])
+def api_rag_analysis_form():
+    """API endpoint for RAG-powered regulatory analysis (form data with file upload)"""
+    try:
+        # Get form data
+        query = request.form.get('query', '')
+        framework_id = request.form.get('framework_id', 'ESRS')
+        
+        # Check for file upload
+        if 'document_file' not in request.files:
+            return jsonify({"error": "No document file provided"}), 400
+            
+        file = request.files['document_file']
+        if file.filename == '':
+            return jsonify({"error": "No file selected"}), 400
+            
+        # Check for direct text input as fallback
+        document_text = request.form.get('document_text', '')
+        
+        # Process uploaded file if available
+        if file:
+            try:
+                # Read file content
+                document_text = file.read().decode('utf-8')
+            except UnicodeDecodeError:
+                # If not UTF-8, try with ISO-8859-1 (Latin-1)
+                file.seek(0)
+                document_text = file.read().decode('latin-1')
+        
+        if not document_text:
+            return jsonify({"error": "Could not extract text from file"}), 400
+            
+        if not query:
+            return jsonify({"error": "No query provided"}), 400
+            
+        # Get RAG system if available
+        if RAG_AVAILABLE:
+            try:
+                rag_system = get_rag_system()
+                
+                # Create context by combining document with framework information
+                framework = get_frameworks().get(framework_id, {})
+                framework_context = (
+                    f"Framework: {framework.get('full_name', framework_id)}\n"
+                    f"Description: {framework.get('description', '')}\n"
+                    f"Categories: {json.dumps(framework.get('categories', {}), indent=2)}"
+                )
+                
+                # Combine document with framework context
+                full_context = f"{document_text}\n\n{framework_context}"
+                
+                # Index document in RAG system for future use
+                doc_id = rag_system.add_document(
+                    document_text=full_context,
+                    metadata={
+                        "framework_id": framework_id,
+                        "document_length": len(document_text),
+                        "analysis_type": "regulatory",
+                        "filename": file.filename if file else "form-input"
+                    }
+                )
+                
+                # Generate analysis with RAG
+                system_prompt = """
+                You are an expert regulatory compliance consultant specializing in sustainability reporting standards.
+                Analyze the document and provide detailed, expert-level insights on regulatory compliance.
+                Focus on specific requirements, potential gaps, and practical recommendations.
+                Be precise and specific in your analysis, avoiding generic statements.
+                """
+                
+                result = rag_system.generate_with_context(
+                    query=query,
+                    system_prompt=system_prompt,
+                    top_k=5,
+                    max_tokens=1500
+                )
+                
+                # For form submissions, this endpoint can return HTML or JSON
+                response_format = request.form.get('response_format', 'json')
+                
+                if response_format == 'html':
+                    analysis_html = result.get("text", "Error generating analysis").replace('\n', '<br>')
+                    return f"""
+                    <div class="analysis-result">
+                        <h3>RAG Analysis Results</h3>
+                        <div class="analysis-content">
+                            {analysis_html}
+                        </div>
+                        <div class="analysis-metadata">
+                            <p>Framework: {framework.get('full_name', framework_id)}</p>
+                            <p>Model: {result.get("model", "unknown")}</p>
+                        </div>
+                    </div>
+                    """
+                
+                # Default JSON response
+                return jsonify({
+                    "analysis": result.get("text", "Error generating analysis"),
+                    "model": result.get("model", "unknown"),
+                    "framework_id": framework_id,
+                    "query": query,
+                    "document_id": doc_id
+                })
+                
+            except Exception as e:
+                logger.error(f"Error using RAG system for form analysis: {str(e)}")
+                # Fall back to regular assessment for error response
+                assessment = assess_regulatory_compliance(document_text, framework_id)
+                
+                # Format response based on requested format
+                response_format = request.form.get('response_format', 'json')
+                
+                if response_format == 'html':
+                    error_html = f"Error: {str(e)}<br>Falling back to standard assessment."
+                    return f"""
+                    <div class="analysis-result error">
+                        <h3>Analysis Error</h3>
+                        <div class="error-message">{error_html}</div>
+                        <div class="fallback-assessment">
+                            <h4>Standard Assessment</h4>
+                            <p>Overall Score: {assessment.get('overall_score', 0)}</p>
+                            <p>Key Findings: {', '.join(assessment.get('overall_findings', []))}</p>
+                        </div>
+                    </div>
+                    """
+                
+                # Default JSON response
+                return jsonify({
+                    "analysis": "Error using advanced RAG analysis. Falling back to standard assessment.",
+                    "assessment": assessment,
+                    "error": str(e)
+                })
+        else:
+            # If RAG is not available, fall back to regular assessment
+            assessment = assess_regulatory_compliance(document_text, framework_id)
+            
+            # Format response based on requested format
+            response_format = request.form.get('response_format', 'json')
+            
+            if response_format == 'html':
+                return f"""
+                <div class="analysis-result fallback">
+                    <h3>Standard Assessment Results</h3>
+                    <div class="fallback-message">RAG analysis not available. Using standard assessment.</div>
+                    <div class="assessment-summary">
+                        <p>Overall Score: {assessment.get('overall_score', 0)}</p>
+                        <p>Key Findings: {', '.join(assessment.get('overall_findings', []))}</p>
+                    </div>
+                </div>
+                """
+            
+            # Default JSON response
+            return jsonify({
+                "analysis": "RAG analysis not available. Using standard assessment.",
+                "assessment": assessment
+            })
+    except Exception as e:
+        logger.error(f"Error in RAG form analysis API: {str(e)}")
+        
+        # Format response based on requested format
+        response_format = request.form.get('response_format', 'json') if hasattr(request, 'form') else 'json'
+        
+        if response_format == 'html':
+            error_html = f"Error: {str(e)}"
+            return f"""
+            <div class="analysis-result error">
+                <h3>Analysis Error</h3>
+                <div class="error-message">{error_html}</div>
+            </div>
+            """
+        
+        # Default JSON response
         return jsonify({"error": str(e)}), 500
 
 # Blueprint registration function
