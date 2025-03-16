@@ -17,6 +17,26 @@ from werkzeug.utils import secure_filename
 from flask import Blueprint, render_template, request, jsonify, redirect, url_for, flash, send_from_directory, session
 sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
+# Import AI strategy consultant functionality
+try:
+    from strategy_ai_consultant import generate_ai_strategy
+    STRATEGY_AI_CONSULTANT_AVAILABLE = True
+    logger = logging.getLogger(__name__)
+    logger.info("Strategy AI Consultant module loaded successfully")
+except ImportError as e:
+    STRATEGY_AI_CONSULTANT_AVAILABLE = False
+    logger = logging.getLogger(__name__)
+    logger.warning(f"Strategy AI Consultant module import failed: {str(e)}")
+
+# Import strategy API routes
+try:
+    from .strategy_api import register_blueprint as register_strategy_api
+    STRATEGY_API_AVAILABLE = True
+    logger.info("Strategy API module loaded successfully")
+except ImportError as e:
+    STRATEGY_API_AVAILABLE = False
+    logger.warning(f"Strategy API module import failed: {str(e)}")
+
 # Import navigation context
 from navigation_config import get_context_for_template
 
@@ -214,6 +234,14 @@ if AI_CONSULTANT_AVAILABLE:
         logger.info("AI Strategy Consultant routes registered successfully")
     except Exception as e:
         logger.warning(f"Failed to register AI Strategy Consultant routes: {str(e)}")
+
+# Register Strategy API routes
+if STRATEGY_API_AVAILABLE:
+    try:
+        register_strategy_api(strategy_bp)
+        logger.info("Strategy API routes registered successfully")
+    except Exception as e:
+        logger.warning(f"Failed to register Strategy API routes: {str(e)}")
 
 @strategy_bp.route('/strategy-hub')
 def strategy_hub():
@@ -1287,17 +1315,80 @@ def strategy_hub_generate_story(document_id):
 @strategy_bp.route('/unified-strategy-hub')
 def unified_strategy_hub():
     """
-    Unified Strategy Hub page with document analysis, storytelling, and strategy frameworks
-    This is the new integrated version that combines all features including:
+    Unified Strategy Hub
+    
+    This combines all strategy-related features into a single, cohesive interface:
     - AI Strategy Consultant
-    - Document analysis and compliance assessment
-    - Sustainability storytelling
-    - Marketing strategies
-    - Monetization opportunities
-    - Trend virality benchmarking
-    - Strategy frameworks
-    - Science-Based Targets integration
+    - AI Insights Strategy Tool (New)
+    - Document Repository
+    - Data-Driven Storytelling
+    - Strategy Frameworks
+    - Monetization Strategies
+    - Science-Based Targets
     """
+    # Call the implementation function
+    return unified_strategy_hub_implementation()
+
+@strategy_bp.route('/api/generate-strategy', methods=['POST'])
+def api_generate_strategy():
+    """API endpoint to generate sustainability strategy using AI consultant"""
+    try:
+        # Get request data
+        data = request.json
+        
+        # Log request
+        logger.info(f"Strategy generation request: {data}")
+        
+        # Validate required fields
+        if not data or 'companyName' not in data or 'industry' not in data:
+            logger.warning("Invalid strategy generation request - missing required fields")
+            return jsonify({
+                "status": "error",
+                "message": "Company name and industry are required"
+            }), 400
+        
+        # Check if AI Strategy Consultant is available
+        if not STRATEGY_AI_CONSULTANT_AVAILABLE:
+            logger.warning("Strategy AI Consultant not available")
+            return jsonify({
+                "status": "error",
+                "message": "Strategy AI Consultant is not available"
+            }), 503
+        
+        # Generate strategy
+        result = generate_ai_strategy(data)
+        
+        # Check result status
+        if result.get('status') == 'error':
+            logger.error(f"Strategy generation failed: {result.get('message')}")
+            return jsonify(result), 500
+        
+        # Return successful result
+        return jsonify(result)
+    
+    except Exception as e:
+        # Log and return error
+        logger.exception(f"Error in strategy generation API: {str(e)}")
+        return jsonify({
+            "status": "error",
+            "message": f"An error occurred: {str(e)}"
+        }), 500
+        
+# Original docstring for unified_strategy_hub function
+"""
+Unified Strategy Hub page with document analysis, storytelling, and strategy frameworks
+This is the new integrated version that combines all features including:
+- AI Strategy Consultant
+- Document analysis and compliance assessment
+- Sustainability storytelling
+- Marketing strategies
+- Monetization opportunities
+- Trend virality benchmarking
+- Strategy frameworks
+- Science-Based Targets integration
+"""
+def unified_strategy_hub_implementation():
+    """Implementation of the unified_strategy_hub function"""
     logger.info("Unified Strategy Hub route called")
     
     try:

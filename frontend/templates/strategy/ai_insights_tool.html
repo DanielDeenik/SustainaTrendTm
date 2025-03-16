@@ -1,0 +1,334 @@
+{% extends "base_template.html" %}
+
+{% block title %}AI Insights Strategy Tool{% endblock %}
+
+{% block additional_head %}
+<style>
+    /* Custom styles for AI Insights Strategy Tool */
+    .ai-insights-container {
+        background-color: #1e1e2d;
+        border-radius: 10px;
+        padding: 1.5rem;
+        margin-bottom: 1.5rem;
+        box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+    }
+
+    .ai-insights-header {
+        margin-bottom: 1.5rem;
+        border-bottom: 1px solid #2d2d3d;
+        padding-bottom: 1rem;
+    }
+
+    .ai-insights-tabs {
+        display: flex;
+        border-bottom: 1px solid #2d2d3d;
+        margin-bottom: 1.5rem;
+    }
+
+    .ai-insights-tab {
+        padding: 0.75rem 1.5rem;
+        cursor: pointer;
+        border-bottom: 2px solid transparent;
+        transition: all 0.3s ease;
+        font-weight: 500;
+    }
+
+    .ai-insights-tab.active {
+        border-bottom: 2px solid #6078ea;
+        color: #6078ea;
+    }
+
+    .ai-insights-content {
+        display: none;
+    }
+
+    .ai-insights-content.active {
+        display: block;
+    }
+
+    .ai-input-group {
+        margin-bottom: 1.25rem;
+    }
+
+    .ai-label {
+        display: block;
+        margin-bottom: 0.5rem;
+        font-weight: 500;
+        color: #e0e0e0;
+    }
+
+    .ai-input, .ai-textarea, .ai-select {
+        width: 100%;
+        padding: 0.75rem;
+        background-color: #2a2a3a;
+        border: 1px solid #3a3a4a;
+        border-radius: 6px;
+        color: #f0f0f0;
+        transition: border-color 0.3s ease;
+    }
+
+    .ai-input:focus, .ai-textarea:focus, .ai-select:focus {
+        border-color: #6078ea;
+        outline: none;
+    }
+
+    .ai-textarea {
+        min-height: 100px;
+        resize: vertical;
+    }
+
+    .ai-button {
+        background-color: #6078ea;
+        color: white;
+        border: none;
+        padding: 0.75rem 1.5rem;
+        border-radius: 6px;
+        cursor: pointer;
+        font-weight: 500;
+        transition: background-color 0.3s ease;
+    }
+
+    .ai-button:hover {
+        background-color: #4a5fd7;
+    }
+
+    .ai-button:disabled {
+        background-color: #3a3a4a;
+        cursor: not-allowed;
+    }
+
+    .ai-loading {
+        display: none;
+        align-items: center;
+        justify-content: center;
+        margin-top: 1rem;
+    }
+
+    .ai-loading-spinner {
+        border: 3px solid #3a3a4a;
+        border-radius: 50%;
+        border-top: 3px solid #6078ea;
+        width: 24px;
+        height: 24px;
+        animation: spin 1s linear infinite;
+        margin-right: 0.5rem;
+    }
+
+    @keyframes spin {
+        0% { transform: rotate(0deg); }
+        100% { transform: rotate(360deg); }
+    }
+
+    .ai-strategy-result {
+        background-color: #2a2a3a;
+        border-radius: 6px;
+        padding: 1.5rem;
+        margin-top: 1.25rem;
+        white-space: pre-wrap;
+    }
+
+    .ai-strategy-result h1,
+    .ai-strategy-result h2,
+    .ai-strategy-result h3 {
+        color: #6078ea;
+        margin-top: 1rem;
+        margin-bottom: 0.5rem;
+    }
+
+    .ai-strategy-result ul {
+        padding-left: 1.5rem;
+    }
+
+    .ai-strategy-result strong {
+        color: #f0f0f0;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+
+<div class="container mt-4">
+    <div class="ai-insights-container">
+        <div class="ai-insights-header">
+            <h2 class="mb-1">AI Insights Strategy Tool</h2>
+            <p class="text-muted">Generate tailored sustainability strategies using AI-powered insights</p>
+        </div>
+
+        <div class="ai-insights-tabs">
+            <div class="ai-insights-tab active" data-target="generate">Generate Strategy</div>
+            <div class="ai-insights-tab" data-target="view">View Recommendations</div>
+        </div>
+
+        <div class="ai-insights-content active" id="generate-content">
+            <form id="ai-strategy-form">
+                <div class="row">
+                    <div class="col-md-6">
+                        <div class="ai-input-group">
+                            <label class="ai-label" for="company-name">Company Name</label>
+                            <input class="ai-input" type="text" id="company-name" placeholder="Enter company name" required>
+                        </div>
+                    </div>
+                    <div class="col-md-6">
+                        <div class="ai-input-group">
+                            <label class="ai-label" for="industry">Industry</label>
+                            <select class="ai-select" id="industry" required>
+                                <option value="">Select industry</option>
+                                <option value="Technology">Technology</option>
+                                <option value="Energy">Energy</option>
+                                <option value="Manufacturing">Manufacturing</option>
+                                <option value="Financial Services">Financial Services</option>
+                                <option value="Healthcare">Healthcare</option>
+                                <option value="Retail">Retail</option>
+                                <option value="Transportation">Transportation</option>
+                                <option value="Agriculture">Agriculture</option>
+                                <option value="Construction">Construction</option>
+                                <option value="Real Estate">Real Estate</option>
+                            </select>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="ai-input-group">
+                    <label class="ai-label" for="focus-areas">Focus Areas</label>
+                    <input class="ai-input" type="text" id="focus-areas" placeholder="e.g., Carbon Reduction, Water Management, Diversity (comma-separated)">
+                </div>
+
+                <div class="ai-input-group">
+                    <label class="ai-label" for="trend-input">Sustainability Trends to Analyze</label>
+                    <textarea class="ai-textarea" id="trend-input" placeholder="Enter specific trends you'd like to analyze (one per line), or leave blank for AI-recommended trends"></textarea>
+                </div>
+
+                <div class="text-end">
+                    <button type="submit" id="generate-button" class="ai-button">Generate Strategy</button>
+                </div>
+
+                <div class="ai-loading" id="ai-loading">
+                    <div class="ai-loading-spinner"></div>
+                    <span>Generating strategy insights...</span>
+                </div>
+            </form>
+        </div>
+
+        <div class="ai-insights-content" id="view-content">
+            <div id="ai-strategy-output">
+                <p class="text-center text-muted my-5">No strategy generated yet. Use the "Generate Strategy" tab to create a new strategy.</p>
+            </div>
+        </div>
+    </div>
+</div>
+
+{% endblock %}
+
+{% block scripts %}
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        // Tab switching
+        const tabs = document.querySelectorAll('.ai-insights-tab');
+        tabs.forEach(tab => {
+            tab.addEventListener('click', function() {
+                // Remove active class from all tabs
+                tabs.forEach(t => t.classList.remove('active'));
+                // Add active class to current tab
+                this.classList.add('active');
+                
+                // Hide all content sections
+                document.querySelectorAll('.ai-insights-content').forEach(content => {
+                    content.classList.remove('active');
+                });
+                
+                // Show selected content
+                const target = this.getAttribute('data-target');
+                document.getElementById(`${target}-content`).classList.add('active');
+            });
+        });
+
+        // Form submission for generating strategy
+        const strategyForm = document.getElementById('ai-strategy-form');
+        strategyForm.addEventListener('submit', function(event) {
+            event.preventDefault();
+            
+            // Get form values
+            const companyName = document.getElementById('company-name').value;
+            const industry = document.getElementById('industry').value;
+            const focusAreas = document.getElementById('focus-areas').value;
+            const trendInput = document.getElementById('trend-input').value;
+            
+            // Validate required fields
+            if (!companyName || !industry) {
+                alert('Company name and industry are required');
+                return;
+            }
+            
+            // Show loading indicator
+            document.getElementById('ai-loading').style.display = 'flex';
+            document.getElementById('generate-button').disabled = true;
+            
+            // Prepare data for API call
+            const requestData = {
+                companyName,
+                industry,
+                focusAreas,
+                trendInput
+            };
+            
+            // Make API call to generate strategy
+            fetch('/api/generate-strategy', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify(requestData)
+            })
+            .then(response => response.json())
+            .then(data => {
+                // Hide loading indicator
+                document.getElementById('ai-loading').style.display = 'none';
+                document.getElementById('generate-button').disabled = false;
+                
+                if (data.status === 'success') {
+                    // Display the strategy result
+                    const outputElement = document.getElementById('ai-strategy-output');
+                    
+                    // Convert markdown-like format to HTML
+                    const formattedOutput = formatMarkdown(data.result.result);
+                    outputElement.innerHTML = `<div class="ai-strategy-result">${formattedOutput}</div>`;
+                    
+                    // Switch to the View tab
+                    document.querySelector('.ai-insights-tab[data-target="view"]').click();
+                } else {
+                    // Show error message
+                    alert(`Error: ${data.message}`);
+                }
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                document.getElementById('ai-loading').style.display = 'none';
+                document.getElementById('generate-button').disabled = false;
+                alert('An error occurred while generating the strategy. Please try again.');
+            });
+        });
+        
+        // Function to convert markdown-like text to HTML
+        function formatMarkdown(text) {
+            if (!text) return '';
+            
+            // Replace headings
+            text = text.replace(/^# (.+)$/gm, '<h1>$1</h1>');
+            text = text.replace(/^## (.+)$/gm, '<h2>$1</h2>');
+            text = text.replace(/^### (.+)$/gm, '<h3>$1</h3>');
+            
+            // Replace bullet points
+            text = text.replace(/^\* (.+)$/gm, '<li>$1</li>');
+            text = text.replace(/(<li>.+<\/li>\n)+/g, '<ul>$&</ul>');
+            
+            // Replace line breaks
+            text = text.replace(/\n\n/g, '<br><br>');
+            
+            // Replace strong/bold
+            text = text.replace(/\*\*(.+?)\*\*/g, '<strong>$1</strong>');
+            
+            return text;
+        }
+    });
+</script>
+{% endblock %}

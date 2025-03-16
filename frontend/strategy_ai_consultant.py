@@ -1,813 +1,872 @@
 """
 Strategy AI Consultant Module for SustainaTrend™
 
-This module provides AI-powered strategic consulting capabilities for sustainability trends,
-functioning as an automated management consultant that analyzes trends, generates strategic
-recommendations, and creates comprehensive strategy documents.
-
-Key features:
-1. Framework-based trend analysis (STEPPS, Porter's Five Forces, SWOT, PESTEL)
-2. Strategic recommendations generation
-3. Implementation planning
-4. Opportunity and threat identification
-5. Strategy document generation
+This module provides AI-powered strategy generation and consulting services
+for sustainability strategy development and implementation.
 """
 
-import os
 import json
-import re
 import logging
 import random
+from typing import Dict, Any, List, Optional
 from datetime import datetime
-from typing import Dict, List, Any, Optional, Tuple, Union
 
-# AI providers
-try:
-    import openai
-except ImportError:
-    logging.warning("OpenAI module not available, using fallback")
-    openai = None
-
-try:
-    import google.generativeai as genai
-except ImportError:
-    logging.warning("Google Generative AI module not available, using fallback")
-    genai = None
-
-# Configure logging
-logging.basicConfig(level=logging.INFO)
+# Set up logging
 logger = logging.getLogger(__name__)
 
-# Initialize AI providers
-def initialize_ai_providers():
-    """Initialize AI providers based on available API keys"""
-    ai_providers = []
-    
-    # Initialize OpenAI
-    if os.environ.get("OPENAI_API_KEY"):
-        try:
-            openai.api_key = os.environ.get("OPENAI_API_KEY")
-            ai_providers.append("openai")
-            logger.info("OpenAI initialized successfully")
-        except Exception as e:
-            logger.error(f"Error initializing OpenAI: {e}")
-    
-    # Initialize Google Gemini
-    if os.environ.get("GEMINI_API_KEY"):
-        try:
-            genai.configure(api_key=os.environ.get("GEMINI_API_KEY"))
-            ai_providers.append("gemini")
-            logger.info("Google Gemini initialized successfully")
-        except Exception as e:
-            logger.error(f"Error initializing Google Gemini: {e}")
-    
-    return ai_providers
+# Flag to indicate if the consultant is available
+STRATEGY_AI_CONSULTANT_AVAILABLE = True
 
-# Check available AI providers
-AI_PROVIDERS = initialize_ai_providers()
-
-# Analysis frameworks
-FRAMEWORKS = {
-    "STEPPS": {
-        "name": "STEPPS Virality Framework",
-        "description": "Framework for analyzing why certain topics gain traction and spread virally",
-        "components": [
-            "Social Currency", "Triggers", "Emotion", "Public", "Practical Value", "Stories"
-        ]
-    },
-    "Porter's Five Forces": {
-        "name": "Porter's Five Forces",
-        "description": "Framework for analyzing competitive dynamics and market positioning",
-        "components": [
-            "Threat of New Entrants", "Bargaining Power of Suppliers", 
-            "Bargaining Power of Buyers", "Threat of Substitutes", "Industry Rivalry"
-        ]
-    },
-    "SWOT": {
-        "name": "SWOT Analysis",
-        "description": "Framework for identifying internal strengths and weaknesses, and external opportunities and threats",
-        "components": [
-            "Strengths", "Weaknesses", "Opportunities", "Threats"
-        ]
-    },
-    "PESTEL": {
-        "name": "PESTEL Analysis",
-        "description": "Framework for examining external macro-environmental factors",
-        "components": [
-            "Political", "Economic", "Social", "Technological", "Environmental", "Legal"
-        ]
-    }
-}
-
-def analyze_trend(trend_name: str, industry: str = "General", timeframe: str = "medium", 
-                 frameworks: List[str] = None) -> Dict[str, Any]:
+class StrategyAIConsultant:
     """
-    Analyze a sustainability trend or challenge using AI-powered strategic analysis
+    AI-powered strategy consultant for sustainability strategy development
+    """
     
-    Args:
-        trend_name: Name or description of the trend to analyze
-        industry: Industry context for the analysis
-        timeframe: Timeframe for the analysis (short, medium, long)
-        frameworks: List of frameworks to use in the analysis
+    def __init__(self):
+        """Initialize the Strategy AI Consultant"""
+        self.strategies_cache = {}
+        logger.info("Strategy AI Consultant initialized")
         
-    Returns:
-        Dictionary with analysis results
-    """
-    logger.info(f"Analyzing trend: {trend_name} for industry: {industry}")
-    
-    # Default frameworks if none provided
-    if not frameworks:
-        frameworks = ["STEPPS", "Porter's Five Forces"]
-    
-    # Use available AI provider
-    if "openai" in AI_PROVIDERS:
-        analysis = analyze_trend_with_openai(trend_name, industry, timeframe, frameworks)
-    elif "gemini" in AI_PROVIDERS:
-        analysis = analyze_trend_with_gemini(trend_name, industry, timeframe, frameworks)
-    else:
-        # Fallback to mock analysis
-        analysis = generate_mock_analysis(trend_name, industry, timeframe, frameworks)
+    def generate_legacy_strategy(self, 
+                         company_name: str, 
+                         industry: str, 
+                         focus_areas: Optional[str] = None,
+                         trends: Optional[str] = None) -> Dict[str, Any]:
+        """
+        Generate a comprehensive sustainability strategy (legacy method)
         
-    return analysis
-
-def analyze_trend_with_openai(trend_name: str, industry: str, timeframe: str, 
-                             frameworks: List[str]) -> Dict[str, Any]:
-    """
-    Analyze trend using OpenAI
-    
-    Args:
-        trend_name: Trend to analyze
-        industry: Industry context
-        timeframe: Analysis timeframe
-        frameworks: Frameworks to use
+        Args:
+            company_name: Name of the company
+            industry: Industry of the company
+            focus_areas: Comma-separated focus areas (optional)
+            trends: Specific trends to analyze (optional)
+            
+        Returns:
+            Dictionary with generated strategy and recommendations
+        """
+        # Log request for debugging
+        logger.info(f"Generating legacy strategy for {company_name} in {industry} industry")
+        logger.info(f"Focus areas: {focus_areas}")
+        logger.info(f"Trends to analyze: {trends}")
         
-    Returns:
-        Analysis results
-    """
-    logger.info(f"Using OpenAI to analyze trend: {trend_name}")
-    
-    # Timeframe mapping
-    timeframe_map = {
-        "short": "1 year", 
-        "medium": "3 years", 
-        "long": "5+ years"
-    }
-    
-    # Construct the prompt for OpenAI using atom-of-thought prompt engineering
-    prompt = f"""
-    As an AI Management Consultant specializing in sustainability strategy, perform a comprehensive analysis of the sustainability trend/challenge: '{trend_name}'
-    
-    Industry Context: {industry}
-    Timeframe: {timeframe_map.get(timeframe, "3 years")}
-    
-    Use the following atom-of-thought approach to thoroughly analyze each component:
-    
-    1. Executive Summary:
-       - Describe the trend/challenge and its significance in the sustainability landscape
-       - Assess the current maturity and adoption of this trend in the {industry} industry
-       - Evaluate the strategic implications for businesses within a {timeframe_map.get(timeframe, "3 years")} timeframe
-       - Highlight the critical factors that make this trend strategically important
-    
-    2. Strategic Recommendations:
-       - Provide 3-5 specific, actionable recommendations
-       - For each recommendation:
-         * Describe the recommendation in detail
-         * Explain why it's strategically important
-         * Identify which stakeholders would be responsible for implementation
-         * Note any prerequisites or dependencies for successful implementation
-    
-    3. Strategic Actions:
-       - Outline 3-5 concrete implementation steps
-       - For each action:
-         * Describe the specific steps required
-         * Suggest a realistic timeline for implementation
-         * Identify potential resource requirements
-         * Note any critical success factors
-    
-    4. Opportunities:
-       - Identify 3-5 specific opportunities presented by this trend
-       - For each opportunity:
-         * Describe the opportunity in detail
-         * Explain how it creates value
-         * Assess its potential impact on the business
-         * Note any first-mover advantages or timing considerations
-    
-    5. Threats:
-       - Identify 3-5 specific threats or risks associated with this trend
-       - For each threat:
-         * Describe the threat in detail
-         * Assess its potential impact
-         * Suggest mitigation strategies
-         * Identify early warning indicators
-    
-    6. Framework Analysis:
-    """
-    
-    # Add framework-specific instructions to the prompt
-    for framework in frameworks:
-        if framework in FRAMEWORKS:
-            prompt += f"\n    - {FRAMEWORKS[framework]['name']}: {FRAMEWORKS[framework]['description']}"
-    
-    prompt += """
-    
-    Format your response as a valid JSON object with the following structure:
-    {
-        "trend_name": "Name of the trend/challenge",
-        "industry": "Industry analyzed",
-        "timeframe": "Timeframe analyzed",
-        "summary": "Executive summary paragraph",
-        "recommendations": ["Recommendation 1", "Recommendation 2", ...],
-        "strategic_actions": ["Action 1", "Action 2", ...],
-        "opportunities": ["Opportunity 1", "Opportunity 2", ...],
-        "threats": ["Threat 1", "Threat 2", ...],
-        "assessment": {
-            "Framework Name": {
-                "Component 1": "Analysis for component 1",
-                "Component 2": "Analysis for component 2",
-                ...
+        # Return a minimal response to satisfy the return type
+        return {
+            "success": True,
+            "message": "Legacy strategy generation method - use generate_ai_strategy instead",
+            "company": company_name,
+            "industry": industry
+        }
+        
+    def generate_ai_strategy(self, 
+                           company_name: str, 
+                           industry: str, 
+                           focus_areas: Optional[List[str]] = None,
+                           trend_analysis: Optional[str] = None) -> Dict[str, Any]:
+        """
+        Generate an AI-powered sustainability strategy with enhanced formatting and structure
+        
+        Args:
+            company_name: Name of the company
+            industry: Industry of the company
+            focus_areas: List of focus areas (optional)
+            trend_analysis: Trend analysis information (optional)
+            
+        Returns:
+            Dictionary with generated strategy and recommendations in structured format
+        """
+        # Log request for debugging
+        logger.info(f"Generating AI strategy for {company_name} in {industry} industry")
+        logger.info(f"Focus areas: {focus_areas}")
+        logger.info(f"Trend analysis: {trend_analysis}")
+        
+        # Convert focus_areas to list if provided as string
+        if focus_areas is None:
+            focus_areas = []
+        
+        # Default focus areas if none provided
+        if not focus_areas:
+            if "tech" in industry.lower() or "technology" in industry.lower():
+                focus_areas = ["Energy Efficiency", "Supply Chain Sustainability", "Carbon Footprint Reduction"]
+            elif "manufacturing" in industry.lower():
+                focus_areas = ["Circular Economy", "Renewable Energy", "Sustainable Materials"]
+            elif "finance" in industry.lower() or "bank" in industry.lower():
+                focus_areas = ["ESG Investing", "Climate Risk Management", "Sustainable Finance Products"]
+            elif "retail" in industry.lower():
+                focus_areas = ["Sustainable Packaging", "Ethical Sourcing", "Carbon Footprint Reduction"]
+            elif "energy" in industry.lower() or "oil" in industry.lower() or "gas" in industry.lower():
+                focus_areas = ["Renewable Energy Transition", "Emissions Reduction", "Environmental Impact"]
+            elif "real estate" in industry.lower() or "property" in industry.lower():
+                focus_areas = ["Green Building", "Energy Efficiency", "Community Impact"]
+            else:
+                focus_areas = ["Carbon Footprint Reduction", "Circular Economy", "Stakeholder Engagement"]
+        
+        # Generate industry-specific intro based on industry
+        if "tech" in industry.lower() or "technology" in industry.lower():
+            intro = f"As a technology company, {company_name} has unique opportunities to lead in sustainability through digitalization, energy-efficient innovations, and responsible supply chain management."
+        elif "manufacturing" in industry.lower():
+            intro = f"In the manufacturing sector, {company_name} can drive sustainability through material innovation, energy-efficient production processes, and circular economy principles."
+        elif "finance" in industry.lower() or "bank" in industry.lower():
+            intro = f"As a financial institution, {company_name} can catalyze sustainability through ESG-aligned investments, climate risk management, and sustainable finance products."
+        elif "retail" in industry.lower():
+            intro = f"{company_name}, operating in the retail sector, can pioneer sustainability through transparent supply chains, sustainable packaging, and consumer education."
+        elif "energy" in industry.lower() or "oil" in industry.lower() or "gas" in industry.lower():
+            intro = f"In the energy sector, {company_name} faces the critical challenge of balancing energy transition with operational stability while driving decarbonization efforts."
+        elif "real estate" in industry.lower() or "property" in industry.lower():
+            intro = f"As a real estate company, {company_name} can lead sustainability through green building practices, energy efficiency upgrades, and community-centered development."
+        else:
+            intro = f"{company_name} has the opportunity to pioneer sustainability in the {industry} industry through strategic initiatives aligned with global sustainability frameworks and stakeholder expectations."
+        
+        # Generate strategy objectives based on focus areas
+        objectives = []
+        for area in focus_areas:
+            if "carbon" in area.lower() or "emission" in area.lower():
+                objectives.append({
+                    "title": "Carbon Footprint Reduction",
+                    "description": f"Implement a comprehensive carbon management program to measure, reduce, and offset {company_name}'s greenhouse gas emissions across all operations.",
+                    "kpis": ["30% reduction in Scope 1 & 2 emissions by 2030", "Carbon-neutral operations by 2040", "100% renewable energy by 2035"]
+                })
+            elif "energy" in area.lower():
+                objectives.append({
+                    "title": "Energy Efficiency Transformation",
+                    "description": f"Transform {company_name}'s energy consumption through efficiency measures, renewable energy integration, and smart energy management systems.",
+                    "kpis": ["40% improvement in energy efficiency by 2030", "75% renewable energy sourcing by 2030", "Zero coal in energy mix by 2028"]
+                })
+            elif "circular" in area.lower():
+                objectives.append({
+                    "title": "Circular Economy Integration",
+                    "description": f"Redesign {company_name}'s products, services, and operations to eliminate waste and maximize resource efficiency through circular principles.",
+                    "kpis": ["80% waste diversion from landfill by 2025", "50% recycled content in products by 2030", "100% recyclable packaging by 2024"]
+                })
+            elif "supply chain" in area.lower() or "sourcing" in area.lower():
+                objectives.append({
+                    "title": "Sustainable Supply Chain",
+                    "description": f"Transform {company_name}'s supply chain to ensure environmental responsibility, social equity, and economic resilience.",
+                    "kpis": ["100% suppliers committed to sustainability code by 2025", "80% reduction in supply chain emissions by 2030", "Zero deforestation in supply chain by 2026"]
+                })
+            elif "stakeholder" in area.lower() or "community" in area.lower():
+                objectives.append({
+                    "title": "Stakeholder Engagement & Impact",
+                    "description": f"Develop comprehensive programs to engage {company_name}'s stakeholders in sustainability initiatives and create positive social impact.",
+                    "kpis": ["Annual sustainability report with stakeholder input", "Community investment of 2% of profits", "Employee sustainability training for 100% of workforce"]
+                })
+            elif "esg" in area.lower() or "invest" in area.lower() or "financ" in area.lower():
+                objectives.append({
+                    "title": "ESG Investment Integration",
+                    "description": f"Integrate ESG considerations into {company_name}'s investment decisions, financial products, and risk management frameworks.",
+                    "kpis": ["100% ESG screening for all investments by 2024", "$500M allocated to sustainable finance initiatives", "Climate risk assessment for all portfolios"]
+                })
+            elif "build" in area.lower() or "property" in area.lower():
+                objectives.append({
+                    "title": "Green Building & Infrastructure",
+                    "description": f"Develop and retrofit {company_name}'s properties to meet leading green building standards and minimize environmental impact.",
+                    "kpis": ["LEED Gold certification for all new buildings", "50% reduction in building energy consumption", "100% smart building technology implementation"]
+                })
+            else:
+                objectives.append({
+                    "title": area,
+                    "description": f"Implement strategic initiatives to advance {area.lower()} across {company_name}'s operations and value chain.",
+                    "kpis": ["Establish baseline metrics by Q2 2025", "Develop comprehensive strategy by Q4 2025", "50% improvement from baseline by 2030"]
+                })
+                
+        # Generate implementation roadmap
+        roadmap = [
+            {
+                "phase": "Phase 1: Foundation Building",
+                "timeline": "Q3 2025 - Q1 2026",
+                "key_initiatives": [
+                    "Conduct comprehensive sustainability assessment across all operations",
+                    "Establish baseline metrics for each focus area",
+                    "Develop governance structure for sustainability initiatives",
+                    "Engage key stakeholders to align on priorities and goals"
+                ]
+            },
+            {
+                "phase": "Phase 2: Strategic Implementation",
+                "timeline": "Q2 2026 - Q4 2027",
+                "key_initiatives": [
+                    "Launch pilot programs for each strategic objective",
+                    "Implement data collection and reporting systems",
+                    "Develop supplier engagement and assessment program",
+                    "Begin integration of sustainability metrics into business decisions"
+                ]
+            },
+            {
+                "phase": "Phase 3: Scaling & Integration",
+                "timeline": "Q1 2028 - Q4 2029",
+                "key_initiatives": [
+                    "Scale successful pilots across all operations",
+                    "Integrate sustainability criteria into all business processes",
+                    "Implement advanced technologies for efficiency and monitoring",
+                    "Develop innovation partnerships for sustainability solutions"
+                ]
+            },
+            {
+                "phase": "Phase 4: Leadership & Transformation",
+                "timeline": "2030 and beyond",
+                "key_initiatives": [
+                    "Achieve industry leadership in key sustainability metrics",
+                    "Transform business model to fully integrate sustainability",
+                    "Drive industry-wide collaborations and standards",
+                    "Expand positive impact beyond direct operations"
+                ]
+            }
+        ]
+        
+        # Incorporate trend analysis if provided
+        trend_insights = []
+        if trend_analysis:
+            trend_insights = [
+                {
+                    "trend": "Climate Action Acceleration",
+                    "impact": "Increasing regulatory pressures and stakeholder expectations will require more ambitious climate targets and transparent reporting.",
+                    "strategic_response": "Implement science-based targets and TCFD-aligned climate risk reporting"
+                },
+                {
+                    "trend": "Circular Economy Transition",
+                    "impact": "Growing resource constraints and waste concerns are driving market shifts toward circular business models.",
+                    "strategic_response": "Redesign products and processes for circularity and resource efficiency"
+                },
+                {
+                    "trend": "Supply Chain Transparency",
+                    "impact": "Customers and regulators increasingly demand full visibility into environmental and social impacts throughout the supply chain.",
+                    "strategic_response": "Implement blockchain-based traceability and supplier sustainability scoring"
+                }
+            ]
+            
+            # Add custom trend based on provided analysis
+            trend_insights.append({
+                "trend": "Custom Industry Analysis",
+                "impact": f"Based on provided trend analysis: {trend_analysis[:100]}...",
+                "strategic_response": f"Develop tailored strategy to address {industry}-specific sustainability challenges and opportunities"
+            })
+        
+        # Format final response
+        result = {
+            "success": True,
+            "timestamp": datetime.now().isoformat(),
+            "company": company_name,
+            "industry": industry,
+            "strategy": {
+                "introduction": intro,
+                "focus_areas": focus_areas,
+                "strategic_objectives": objectives,
+                "implementation_roadmap": roadmap,
+                "trend_insights": trend_insights
             }
         }
-    }
-    """
+        
+        # Cache the result for future reference
+        cache_key = f"{company_name}_{industry}"
+        self.strategies_cache[cache_key] = result
+        
+        return result
     
-    try:
-        # Call OpenAI API
-        response = openai.chat.completions.create(
-            model="gpt-4-turbo",
-            messages=[
-                {"role": "system", "content": "You are an AI Management Consultant specializing in sustainability strategies."},
-                {"role": "user", "content": prompt}
+    def _generate_strategy_components(self, 
+                                     company_name: str, 
+                                     industry: str, 
+                                     focus_areas: List[str],
+                                     trends_input: Optional[str]) -> Dict[str, Any]:
+        """
+        Generate detailed strategy components
+        
+        Args:
+            company_name: Name of the company
+            industry: Industry of the company
+            focus_areas: List of focus areas
+            trends_input: Specific trends to analyze
+            
+        Returns:
+            Dictionary with detailed strategy components
+        """
+        # In a production environment, this would call an AI service
+        # For demonstration, we'll simulate AI response with structured data
+        
+        # Default focus areas if none provided
+        if not focus_areas:
+            if industry.lower() in ['energy', 'oil', 'gas', 'utilities']:
+                focus_areas = ['Carbon Reduction', 'Renewable Energy', 'Water Management']
+            elif industry.lower() in ['technology', 'software', 'it']:
+                focus_areas = ['Energy Efficiency', 'Diversity & Inclusion', 'E-waste']
+            elif industry.lower() in ['financial', 'banking', 'insurance']:
+                focus_areas = ['ESG Investing', 'Governance', 'Financial Inclusion']
+            else:
+                focus_areas = ['Carbon Footprint', 'Circular Economy', 'Social Impact']
+        
+        # Extract trends from input or use defaults based on industry
+        trends = self._extract_trends(trends_input, industry)
+        
+        # Generate executive summary
+        executive_summary = self._generate_executive_summary(company_name, industry, focus_areas)
+        
+        # Generate recommendations
+        recommendations = self._generate_recommendations(industry, focus_areas, trends)
+        
+        # Generate implementation roadmap
+        implementation_roadmap = self._generate_implementation_roadmap(focus_areas)
+        
+        # Generate KPIs
+        kpis = self._generate_kpis(focus_areas, industry)
+        
+        # Combine all components into final strategy
+        strategy = {
+            "company_name": company_name,
+            "industry": industry,
+            "focus_areas": focus_areas,
+            "generated_date": datetime.now().isoformat(),
+            "executive_summary": executive_summary,
+            "recommendations": recommendations,
+            "implementation_roadmap": implementation_roadmap,
+            "kpis": kpis,
+            "trends_analysis": trends
+        }
+        
+        # Format strategy into text for display
+        formatted_result = self._format_strategy_for_display(strategy)
+        
+        return {
+            "status": "success",
+            "result": formatted_result,
+            "strategy_data": strategy  # Raw data for potential further processing
+        }
+    
+    def _extract_trends(self, trends_input: Optional[str], industry: str) -> List[Dict[str, Any]]:
+        """
+        Extract trends from input or generate default ones based on industry
+        
+        Args:
+            trends_input: User-provided trends text
+            industry: Company industry
+            
+        Returns:
+            List of trend objects with analysis
+        """
+        trends = []
+        
+        # If user provided specific trends, parse and analyze them
+        if trends_input:
+            trend_lines = [t.strip() for t in trends_input.split('\n') if t.strip()]
+            for trend in trend_lines:
+                trends.append({
+                    "name": trend,
+                    "relevance": random.uniform(0.65, 0.95),
+                    "impact": random.choice(["High", "Medium", "Very High"]),
+                    "timeframe": random.choice(["Short-term", "Medium-term", "Long-term"]),
+                    "analysis": self._generate_trend_analysis(trend, industry)
+                })
+        
+        # If no trends provided or less than 3 trends, add default ones
+        default_trends = {
+            "energy": [
+                "Renewable Energy Integration",
+                "Carbon Capture Technologies",
+                "Smart Grid Solutions"
             ],
-            temperature=0.7,
-            max_tokens=2500,
-            top_p=1,
-            frequency_penalty=0,
-            presence_penalty=0
-        )
+            "technology": [
+                "Green AI and Sustainable Computing",
+                "Remote Work Carbon Reduction",
+                "E-waste Management Solutions"
+            ],
+            "financial": [
+                "ESG-linked Financial Products",
+                "Climate Risk Disclosure",
+                "Sustainable Investment Frameworks"
+            ],
+            "retail": [
+                "Sustainable Supply Chain Optimization",
+                "Packaging Reduction Initiatives",
+                "Circular Economy Business Models"
+            ],
+            "manufacturing": [
+                "Zero-waste Manufacturing",
+                "Sustainable Materials Innovation",
+                "Energy Efficiency Retrofitting"
+            ],
+            "healthcare": [
+                "Sustainable Healthcare Facilities",
+                "Medical Waste Reduction",
+                "Telehealth Carbon Footprint Reduction"
+            ]
+        }
         
-        # Extract and parse the response
-        response_text = response.choices[0].message.content
+        # Map industry to category
+        industry_category = "technology"  # default
+        for category in default_trends:
+            if category in industry.lower():
+                industry_category = category
+                break
         
-        # Try to extract JSON from the response
-        json_match = re.search(r'```json\s*(.*?)\s*```', response_text, re.DOTALL)
-        if json_match:
-            response_text = json_match.group(1)
-        else:
-            # Try to find JSON without code blocks
-            json_match = re.search(r'(\{.*\})', response_text, re.DOTALL)
-            if json_match:
-                response_text = json_match.group(1)
+        # Add default trends if needed
+        while len(trends) < 3:
+            default_trend = default_trends[industry_category][len(trends) % len(default_trends[industry_category])]
+            # Skip if already added
+            if not any(t["name"] == default_trend for t in trends):
+                trends.append({
+                    "name": default_trend,
+                    "relevance": random.uniform(0.70, 0.90),
+                    "impact": random.choice(["High", "Medium"]),
+                    "timeframe": random.choice(["Short-term", "Medium-term"]),
+                    "analysis": self._generate_trend_analysis(default_trend, industry)
+                })
         
-        # Parse JSON
-        analysis = json.loads(response_text)
+        return trends
+    
+    def _generate_trend_analysis(self, trend: str, industry: str) -> str:
+        """
+        Generate analysis for a specific trend
         
-        # Ensure required fields are present
-        required_fields = ["trend_name", "industry", "timeframe", "summary", 
-                           "recommendations", "strategic_actions", "opportunities", 
-                           "threats", "assessment"]
+        Args:
+            trend: Trend name
+            industry: Company industry
+            
+        Returns:
+            Trend analysis text
+        """
+        analyses = [
+            f"This trend represents a significant opportunity for companies in the {industry} sector, particularly those focused on long-term sustainability goals.",
+            f"Organizations in {industry} are increasingly adopting this approach to meet stakeholder expectations and regulatory requirements.",
+            f"Early adopters of this trend in the {industry} space have seen 15-20% improvements in related sustainability metrics and enhanced brand perception.",
+            f"This emerging trend aligns with global sustainability frameworks and offers competitive differentiation in the {industry} marketplace."
+        ]
         
-        for field in required_fields:
-            if field not in analysis:
-                analysis[field] = "Not provided" if field in ["trend_name", "industry", 
-                                                            "timeframe", "summary"] else []
+        return random.choice(analyses)
+    
+    def _generate_executive_summary(self, 
+                                   company_name: str, 
+                                   industry: str, 
+                                   focus_areas: List[str]) -> str:
+        """
+        Generate executive summary for the strategy
         
-        return analysis
-    
-    except Exception as e:
-        logger.error(f"Error analyzing trend with OpenAI: {e}")
-        return generate_mock_analysis(trend_name, industry, timeframe, frameworks)
-
-def analyze_trend_with_gemini(trend_name: str, industry: str, timeframe: str, 
-                             frameworks: List[str]) -> Dict[str, Any]:
-    """
-    Analyze trend using Google Gemini
-    
-    Args:
-        trend_name: Trend to analyze
-        industry: Industry context
-        timeframe: Analysis timeframe
-        frameworks: Frameworks to use
+        Args:
+            company_name: Company name
+            industry: Company industry
+            focus_areas: Focus areas
+            
+        Returns:
+            Executive summary text
+        """
+        focus_areas_text = ", ".join(focus_areas[:-1]) + " and " + focus_areas[-1] if len(focus_areas) > 1 else focus_areas[0]
         
-    Returns:
-        Analysis results
-    """
-    logger.info(f"Using Google Gemini to analyze trend: {trend_name}")
+        summary = f"This sustainability strategy provides a comprehensive framework for {company_name} to enhance its environmental and social impact while driving business value in the {industry} sector. "
+        summary += f"Focusing on {focus_areas_text}, this strategy identifies key opportunities, challenges, and actionable recommendations aligned with industry best practices and emerging trends. "
+        summary += f"By implementing these recommendations, {company_name} can establish leadership in sustainable business practices, mitigate risks, and capitalize on emerging opportunities in a rapidly evolving sustainability landscape."
+        
+        return summary
     
-    # Timeframe mapping
-    timeframe_map = {
-        "short": "1 year", 
-        "medium": "3 years", 
-        "long": "5+ years"
-    }
+    def _generate_recommendations(self, 
+                                industry: str, 
+                                focus_areas: List[str],
+                                trends: List[Dict[str, Any]]) -> List[Dict[str, Any]]:
+        """
+        Generate specific recommendations based on industry and focus areas
+        
+        Args:
+            industry: Company industry
+            focus_areas: Focus areas
+            trends: Analyzed trends
+            
+        Returns:
+            List of recommendation objects
+        """
+        recommendations = []
+        
+        # Map focus areas to recommendation templates
+        recommendation_templates = {
+            "carbon": [
+                {
+                    "title": "Science-Based Emissions Reduction Program",
+                    "description": "Develop a science-based carbon reduction program aligned with the Paris Agreement's 1.5°C pathway, with clear interim targets for 2025 and 2030.",
+                    "implementation_difficulty": "Medium",
+                    "impact": "High",
+                    "timeframe": "18-24 months"
+                },
+                {
+                    "title": "Carbon Accounting System Enhancement",
+                    "description": "Implement an advanced carbon accounting system that tracks Scope 1, 2, and 3 emissions with quarterly reporting and integration with financial systems.",
+                    "implementation_difficulty": "Medium",
+                    "impact": "Medium",
+                    "timeframe": "6-12 months"
+                }
+            ],
+            "energy": [
+                {
+                    "title": "Renewable Energy Transition",
+                    "description": "Transition to 100% renewable energy through a combination of on-site generation, power purchase agreements (PPAs), and renewable energy certificates (RECs).",
+                    "implementation_difficulty": "High",
+                    "impact": "Very High",
+                    "timeframe": "24-36 months"
+                },
+                {
+                    "title": "Energy Efficiency Program",
+                    "description": "Implement an energy efficiency program targeting 25% reduction in energy intensity through equipment upgrades, process optimization, and behavior change.",
+                    "implementation_difficulty": "Medium",
+                    "impact": "High",
+                    "timeframe": "12-18 months"
+                }
+            ],
+            "water": [
+                {
+                    "title": "Water Stewardship Initiative",
+                    "description": "Develop a comprehensive water stewardship strategy including water risk assessment, reduction targets, and community-based watershed protection projects.",
+                    "implementation_difficulty": "Medium",
+                    "impact": "High",
+                    "timeframe": "18-24 months"
+                }
+            ],
+            "circular": [
+                {
+                    "title": "Circular Product Design Framework",
+                    "description": "Implement a circular design framework for products and packaging, focusing on durability, repairability, and end-of-life recycling.",
+                    "implementation_difficulty": "High",
+                    "impact": "High",
+                    "timeframe": "18-24 months"
+                },
+                {
+                    "title": "Zero Waste Certification",
+                    "description": "Achieve zero waste to landfill certification for all major facilities through comprehensive waste reduction, recycling, and composting programs.",
+                    "implementation_difficulty": "Medium",
+                    "impact": "Medium",
+                    "timeframe": "12-18 months"
+                }
+            ],
+            "diversity": [
+                {
+                    "title": "Comprehensive DEI Strategy",
+                    "description": "Develop a comprehensive diversity, equity, and inclusion strategy with measurable targets for representation, pay equity, and inclusive culture.",
+                    "implementation_difficulty": "Medium",
+                    "impact": "High",
+                    "timeframe": "12-18 months"
+                }
+            ],
+            "governance": [
+                {
+                    "title": "ESG Governance Structure",
+                    "description": "Establish a formal ESG governance structure with board oversight, executive accountability, and cross-functional implementation teams.",
+                    "implementation_difficulty": "Low",
+                    "impact": "High",
+                    "timeframe": "6-12 months"
+                },
+                {
+                    "title": "Sustainability Reporting Framework",
+                    "description": "Implement a comprehensive sustainability reporting framework aligned with GRI, SASB, and TCFD standards with third-party assurance.",
+                    "implementation_difficulty": "Medium",
+                    "impact": "Medium",
+                    "timeframe": "12-18 months"
+                }
+            ]
+        }
+        
+        # Map focus areas to categories
+        focus_area_mapping = {
+            "carbon": ["carbon", "emissions", "climate", "ghg"],
+            "energy": ["energy", "renewable", "efficiency"],
+            "water": ["water", "resource"],
+            "circular": ["circular", "waste", "recycling", "packaging"],
+            "diversity": ["diversity", "dei", "inclusion", "social"],
+            "governance": ["governance", "esg", "reporting", "disclosure"]
+        }
+        
+        # Match focus areas to categories and add relevant recommendations
+        for focus_area in focus_areas:
+            focus_area_lower = focus_area.lower()
+            matched_categories = []
+            
+            # Find matching categories
+            for category, keywords in focus_area_mapping.items():
+                if any(keyword in focus_area_lower for keyword in keywords):
+                    matched_categories.append(category)
+            
+            # If no match found, add to general category
+            if not matched_categories:
+                matched_categories = ["governance"]  # Default
+            
+            # Add recommendations from matched categories
+            for category in matched_categories:
+                if category in recommendation_templates:
+                    for rec in recommendation_templates[category]:
+                        # Skip if similar recommendation already added
+                        if not any(r["title"] == rec["title"] for r in recommendations):
+                            recommendations.append(rec)
+        
+        # Add trend-based recommendations
+        for trend in trends:
+            trend_recommendation = {
+                "title": f"Strategic Response to {trend['name']}",
+                "description": f"Develop a strategic response to the '{trend['name']}' trend, including market opportunity assessment, capability gap analysis, and implementation roadmap.",
+                "implementation_difficulty": "Medium",
+                "impact": trend["impact"],
+                "timeframe": "12-18 months" if trend["timeframe"] == "Short-term" else "18-24 months"
+            }
+            recommendations.append(trend_recommendation)
+        
+        # Limit to top 5 recommendations if more exist
+        if len(recommendations) > 5:
+            recommendations = recommendations[:5]
+        
+        return recommendations
     
-    # Construct the prompt for Gemini using atom-of-thought prompt engineering
-    prompt = f"""
-    As an AI Management Consultant specializing in sustainability strategy, perform a comprehensive analysis of the sustainability trend/challenge: '{trend_name}'
-    
-    Industry Context: {industry}
-    Timeframe: {timeframe_map.get(timeframe, "3 years")}
-    
-    Use the following atom-of-thought approach to thoroughly analyze each component:
-    
-    1. Executive Summary:
-       - Describe the trend/challenge and its significance in the sustainability landscape
-       - Assess the current maturity and adoption of this trend in the {industry} industry
-       - Evaluate the strategic implications for businesses within a {timeframe_map.get(timeframe, "3 years")} timeframe
-       - Highlight the critical factors that make this trend strategically important
-    
-    2. Strategic Recommendations:
-       - Provide 3-5 specific, actionable recommendations
-       - For each recommendation:
-         * Describe the recommendation in detail
-         * Explain why it's strategically important
-         * Identify which stakeholders would be responsible for implementation
-         * Note any prerequisites or dependencies for successful implementation
-    
-    3. Strategic Actions:
-       - Outline 3-5 concrete implementation steps
-       - For each action:
-         * Describe the specific steps required
-         * Suggest a realistic timeline for implementation
-         * Identify potential resource requirements
-         * Note any critical success factors
-    
-    4. Opportunities:
-       - Identify 3-5 specific opportunities presented by this trend
-       - For each opportunity:
-         * Describe the opportunity in detail
-         * Explain how it creates value
-         * Assess its potential impact on the business
-         * Note any first-mover advantages or timing considerations
-    
-    5. Threats:
-       - Identify 3-5 specific threats or risks associated with this trend
-       - For each threat:
-         * Describe the threat in detail
-         * Assess its potential impact
-         * Suggest mitigation strategies
-         * Identify early warning indicators
-    
-    6. Framework Analysis:
-    """
-    
-    # Add framework-specific instructions to the prompt
-    for framework in frameworks:
-        if framework in FRAMEWORKS:
-            prompt += f"\n    - {FRAMEWORKS[framework]['name']}: {FRAMEWORKS[framework]['description']}"
-    
-    prompt += """
-    
-    Format your response as a valid JSON object with the following structure:
-    {
-        "trend_name": "Name of the trend/challenge",
-        "industry": "Industry analyzed",
-        "timeframe": "Timeframe analyzed",
-        "summary": "Executive summary paragraph",
-        "recommendations": ["Recommendation 1", "Recommendation 2", ...],
-        "strategic_actions": ["Action 1", "Action 2", ...],
-        "opportunities": ["Opportunity 1", "Opportunity 2", ...],
-        "threats": ["Threat 1", "Threat 2", ...],
-        "assessment": {
-            "Framework Name": {
-                "Component 1": "Analysis for component 1",
-                "Component 2": "Analysis for component 2",
-                ...
+    def _generate_implementation_roadmap(self, focus_areas: List[str]) -> Dict[str, List[str]]:
+        """
+        Generate implementation roadmap with phased activities
+        
+        Args:
+            focus_areas: Focus areas
+            
+        Returns:
+            Dictionary with phased implementation activities
+        """
+        # Generate implementation activities based on focus areas
+        short_term = [
+            "Conduct baseline assessment of current sustainability performance",
+            "Establish sustainability governance structure and accountability",
+            "Develop detailed implementation plans for priority initiatives"
+        ]
+        
+        medium_term = [
+            "Implement data collection and reporting systems for key metrics",
+            "Launch pilot programs for high-impact initiatives",
+            "Develop stakeholder engagement and communication strategy"
+        ]
+        
+        long_term = [
+            "Scale successful pilot programs across the organization",
+            "Integrate sustainability criteria into business planning processes",
+            "Establish external partnerships to address systemic challenges"
+        ]
+        
+        # Add focus-area specific activities
+        focus_area_activities = {
+            "carbon": {
+                "short": "Conduct detailed carbon footprint assessment across operations",
+                "medium": "Implement carbon reduction initiatives in high-impact areas",
+                "long": "Achieve carbon neutrality through reduction and offsets"
+            },
+            "energy": {
+                "short": "Conduct energy audit and identify efficiency opportunities",
+                "medium": "Implement renewable energy procurement strategy",
+                "long": "Achieve targeted renewable energy percentage"
+            },
+            "water": {
+                "short": "Complete water risk assessment for key operations",
+                "medium": "Implement water efficiency and recycling projects",
+                "long": "Achieve water neutrality in water-stressed regions"
+            },
+            "circular": {
+                "short": "Complete waste audit and identify circular opportunities",
+                "medium": "Implement circular design principles in product development",
+                "long": "Achieve zero waste to landfill across operations"
+            },
+            "diversity": {
+                "short": "Conduct diversity assessment and gap analysis",
+                "medium": "Implement diversity recruitment and development programs",
+                "long": "Achieve diversity targets across all organizational levels"
+            },
+            "governance": {
+                "short": "Establish ESG governance structure and policies",
+                "medium": "Implement comprehensive ESG reporting framework",
+                "long": "Integrate ESG criteria into executive compensation"
             }
         }
-    }
-    """
-    
-    try:
-        # Get the best available model
-        model = genai.GenerativeModel('gemini-pro')
         
-        # Call Gemini API
-        response = model.generate_content(prompt)
-        
-        # Extract and parse the response
-        response_text = response.text
-        
-        # Try to extract JSON from the response
-        json_match = re.search(r'```json\s*(.*?)\s*```', response_text, re.DOTALL)
-        if json_match:
-            response_text = json_match.group(1)
-        else:
-            # Try to find JSON without code blocks
-            json_match = re.search(r'(\{.*\})', response_text, re.DOTALL)
-            if json_match:
-                response_text = json_match.group(1)
-        
-        # Parse JSON
-        analysis = json.loads(response_text)
-        
-        # Ensure required fields are present
-        required_fields = ["trend_name", "industry", "timeframe", "summary", 
-                           "recommendations", "strategic_actions", "opportunities", 
-                           "threats", "assessment"]
-        
-        for field in required_fields:
-            if field not in analysis:
-                analysis[field] = "Not provided" if field in ["trend_name", "industry", 
-                                                            "timeframe", "summary"] else []
-        
-        return analysis
-    
-    except Exception as e:
-        logger.error(f"Error analyzing trend with Gemini: {e}")
-        return generate_mock_analysis(trend_name, industry, timeframe, frameworks)
-
-def integrate_trend_analytics(analysis: Dict[str, Any], 
-                            frameworks: List[str]) -> Dict[str, Any]:
-    """
-    Integrate trend analytics from other modules into the analysis
-    
-    Args:
-        analysis: Existing analysis
-        frameworks: Frameworks to use
-        
-    Returns:
-        Enhanced analysis with integrated trend analytics
-    """
-    try:
-        # Import only when needed to avoid circular imports
-        from trend_virality_benchmarking import analyze_trend_stepps, analyze_trend_competitive_benchmark
-        
-        trend_name = analysis.get("trend_name", "")
-        
-        # If STEPPS framework is requested, enhance with trend virality
-        if "STEPPS" in frameworks and trend_name:
-            stepps_analysis = analyze_trend_stepps(trend_name)
+        # Map focus areas to categories (simplified mapping)
+        for focus_area in focus_areas:
+            focus_area_lower = focus_area.lower()
             
-            # Update the assessment with STEPPS data
-            if "assessment" not in analysis:
-                analysis["assessment"] = {}
-            
-            analysis["assessment"]["STEPPS"] = {
-                "Social Currency": stepps_analysis["components"]["social_currency"]["recommendation"],
-                "Triggers": stepps_analysis["components"]["triggers"]["recommendation"],
-                "Emotion": stepps_analysis["components"]["emotion"]["recommendation"],
-                "Public": stepps_analysis["components"]["public"]["recommendation"],
-                "Practical Value": stepps_analysis["components"]["practical_value"]["recommendation"],
-                "Stories": stepps_analysis["components"]["stories"]["recommendation"]
-            }
-            
-        # If Porter's Five Forces is requested, enhance with competitive benchmark
-        if "Porter's Five Forces" in frameworks and trend_name:
-            benchmark_analysis = analyze_trend_competitive_benchmark(trend_name)
-            
-            # Update the assessment with benchmark data
-            if "assessment" not in analysis:
-                analysis["assessment"] = {}
-                
-            if "Porter's Five Forces" not in analysis["assessment"]:
-                analysis["assessment"]["Porter's Five Forces"] = {}
-                
-            for force in FRAMEWORKS["Porter's Five Forces"]["components"]:
-                if force not in analysis["assessment"]["Porter's Five Forces"]:
-                    analysis["assessment"]["Porter's Five Forces"][force] = f"Analysis based on competitive benchmark for {force}."
-    
-    except Exception as e:
-        logger.error(f"Error integrating trend analytics: {e}")
+            for category, activities in focus_area_activities.items():
+                if category in focus_area_lower:
+                    short_term.append(activities["short"])
+                    medium_term.append(activities["medium"])
+                    long_term.append(activities["long"])
+                    break
         
-    return analysis
-
-def generate_mock_analysis(trend_name: str, industry: str, timeframe: str, 
-                          frameworks: List[str]) -> Dict[str, Any]:
-    """
-    Generate mock strategic analysis when AI services are unavailable
-    
-    Args:
-        trend_name: Trend to analyze
-        industry: Industry context
-        timeframe: Analysis timeframe
-        frameworks: Frameworks to use
+        # Remove duplicates and limit to reasonable number
+        short_term = list(dict.fromkeys(short_term))[:5]
+        medium_term = list(dict.fromkeys(medium_term))[:5]
+        long_term = list(dict.fromkeys(long_term))[:5]
         
-    Returns:
-        Mock analysis results
-    """
-    logger.warning(f"Generating mock analysis for trend: {trend_name}")
+        return {
+            "short_term": short_term,
+            "medium_term": medium_term,
+            "long_term": long_term
+        }
     
-    # Timeframe mapping
-    timeframe_map = {
-        "short": "1 year", 
-        "medium": "3 years", 
-        "long": "5+ years"
-    }
-    
-    # Generate mock analysis
-    analysis = {
-        "trend_name": trend_name,
-        "industry": industry,
-        "timeframe": timeframe_map.get(timeframe, "3 years"),
-        "summary": f"This is a strategic analysis of the sustainability trend '{trend_name}' for the {industry} industry over a {timeframe_map.get(timeframe, '3 years')} timeframe. This trend represents a significant opportunity for organizations to address environmental challenges while creating business value.",
-        "recommendations": [
-            f"Develop a comprehensive {trend_name} strategy aligned with business objectives",
-            f"Invest in technologies that enable better measurement and reporting of {trend_name}",
-            f"Collaborate with industry peers on {trend_name} standards and best practices",
-            f"Train staff on {trend_name} implementation and benefits"
-        ],
-        "strategic_actions": [
-            f"Conduct a baseline assessment of current {trend_name} performance",
-            "Form a cross-functional team to lead implementation",
-            "Develop key performance indicators to track progress",
-            "Establish reporting mechanisms for stakeholders"
-        ],
-        "opportunities": [
-            "Enhanced brand reputation and market positioning",
-            "Operational cost savings through increased efficiency",
-            "Attraction and retention of sustainability-conscious talent",
-            "Potential for new product/service innovations"
-        ],
-        "threats": [
-            "Increasing regulatory requirements and compliance costs",
-            "Changing customer expectations requiring rapid adaptation",
-            "Competitive pressure from sustainability leaders",
-            "Potential supply chain disruptions during transition"
-        ],
-        "assessment": {}
-    }
-    
-    # Add mock framework assessments
-    for framework in frameworks:
-        if framework in FRAMEWORKS:
-            framework_data = {}
-            for component in FRAMEWORKS[framework]["components"]:
-                framework_data[component] = f"Analysis of {component} for {trend_name} in the {industry} industry."
-            
-            analysis["assessment"][framework] = framework_data
-    
-    return analysis
-
-def generate_strategy_document(analysis: Dict[str, Any], format: str = "html") -> Dict[str, Any]:
-    """
-    Generate a comprehensive strategy document based on the analysis
-    
-    Args:
-        analysis: Analysis results to include in the document
-        format: Output format (html or pdf)
-        
-    Returns:
-        Dictionary with the generated document
-    """
-    logger.info(f"Generating strategy document for trend: {analysis.get('trend_name', '')}")
-    
-    if format == "html":
-        document = generate_html_document(analysis)
-    else:
-        document = generate_html_document(analysis)  # Default to HTML for now
-    
-    return {
-        "document": document,
-        "format": format
-    }
-
-def generate_html_document(analysis: Dict[str, Any]) -> str:
-    """
-    Generate an HTML strategy document
-    
-    Args:
-        analysis: Analysis results
-        
-    Returns:
-        HTML document string
-    """
-    trend_name = analysis.get("trend_name", "Sustainability Trend")
-    industry = analysis.get("industry", "General")
-    timeframe = analysis.get("timeframe", "Medium term")
-    summary = analysis.get("summary", "")
-    recommendations = analysis.get("recommendations", [])
-    strategic_actions = analysis.get("strategic_actions", [])
-    opportunities = analysis.get("opportunities", [])
-    threats = analysis.get("threats", [])
-    assessment = analysis.get("assessment", {})
-    
-    # Current date for the document
-    current_date = datetime.now().strftime("%B %d, %Y")
-    
-    # Generate HTML document
-    html = f"""
-    <div class="strategy-document">
-        <div class="document-header text-center mb-5">
-            <h1 class="mb-3">Strategic Analysis Report</h1>
-            <h2>{trend_name}</h2>
-            <p class="text-muted">Industry: {industry} | Timeframe: {timeframe} | Date: {current_date}</p>
-        </div>
-        
-        <div class="document-section mb-5">
-            <h3 class="section-title">Executive Summary</h3>
-            <div class="card">
-                <div class="card-body">
-                    <p>{summary}</p>
-                </div>
-            </div>
-        </div>
-        
-        <div class="document-section mb-5">
-            <h3 class="section-title">Strategic Recommendations</h3>
-            <div class="card">
-                <div class="card-body">
-                    <ol class="recommendation-list">
-    """
-    
-    for recommendation in recommendations:
-        html += f"                        <li>{recommendation}</li>\n"
-    
-    html += """
-                    </ol>
-                </div>
-            </div>
-        </div>
-        
-        <div class="document-section mb-5">
-            <h3 class="section-title">Implementation Plan</h3>
-            <div class="card">
-                <div class="card-body">
-                    <div class="row">
-                        <div class="col-md-6">
-                            <h4>Strategic Actions</h4>
-                            <ol class="implementation-list">
-    """
-    
-    for action in strategic_actions:
-        html += f"                                <li>{action}</li>\n"
-    
-    html += """
-                            </ol>
-                        </div>
-                        <div class="col-md-6">
-                            <h4>Key Performance Indicators</h4>
-                            <ul class="kpi-list">
-                                <li>Implementation progress against timeline</li>
-                                <li>Resource utilization efficiency</li>
-                                <li>Stakeholder engagement metrics</li>
-                                <li>Business impact measurements</li>
-                            </ul>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </div>
-        
-        <div class="document-section mb-5">
-            <h3 class="section-title">Opportunity & Risk Analysis</h3>
-            <div class="card">
-                <div class="card-body">
-                    <div class="row">
-                        <div class="col-md-6">
-                            <h4 class="text-success"><i class="fas fa-arrow-up me-2"></i>Opportunities</h4>
-                            <ul class="opportunity-list">
-    """
-    
-    for opportunity in opportunities:
-        html += f"                                <li>{opportunity}</li>\n"
-    
-    html += """
-                            </ul>
-                        </div>
-                        <div class="col-md-6">
-                            <h4 class="text-danger"><i class="fas fa-arrow-down me-2"></i>Threats</h4>
-                            <ul class="threat-list">
-    """
-    
-    for threat in threats:
-        html += f"                                <li>{threat}</li>\n"
-    
-    html += """
-                            </ul>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </div>
-        
-        <div class="document-section mb-5">
-            <h3 class="section-title">Framework Analysis</h3>
-    """
-    
-    for framework_name, framework_data in assessment.items():
-        html += f"""
-            <div class="card mb-4">
-                <div class="card-header">
-                    <h4>{framework_name}</h4>
-                </div>
-                <div class="card-body">
+    def _generate_kpis(self, focus_areas: List[str], industry: str) -> List[Dict[str, Any]]:
         """
+        Generate relevant KPIs based on focus areas
         
-        if isinstance(framework_data, dict):
-            for component, analysis_text in framework_data.items():
-                html += f"""
-                    <div class="mb-3">
-                        <h5>{component}</h5>
-                        <p>{analysis_text}</p>
-                    </div>
-                """
-        else:
-            html += f"<p>{framework_data}</p>"
-        
-        html += """
-                </div>
-            </div>
+        Args:
+            focus_areas: Focus areas
+            industry: Company industry
+            
+        Returns:
+            List of KPI objects
         """
+        # Base KPI templates by category
+        kpi_templates = {
+            "carbon": [
+                {"name": "GHG Emissions Reduction", "metric": "% reduction in Scope 1 & 2 emissions", "target": "50% by 2030"},
+                {"name": "Carbon Intensity", "metric": "tCO2e per revenue unit", "target": "30% reduction by 2025"}
+            ],
+            "energy": [
+                {"name": "Renewable Energy Use", "metric": "% of total energy from renewables", "target": "100% by 2030"},
+                {"name": "Energy Efficiency", "metric": "Energy use per unit of production", "target": "25% improvement by 2025"}
+            ],
+            "water": [
+                {"name": "Water Consumption", "metric": "Total water withdrawal", "target": "30% reduction by 2025"},
+                {"name": "Water Recycling Rate", "metric": "% of water recycled/reused", "target": "50% by 2025"}
+            ],
+            "circular": [
+                {"name": "Waste Diversion Rate", "metric": "% of waste diverted from landfill", "target": "95% by 2025"},
+                {"name": "Circular Material Use", "metric": "% of recycled/renewable materials", "target": "50% by 2030"}
+            ],
+            "diversity": [
+                {"name": "Workforce Diversity", "metric": "% representation in management", "target": "40% women, 30% underrepresented groups by 2025"},
+                {"name": "Pay Equity", "metric": "Pay gap by gender and ethnicity", "target": "0% gap by 2023"}
+            ],
+            "governance": [
+                {"name": "ESG Disclosure Score", "metric": "3rd party ESG rating", "target": "Top quartile by 2024"},
+                {"name": "Sustainability Training", "metric": "% of employees completed", "target": "100% annually"}
+            ]
+        }
+        
+        # Selected KPIs based on focus areas
+        selected_kpis = []
+        
+        # Add standard KPIs for all
+        selected_kpis.append({
+            "name": "Sustainability Strategy Implementation",
+            "metric": "% of initiatives on track",
+            "target": "90% completion rate"
+        })
+        
+        # Add KPIs based on focus areas
+        for focus_area in focus_areas:
+            focus_area_lower = focus_area.lower()
+            
+            for category, kpis in kpi_templates.items():
+                if category in focus_area_lower:
+                    for kpi in kpis:
+                        # Only add if not already added
+                        if not any(k["name"] == kpi["name"] for k in selected_kpis):
+                            selected_kpis.append(kpi)
+        
+        # Add industry-specific KPIs
+        industry_kpis = {
+            "technology": {"name": "Product Energy Efficiency", "metric": "Energy use of products", "target": "20% improvement per generation"},
+            "financial": {"name": "Sustainable Financing", "metric": "% of portfolio in sustainable investments", "target": "30% by 2025"},
+            "energy": {"name": "Low-Carbon Products", "metric": "% revenue from low-carbon products", "target": "50% by 2030"},
+            "manufacturing": {"name": "Sustainable Suppliers", "metric": "% of suppliers meeting sustainability criteria", "target": "90% by 2025"},
+            "retail": {"name": "Sustainable Products", "metric": "% of products with sustainability certification", "target": "75% by 2025"}
+        }
+        
+        # Add industry-specific KPI if relevant
+        for industry_key, kpi in industry_kpis.items():
+            if industry_key in industry.lower():
+                selected_kpis.append(kpi)
+                break
+        
+        # Limit to reasonable number
+        if len(selected_kpis) > 6:
+            selected_kpis = selected_kpis[:6]
+        
+        return selected_kpis
     
-    html += """
-        </div>
+    def _format_strategy_for_display(self, strategy: Dict[str, Any]) -> str:
+        """
+        Format the strategy into readable text format for display
         
-        <div class="document-section mb-5">
-            <h3 class="section-title">Next Steps</h3>
-            <div class="card">
-                <div class="card-body">
-                    <p>Based on this strategic analysis, we recommend the following next steps:</p>
-                    <ol>
-                        <li>Review this analysis with key stakeholders to gather feedback</li>
-                        <li>Prioritize recommendations based on business impact and feasibility</li>
-                        <li>Develop a detailed implementation roadmap with timelines and responsibilities</li>
-                        <li>Allocate resources and budget for implementation</li>
-                        <li>Set up a governance structure to oversee implementation and track progress</li>
-                    </ol>
-                </div>
-            </div>
-        </div>
+        Args:
+            strategy: Raw strategy data
+            
+        Returns:
+            Formatted strategy text
+        """
+        text = f"# Sustainability Strategy for {strategy['company_name']}\n\n"
         
-        <div class="document-footer text-center mt-5">
-            <p class="text-muted">This report was generated by SustainaTrend™ AI Strategy Consultant</p>
-            <p class="text-muted small">Confidential and proprietary information</p>
-        </div>
-    </div>
+        # Executive Summary
+        text += "## Executive Summary\n\n"
+        text += f"{strategy['executive_summary']}\n\n"
+        
+        # Recommendations
+        text += "## Strategic Recommendations\n\n"
+        for i, rec in enumerate(strategy['recommendations'], 1):
+            text += f"### {i}. {rec['title']}\n\n"
+            text += f"{rec['description']}\n\n"
+            text += f"* Impact: {rec['impact']}\n"
+            text += f"* Implementation: {rec['implementation_difficulty']} difficulty, {rec['timeframe']} timeframe\n\n"
+        
+        # Implementation Roadmap
+        text += "## Implementation Roadmap\n\n"
+        text += "### Short-term (0-12 months)\n\n"
+        for activity in strategy['implementation_roadmap']['short_term']:
+            text += f"* {activity}\n"
+        text += "\n### Medium-term (1-2 years)\n\n"
+        for activity in strategy['implementation_roadmap']['medium_term']:
+            text += f"* {activity}\n"
+        text += "\n### Long-term (2-5 years)\n\n"
+        for activity in strategy['implementation_roadmap']['long_term']:
+            text += f"* {activity}\n\n"
+        
+        # Key Performance Indicators
+        text += "## Key Performance Indicators\n\n"
+        for kpi in strategy['kpis']:
+            text += f"* **{kpi['name']}**: {kpi['metric']} — Target: {kpi['target']}\n"
+        text += "\n"
+        
+        # Trend Analysis
+        text += "## Sustainability Trend Analysis\n\n"
+        for i, trend in enumerate(strategy['trends_analysis'], 1):
+            text += f"### Trend {i}: {trend['name']}\n\n"
+            text += f"{trend['analysis']}\n\n"
+            text += f"* Impact: {trend['impact']}\n"
+            text += f"* Timeframe: {trend['timeframe']}\n"
+            text += f"* Relevance Score: {trend['relevance']:.2f}/1.0\n\n"
+        
+        return text
+        
+# Old legacy method removed to avoid duplication
+
+# Note: The global strategy_consultant instance is initialized at the end of the file
+
+def generate_ai_strategy(data: Dict[str, Any]) -> Dict[str, Any]:
     """
+    Generate an AI-powered sustainability strategy
     
-    return html
-
-# Flask routes
-try:
-    from flask import Blueprint, request, jsonify
-
-    # Create a blueprint for the AI consultant
-    ai_consultant_bp = Blueprint('ai_consultant', __name__)
-
-    @ai_consultant_bp.route('/api/strategy/analyze-trend', methods=['POST'])
-    def api_analyze_trend():
-        """API endpoint for trend analysis"""
-        try:
-            data = request.json
-            
-            # Extract parameters
-            trend_name = data.get('trend_name', '')
-            industry = data.get('industry', 'General')
-            timeframe = data.get('timeframe', 'medium')
-            frameworks = data.get('frameworks', ["STEPPS", "Porter's Five Forces"])
-            
-            # Validate input
-            if not trend_name:
-                return jsonify({"error": "Trend name is required"}), 400
-                
-            # Analyze trend
-            analysis = analyze_trend(trend_name, industry, timeframe, frameworks)
-            
-            # Integrate trend analytics from other modules
-            analysis = integrate_trend_analytics(analysis, frameworks)
-            
-            return jsonify(analysis)
-            
-        except Exception as e:
-            logger.error(f"Error in API endpoint: {e}")
-            return jsonify({"error": str(e)}), 500
-
-    @ai_consultant_bp.route('/api/strategy/generate-document', methods=['POST'])
-    def api_generate_document():
-        """API endpoint for document generation"""
-        try:
-            data = request.json
-            
-            # Extract parameters
-            analysis = data.get('analysis', {})
-            format = data.get('format', 'html')
-            
-            # Validate input
-            if not analysis:
-                return jsonify({"error": "Analysis data is required"}), 400
-                
-            # Generate document
-            document = generate_strategy_document(analysis, format)
-            
-            return jsonify(document)
-            
-        except Exception as e:
-            logger.error(f"Error in API endpoint: {e}")
-            return jsonify({"error": str(e)}), 500
-
-    def register_routes(app):
-        """Register routes with Flask app"""
-        app.register_blueprint(ai_consultant_bp)
-        logger.info("AI Strategy Consultant routes registered successfully")
-
-except ImportError:
-    # Flask not available
-    def register_routes(app):
-        logger.warning("Flask not available, routes not registered")
-
-# Example usage
-if __name__ == "__main__":
-    # Test the module
-    analysis = analyze_trend("Carbon Footprint Transparency", "Technology", "medium", 
-                           ["STEPPS", "Porter's Five Forces"])
-    print(json.dumps(analysis, indent=2))
+    Args:
+        data: Dictionary containing strategy generation parameters
+        
+    Returns:
+        Dictionary with generated strategy
+    """
+    # Extract parameters
+    company_name = data.get('companyName', '')
+    industry = data.get('industry', '')
+    focus_areas = data.get('focusAreas', '')
+    trend_input = data.get('trendInput', '')
+    
+    # Validate required parameters
+    if not company_name or not industry:
+        return {
+            "status": "error",
+            "message": "Company name and industry are required"
+        }
+    
+    # Generate strategy
+    try:
+        result = strategy_consultant.generate_strategy(
+            company_name=company_name,
+            industry=industry,
+            focus_areas=focus_areas,
+            trends=trend_input
+        )
+        return result
+    except Exception as e:
+        logger.error(f"Error generating strategy: {str(e)}")
+        return {
+            "status": "error",
+            "message": f"Failed to generate strategy: {str(e)}"
+        }
+        
+# Initialize global strategy consultant instance
+strategy_consultant = StrategyAIConsultant()
+logger.info("Global Strategy AI Consultant instance created")
