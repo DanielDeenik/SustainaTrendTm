@@ -73,33 +73,9 @@ except ImportError as e:
     DOCUMENT_PROCESSOR_AVAILABLE = False
     logger.warning(f"Document processor not available: {str(e)}")
 
-# Import monetization functions
-from monetization_strategies import (
-    analyze_monetization_opportunities,
-    generate_monetization_opportunities,
-    get_monetization_strategies,
-    generate_integrated_strategic_plan,
-    MONETIZATION_FRAMEWORK,
-    PRELOADED_MONETIZATION_STRATEGIES
-)
+# Monetization strategies section has been removed
 
-# Import marketing strategy functions (with fallback)
-try:
-    from marketing_strategies import (
-        get_marketing_strategies,
-        get_strategy_recommendations,
-        MARKETING_CATEGORIES
-    )
-    MARKETING_AVAILABLE = True
-    logger.info("Marketing strategies module loaded successfully")
-except ImportError as e:
-    MARKETING_AVAILABLE = False
-    logger.warning(f"Marketing strategies module not available: {str(e)}")
-    MARKETING_CATEGORIES = {
-        "storytelling": "Storytelling & Narratives",
-        "stakeholder": "Stakeholder Engagement",
-        "digital": "Digital Marketing"
-    }
+# Marketing strategies section has been removed
 
 # Import trend virality benchmarking functions (with fallback)
 # Trend virality benchmarking module has been removed
@@ -128,79 +104,10 @@ except ImportError as e:
     AI_CONSULTANT_AVAILABLE = False
     logger.warning(f"AI Strategy Consultant module not available: {str(e)}")
 
-# Import science-based targets functions (with fallback)
-try:
-    import sys
-    from pathlib import Path
-    sys.path.append(str(Path(__file__).parent.parent))
-    
-    from science_based_targets import (
-        generate_science_based_targets,
-        get_sbti_reference_companies,
-        SBTI_CATEGORIES
-    )
-    SBTI_AVAILABLE = True
-    logger.info("Science-Based Targets module loaded successfully")
-except ImportError as e:
-    SBTI_AVAILABLE = False
-    logger.warning(f"Science-Based Targets module not available: {str(e)}")
-    # Fallback constants
-    SBTI_CATEGORIES = {
-        "near_term": {
-            "name": "Near-Term Targets",
-            "description": "Science-based emission reduction targets to be achieved within 5-10 years",
-            "timeline": "5-10 years"
-        },
-        "net_zero": {
-            "name": "Net-Zero Targets", 
-            "description": "Long-term targets to reach net-zero emissions by 2050 at the latest",
-            "timeline": "By 2050"
-        }
-    }
+# Science-Based Targets section has been removed
+SBTI_AVAILABLE = False
 
-# Import strategy frameworks (if available) or use fallback
-try:
-    from strategy_simulation import get_frameworks, analyze_with_framework
-    STRATEGY_FRAMEWORKS = get_frameworks()
-except (ImportError, AttributeError):
-    # Fallback if strategy_simulation module is not available or doesn't have get_frameworks
-    STRATEGY_FRAMEWORKS = {
-        "porters": {
-            "id": "porters",
-            "name": "Porter's Five Forces",
-            "description": "Analyze competitive forces shaping sustainability positioning",
-            "icon": "chart-bar"
-        },
-        "swot": {
-            "id": "swot",
-            "name": "SWOT Analysis",
-            "description": "Evaluate strengths, weaknesses, opportunities and threats",
-            "icon": "grid-2x2"
-        },
-        "bcg": {
-            "id": "bcg",
-            "name": "BCG Growth-Share Matrix",
-            "description": "Prioritize investments based on market growth and share",
-            "icon": "pie-chart"
-        }
-    }
-    
-    def analyze_with_framework(framework_id, analysis_data, company_name, industry):
-        """
-        Fallback analyze_with_framework function when the real one is not available
-        """
-        return {
-            "success": True,
-            "framework": STRATEGY_FRAMEWORKS.get(framework_id, {"name": "Unknown Framework"}),
-            "company": company_name,
-            "industry": industry,
-            "analysis": {
-                "summary": f"Simulated analysis for {company_name} using {framework_id} framework.",
-                "strengths": ["Innovative sustainability approach", "Strong data analytics"],
-                "opportunities": ["New market segments", "Green financing"],
-                "data": analysis_data
-            }
-        }
+# Strategy Frameworks section has been removed
 
 # Configure logging
 logger = logging.getLogger(__name__)
@@ -280,7 +187,7 @@ def legacy_strategy_hub():
     # Create a minimal implementation that works reliably
     return render_template(
         "strategy_test.html",
-        frameworks=STRATEGY_FRAMEWORKS,
+        frameworks={},  # Removed STRATEGY_FRAMEWORKS reference
         monetization_strategies={
             "M1": {
                 "name": "AI-Driven Sustainability Trend Monetization",
@@ -1559,26 +1466,6 @@ def unified_strategy_hub_implementation():
         # Get navigation context
         nav_context = get_context_for_template()
         
-        # Get recent documents (simplified for now)
-        recent_documents = [
-            {
-                "id": "doc1",
-                "title": "Sustainability Report 2024",
-                "category": "report",
-                "description": "Annual sustainability report with emissions data and ESG metrics.",
-                "timestamp": "2024-03-01",
-                "page_count": 42
-            },
-            {
-                "id": "doc2",
-                "title": "CSRD Compliance Assessment",
-                "category": "compliance",
-                "description": "Assessment of company compliance with CSRD reporting requirements.",
-                "timestamp": "2024-02-15",
-                "page_count": 18
-            }
-        ]
-        
         # Get recent stories
         if STORYTELLING_AVAILABLE:
             try:
@@ -1621,115 +1508,19 @@ def unified_strategy_hub_implementation():
                 }
             ]
         
-        # Create hardcoded monetization strategies for the template
-        monetization_strategies = {
-            "M1": {
-                "name": "AI-Driven Sustainability Trend Monetization",
-                "icon": "chart-line",
-                "short_description": "AI-powered trend detection and analysis",
-                "default_potential": 85
-            },
-            "M2": {
-                "name": "Consulting Services Model",
-                "icon": "handshake",
-                "short_description": "Advisory services for sustainability reporting",
-                "default_potential": 65
-            },
-            "M3": {
-                "name": "SaaS Subscription Platform",
-                "icon": "cloud",
-                "short_description": "Cloud-based sustainability platform",
-                "default_potential": 75
-            }
-        }
-        
-        # Get marketing strategies
-        try:
-            # Try to import marketing strategies directly from module
-            from marketing_strategies import get_marketing_strategies
-            marketing_strategies = get_marketing_strategies()
-            logger.info(f"Loaded {len(marketing_strategies)} marketing strategies")
-        except (ImportError, AttributeError) as e:
-            logger.warning(f"Could not load marketing strategies: {str(e)}")
-            # Fallback marketing strategies
-            marketing_strategies = {
-                "content": {
-                    "name": "Content Marketing",
-                    "icon": "file-text",
-                    "short_description": "Educational sustainability content",
-                    "target_audience": "all"
-                },
-                "storytelling": {
-                    "name": "Data Storytelling",
-                    "icon": "bar-chart-2",
-                    "short_description": "Narrative-driven data visualization",
-                    "target_audience": "executives"
-                },
-                "social": {
-                    "name": "Social Media",
-                    "icon": "share-2",
-                    "short_description": "Social sharing of sustainability wins",
-                    "target_audience": "public"
-                }
-            }
-        
-        # Get trend virality data 
         # Trend virality section has been removed
         trend_data = None
         benchmark_data = None
         
-        # Get Science-Based Targets data
-        sbti_targets = None
-        sbti_reference_companies = None
-        
-        if SBTI_AVAILABLE:
-            try:
-                # Example company data for generating targets
-                company_data = {
-                    "name": "TechSustain Inc.",
-                    "industry": "Technology",
-                    "base_year_emissions": 1250000,  # tonnes CO2e
-                    "current_year_emissions": 1100000,  # tonnes CO2e
-                    "target_year": 2030,
-                    "revenue": 500000000,  # $500M annual revenue
-                    "employees": 2500,
-                    "scope1_emissions": 300000,  # tonnes CO2e
-                    "scope2_emissions": 800000,  # tonnes CO2e
-                    "current_year": 2025
-                }
-                
-                # Generate science-based targets
-                sbti_targets = generate_science_based_targets(company_data, company_data["industry"])
-                logger.info("Generated science-based targets for example company")
-                
-                # Get reference companies for benchmarking
-                sbti_reference_companies = get_sbti_reference_companies(company_data["industry"])
-                logger.info(f"Retrieved {len(sbti_reference_companies) if sbti_reference_companies else 0} SBTI reference companies")
-            except Exception as e:
-                logger.warning(f"Error generating Science-Based Targets data: {str(e)}")
-                sbti_targets = None
-                sbti_reference_companies = None
-        
-        # Render the unified template with all components
+        # Render the unified template with necessary components only
         return render_template(
             "strategy/strategy_hub.html",
             page_title="Unified Strategy Hub",
             active_nav="strategy",  # Set the active navigation item to highlight in sidebar
-            frameworks=STRATEGY_FRAMEWORKS,
-            monetization_strategies=monetization_strategies,
-            marketing_strategies=marketing_strategies,  # Added marketing strategies
-            recent_documents=recent_documents,
             recent_stories=recent_stories,
-            stepps_components=STEPPS_COMPONENTS,  # STEPPS virality components
-            trend_data=trend_data,  # Added trend analysis data
-            benchmark_data=benchmark_data,  # Added benchmark data
-            sbti_categories=SBTI_CATEGORIES,  # Added Science-Based Targets categories
-            sbti_targets=sbti_targets,  # Added Science-Based Targets data
-            sbti_reference_companies=sbti_reference_companies,  # Added SBTI reference companies
             document_processor_available=DOCUMENT_PROCESSOR_AVAILABLE,
             storytelling_available=STORYTELLING_AVAILABLE,
             trend_virality_available=TREND_VIRALITY_AVAILABLE,  # Added flag for trend virality
-            sbti_available=SBTI_AVAILABLE,  # Added flag for Science-Based Targets
             ai_consultant_available=AI_CONSULTANT_AVAILABLE,  # Added flag for AI Strategy Consultant
             **nav_context
         )
@@ -1741,15 +1532,6 @@ def unified_strategy_hub_implementation():
         return render_template(
             "strategy_test.html",
             active_nav="strategy",  # Set the active navigation item for fallback as well
-            frameworks=STRATEGY_FRAMEWORKS,
-            monetization_strategies={
-                "M1": {
-                    "name": "AI-Driven Sustainability Trend Monetization",
-                    "icon": "chart-line",
-                    "short_description": "AI-powered trend detection and analysis",
-                    "default_potential": 85
-                }
-            },
             error=str(e)
         )
 
