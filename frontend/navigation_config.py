@@ -84,6 +84,15 @@ def get_navigation_structure():
                         "description": "Unified strategy, simulation & monetization center"
                     },
                     {
+                        "id": "regulatory_ai",
+                        "title": "Regulatory AI Agent",
+                        "url": "/regulatory-ai/",
+                        "icon": "fa-balance-scale",
+                        "badge": "New",
+                        "badge_color": "danger",
+                        "description": "AI-powered regulatory compliance assessment"
+                    },
+                    {
                         "id": "strategy-modeling",
                         "title": "Strategy Modeling",
                         "url": "/strategy-modeling-tool",

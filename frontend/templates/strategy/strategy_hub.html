@@ -217,6 +217,24 @@
 
 {% block main_content %}
 <div class="strategy-hub-container">
+    <!-- Feature Move Alert Banner -->
+    <div class="alert alert-danger alert-dismissible fade show mb-4 rounded-4 border-0" id="complianceMoveAlert">
+        <div class="d-flex">
+            <div class="me-3">
+                <i class="fas fa-info-circle fa-2x"></i>
+            </div>
+            <div>
+                <h5 class="alert-heading mb-1">Compliance Features Have Moved</h5>
+                <p class="mb-0">Compliance insights and regulatory assessment features have been moved to the dedicated <strong>Regulatory AI Agent</strong> for enhanced capabilities and specialized analysis.</p>
+                <div class="mt-2">
+                    <a href="{{ url_for('regulatory_ai.regulatory_ai_dashboard') }}" class="btn btn-sm btn-danger">
+                        <i class="fas fa-external-link-alt me-1"></i> Go to Regulatory AI Agent
+                    </a>
+                </div>
+            </div>
+        </div>
+        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+    </div>
     <!-- Welcome message with quick explanation -->
     <div class="hub-card mb-4">
         <div class="hub-card-body">
@@ -274,14 +292,14 @@
         </div>
     </div>
     
-    <!-- Compliance Insights Card -->
-    <div class="hub-card" id="compliance-card">
-        <div class="hub-card-header" id="compliance-header">
+    <!-- Regulatory AI Agent Card - Replaces Compliance Insights -->
+    <div class="hub-card" id="regulatory-ai-card">
+        <div class="hub-card-header" id="regulatory-ai-header">
             <div class="hub-card-title">
                 <div class="hub-card-icon bg-danger bg-opacity-10 text-danger">
                     <i class="fas fa-balance-scale"></i>
                 </div>
-                <h5>Compliance Insights</h5>
+                <h5>Regulatory AI Agent</h5>
                 <span class="status-badge bg-danger bg-opacity-10 text-danger">
                     <span class="status-indicator status-ready"></span>
                     Available
@@ -289,14 +307,78 @@
             </div>
             <div class="hub-card-status">
                 <span class="summary-bar">CSRD, ESRS, SFDR frameworks</span>
-                <button class="btn btn-sm ms-3" id="compliance-toggle">
+                <button class="btn btn-sm ms-3" id="regulatory-ai-toggle">
                     <i class="fas fa-chevron-down"></i>
                 </button>
             </div>
         </div>
-        <div class="hub-card-content" id="compliance-content">
-            <!-- Finchat.io-style Compliance Visualization -->
-            {% include "strategy/compliance_visualization.html" %}
+        <div class="hub-card-content" id="regulatory-ai-content">
+            <!-- Regulatory AI Agent Card Content -->
+            <div class="p-4">
+                <div class="text-center mb-4">
+                    <img src="{{ url_for('static', filename='img/regulatory-compliance.svg') }}" alt="Regulatory Compliance" class="img-fluid mb-3" style="max-width: 200px; opacity: 0.8;">
+                    <h4 class="fw-bold mb-3">AI-Powered Regulatory Compliance</h4>
+                    <p class="mb-4">Compliance features have been moved to the dedicated Regulatory AI Agent for enhanced capabilities and specialized analysis.</p>
+                    
+                    <div class="d-grid gap-2">
+                        <a href="{{ url_for('regulatory_ai.compliance_visualization') }}?company={{ request.args.get('company', '') }}&industry={{ request.args.get('industry', '') }}" class="btn btn-danger rounded-pill">
+                            <i class="fas fa-balance-scale me-2"></i> Open Compliance Visualization
+                        </a>
+                        <a href="{{ url_for('regulatory_ai.regulatory_ai_dashboard') }}?company={{ request.args.get('company', '') }}&industry={{ request.args.get('industry', '') }}" class="btn btn-outline-danger rounded-pill">
+                            <i class="fas fa-robot me-2"></i> Go to Regulatory AI Agent
+                        </a>
+                    </div>
+                </div>
+                
+                <div class="regulatory-ai-features">
+                    <div class="row g-3">
+                        <div class="col-md-6">
+                            <div class="card bg-darker border-0 shadow-sm rounded-4">
+                                <div class="card-body p-3">
+                                    <h6 class="d-flex align-items-center mb-2">
+                                        <i class="fas fa-search me-2 text-danger"></i>
+                                        <span>Gap Analysis</span>
+                                    </h6>
+                                    <p class="text-muted small mb-0">Identify compliance gaps across multiple regulatory frameworks with AI-powered analysis.</p>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="card bg-darker border-0 shadow-sm rounded-4">
+                                <div class="card-body p-3">
+                                    <h6 class="d-flex align-items-center mb-2">
+                                        <i class="fas fa-chart-pie me-2 text-danger"></i>
+                                        <span>Visual Reporting</span>
+                                    </h6>
+                                    <p class="text-muted small mb-0">Get comprehensive visual reports on your regulatory compliance status and progress.</p>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="card bg-darker border-0 shadow-sm rounded-4">
+                                <div class="card-body p-3">
+                                    <h6 class="d-flex align-items-center mb-2">
+                                        <i class="fas fa-robot me-2 text-danger"></i>
+                                        <span>RAG AI Agent</span>
+                                    </h6>
+                                    <p class="text-muted small mb-0">Ask the RAG-powered AI agent specific questions about your compliance requirements.</p>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="card bg-darker border-0 shadow-sm rounded-4">
+                                <div class="card-body p-3">
+                                    <h6 class="d-flex align-items-center mb-2">
+                                        <i class="fas fa-calendar-alt me-2 text-danger"></i>
+                                        <span>Timeline Analysis</span>
+                                    </h6>
+                                    <p class="text-muted small mb-0">Track upcoming regulatory deadlines and develop a compliance roadmap.</p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
         </div>
     </div>
     
@@ -400,6 +482,34 @@
 <!-- Add JavaScript to handle the expandable cards -->
 <script>
 document.addEventListener('DOMContentLoaded', function() {
+    // Auto-hide the compliance move alert after 5 days if seen before
+    const alertEl = document.getElementById('complianceMoveAlert');
+    if (alertEl) {
+        const lastSeenAlert = localStorage.getItem('complianceMoveAlertSeen');
+        const fiveDaysAgo = new Date();
+        fiveDaysAgo.setDate(fiveDaysAgo.getDate() - 5);
+        
+        if (lastSeenAlert && new Date(lastSeenAlert) < fiveDaysAgo) {
+            alertEl.classList.add('d-none');
+        } else {
+            // Mark as seen
+            localStorage.setItem('complianceMoveAlertSeen', new Date().toISOString());
+            
+            // Auto-hide after 15 seconds on this visit
+            setTimeout(() => {
+                alertEl.classList.add('fade');
+                setTimeout(() => alertEl.classList.add('d-none'), 500);
+            }, 15000);
+            
+            // Add event listener for manual close
+            const closeBtn = alertEl.querySelector('.btn-close');
+            if (closeBtn) {
+                closeBtn.addEventListener('click', () => {
+                    localStorage.setItem('complianceMoveAlertSeen', new Date().toISOString());
+                });
+            }
+        }
+    }
     // Setup expandable cards
     const cards = [
         { 
@@ -409,9 +519,9 @@ document.addEventListener('DOMContentLoaded', function() {
             actionBtn: 'add-strategy-btn'
         },
         { 
-            header: 'compliance-header', 
-            content: 'compliance-content', 
-            toggle: 'compliance-toggle'
+            header: 'regulatory-ai-header', 
+            content: 'regulatory-ai-content', 
+            toggle: 'regulatory-ai-toggle'
         },
         { 
             header: 'data-upload-header', 

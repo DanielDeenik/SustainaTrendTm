@@ -535,6 +535,22 @@ def regulatory_ai_dashboard():
                          page_title="Regulatory AI Agent",
                          active_page="regulatory-ai")
 
+@regulatory_ai_bp.route('/compliance-visualization')
+def compliance_visualization():
+    """Regulatory Compliance Visualization Page"""
+    frameworks = get_frameworks()
+    
+    # Get parameters from Strategy Hub if they were passed
+    company = request.args.get('company', '')
+    industry = request.args.get('industry', '')
+    
+    return render_template('regulatory/compliance_visualization_page.html',
+                          frameworks=frameworks,
+                          company=company,
+                          industry=industry,
+                          page_title="Compliance Visualization",
+                          active_page="regulatory-ai")
+
 @regulatory_ai_bp.route('/api/assessment', methods=['POST'])
 def api_regulatory_assessment():
     """API endpoint for regulatory compliance assessment"""
