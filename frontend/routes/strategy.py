@@ -102,26 +102,18 @@ except ImportError as e:
     }
 
 # Import trend virality benchmarking functions (with fallback)
-try:
-    from trend_virality_benchmarking import (
-        analyze_trend_with_stepps,
-        benchmark_against_competitors,
-        generate_benchmark_insights,
-        STEPPS_COMPONENTS
-    )
-    TREND_VIRALITY_AVAILABLE = True
-    logger.info("Trend virality benchmarking module loaded successfully")
-except ImportError as e:
-    TREND_VIRALITY_AVAILABLE = False
-    logger.warning(f"Trend virality benchmarking module not available: {str(e)}")
-    STEPPS_COMPONENTS = {
-        "social_currency": "Social Currency",
-        "triggers": "Triggers",
-        "emotion": "Emotion",
-        "public": "Public",
-        "practical_value": "Practical Value",
-        "stories": "Stories"
-    }
+# Trend virality benchmarking module has been removed
+# Define STEPPS_COMPONENTS for backward compatibility with other features
+STEPPS_COMPONENTS = {
+    "social_currency": "Social Currency",
+    "triggers": "Triggers",
+    "emotion": "Emotion",
+    "public": "Public",
+    "practical_value": "Practical Value",
+    "stories": "Stories"
+}
+# Define flag as False since we've removed the feature
+TREND_VIRALITY_AVAILABLE = False
 
 # Import AI Strategy Consultant functions (with fallback)
 try:
@@ -1682,45 +1674,10 @@ def unified_strategy_hub_implementation():
             }
         
         # Get trend virality data 
+        # Trend virality section has been removed
         trend_data = None
         benchmark_data = None
         
-        if TREND_VIRALITY_AVAILABLE:
-            try:
-                # Sample sustainability trend to analyze
-                sample_trend = {
-                    "name": "Carbon Footprint Transparency",
-                    "description": "Companies publicly sharing detailed carbon footprint data",
-                    "category": "emissions",
-                    "content": "Organizations are increasingly sharing granular carbon emissions data with stakeholders and the public, moving beyond basic GHG protocol reporting to include product-level carbon footprints and real-time emissions tracking.",
-                    "audience": ["investors", "customers", "regulators"]
-                }
-                
-                # Get STEPPS analysis for the trend
-                trend_data = analyze_trend_with_stepps(sample_trend)
-                logger.info("Generated STEPPS analysis for sample trend")
-                
-                # Get competitor benchmark data
-                company_name = "Your Company"
-                industry = "Sustainability Solutions"
-                
-                # Create simple trend data list for benchmarking
-                trend_data_list = [
-                    {
-                        "name": "Carbon Footprint Transparency",
-                        "score": 85,
-                        "category": "emissions",
-                        "trend": "rising"
-                    }
-                ]
-                
-                benchmark_data = benchmark_against_competitors(company_name, industry, trend_data_list)
-                logger.info("Generated competitor benchmark data")
-            except Exception as e:
-                logger.warning(f"Error generating trend virality data: {str(e)}")
-                trend_data = None
-                benchmark_data = None
-                
         # Get Science-Based Targets data
         sbti_targets = None
         sbti_reference_companies = None

@@ -237,7 +237,9 @@
         <a href="#" class="quick-action-btn quick-action-primary" id="add-strategy-btn">
             <i class="fas fa-plus"></i> Add Strategy
         </a>
-        <!-- Analyze Trend button removed -->
+        <a href="#" class="quick-action-btn quick-action-warning" id="analyze-trend-btn">
+            <i class="fas fa-chart-line"></i> Analyze Trend
+        </a>
         <a href="#" class="quick-action-btn quick-action-info" id="upload-data-btn">
             <i class="fas fa-upload"></i> Upload Data
         </a>
@@ -376,7 +378,72 @@
         </div>
     </div>
     
-    <!-- Trend Virality Card has been removed -->
+    <!-- Trend Virality Card -->
+    <div class="hub-card" id="trend-virality-card">
+        <div class="hub-card-header" id="trend-virality-header">
+            <div class="hub-card-title">
+                <div class="hub-card-icon bg-warning bg-opacity-10 text-warning">
+                    <i class="fas fa-virus"></i>
+                </div>
+                <h5>Trend Virality Analyzer</h5>
+                {% if trend_virality_available %}
+                <span class="status-badge bg-warning bg-opacity-10 text-warning">
+                    <span class="status-indicator status-ready"></span>
+                    Available
+                </span>
+                {% else %}
+                <span class="status-badge bg-secondary bg-opacity-10 text-secondary">
+                    <span class="status-indicator status-offline"></span>
+                    Unavailable
+                </span>
+                {% endif %}
+            </div>
+            <div class="hub-card-status">
+                <span class="summary-bar">STEPPS framework analysis</span>
+                <button class="btn btn-sm ms-3" id="trend-virality-toggle">
+                    <i class="fas fa-chevron-down"></i>
+                </button>
+            </div>
+        </div>
+        <div class="hub-card-content" id="trend-virality-content" id="virality">
+            <!-- Trend virality content goes here -->
+            <div class="p-4">
+                <h5 class="mb-3">Analyze Trend Virality with STEPPS</h5>
+                <p>Assess the viral potential of sustainability trends using the STEPPS framework (Social Currency, Triggers, Emotion, Public, Practical Value, Stories).</p>
+                
+                <form id="viralityForm" class="mt-4">
+                    <div class="mb-3">
+                        <label for="trendName" class="form-label">Trend Name</label>
+                        <input type="text" class="form-control" id="trendName" placeholder="Enter sustainability trend name">
+                    </div>
+                    <div class="mb-3">
+                        <label for="trendDescription" class="form-label">Trend Description</label>
+                        <textarea class="form-control" id="trendDescription" rows="3" placeholder="Describe the sustainability trend in detail"></textarea>
+                    </div>
+                    <div class="mb-3">
+                        <label for="industrySelect" class="form-label">Industry</label>
+                        <select class="form-select" id="industrySelect">
+                            <option value="general">General</option>
+                            <option value="technology">Technology</option>
+                            <option value="finance">Finance</option>
+                            <option value="manufacturing">Manufacturing</option>
+                            <option value="retail">Retail</option>
+                            <option value="energy">Energy</option>
+                            <option value="agriculture">Agriculture</option>
+                        </select>
+                    </div>
+                    <button type="button" class="btn btn-warning" id="analyzeTrendBtn">
+                        <i class="fas fa-chart-line me-2"></i> Analyze Trend Virality
+                    </button>
+                </form>
+                
+                <!-- STEPPS analysis results will appear here -->
+                <div id="viralityResults" class="mt-4 d-none">
+                    <!-- Will be populated dynamically -->
+                </div>
+            </div>
+        </div>
+    </div>
     
     <!-- Monetization Opportunities Card -->
     <div class="hub-card" id="monetization-card">
@@ -496,7 +563,12 @@ document.addEventListener('DOMContentLoaded', function() {
             toggle: 'storytelling-toggle',
             actionBtn: 'create-story-btn'
         },
-        // Trend Virality Card has been removed
+        { 
+            header: 'trend-virality-header', 
+            content: 'trend-virality-content', 
+            toggle: 'trend-virality-toggle',
+            actionBtn: 'analyze-trend-btn'
+        },
         { 
             header: 'monetization-header', 
             content: 'monetization-content', 
@@ -558,7 +630,184 @@ document.addEventListener('DOMContentLoaded', function() {
         }
     }
     
-    // Trend virality analyze button functionality has been removed
+    // Trend virality analyze button functionality
+    const analyzeTrendBtn = document.getElementById('analyzeTrendBtn');
+    const viralityResults = document.getElementById('viralityResults');
+    
+    if (analyzeTrendBtn && viralityResults) {
+        analyzeTrendBtn.addEventListener('click', function() {
+            // Loading state
+            analyzeTrendBtn.disabled = true;
+            analyzeTrendBtn.innerHTML = '<span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span> Analyzing...';
+            
+            // Get form data
+            const trendName = document.getElementById('trendName').value;
+            const trendDescription = document.getElementById('trendDescription').value;
+            const industry = document.getElementById('industrySelect').value;
+            
+            // Simulate API call with timeout
+            setTimeout(function() {
+                // Make the actual API call
+                fetch('/api/strategy-hub/analyze-trend-virality', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({
+                        trend_name: trendName,
+                        trend_description: trendDescription,
+                        industry: industry
+                    })
+                })
+                .then(response => response.json())
+                .then(data => {
+                    // Display results
+                    displayViralityResults(data);
+                    
+                    // Reset button
+                    analyzeTrendBtn.disabled = false;
+                    analyzeTrendBtn.innerHTML = '<i class="fas fa-chart-line me-2"></i> Analyze Trend Virality';
+                })
+                .catch(error => {
+                    console.error('Error:', error);
+                    // Display error
+                    viralityResults.innerHTML = `
+                        <div class="alert alert-danger">
+                            <i class="fas fa-exclamation-triangle me-2"></i> 
+                            Error analyzing trend. Please try again.
+                        </div>
+                    `;
+                    viralityResults.classList.remove('d-none');
+                    
+                    // Reset button
+                    analyzeTrendBtn.disabled = false;
+                    analyzeTrendBtn.innerHTML = '<i class="fas fa-chart-line me-2"></i> Analyze Trend Virality';
+                });
+            }, 1500);
+        });
+    }
+    
+    // Function to display virality results
+    function displayViralityResults(data) {
+        if (!viralityResults) return;
+        
+        let html = `
+            <h5 class="mb-3">STEPPS Analysis Results</h5>
+            <div class="card bg-dark mb-4">
+                <div class="card-body">
+                    <h6 class="card-subtitle mb-2 text-muted">Overall Virality Score</h6>
+                    <div class="d-flex align-items-center mb-2">
+                        <div class="progress flex-grow-1 me-3" style="height: 8px;">
+                            <div class="progress-bar bg-warning" role="progressbar" 
+                                style="width: ${data.overall_score}%"></div>
+                        </div>
+                        <span class="fw-bold">${data.overall_score}%</span>
+                    </div>
+                    <p class="card-text">${data.summary}</p>
+                </div>
+            </div>
+            
+            <h6 class="mb-3">Component Breakdown</h6>
+            <div class="row g-3">
+        `;
+        
+        // Add STEPPS components
+        for (const [key, value] of Object.entries(data.components)) {
+            const componentName = key.charAt(0).toUpperCase() + key.slice(1).replace('_', ' ');
+            html += `
+                <div class="col-md-6">
+                    <div class="card bg-dark h-100">
+                        <div class="card-body">
+                            <h6 class="card-title">${componentName}</h6>
+                            <div class="d-flex align-items-center mb-2">
+                                <div class="progress flex-grow-1 me-3" style="height: 6px;">
+                                    <div class="progress-bar ${getScoreColorClass(value.score)}" role="progressbar" 
+                                        style="width: ${value.score}%"></div>
+                                </div>
+                                <span>${value.score}%</span>
+                            </div>
+                            <p class="card-text small">${value.description}</p>
+                        </div>
+                    </div>
+                </div>
+            `;
+        }
+        
+        html += `
+            </div>
+            
+            <h6 class="mt-4 mb-3">Competitive Benchmarking</h6>
+            <div class="table-responsive">
+                <table class="table table-dark table-sm">
+                    <thead>
+                        <tr>
+                            <th>Competitor</th>
+                            <th>Industry</th>
+                            <th>Virality Score</th>
+                            <th>Relative Position</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+        `;
+        
+        // Add benchmark data
+        data.benchmarking.competitors.forEach(competitor => {
+            html += `
+                <tr>
+                    <td>${competitor.name}</td>
+                    <td>${competitor.industry}</td>
+                    <td>
+                        <div class="d-flex align-items-center">
+                            <div class="progress flex-grow-1 me-2" style="height: 6px;">
+                                <div class="progress-bar ${getScoreColorClass(competitor.score)}" role="progressbar" 
+                                    style="width: ${competitor.score}%"></div>
+                            </div>
+                            <span>${competitor.score}%</span>
+                        </div>
+                    </td>
+                    <td>${competitor.relative_position}</td>
+                </tr>
+            `;
+        });
+        
+        html += `
+                    </tbody>
+                </table>
+            </div>
+            
+            <div class="mt-4">
+                <h6 class="mb-3">Recommendations</h6>
+                <ul class="list-group">
+        `;
+        
+        // Add recommendations
+        data.recommendations.forEach(rec => {
+            html += `
+                <li class="list-group-item bg-dark">
+                    <div class="d-flex w-100 justify-content-between">
+                        <h6 class="mb-1">${rec.title}</h6>
+                        <small class="text-primary">${rec.focus_area}</small>
+                    </div>
+                    <p class="mb-1">${rec.description}</p>
+                </li>
+            `;
+        });
+        
+        html += `
+                </ul>
+            </div>
+        `;
+        
+        viralityResults.innerHTML = html;
+        viralityResults.classList.remove('d-none');
+    }
+    
+    // Helper function to get color class based on score
+    function getScoreColorClass(score) {
+        if (score >= 75) return 'bg-success';
+        if (score >= 50) return 'bg-warning';
+        return 'bg-danger';
+    }
     
     // Handle monetization strategy detail buttons
     const monetizationDetailBtns = document.querySelectorAll('.monetization-detail-btn');
