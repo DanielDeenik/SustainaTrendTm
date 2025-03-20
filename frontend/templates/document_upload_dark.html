@@ -780,45 +780,128 @@
         
         // Start analysis
         startAnalysisBtn.addEventListener('click', function() {
+            // Make sure we have a file
+            if (!fileInput.files || fileInput.files.length === 0) {
+                alert('Please select a file first');
+                return;
+            }
+            
+            const file = fileInput.files[0];
+            
             // Hide file info and show processing steps
             fileInfo.classList.remove('show');
             processingSteps.style.display = 'block';
             
-            // Simulate processing steps
+            // Set up the form data
+            const formData = new FormData();
+            formData.append('file', file);
+            
+            // Set up steps management
             const steps = document.querySelectorAll('.step');
             let currentStep = 0;
             
-            function processNextStep() {
-                if (currentStep > 0) {
-                    // Mark previous step as completed
-                    steps[currentStep - 1].classList.remove('active');
-                    steps[currentStep - 1].classList.add('completed');
+            // Function to update steps UI
+            function updateStepsUI(step) {
+                // Reset all steps
+                steps.forEach(s => {
+                    s.classList.remove('active', 'completed');
+                });
+                
+                // Mark completed steps
+                for (let i = 0; i < step; i++) {
+                    steps[i].classList.add('completed');
                 }
                 
-                if (currentStep < steps.length) {
-                    // Set current step as active
-                    steps[currentStep].classList.add('active');
-                    
-                    // Update progress bar
-                    const progressPercentage = (currentStep / (steps.length - 1)) * 100;
-                    stepsProgress.style.width = `${progressPercentage}%`;
-                    
-                    currentStep++;
-                    
-                    // Process next step after delay
-                    setTimeout(processNextStep, 2000);
-                } else {
-                    // All steps completed
-                    setTimeout(function() {
-                        // Hide processing steps and show compliance summary
-                        processingSteps.style.display = 'none';
-                        complianceSummary.classList.add('show');
-                    }, 1000);
+                // Mark current step as active if not at the end
+                if (step < steps.length) {
+                    steps[step].classList.add('active');
                 }
+                
+                // Update progress bar
+                const progressPercentage = (step / (steps.length - 1)) * 100;
+                stepsProgress.style.width = `${progressPercentage}%`;
             }
             
-            // Start processing
-            processNextStep();
+            // Start with first step active
+            updateStepsUI(0);
+            
+            // Perform the API call to upload and analyze the document
+            fetch('{{ url_for("enhanced_strategy.api_document_upload") }}', {
+                method: 'POST',
+                body: formData,
+                // No need to set Content-Type header, it's set automatically for FormData
+            })
+            .then(response => {
+                if (!response.ok) {
+                    throw new Error('Server responded with an error: ' + response.status);
+                }
+                return response.json();
+            })
+            .then(data => {
+                console.log('Document analysis result:', data);
+                
+                // Update step 1 (Document uploaded and text extracted)
+                updateStepsUI(1);
+                
+                // Wait a bit then update to step 2 (Content analyzed)
+                setTimeout(() => {
+                    updateStepsUI(2);
+                    
+                    // Wait a bit then update to step 3 (Compliance assessed)
+                    setTimeout(() => {
+                        updateStepsUI(3);
+                        
+                        // Update compliance cards with real data if available
+                        if (data.compliance) {
+                            // Clear existing compliance cards
+                            const complianceGrid = document.querySelector('.compliance-grid');
+                            complianceGrid.innerHTML = '';
+                            
+                            // Add cards for each compliance framework
+                            Object.entries(data.compliance).forEach(([frameworkId, details]) => {
+                                const score = details.score * 100;
+                                let levelClass = 'low';
+                                if (score >= 70) levelClass = 'high';
+                                else if (score >= 50) levelClass = 'medium';
+                                
+                                const cardHtml = `
+                                    <div class="compliance-card">
+                                        <div class="compliance-header">
+                                            <div class="compliance-icon">
+                                                <i class="fas fa-clipboard-check"></i>
+                                            </div>
+                                            <div class="compliance-title">${frameworkId.toUpperCase()}</div>
+                                        </div>
+                                        <div class="compliance-score ${levelClass}">${Math.round(score)}%</div>
+                                        <div class="compliance-level">${details.status}</div>
+                                        <div class="compliance-chart">
+                                            <div class="compliance-chart-fill" style="width: ${score}%;"></div>
+                                        </div>
+                                    </div>
+                                `;
+                                complianceGrid.insertAdjacentHTML('beforeend', cardHtml);
+                            });
+                        }
+                        
+                        // Wait a bit then update to step 4 (Insights generated)
+                        setTimeout(() => {
+                            updateStepsUI(4);
+                            
+                            // Finally show the compliance summary
+                            setTimeout(() => {
+                                processingSteps.style.display = 'none';
+                                complianceSummary.classList.add('show');
+                            }, 800);
+                        }, 800);
+                    }, 800);
+                }, 800);
+            })
+            .catch(error => {
+                console.error('Error uploading document:', error);
+                alert('Error analyzing document: ' + error.message);
+                processingSteps.style.display = 'none';
+                fileInfo.classList.add('show');
+            });
         });
     });
 </script>
