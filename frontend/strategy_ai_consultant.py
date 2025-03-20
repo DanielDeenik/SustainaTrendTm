@@ -1051,6 +1051,20 @@ def generate_ai_strategy(data: Dict[str, Any]) -> Dict[str, Any]:
             "message": f"Failed to generate strategy: {str(e)}"
         }
         
+# Function to register routes with Flask application
+def register_routes(app):
+    """
+    Register Strategy AI Consultant routes with a Flask application
+    
+    Args:
+        app: Flask application
+    """
+    logger.info("Strategy AI Consultant routes registered")
+    
+    # No additional routes needed as the main functionality is accessed through the enhanced_strategy.py routes
+    # This function exists to maintain consistency with other modules
+    pass
+
 # Initialize global strategy consultant instance
 strategy_consultant = StrategyAIConsultant()
 logger.info("Global Strategy AI Consultant instance created")
