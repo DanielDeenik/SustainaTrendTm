@@ -17,7 +17,7 @@ logger = logging.getLogger(__name__)
 # Flag to indicate if the consultant is available
 STRATEGY_AI_CONSULTANT_AVAILABLE = True
 
-def analyze_trend(trend_name: str, industry: str = None, with_stepps: bool = True) -> Dict[str, Any]:
+def analyze_trend(trend_name: str, industry: Optional[str] = "", with_stepps: bool = True) -> Dict[str, Any]:
     """
     Analyze a sustainability trend for a specific industry
     
@@ -82,7 +82,7 @@ def _determine_trend_category(trend_name: str) -> str:
     else:
         return "Emerging Trends"
 
-def _generate_strategic_recommendations(trend_name: str, industry: str = None) -> List[str]:
+def _generate_strategic_recommendations(trend_name: str, industry: Optional[str] = "") -> List[str]:
     """Generate strategic recommendations based on trend and industry"""
     recommendations = [
         f"Conduct a comprehensive assessment of how {trend_name} impacts your operations",
@@ -101,7 +101,7 @@ def _generate_strategic_recommendations(trend_name: str, industry: str = None) -
     
     return recommendations
 
-def _generate_industry_insights(trend_name: str, industry: str = None) -> str:
+def _generate_industry_insights(trend_name: str, industry: Optional[str] = "") -> str:
     """Generate industry-specific insights for a trend"""
     if not industry:
         return f"This trend affects multiple industries and presents cross-sector collaboration opportunities."

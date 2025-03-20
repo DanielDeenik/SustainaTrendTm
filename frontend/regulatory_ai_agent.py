@@ -26,7 +26,12 @@ regulatory_ai_bp = Blueprint('regulatory_ai', __name__, url_prefix='/regulatory-
 
 # Try to import AI connector module
 try:
-    from frontend.utils.ai_connector import get_generative_ai, generate_embedding, get_rag_system
+    import sys
+    import os
+    # Get the utils directory path
+    utils_path = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'utils')
+    sys.path.append(utils_path)
+    from ai_connector import get_generative_ai, generate_embedding, get_rag_system
     AI_CONNECTOR_AVAILABLE = True
     RAG_AVAILABLE = True
     logger.info("AI connector module loaded successfully")
