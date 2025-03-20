@@ -7,8 +7,8 @@
 {% endblock %}
 
 {% block header_actions %}
-<a href="{{ url_for('strategy.unified_strategy_hub') }}" class="btn btn-sm btn-outline-secondary">Back to Strategy Hub</a>
-<a href="{{ url_for('storytelling.create_story') }}" class="btn btn-primary">
+<a href="{{ url_for('enhanced_strategy.enhanced_strategy_hub') }}" class="btn btn-sm btn-outline-secondary">Back to Strategy Hub</a>
+<a href="{{ url_for('stories.create_story') }}" class="btn btn-primary">
     <i class="fas fa-plus me-2"></i> Create New Story
 </a>
 {% endblock %}
@@ -252,22 +252,22 @@
 
     <!-- Quick Action Bar -->
     <div class="quick-action-bar mb-4">
-        <a href="{{ url_for('storytelling.create_story') }}" class="quick-action-btn quick-action-success">
+        <a href="{{ url_for('stories.create_story') }}" class="quick-action-btn quick-action-success">
             <i class="fas fa-plus"></i> Create New Story
         </a>
-        <a href="{{ url_for('storytelling.storytelling_home', category='all') }}" class="quick-action-btn quick-action-primary">
+        <a href="{{ url_for('stories.stories_home', category='all') }}" class="quick-action-btn quick-action-primary">
             <i class="fas fa-list"></i> All Stories
         </a>
-        <a href="{{ url_for('storytelling.storytelling_home', category='emissions') }}" class="quick-action-btn">
+        <a href="{{ url_for('stories.stories_home', category='emissions') }}" class="quick-action-btn">
             <i class="fas fa-smog"></i> Emissions
         </a>
-        <a href="{{ url_for('storytelling.storytelling_home', category='water') }}" class="quick-action-btn">
+        <a href="{{ url_for('stories.stories_home', category='water') }}" class="quick-action-btn">
             <i class="fas fa-tint"></i> Water
         </a>
-        <a href="{{ url_for('storytelling.storytelling_home', category='waste') }}" class="quick-action-btn">
+        <a href="{{ url_for('stories.stories_home', category='waste') }}" class="quick-action-btn">
             <i class="fas fa-trash-alt"></i> Waste
         </a>
-        <a href="{{ url_for('storytelling.storytelling_home', category='energy') }}" class="quick-action-btn">
+        <a href="{{ url_for('stories.stories_home', category='energy') }}" class="quick-action-btn">
             <i class="fas fa-bolt"></i> Energy
         </a>
     </div>
@@ -297,7 +297,7 @@
             <div class="p-4">
                 <p>Generate data-driven sustainability stories tailored to your specific needs. Create a fully customized story with advanced options:</p>
                 <div class="text-center mb-4">
-                    <a href="{{ url_for('storytelling.create_story') }}" class="btn btn-success btn-lg generate-button">
+                    <a href="{{ url_for('stories.create_story') }}" class="btn btn-success btn-lg generate-button">
                         <i class="fas fa-plus me-2"></i> Create New Story
                     </a>
                 </div>
@@ -394,7 +394,7 @@
                                 <small class="timestamp"><i class="far fa-clock me-1"></i> {{ story.timestamp }}</small>
                                 <div class="btn-group">
                                     <button type="button" class="btn btn-sm btn-outline-secondary share-story-btn" data-story-id="{{ story.id }}">Share</button>
-                                    <a href="{{ url_for('storytelling.view_story', story_id=story.id) }}" class="btn btn-sm btn-outline-primary">View</a>
+                                    <a href="{{ url_for('stories.view_story', story_id=story.id) }}" class="btn btn-sm btn-outline-primary">View</a>
                                 </div>
                             </div>
                         </div>

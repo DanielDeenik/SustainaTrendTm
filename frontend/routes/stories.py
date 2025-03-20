@@ -59,7 +59,7 @@ def stories_home():
         'active_section': 'stories'
     })
     
-    return render_template('sustainability_storytelling_finchat.html', **template_context)
+    return render_template('strategy/storytelling.html', **template_context)
 
 @stories_bp.route('/create')
 def create_story():
@@ -74,7 +74,7 @@ def create_story():
         'templates': get_story_templates()
     })
     
-    return render_template('sustainability_storytelling_dark.html', **template_context)
+    return render_template('strategy/storytelling_create.html', **template_context)
 
 @stories_bp.route('/view/<story_id>')
 def view_story(story_id):

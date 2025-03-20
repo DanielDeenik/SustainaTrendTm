@@ -103,4 +103,12 @@ def register_blueprints(app):
     except NameError:
         logger.warning("Regulatory AI Agent blueprint not registered due to import failure")
     
+    # Register legacy routes blueprint for backward compatibility
+    try:
+        from .legacy import legacy_bp, register_blueprint as register_legacy
+        register_legacy(app)
+        logger.info("Legacy routes blueprint registered successfully")
+    except ImportError as e:
+        logger.warning(f"Legacy routes blueprint import failed: {str(e)}")
+    
     logger.info("All blueprints registered successfully")

@@ -13,6 +13,16 @@ logger = logging.getLogger(__name__)
 # Create legacy routes blueprint (no URL prefix to handle legacy paths directly)
 legacy_bp = Blueprint('legacy', __name__)
 
+# Route for legacy storytelling page
+@legacy_bp.route('/storytelling')
+def storytelling_redirect():
+    """
+    Redirects from the legacy /storytelling route 
+    to the new modular stories blueprint
+    """
+    logger.info("Legacy storytelling route accessed - redirecting to stories blueprint")
+    return redirect(url_for('stories.stories_home'))
+
 # Route for legacy sustainability stories page
 @legacy_bp.route('/sustainability-stories')
 def sustainability_stories_redirect():
@@ -21,7 +31,7 @@ def sustainability_stories_redirect():
     to the new modular storytelling blueprint
     """
     logger.info("Legacy sustainability stories route accessed - redirecting to new blueprint")
-    return redirect(url_for('storytelling.storytelling_home'))
+    return redirect(url_for('stories.stories_home'))
 
 # Route for legacy analytics
 @legacy_bp.route('/analytics')
@@ -44,7 +54,7 @@ def monetization_redirect():
     return redirect(url_for('enhanced_strategy.enhanced_strategy_hub'))
 
 # Function to register blueprint
-def register_legacy_routes(app):
+def register_blueprint(app):
     """
     Register legacy routes with the application
     
@@ -53,3 +63,6 @@ def register_legacy_routes(app):
     """
     app.register_blueprint(legacy_bp)
     logger.info("Legacy routes blueprint registered successfully")
+
+# Alias for backward compatibility
+register_legacy_routes = register_blueprint

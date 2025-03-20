@@ -1,0 +1,22 @@
+{% if stories and stories|length > 0 %}
+    {% for story in stories %}
+    <div class="story-card">
+        <div class="card-header">
+            <h3 class="card-title">{{ story.title }}</h3>
+            <span class="story-badge badge-{{ story.category|lower }}">{{ story.category|title }}</span>
+        </div>
+        <div class="card-body">
+            <p class="card-summary">{{ story.summary }}</p>
+        </div>
+        <div class="card-footer">
+            <a href="{{ url_for('stories.view_story', story_id=story.id) }}" class="btn btn-primary">View Story</a>
+            <span class="story-audience">Audience: {{ story.audience|title }}</span>
+        </div>
+    </div>
+    {% endfor %}
+{% else %}
+    <div class="no-stories">
+        <p>No stories found with the current filters. Try changing your selection or create a new story.</p>
+        <a href="{{ url_for('stories.create_story') }}" class="btn btn-primary">Create New Story</a>
+    </div>
+{% endif %}

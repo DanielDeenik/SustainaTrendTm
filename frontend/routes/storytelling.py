@@ -694,8 +694,8 @@ def storytelling_home(category='all'):
             logger.error(f"Error rendering fallback template: {e2}")
             # Try another fallback
             try:
-                logger.info("Trying direct template: sustainability_storytelling_dark.html")
-                return render_template("sustainability_storytelling_dark.html", **context)
+                logger.info("Trying direct template: strategy/storytelling_create.html")
+                return render_template("strategy/storytelling_create.html", **context)
             except Exception as e3:
                 logger.error(f"Error rendering direct template: {e3}")
                 # Last resort fallback - render basic HTML
@@ -889,7 +889,7 @@ def create_story():
         'lcm_available': PINECONE_AVAILABLE and OPENAI_AVAILABLE
     })
     
-    return render_template('strategy/create_story.html', **context)
+    return render_template('strategy/storytelling_create.html', **context)
 
 @storytelling_bp.route('/story/<story_id>')
 def view_story(story_id):
