@@ -559,13 +559,32 @@ Industry: {{ industry }}
       document.getElementById('loadingIndicator').style.display = 'block';
       document.getElementById('resultsContainer').style.display = 'none';
       
-      // If we have a file that's not a text file, handle it differently
+      // If we have a file that's not a text file, we need to upload it
       if (documentFile && documentFile.type !== 'text/plain') {
-        // In a real implementation, we would upload the file to the server
-        // For this demonstration, we'll just wait and then show a mock result
-        setTimeout(function() {
-          displayMockResults(frameworkId);
-        }, 2000);
+        const formData = new FormData();
+        formData.append('file', documentFile);
+        formData.append('framework_id', frameworkId);
+        
+        fetch('/regulatory-ai/api/file-assessment', {
+          method: 'POST',
+          body: formData
+        })
+        .then(response => response.json())
+        .then(data => {
+          // Hide loading indicator
+          document.getElementById('loadingIndicator').style.display = 'none';
+          
+          // Store assessment data
+          assessmentData = data;
+          
+          // Display results
+          displayResults(data);
+        })
+        .catch(error => {
+          console.error('Error:', error);
+          document.getElementById('loadingIndicator').style.display = 'none';
+          alert('An error occurred while processing the document. Please try again.');
+        });
         return;
       }
       
@@ -1083,58 +1102,39 @@ Industry: {{ industry }}
       return categoryId;
     }
     
-    // Mock results for demonstration purposes
-    function displayMockResults(frameworkId) {
-      const mockData = {
-        framework: 'European Sustainability Reporting Standards',
-        framework_id: frameworkId,
-        date: new Date().toISOString(),
-        overall_score: 65,
-        categories: {
-          E1: {
-            score: 75,
-            compliance_level: 'High compliance',
-            findings: ['Strong coverage of climate change mitigation topics'],
-            recommendations: ['Consider adding more details on emissions reduction targets']
-          },
-          E2: {
-            score: 45,
-            compliance_level: 'Moderate compliance',
-            findings: ['Adequate coverage of climate adaptation topics, but some elements may be missing'],
-            recommendations: ['Expand coverage of climate adaptation topics', 'Include specific metrics and targets for climate adaptation']
-          },
-          S1: {
-            score: 80,
-            compliance_level: 'High compliance',
-            findings: ['Strong coverage of workforce topics'],
-            recommendations: []
-          },
-          G1: {
-            score: 60,
-            compliance_level: 'Moderate compliance',
-            findings: ['Adequate coverage of business conduct topics, but some elements may be missing'],
-            recommendations: ['Expand coverage of business conduct topics']
-          }
-        },
-        overall_findings: [
-          'Moderate overall compliance with European Sustainability Reporting Standards',
-          'Strong performance in environmental and workforce topics',
-          'Room for improvement in climate adaptation and business conduct'
-        ],
-        overall_recommendations: [
-          'Focus on improving disclosures for: climate adaptation, business conduct',
-          'Develop specific metrics and targets for weaker areas'
-        ]
-      };
+    // For handling custom file processing functions
+    function processFileUpload(file, frameworkId) {
+      const formData = new FormData();
+      formData.append('file', file);
+      formData.append('framework_id', frameworkId);
       
-      // Hide loading indicator
-      document.getElementById('loadingIndicator').style.display = 'none';
+      // Show loading indicator
+      document.getElementById('loadingIndicator').style.display = 'block';
+      document.getElementById('resultsContainer').style.display = 'none';
       
-      // Store assessment data
-      assessmentData = mockData;
-      
-      // Display results
-      displayResults(mockData);
+      return fetch('/regulatory-ai/api/file-assessment', {
+        method: 'POST',
+        body: formData
+      })
+      .then(response => response.json())
+      .then(data => {
+        // Hide loading indicator
+        document.getElementById('loadingIndicator').style.display = 'none';
+        
+        // Store assessment data
+        assessmentData = data;
+        
+        // Display results
+        displayResults(data);
+        
+        return data;
+      })
+      .catch(error => {
+        console.error('Error:', error);
+        document.getElementById('loadingIndicator').style.display = 'none';
+        alert('An error occurred while processing the document. Please try again.');
+        throw error;
+      });
     }
     
     // RAG AI Agent Functionality
@@ -1244,11 +1244,14 @@ Industry: {{ industry }}
         'ESRS', 'CSRD', 'SFDR', 'TCFD', 'ISSB', 'materiality', 'material'
       ];
       
-      // Build regex to highlight terms
-      const regex = new RegExp('\\b(' + highlightTerms.join('|') + ')\\b', 'gi');
+      // Build regex pattern string
+      const pattern = '\\b(' + highlightTerms.join('|') + ')\\b';
+      
+      // Use regex literal instead of constructor for better compatibility
+      const regex = RegExp(pattern, 'gi');
       formatted = formatted.replace(regex, '<span class="text-info">$1</span>');
       
-      // Highlight numerical values and percentages
+      // Highlight numerical values and percentages (using regex literal)
       formatted = formatted.replace(/\b(\d+(\.\d+)?%?)\b/g, '<span class="text-warning">$1</span>');
       
       // Add paragraph wrapping

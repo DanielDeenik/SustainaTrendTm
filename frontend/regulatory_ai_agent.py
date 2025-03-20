@@ -196,9 +196,128 @@ REGULATORY_TIMELINE = [
     }
 ]
 
+def assess_document_compliance(document_text: str, framework_id: str = "ESRS") -> Dict[str, Any]:
+    """
+    Comprehensive assessment of a document's compliance with a regulatory framework
+    
+    Args:
+        document_text: Text content of the document to analyze
+        framework_id: ID of the regulatory framework to assess against
+        
+    Returns:
+        Detailed compliance assessment results with scores and recommendations
+    """
+    try:
+        # Get the framework details
+        frameworks = get_frameworks()
+        framework = frameworks.get(framework_id, {})
+        
+        if not framework:
+            logger.warning(f"Framework {framework_id} not found")
+            # Use a default framework if the specified one is not found
+            framework_id = next(iter(frameworks.keys()))
+            framework = frameworks.get(framework_id, {})
+        
+        # Extract framework categories
+        categories = framework.get('categories', {})
+        
+        # Connect to AI system for assessment
+        try:
+            # Try to use the AI connector if available
+            from utils.ai_connector import get_generative_ai
+            ai = get_generative_ai()
+            has_ai = True
+        except (ImportError, Exception) as e:
+            logger.warning(f"AI connector not available for compliance assessment: {str(e)}")
+            has_ai = False
+        
+        # Generate assessment with AI if available
+        if has_ai:
+            # Create system prompt for framework assessment
+            system_prompt = f"""
+            You are an expert in sustainability reporting and regulatory compliance.
+            You need to assess a document's compliance with the {framework.get('full_name', framework_id)} framework.
+            
+            Framework details:
+            - Full name: {framework.get('full_name', framework_id)}
+            - Description: {framework.get('description', 'No description available')}
+            - Categories to assess: {json.dumps(categories)}
+            
+            Provide a structured assessment with:
+            1. Overall compliance score (0-100)
+            2. Score for each category (0-100)
+            3. Findings for each category
+            4. Recommendations for each category
+            5. Overall findings and recommendations
+            
+            Format your response as a JSON object with the following structure:
+            {{
+                "framework": "Full framework name",
+                "framework_id": "Framework ID",
+                "date": "Assessment date (ISO format)",
+                "overall_score": "Overall score (0-100)",
+                "categories": {{
+                    "category_id": {{
+                        "score": "Score for this category (0-100)",
+                        "compliance_level": "Compliance level description",
+                        "findings": ["Finding 1", "Finding 2"],
+                        "recommendations": ["Recommendation 1", "Recommendation 2"]
+                    }}
+                }},
+                "overall_findings": ["Finding 1", "Finding 2"],
+                "overall_recommendations": ["Recommendation 1", "Recommendation 2"]
+            }}
+            """
+            
+            # Generate content with AI using the correct parameters based on GeminiAI implementation
+            doc_prompt = f"""
+            Document to assess:
+            
+            {document_text[:48000]}  # Truncate to fit model context limits
+            
+            Assess this document according to the {framework.get('full_name', framework_id)} framework.
+            """
+            
+            # Combine system prompt with user prompt
+            full_prompt = f"{system_prompt}\n\n{doc_prompt}" if system_prompt else doc_prompt
+            
+            # Call generate_content with correct parameters
+            ai_response = ai.generate_content(prompt=full_prompt)
+            
+            try:
+                # Parse the AI response as JSON
+                result = json.loads(ai_response.text)
+                
+                # Add timestamp if not provided
+                if 'date' not in result:
+                    result['date'] = datetime.now().isoformat()
+                
+                return result
+            except (json.JSONDecodeError, AttributeError) as e:
+                logger.error(f"Error parsing AI response: {str(e)}")
+                logger.debug(f"AI response: {ai_response}")
+                # Fall back to rules-based assessment
+        
+        # Fall back to rules-based assessment if AI is not available or fails
+        return assess_regulatory_compliance(document_text, framework_id)
+        
+    except Exception as e:
+        logger.error(f"Error assessing document compliance: {str(e)}")
+        # Return basic assessment with error information
+        return {
+            "framework": get_frameworks().get(framework_id, {}).get('full_name', framework_id),
+            "framework_id": framework_id,
+            "date": datetime.now().isoformat(),
+            "overall_score": 50,  # Default score
+            "categories": {},
+            "overall_findings": [f"Error during assessment: {str(e)}"],
+            "overall_recommendations": ["Try again with a different document or framework"]
+        }
+
 def assess_regulatory_compliance(document_text: str, framework_id: str = "ESRS") -> Dict[str, Any]:
     """
     Assess a document's compliance with the specified regulatory framework
+    (Rules-based implementation)
     
     Args:
         document_text: Text content of the document to analyze
@@ -767,6 +886,42 @@ def api_rag_analysis():
     except Exception as e:
         logger.error(f"Error in RAG analysis API: {str(e)}")
         return jsonify({"error": str(e)}), 500
+
+@regulatory_ai_bp.route('/api/file-assessment', methods=['POST'])
+def api_file_assessment():
+    """API endpoint for assessing document files against regulatory frameworks"""
+    try:
+        # Get form data
+        framework_id = request.form.get('framework_id', 'ESRS')
+        
+        # Check for file upload
+        if 'file' not in request.files:
+            return jsonify({"error": "No file provided"}), 400
+            
+        file = request.files['file']
+        if file.filename == '':
+            return jsonify({"error": "No file selected"}), 400
+            
+        # Process uploaded file
+        try:
+            # Read file content
+            document_text = file.read().decode('utf-8')
+        except UnicodeDecodeError:
+            # If not UTF-8, try with ISO-8859-1 (Latin-1)
+            file.seek(0)
+            document_text = file.read().decode('latin-1')
+        
+        if not document_text:
+            return jsonify({"error": "Could not extract text from file"}), 400
+            
+        # Get AI assistant to perform the assessment
+        assessment_result = assess_document_compliance(document_text, framework_id)
+        
+        return jsonify(assessment_result)
+    except Exception as e:
+        # Log the error
+        app.logger.error(f"Error in file assessment: {str(e)}")
+        return jsonify({"error": f"An error occurred: {str(e)}"}), 500
 
 @regulatory_ai_bp.route('/api/rag-analysis-form', methods=['POST'])
 def api_rag_analysis_form():
