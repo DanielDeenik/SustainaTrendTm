@@ -12,9 +12,18 @@ import sys
 import traceback
 import uuid
 from datetime import datetime
-from typing import Dict, Any, List, Mapping
-from werkzeug.utils import secure_filename
-from flask import Blueprint, render_template, request, jsonify, redirect, url_for, flash, send_from_directory, session
+from typing import Dict, Any, List, Mapping, Optional, Tuple, Union, Callable
+
+# Flask and Werkzeug imports
+try:
+    from werkzeug.utils import secure_filename
+    from flask import (
+        Blueprint, render_template, request, jsonify, redirect, 
+        url_for, flash, send_from_directory, session, current_app
+    )
+except ImportError as e:
+    logging.warning(f"Flask or Werkzeug import error: {str(e)}. "
+                   "This might cause issues if the module is used outside Flask context.")
 sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
 # Define Strategy Frameworks for enhanced strategy hub
@@ -61,6 +70,19 @@ except ImportError as e:
     STRATEGY_AI_CONSULTANT_AVAILABLE = False
     logger = logging.getLogger(__name__)
     logger.warning(f"Strategy AI Consultant module import failed: {str(e)}")
+    
+    # Define fallback for generate_ai_strategy if import fails
+    def generate_ai_strategy(data):
+        """Fallback function for AI strategy generation"""
+        logger.warning(f"Using fallback generate_ai_strategy function")
+        return {
+            "status": "redirected", 
+            "message": "This function is now handled by Enhanced Strategy Hub",
+            "strategy": {
+                "title": "Strategy recommendations are now available in Enhanced Strategy Hub",
+                "summary": "Please visit the Enhanced Strategy Hub for comprehensive strategy recommendations."
+            }
+        }
 
 # Import strategy API routes
 try:
@@ -70,6 +92,12 @@ try:
 except ImportError as e:
     STRATEGY_API_AVAILABLE = False
     logger.warning(f"Strategy API module import failed: {str(e)}")
+    
+    # Define fallback for register_strategy_api if import fails
+    def register_strategy_api(bp):
+        """Fallback function for strategy API routes registration"""
+        logger.warning("Using fallback register_strategy_api function")
+        pass
 
 # Import navigation context
 from navigation_config import get_context_for_template
@@ -86,15 +114,18 @@ except ImportError as e:
     logger.warning(f"Storytelling module not available: {str(e)}")
     
     # Define fallback functions if imports fail
-    def get_enhanced_stories(*args, **kwargs):
+    def get_enhanced_stories(audience: str = 'all', category: str = 'all', prompt = None, document_data = None):
+        """Fallback function for enhanced stories generation"""
         logger.warning("Using fallback get_enhanced_stories function")
         return []
         
-    def get_data_driven_stories(*args, **kwargs):
+    def get_data_driven_stories(audience: str = 'all', category: str = 'all', limit: int = 5):
+        """Fallback function for data-driven stories generation"""
         logger.warning("Using fallback get_data_driven_stories function")
         return []
         
-    def generate_chart_data(*args, **kwargs):
+    def generate_chart_data(story_category: str = "emissions", time_period: str = "quarterly", chart_type = None):
+        """Fallback function for chart data generation"""
         logger.warning("Using fallback generate_chart_data function")
         return {}
 
@@ -106,6 +137,17 @@ try:
 except ImportError as e:
     DOCUMENT_PROCESSOR_AVAILABLE = False
     logger.warning(f"Document processor not available: {str(e)}")
+    
+    # Define a minimal DocumentProcessor class if import fails
+    class DocumentProcessor:
+        """Fallback DocumentProcessor class"""
+        def __init__(self):
+            logger.warning("Using fallback DocumentProcessor class")
+            
+        def get_document_by_id(self, document_id):
+            """Fallback method to get document by ID"""
+            logger.warning(f"Using fallback get_document_by_id method for document ID: {document_id}")
+            return None  # Return None to indicate document not found
 
 # Monetization strategies section has been removed
 
@@ -125,11 +167,26 @@ STEPPS_COMPONENTS = {
 # Define flag as False since we've removed the feature
 TREND_VIRALITY_AVAILABLE = False
 
+# Define fallback functions for missing functions
+def analyze_with_framework(framework_id, analysis_data, company_name, industry):
+    """Fallback function for framework analysis"""
+    logger.warning(f"Using fallback analyze_with_framework function")
+    return {"status": "redirected", "message": "This function is now handled by Enhanced Strategy Hub"}
+
+def analyze_monetization_opportunities(document_text):
+    """Fallback function for monetization analysis"""
+    logger.warning(f"Using fallback analyze_monetization_opportunities function")
+    return {"status": "redirected", "message": "This function is now handled by Enhanced Strategy Hub"}
+
+def generate_integrated_strategic_plan(company_name, industry, document_text):
+    """Fallback function for strategic plan generation"""
+    logger.warning(f"Using fallback generate_integrated_strategic_plan function")
+    return {"status": "redirected", "message": "This function is now handled by Enhanced Strategy Hub"}
+
 # Import AI Strategy Consultant functions (with fallback)
 try:
     from strategy_ai_consultant import (
         analyze_trend,
-        generate_strategy_document,
         register_routes as register_ai_consultant_routes
     )
     AI_CONSULTANT_AVAILABLE = True
@@ -137,6 +194,12 @@ try:
 except ImportError as e:
     AI_CONSULTANT_AVAILABLE = False
     logger.warning(f"AI Strategy Consultant module not available: {str(e)}")
+    
+    # Define fallback for register_ai_consultant_routes if import fails
+    def register_ai_consultant_routes(bp):
+        """Fallback function for AI consultant routes registration"""
+        logger.warning("Using fallback register_ai_consultant_routes function")
+        pass
 
 # Science-Based Targets section has been removed
 SBTI_AVAILABLE = False
@@ -154,8 +217,8 @@ MAX_CONTENT_LENGTH = 16 * 1024 * 1024  # 16MB max file size
 # Ensure upload folder exists
 os.makedirs(UPLOAD_FOLDER, exist_ok=True)
 
-# Initialize document processor if available
-document_processor = DocumentProcessor() if DOCUMENT_PROCESSOR_AVAILABLE else None
+# Initialize document processor
+document_processor = DocumentProcessor()
 
 # Create blueprint
 strategy_bp = Blueprint('strategy', __name__)
@@ -176,51 +239,23 @@ if STRATEGY_API_AVAILABLE:
     except Exception as e:
         logger.warning(f"Failed to register Strategy API routes: {str(e)}")
 
+# Simple routes that redirect to the Enhanced Strategy Hub
 @strategy_bp.route('/strategy-hub')
 def strategy_hub():
-    """
-    Redirect from old Strategy Hub to the Enhanced Strategy Hub
-    
-    This route provides a direct redirect to the new data-centric, 
-    minimalist implementation inspired by Finchat.io
-    """
+    """Redirect from old Strategy Hub to the Enhanced Strategy Hub"""
     logger.info("Strategy Hub route called - redirecting to Enhanced Strategy Hub")
-    
-    # Redirect directly to the Enhanced Strategy Hub for consistency
     return redirect(url_for('enhanced_strategy.enhanced_strategy_hub'))
 
-# Modern AI-First Strategy Hub implementation
 @strategy_bp.route('/ai-first-strategy-hub')
 def ai_first_strategy_hub():
-    """
-    Modern AI-First Strategy Hub with minimal input interface and dynamic AI-driven content
-    
-    This route now redirects to the enhanced version which implements these features
-    with a data-centric approach inspired by Finchat.io's minimalist aesthetic:
-    - Single minimal input field with AI-driven suggestions
-    - Dynamic strategy cards generated by AI
-    - Visual framework recommendations with explanations
-    - Chat-like refinement interface instead of forms
-    """
+    """Redirect from AI-First Strategy Hub to the Enhanced Strategy Hub"""
     logger.info("AI-First Strategy Hub route called - redirecting to Enhanced Strategy Hub")
-    
-    # Directly redirect to the Enhanced Strategy Hub which integrates all these features
     return redirect(url_for('enhanced_strategy.enhanced_strategy_hub'))
 
 @strategy_bp.route('/strategy-modeling-tool')
 def strategy_modeling_tool():
-    """
-    Interactive Strategy Modeling Tool page
-    
-    This route now redirects to the enhanced version with data-centric approach
-    inspired by Finchat.io's minimalist aesthetic, providing:
-    - Adjustable input variables (industry sector, sustainability goals, etc.)
-    - Real-time visualization updates
-    - AI-powered recommendations based on the modeled strategy
-    """
+    """Redirect from Strategy Modeling Tool to the Enhanced Strategy Hub"""
     logger.info("Strategy Modeling Tool route called - redirecting to Enhanced Strategy Hub")
-    
-    # Redirect to the Enhanced Strategy Hub which integrates all modeling features
     return redirect(url_for('enhanced_strategy.enhanced_strategy_hub'))
 
 # Legacy Strategy Hub implementation kept here for reference
@@ -278,351 +313,22 @@ def strategy_hub_full():
     
     # Redirect to the Enhanced Strategy Hub
     return redirect(url_for('enhanced_strategy.enhanced_strategy_hub'))
-    
-    try:
-        # Include navigation for the template
-        nav_context = get_context_for_template()
-        
-        # FIXED: Create fresh, clean dictionaries for strategies and frameworks
-        # This approach mirrors the successful test route
-        try:
-            # Skip directly trying to use PRELOADED_MONETIZATION_STRATEGIES
-            # Instead create a hardcoded dictionary that is guaranteed to work
-            monetization_strategies = {
-                "M1": {
-                    "name": "AI-Driven Sustainability Trend Monetization",
-                    "icon": "chart-line",
-                    "short_description": "AI-powered trend detection and analysis",
-                    "default_potential": 85
-                },
-                "M2": {
-                    "name": "Consulting Services Model",
-                    "icon": "handshake",
-                    "short_description": "Advisory services for sustainability reporting",
-                    "default_potential": 65
-                },
-                "M3": {
-                    "name": "SaaS Subscription Platform",
-                    "icon": "cloud",
-                    "short_description": "Cloud-based sustainability platform",
-                    "default_potential": 75
-                },
-                "M4": {
-                    "name": "Data Marketplace",
-                    "icon": "database",
-                    "short_description": "Monetize sustainability datasets",
-                    "default_potential": 70
-                },
-                "M5": {
-                    "name": "Strategic Consulting",
-                    "icon": "users",
-                    "short_description": "Expert advisory services",
-                    "default_potential": 80
-                }
-            }
-            
-            # Create a new dictionary from STRATEGY_FRAMEWORKS too
-            frameworks = dict(STRATEGY_FRAMEWORKS)
-            
-            # Debug logging
-            logger.info(f"Created monetization_strategies explicitly by copying key-value pairs")
-            logger.info(f"monetization_strategies type: {type(monetization_strategies)}")
-            logger.info(f"monetization_strategies has {len(monetization_strategies)} items")
-            logger.info(f"monetization_strategies keys: {list(monetization_strategies.keys())}")
-            logger.info(f"frameworks type: {type(frameworks)}")
-                    
-        except Exception as e:
-            logger.warning(f"Error creating monetization strategies: {str(e)}")
-            # Fallback if everything fails
-            monetization_strategies = {
-                "strategy1": {
-                    "name": "Sustainability SaaS",
-                    "icon": "cloud",
-                    "short_description": "Cloud-based sustainability analytics platform",
-                    "default_potential": 85
-                },
-                "strategy2": {
-                    "name": "Consulting Services", 
-                    "icon": "handshake",
-                    "short_description": "Advisory services for sustainability implementation",
-                    "default_potential": 70
-                },
-                "strategy3": {
-                    "name": "Data Marketplace",
-                    "icon": "database",
-                    "short_description": "Monetize anonymized sustainability datasets",
-                    "default_potential": 65
-                }
-            }
-            
-            frameworks = STRATEGY_FRAMEWORKS  # Still try to use the original frameworks
-        
-        # First try to use the fixed template for the Strategy Hub
-        try:
-            # First, directly check what PRELOADED_MONETIZATION_STRATEGIES is
-            logger.info(f"PRELOADED_MONETIZATION_STRATEGIES type: {type(PRELOADED_MONETIZATION_STRATEGIES)}")
-            logger.info(f"PRELOADED_MONETIZATION_STRATEGIES callable: {callable(PRELOADED_MONETIZATION_STRATEGIES)}")
-            
-            # Debug ALL modules and variables in scope for get_monetization_strategies
-            debug_vars = {}
-            for module_name, module in sys.modules.items():
-                if 'monetization' in module_name.lower():
-                    logger.info(f"Found module: {module_name}")
-                    try:
-                        if hasattr(module, 'get_monetization_strategies'):
-                            logger.info(f"Found get_monetization_strategies in {module_name}")
-                    except:
-                        pass
-            
-            # Additional deep inspection
-            if callable(get_monetization_strategies):
-                logger.info("get_monetization_strategies is callable - getting direct result")
-                try:
-                    # Call it directly and store result in a NEW variable
-                    direct_result = get_monetization_strategies()
-                    logger.info(f"direct_result type: {type(direct_result)}")
-                    if hasattr(direct_result, 'items') and callable(direct_result.items):
-                        for k, v in direct_result.items():
-                            debug_vars[k] = v
-                    # Replace monetization_strategies with our direct call result
-                    monetization_strategies = debug_vars
-                except Exception as call_error:
-                    logger.error(f"Error calling get_monetization_strategies: {call_error}")
-            
-            # Add additional debug logging for our final variable
-            logger.info(f"About to render template with monetization_strategies: {type(monetization_strategies)}")
-            logger.info(f"monetization_strategies has attrs: {dir(monetization_strategies)}")
-            logger.info(f"monetization_strategies is mapping: {isinstance(monetization_strategies, Mapping)}")
-            logger.info(f"monetization_strategies is dict: {isinstance(monetization_strategies, dict)}")
-            logger.info(f"monetization_strategies has __iter__: {hasattr(monetization_strategies, '__iter__')}")
-            
-            # Attempt to fetch some keys - this would raise exception if not iterable
-            try:
-                keys = list(monetization_strategies.keys())
-                logger.info(f"monetization_strategies keys: {keys}")
-            except Exception as e:
-                logger.warning(f"Could not get keys: {str(e)}")
-                                     
-            # Use our new fixed template that properly handles the dictionary
-            return render_template(
-                "strategy_hub_fixed.html", 
-                page_title="Strategy Hub",
-                frameworks=frameworks,
-                monetization_strategies=monetization_strategies,
-                **nav_context  # Pass the entire navigation context as kwargs
-            )
-        except Exception as e:
-            logger.warning(f"Strategy hub fixed template error: {str(e)}, trying original template")
-            try:
-                # Try the original template as a backup
-                return render_template(
-                    "strategy_hub.html", 
-                    page_title="Strategy Hub",
-                    frameworks=frameworks,
-                    monetization_strategies=monetization_strategies,
-                    **nav_context  # Pass the entire navigation context as kwargs
-                )
-            except Exception as e2:
-                logger.warning(f"Strategy hub template error: {str(e2)}, falling back to test template")
-                # Fall back to the TEST template that we know works
-                return render_template(
-                    "strategy_test.html", 
-                    frameworks=frameworks,
-                    monetization_strategies=monetization_strategies
-                )
-    except Exception as e:
-        # Ultimate fallback if both navigation context and template fail
-        logger.error(f"Critical error in strategy hub: {str(e)}")
-        
-        # Create a minimal fallback dictionary directly
-        monetization_strategies = {
-            "strategy1": {
-                "name": "Sustainability SaaS",
-                "icon": "cloud",
-                "short_description": "Cloud-based sustainability analytics platform",
-                "default_potential": 85
-            },
-            "strategy2": {
-                "name": "Consulting Services", 
-                "icon": "handshake",
-                "short_description": "Advisory services for sustainability implementation",
-                "default_potential": 70
-            },
-            "strategy3": {
-                "name": "Data Marketplace",
-                "icon": "database",
-                "short_description": "Monetize anonymized sustainability datasets",
-                "default_potential": 65
-            }
-        }
-        
-        return render_template(
-            "finchat_dark_dashboard.html", 
-            page_title="Strategy Hub",
-            template_type="strategy",
-            section="hub",
-            frameworks=STRATEGY_FRAMEWORKS,
-            monetization_strategies=monetization_strategies
-        )
 
 @strategy_bp.route('/strategy-hub/framework/<framework_id>')
 def strategy_framework(framework_id):
-    """
-    Specific Strategy Framework page - redirects to Enhanced Strategy Hub
-    
-    This route redirects to the enhanced version with data-centric approach
-    inspired by Finchat.io's minimalist aesthetic, passing the framework_id
-    to ensure proper framework selection.
-    """
+    """Redirect from specific Strategy Framework page to the Enhanced Strategy Hub"""
     logger.info(f"Strategy framework route called: {framework_id} - redirecting to Enhanced Strategy Hub")
-    
-    # Redirect to the Enhanced Strategy Hub with framework parameter
     return redirect(url_for('enhanced_strategy.enhanced_strategy_hub', framework=framework_id))
-    
-    # Get the specific framework
-    framework = STRATEGY_FRAMEWORKS.get(framework_id)
-    
-    if not framework:
-        return render_template('error.html', message=f"Framework {framework_id} not found"), 404
-    
-    try:
-        # Include navigation for the template
-        nav_context = get_context_for_template()
-        
-        # Create strategies using the same explicit approach
-        try:
-            # Skip directly trying to use PRELOADED_MONETIZATION_STRATEGIES
-            # Instead create a hardcoded dictionary that is guaranteed to work
-            monetization_strategies = {
-                "M1": {
-                    "name": "AI-Driven Sustainability Trend Monetization",
-                    "icon": "chart-line",
-                    "short_description": "AI-powered trend detection and analysis",
-                    "default_potential": 85
-                },
-                "M2": {
-                    "name": "Consulting Services Model",
-                    "icon": "handshake", 
-                    "short_description": "Advisory services for sustainability reporting",
-                    "default_potential": 65
-                },
-                "M3": {
-                    "name": "SaaS Subscription Platform",
-                    "icon": "cloud",
-                    "short_description": "Cloud-based sustainability platform",
-                    "default_potential": 75
-                },
-                "M4": {
-                    "name": "Data Marketplace",
-                    "icon": "database",
-                    "short_description": "Monetize sustainability datasets",
-                    "default_potential": 70
-                },
-                "M5": {
-                    "name": "Strategic Consulting",
-                    "icon": "users",
-                    "short_description": "Expert advisory services",
-                    "default_potential": 80
-                },
-                "M6": {
-                    "name": "Educational Content",
-                    "icon": "book",
-                    "short_description": "Training and certification programs",
-                    "default_potential": 60
-                }
-            }
-            
-            # Debug info
-            logger.info(f"Framework view - manually created monetization_strategies")
-            logger.info(f"Framework view - monetization_strategies type: {type(monetization_strategies)}")
-            logger.info(f"Framework view - monetization_strategies has {len(monetization_strategies)} items")
-            
-            # Add frameworks field to each strategy
-            for strategy_id, strategy in monetization_strategies.items():
-                # Ensure we have frameworks field
-                if "frameworks" not in strategy:
-                    strategy["frameworks"] = []
-            
-            # For this example, we'll associate certain frameworks with strategies
-            if framework_id == "porters":
-                frameworks_to_associate = ["M1", "M4", "M5"]
-            elif framework_id == "swot":
-                frameworks_to_associate = ["M2", "M3", "M6"]
-            else:
-                frameworks_to_associate = ["M1", "M2"]
-                
-            # Add frameworks associations
-            for strategy_id in frameworks_to_associate:
-                if strategy_id in monetization_strategies:
-                    monetization_strategies[strategy_id]["frameworks"] = [framework_id]
-                    
-            # Extract related strategies
-            strategies = [s for s in monetization_strategies.values() 
-                        if framework_id in s.get('frameworks', [])]
-            
-            # If still no related strategies, generate a default
-            if not strategies:
-                strategies = [{
-                    "name": f"{framework_id.capitalize()} Strategy",
-                    "icon": "lightbulb",
-                    "short_description": f"Strategic approach using {framework_id}",
-                    "default_potential": 75
-                }]
-                
-        except Exception as e:
-            logger.warning(f"Error creating strategies for framework: {str(e)}")
-            # Fallback with a default strategy
-            strategies = [{
-                "name": f"{framework_id.capitalize()} Strategy",
-                "icon": "lightbulb",
-                "short_description": f"Strategic approach using {framework_id}",
-                "default_potential": 75
-            }]
-        
-        return render_template(
-            "finchat_dark_dashboard.html", 
-            page_title=f"{framework.get('name')} Framework",
-            template_type="strategy",
-            section="framework",
-            framework_id=framework_id,
-            framework=framework,
-            strategies=strategies,
-            **nav_context
-        )
-    except Exception as e:
-        logger.warning(f"Error in framework page: {str(e)}, using minimal context")
-        # Ultimate fallback if navigation fails - use same strategy as above
-        strategies = [{
-            "name": f"{framework_id.capitalize()} Strategy",
-            "icon": "lightbulb", 
-            "short_description": f"Strategic approach using {framework_id}",
-            "default_potential": 75
-        }]
-        
-        return render_template(
-            "finchat_dark_dashboard.html", 
-            page_title=f"{framework.get('name')} Framework",
-            template_type="strategy",
-            section="framework",
-            framework_id=framework_id,
-            framework=framework,
-            strategies=strategies
-        )
-    
 
 @strategy_bp.route('/strategy-hub/monetization')
 def monetization_strategies_view():
-    """
-    Monetization Strategies page (redirects to Enhanced Strategy Hub)
-    """
+    """Redirect from Monetization Strategies page to Enhanced Strategy Hub"""
     logger.info("Redirecting monetization strategies view to Enhanced Strategy Hub")
     return redirect(url_for('enhanced_strategy.enhanced_strategy_hub'))
 
 @strategy_bp.route('/strategy-hub/simulation')
 def strategy_simulation_view():
-    """
-    Strategy Simulation page (redirects to Enhanced Strategy Hub)
-    """
+    """Redirect from Strategy Simulation page to Enhanced Strategy Hub"""
     logger.info("Redirecting strategy simulation view to Enhanced Strategy Hub")
     return redirect(url_for('enhanced_strategy.enhanced_strategy_hub'))
 
@@ -726,134 +432,12 @@ def api_strategic_plan():
 # Debug route to check the data structures
 @strategy_bp.route('/strategy-hub/debug')
 def strategy_hub_debug():
-    """
-    Debug route - redirects to Enhanced Strategy Hub
-    
-    This route redirects to the enhanced version with data-centric approach
-    inspired by Finchat.io's minimalist aesthetic.
-    """
+    """Redirect from Debug route to Enhanced Strategy Hub"""
     logger.info("Strategy Hub Debug route called - redirecting to Enhanced Strategy Hub")
-    
-    # Redirect to the Enhanced Strategy Hub
     return redirect(url_for('enhanced_strategy.enhanced_strategy_hub'))
-    
-    try:
-        # Create a NEW dictionary with explicit key-value pairs to avoid method references
-        preloaded = PRELOADED_MONETIZATION_STRATEGIES
-        monetization_strategies = {}
-        
-        # Manually copy each key-value pair to ensure it's a regular dictionary
-        if hasattr(preloaded, 'items') and callable(preloaded.items):
-            # If it's a dictionary with items() method
-            for key, value in preloaded.items():
-                monetization_strategies[key] = value
-        elif isinstance(preloaded, dict):
-            # If it's already a dictionary but items might be a method issue
-            for key in preloaded:
-                monetization_strategies[key] = preloaded[key]
-        else:
-            # Fallback - create from scratch if all else fails
-            monetization_strategies = {
-                "M1": {
-                    "name": "AI-Driven Sustainability Trend Monetization",
-                    "icon": "chart-line",
-                    "short_description": "AI-powered trend detection and analysis",
-                    "default_potential": 85
-                },
-                "M2": {
-                    "name": "Consulting Services Model",
-                    "icon": "handshake",
-                    "short_description": "Advisory services for sustainability reporting",
-                    "default_potential": 65
-                }
-            }
-            
-        logger.info(f"Debug route - manually created monetization_strategies")
-        logger.info(f"Debug route - monetization_strategies type: {type(monetization_strategies)}")
-        logger.info(f"Debug route - monetization_strategies has {len(monetization_strategies)} items")
-        logger.info(f"Debug route - monetization_strategies keys: {list(monetization_strategies.keys())}")
-        
-        # Render simple debug template
-        return render_template(
-            "strategy_hub_debug.html",
-            page_title="Strategy Hub Debug",
-            frameworks=STRATEGY_FRAMEWORKS,
-            monetization_strategies=monetization_strategies
-        )
-    except Exception as e:
-        logger.error(f"Error in debug route: {str(e)}")
-        
-        # Create a debug report
-        debug_data = {
-            "error": str(e),
-            "monetization_strategies_type": str(type(PRELOADED_MONETIZATION_STRATEGIES)),
-            "has_items_method": hasattr(PRELOADED_MONETIZATION_STRATEGIES, 'items'),
-            "frameworks_type": str(type(STRATEGY_FRAMEWORKS)),
-            "frameworks_keys": list(STRATEGY_FRAMEWORKS.keys()) if isinstance(STRATEGY_FRAMEWORKS, dict) else "Not a dict"
-        }
-        
-        return jsonify(debug_data)
 
-# Simple test route with minimal template
-@strategy_bp.route('/strategy-hub/test')
-def strategy_hub_test():
-    """
-    Test route - redirects to Enhanced Strategy Hub
-    
-    This route redirects to the enhanced version with data-centric approach
-    inspired by Finchat.io's minimalist aesthetic.
-    """
-    logger.info("Strategy Hub Test route called - redirecting to Enhanced Strategy Hub")
-    
-    # Redirect to the Enhanced Strategy Hub
-    return redirect(url_for('enhanced_strategy.enhanced_strategy_hub'))
-    
-    try:
-        # Create a NEW dictionary with explicit key-value pairs to avoid method references
-        preloaded = PRELOADED_MONETIZATION_STRATEGIES
-        monetization_strategies = {}
-        
-        # Manually copy each key-value pair to ensure it's a regular dictionary
-        if hasattr(preloaded, 'items') and callable(preloaded.items):
-            # If it's a dictionary with items() method
-            for key, value in preloaded.items():
-                monetization_strategies[key] = value
-        elif isinstance(preloaded, dict):
-            # If it's already a dictionary but items might be a method issue
-            for key in preloaded:
-                monetization_strategies[key] = preloaded[key]
-        else:
-            # Fallback - create from scratch if all else fails
-            monetization_strategies = {
-                "M1": {
-                    "name": "AI-Driven Sustainability Trend Monetization",
-                    "icon": "chart-line",
-                    "short_description": "AI-powered trend detection and analysis",
-                    "default_potential": 85
-                },
-                "M2": {
-                    "name": "Consulting Services Model",
-                    "icon": "handshake",
-                    "short_description": "Advisory services for sustainability reporting",
-                    "default_potential": 65
-                }
-            }
-        
-        logger.info(f"Test route - manually created monetization_strategies")
-        logger.info(f"Test route - monetization_strategies type: {type(monetization_strategies)}")
-        logger.info(f"Test route - monetization_strategies has {len(monetization_strategies)} items")
-        logger.info(f"Test route - monetization_strategies keys: {list(monetization_strategies.keys())}")
-        
-        # Render simple test template
-        return render_template(
-            "strategy_test.html",
-            frameworks=STRATEGY_FRAMEWORKS,
-            monetization_strategies=monetization_strategies
-        )
-    except Exception as e:
-        logger.error(f"Error in test route: {str(e)}")
-        return f"Test route error: {str(e)}", 500
-        
+# Test route removed - no longer needed
+
 # Helper functions for document uploads
 def allowed_file(filename):
     """Check if a filename has an allowed extension"""
@@ -862,35 +446,9 @@ def allowed_file(filename):
 # New integrated storytelling routes
 @strategy_bp.route('/strategy-hub/storytelling')
 def strategy_hub_storytelling():
-    """
-    Storytelling Hub page - redirects to modular storytelling implementation
-    """
-    logger.info("Strategy Hub Storytelling route accessed - redirecting to modular implementation")
-    
-    # Get category and audience filters to pass along to the new implementation
-    category = request.args.get('category', 'all')
-    audience = request.args.get('audience', 'all')
-    
-    # Redirect to the new modular storytelling implementation
-    try:
-        # Try to construct the URL using url_for with the query parameters
-        url = url_for('storytelling.storytelling_home', category=category, audience=audience)
-        return redirect(url)
-    except Exception as e:
-        logger.error(f"Error redirecting to new storytelling implementation: {str(e)}")
-        logger.error(traceback.format_exc())
-        
-        # Fallback - try direct redirect with query parameters
-        query_params = []
-        if category != 'all':
-            query_params.append(f"category={category}")
-        if audience != 'all':
-            query_params.append(f"audience={audience}")
-            
-        query_string = "&".join(query_params)
-        redirect_url = f"/storytelling/{'' if not query_string else '?' + query_string}"
-        
-        return redirect(redirect_url)
+    """Redirect from Storytelling Hub to Enhanced Strategy Hub"""
+    logger.info("Strategy Hub Storytelling route called - redirecting to Enhanced Strategy Hub")
+    return redirect(url_for('enhanced_strategy.enhanced_strategy_hub'))
 
 @strategy_bp.route('/api/strategy-hub/generate-story', methods=['POST'])
 def api_strategy_hub_generate_story():
@@ -1056,225 +614,32 @@ def api_storytelling_generate():
 # New integrated document upload routes
 @strategy_bp.route('/strategy-hub/documents')
 def strategy_hub_documents():
-    """
-    Documents Hub page - redirects to Enhanced Strategy Hub
-    
-    This route redirects to the enhanced version with data-centric approach
-    inspired by Finchat.io's minimalist aesthetic.
-    """
+    """Redirect from Documents Hub page to Enhanced Strategy Hub"""
     logger.info("Strategy Hub Documents route called - redirecting to Enhanced Strategy Hub")
-    
-    # Redirect to the Enhanced Strategy Hub
     return redirect(url_for('enhanced_strategy.enhanced_strategy_hub'))
-    
-    try:
-        # Get navigation context
-        nav_context = get_context_for_template()
-        
-        # Get stored documents (simplified for now)
-        recent_documents = [
-            {
-                "id": "doc1",
-                "title": "Sustainability Report 2024",
-                "category": "report",
-                "description": "Annual sustainability report with emissions data and ESG metrics.",
-                "timestamp": "2024-03-01",
-                "page_count": 42
-            },
-            {
-                "id": "doc2",
-                "title": "CSRD Compliance Assessment",
-                "category": "compliance",
-                "description": "Assessment of company compliance with CSRD reporting requirements.",
-                "timestamp": "2024-02-15",
-                "page_count": 18
-            }
-        ]
-        
-        return render_template(
-            "strategy/documents.html", 
-            page_title="Document Analysis Hub",
-            recent_documents=recent_documents,
-            document_processor_available=DOCUMENT_PROCESSOR_AVAILABLE,
-            **nav_context
-        )
-    except Exception as e:
-        logger.error(f"Error in documents hub route: {str(e)}")
-        logger.error(traceback.format_exc())
-        
-        # Create a minimal error message
-        return f"Error in documents hub: {str(e)}", 500
 
 @strategy_bp.route('/strategy-hub/document-upload', methods=['GET', 'POST'])
 def strategy_hub_document_upload():
-    """
-    Document upload redirects to Enhanced Strategy Hub
-    
-    This route redirects to the enhanced version with data-centric approach
-    inspired by Finchat.io's minimalist aesthetic.
-    """
+    """Redirect from Document Upload page to Enhanced Strategy Hub"""
     logger.info("Strategy Hub Document Upload route called - redirecting to Enhanced Strategy Hub")
-    
-    # Redirect to the Enhanced Strategy Hub
     return redirect(url_for('enhanced_strategy.enhanced_strategy_hub'))
-    
-    # Define upload error (if any)
-    upload_error = None
-    upload_success = None
-    
-    if request.method == 'POST':
-        try:
-            # Check if document processor is available
-            if not DOCUMENT_PROCESSOR_AVAILABLE:
-                upload_error = "Document processor is not available"
-                logger.warning(f"Document upload attempted but processor not available")
-                return render_template(
-                    "strategy/document_upload.html",
-                    upload_error=upload_error
-                )
-            
-            # Check if file is in request
-            if 'document' not in request.files:
-                upload_error = "No file selected"
-                logger.warning("Document upload attempted but no file in request")
-                return render_template(
-                    "strategy/document_upload.html",
-                    upload_error=upload_error
-                )
-                
-            file = request.files['document']
-            
-            # Check if file was selected
-            if file.filename == '':
-                upload_error = "No file selected"
-                logger.warning("Document upload attempted but filename is empty")
-                return render_template(
-                    "strategy/document_upload.html",
-                    upload_error=upload_error
-                )
-                
-            # Check if file has allowed extension
-            if not allowed_file(file.filename):
-                upload_error = f"File type not allowed. Allowed types: {', '.join(ALLOWED_EXTENSIONS)}"
-                logger.warning(f"Document upload attempted with invalid file type: {file.filename}")
-                return render_template(
-                    "strategy/document_upload.html",
-                    upload_error=upload_error
-                )
-                
-            # Save the file
-            filename = secure_filename(file.filename)
-            file_path = os.path.join(UPLOAD_FOLDER, filename)
-            file.save(file_path)
-            logger.info(f"Document uploaded successfully: {filename}")
-            
-            # Process the document if processor is available
-            use_ocr = request.form.get('use_ocr', 'false') == 'true'
-            
-            # Process the document
-            result = document_processor.process_document(file_path, use_ocr=use_ocr)
-            
-            # Store document info in session for retrieval
-            session['last_document'] = {
-                'filename': filename,
-                'path': file_path,
-                'result': result,
-                'timestamp': datetime.now().isoformat()
-            }
-            
-            # Redirect to document view
-            return redirect(url_for('strategy.strategy_hub_document_view', document_id=filename))
-        
-        except Exception as e:
-            upload_error = f"Error uploading document: {str(e)}"
-            logger.error(f"Error in document upload: {str(e)}")
-            logger.error(traceback.format_exc())
-    
-    # Render the upload form for GET requests or after handling POST
-    return render_template(
-        "strategy/document_upload.html",
-        page_title="Upload Document",
-        upload_error=upload_error,
-        upload_success=upload_success,
-        document_processor_available=DOCUMENT_PROCESSOR_AVAILABLE
-    )
-    
 @strategy_bp.route('/strategy-hub/document/<document_id>')
 def strategy_hub_document_view(document_id):
-    """
-    Document analysis view redirects to Enhanced Strategy Hub
-    
-    This route redirects to the enhanced version with data-centric approach
-    inspired by Finchat.io's minimalist aesthetic.
-    """
+    """Redirect from Document Analysis View to Enhanced Strategy Hub"""
     logger.info(f"Strategy Hub Document View route called - redirecting to Enhanced Strategy Hub")
-    
-    # Redirect to the Enhanced Strategy Hub
     return redirect(url_for('enhanced_strategy.enhanced_strategy_hub'))
 
 # Generate story from document route
 @strategy_bp.route('/strategy-hub/document/<document_id>/generate-story')
 def strategy_hub_generate_story(document_id):
-    """
-    Generate a sustainability story from a document analysis
-    DEPRECATED: This route redirects to the new modular storytelling implementation
-    """
-    logger.info(f"Strategy Hub Generate Story route called for document: {document_id} - redirecting to new implementation")
-    
-    try:
-        # Check if document processor is available - this is a required dependency
-        if not DOCUMENT_PROCESSOR_AVAILABLE:
-            logger.error("Document processor is not available for document-to-story generation")
-            return render_template('error.html', message="Document processor is not available"), 500
-            
-        # Get audience and category from query params or default values
-        audience = request.args.get('audience', 'board')
-        category = request.args.get('category', 'emissions')
-        
-        # Redirect to the new modular storytelling implementation with the document ID
-        try:
-            # Try to construct the URL using url_for with the query parameters
-            url = url_for('storytelling.document_to_story', 
-                         document_id=document_id, 
-                         audience=audience, 
-                         category=category)
-            logger.warning(f"DEPRECATED: Redirecting document story request to new implementation at {url}")
-            return redirect(url)
-        except Exception as e:
-            logger.error(f"Error redirecting to new storytelling implementation: {str(e)}")
-            logger.error(traceback.format_exc())
-            
-            # Fallback - try direct redirect with query parameters
-            query_params = []
-            if audience:
-                query_params.append(f"audience={audience}")
-            if category:
-                query_params.append(f"category={category}")
-                
-            query_string = "&".join(query_params)
-            redirect_url = f"/storytelling/document/{document_id}{'?' if query_string else ''}{query_string}"
-            
-            logger.warning(f"DEPRECATED: Redirecting document story request to new implementation at {redirect_url} (fallback method)")
-            return redirect(redirect_url)
-    except Exception as e:
-        logger.error(f"Error in document story generation redirect: {str(e)}")
-        logger.error(traceback.format_exc())
-        
-        # Create a minimal error message
-        return render_template(
-            'error.html', 
-            message=f"Error redirecting to new storytelling implementation: {str(e)}"
-        ), 500
+    """Redirect from Generate Story page to Enhanced Strategy Hub"""
+    logger.info(f"Strategy Hub Generate Story route called - redirecting to Enhanced Strategy Hub")
+    return redirect(url_for('enhanced_strategy.enhanced_strategy_hub'))
 
 # Consolidated Strategy Hub implementation
 @strategy_bp.route('/unified-strategy-hub')
 def unified_strategy_hub():
-    """
-    Unified Strategy Hub - Redirects to Enhanced Strategy Hub
-    
-    This route now redirects to the enhanced version which provides a more
-    modern interface with the same functionality.
-    """
+    """Redirect from Unified Strategy Hub to Enhanced Strategy Hub"""
     logger.info("Unified Strategy Hub route called - redirecting to Enhanced Strategy Hub")
     return redirect(url_for('enhanced_strategy.enhanced_strategy_hub'))
 
@@ -1431,15 +796,8 @@ def api_recent_imports():
 
 @strategy_bp.route('/strategy-hub/analysis/<file_id>', methods=['GET'])
 def strategy_hub_data_analysis(file_id):
-    """
-    Data analysis redirects to Enhanced Strategy Hub
-    
-    This route redirects to the enhanced version with data-centric approach
-    inspired by Finchat.io's minimalist aesthetic.
-    """
+    """Redirect from Data Analysis page to Enhanced Strategy Hub"""
     logger.info(f"Strategy Hub Data Analysis route called - redirecting to Enhanced Strategy Hub")
-    
-    # Redirect to the Enhanced Strategy Hub
     return redirect(url_for('enhanced_strategy.enhanced_strategy_hub'))
 
 @strategy_bp.route('/api/strategy-hub/generate', methods=['POST'])
@@ -1593,18 +951,8 @@ def upload_data_file():
 
 @strategy_bp.route('/strategy-hub/analyze/<file_id>')
 def analyze_data(file_id):
-    """
-    Analyze data redirects to Enhanced Strategy Hub
-    
-    This route redirects to the enhanced version with data-centric approach
-    inspired by Finchat.io's minimalist aesthetic.
-    
-    Args:
-        file_id: ID of the uploaded file to analyze (unused in redirect)
-    """
+    """Redirect from Analyze Data page to Enhanced Strategy Hub"""
     logger.info(f"Analyze data route called - redirecting to Enhanced Strategy Hub")
-    
-    # Redirect to the Enhanced Strategy Hub
     return redirect(url_for('enhanced_strategy.enhanced_strategy_hub'))
 
 # AI-First Strategy Hub API endpoints

@@ -799,6 +799,182 @@
     display: flex;
     justify-content: space-between;
     font-size: 0.9rem;
+    margin-bottom: 0.25rem;
+  }
+  
+  /* Storytelling Tab Styles */
+  .template-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+    gap: 1.5rem;
+    margin-top: 1rem;
+  }
+  
+  .template-card {
+    background-color: var(--card-bg);
+    border-radius: var(--border-radius);
+    padding: 1.25rem;
+    transition: all var(--transition-speed) ease;
+    border: 1px solid rgba(255, 255, 255, 0.05);
+    cursor: pointer;
+  }
+  
+  .template-card:hover {
+    transform: translateY(-4px);
+    box-shadow: var(--card-shadow);
+    border-color: var(--primary-color);
+    background-color: var(--card-highlight);
+  }
+  
+  .template-icon {
+    font-size: 2rem;
+    color: var(--primary-color);
+    margin-bottom: 1rem;
+  }
+  
+  .template-title {
+    font-size: 1.1rem;
+    font-weight: 600;
+    margin-bottom: 0.5rem;
+    color: var(--light-text);
+  }
+  
+  .template-desc {
+    font-size: 0.9rem;
+    color: var(--medium-text);
+    margin-bottom: 1rem;
+  }
+  
+  .template-footer {
+    margin-top: auto;
+  }
+  
+  .story-list {
+    margin-top: 1rem;
+  }
+  
+  .story-card {
+    background-color: var(--card-bg);
+    border-radius: var(--border-radius);
+    padding: 1.25rem;
+    margin-bottom: 1rem;
+    transition: all var(--transition-speed) ease;
+    border-left: 4px solid var(--primary-color);
+  }
+  
+  .story-card:hover {
+    transform: translateY(-2px);
+    box-shadow: var(--card-shadow);
+    background-color: var(--card-highlight);
+  }
+  
+  .story-header {
+    display: flex;
+    justify-content: space-between;
+    margin-bottom: 0.75rem;
+  }
+  
+  .story-title {
+    font-size: 1.1rem;
+    font-weight: 600;
+    color: var(--light-text);
+  }
+  
+  .story-date {
+    font-size: 0.85rem;
+    color: var(--medium-text);
+  }
+  
+  .story-excerpt {
+    font-size: 0.95rem;
+    color: var(--medium-text);
+    margin-bottom: 1rem;
+    line-height: 1.5;
+  }
+  
+  .story-meta {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.5rem;
+    margin-bottom: 0.75rem;
+  }
+  
+  .story-tag {
+    font-size: 0.75rem;
+    padding: 0.25rem 0.5rem;
+    border-radius: 50px;
+    background-color: rgba(255, 255, 255, 0.07);
+    color: var(--medium-text);
+  }
+  
+  .story-actions {
+    display: flex;
+    gap: 0.75rem;
+  }
+  
+  .small-action-btn {
+    padding: 0.4rem 0.75rem;
+    border-radius: var(--border-radius);
+    font-size: 0.85rem;
+    cursor: pointer;
+    background-color: var(--primary-color);
+    color: white;
+    border: none;
+    transition: all var(--transition-speed) ease;
+  }
+  
+  .small-action-btn:hover {
+    background-color: var(--primary-light);
+    transform: translateY(-2px);
+  }
+  
+  .insight-card {
+    background-color: var(--card-bg);
+    border-radius: var(--border-radius);
+    padding: 1.5rem;
+    margin-bottom: 1rem;
+    transition: all var(--transition-speed) ease;
+    height: 100%;
+    display: flex;
+    flex-direction: column;
+  }
+  
+  .insight-card:hover {
+    transform: translateY(-4px);
+    box-shadow: var(--card-shadow);
+    background-color: var(--card-highlight);
+  }
+  
+  .insight-header {
+    font-size: 1.2rem;
+    font-weight: 600;
+    margin-bottom: 1rem;
+    color: var(--light-text);
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+  }
+  
+  .insight-header i {
+    color: var(--primary-color);
+  }
+  
+  .insight-body {
+    font-size: 0.95rem;
+    color: var(--medium-text);
+    margin-bottom: 1.5rem;
+    line-height: 1.5;
+    flex-grow: 1;
+  }
+  
+  .insight-footer {
+    margin-top: auto;
+  }
+  
+  .impact-label {
+    display: flex;
+    justify-content: space-between;
+    font-size: 0.9rem;
     margin-bottom: 4px;
   }
   
@@ -1572,6 +1748,7 @@
     <div class="hub-tab" data-tab="monetization">Monetization</div>
     <div class="hub-tab" data-tab="virality-trends">Virality Trends</div>
     <div class="hub-tab" data-tab="data-analysis">Data Analysis</div>
+    <div class="hub-tab" data-tab="storytelling">AI Storytelling</div>
   </div>
 
   <!-- Strategy Modeler Tab -->
@@ -2443,6 +2620,104 @@
   </div>
 
   <!-- AI Strategy Consultant Tab - Dashboard Style -->
+  <!-- Storytelling Tab -->
+  <div class="tab-content" id="storytelling">
+    <div class="strategy-hub-container">
+      <div class="hub-card">
+        <div class="hub-card-title"><i class="fas fa-book-open"></i> AI-Powered Sustainability Storytelling</div>
+        <p class="card-description">Transform your sustainability data into compelling, stakeholder-ready narratives with intelligent storytelling capabilities.</p>
+        
+        <div class="card-grid-2">
+          <!-- Create Story Card -->
+          <div class="insight-card">
+            <div class="insight-header">
+              <i class="fas fa-plus-circle"></i> Create New Story
+            </div>
+            <div class="insight-body">
+              Create a new sustainability story using AI assistance. Choose from various templates or start with a custom narrative.
+            </div>
+            <div class="insight-footer">
+              <a href="/storytelling/create" class="action-btn">Create Story</a>
+            </div>
+          </div>
+          
+          <!-- Story Library Card -->
+          <div class="insight-card">
+            <div class="insight-header">
+              <i class="fas fa-book"></i> Story Library
+            </div>
+            <div class="insight-body">
+              Browse and manage your existing sustainability stories, filter by audience, category, or date.
+            </div>
+            <div class="insight-footer">
+              <a href="/stories" class="action-btn">View Library</a>
+            </div>
+          </div>
+        </div>
+      </div>
+      
+      <!-- Recent Stories -->
+      <div class="hub-card">
+        <div class="hub-card-title"><i class="fas fa-history"></i> Recent Stories</div>
+        <p class="card-description">Your recently created sustainability stories.</p>
+        
+        <div class="story-list" id="recent-stories">
+          <div class="loading-spinner">
+            <i class="fas fa-spinner fa-spin"></i> Loading recent stories...
+          </div>
+        </div>
+      </div>
+      
+      <!-- Story Templates -->
+      <div class="hub-card">
+        <div class="hub-card-title"><i class="fas fa-file-alt"></i> Story Templates</div>
+        <p class="card-description">Choose from pre-designed templates to accelerate your storytelling process.</p>
+        
+        <div class="template-grid">
+          <!-- Template 1 -->
+          <div class="template-card" data-template="climate-action">
+            <div class="template-icon"><i class="fas fa-leaf"></i></div>
+            <div class="template-title">Climate Action Narrative</div>
+            <div class="template-desc">Tell your climate action story, highlighting emissions reductions and progress toward targets.</div>
+            <div class="template-footer">
+              <a href="/storytelling/create?template=climate-action" class="small-action-btn">Use Template</a>
+            </div>
+          </div>
+          
+          <!-- Template 2 -->
+          <div class="template-card" data-template="esg-report">
+            <div class="template-icon"><i class="fas fa-chart-line"></i></div>
+            <div class="template-title">ESG Performance Summary</div>
+            <div class="template-desc">Summarize your environmental, social, and governance performance with key metrics.</div>
+            <div class="template-footer">
+              <a href="/storytelling/create?template=esg-report" class="small-action-btn">Use Template</a>
+            </div>
+          </div>
+          
+          <!-- Template 3 -->
+          <div class="template-card" data-template="regulatory">
+            <div class="template-icon"><i class="fas fa-clipboard-check"></i></div>
+            <div class="template-title">Regulatory Compliance Story</div>
+            <div class="template-desc">Showcase your compliance with sustainability regulations like CSRD or ISSB standards.</div>
+            <div class="template-footer">
+              <a href="/storytelling/create?template=regulatory" class="small-action-btn">Use Template</a>
+            </div>
+          </div>
+          
+          <!-- Template 4 -->
+          <div class="template-card" data-template="stakeholder">
+            <div class="template-icon"><i class="fas fa-users"></i></div>
+            <div class="template-title">Stakeholder Engagement</div>
+            <div class="template-desc">Craft a narrative focusing on how you engage with various stakeholders on sustainability.</div>
+            <div class="template-footer">
+              <a href="/storytelling/create?template=stakeholder" class="small-action-btn">Use Template</a>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
   <div class="tab-content" id="ai-consultant">
     <div class="finchat-section">
       <div class="finchat-section-title">
@@ -3878,6 +4153,96 @@
             frameworkOptions.style.pointerEvents = this.checked ? 'none' : 'auto';
           }
         });
+      }
+      
+      // Storytelling tab functionality
+      function loadRecentStories() {
+        const storiesList = document.getElementById('recent-stories');
+        if (!storiesList) return;
+        
+        // Show loading state
+        storiesList.innerHTML = '<div class="loading-spinner"><i class="fas fa-spinner fa-spin"></i> Loading recent stories...</div>';
+        
+        // Fetch recent stories
+        fetch('/stories/api/stories?limit=5')
+          .then(response => response.json())
+          .then(data => {
+            if (data.success && data.stories && data.stories.length > 0) {
+              let storiesHTML = '';
+              
+              data.stories.forEach(story => {
+                // Format the date
+                const date = new Date(story.created_at);
+                const formattedDate = date.toLocaleDateString('en-US', {
+                  year: 'numeric',
+                  month: 'short',
+                  day: 'numeric'
+                });
+                
+                // Generate tags HTML
+                let tagsHTML = '';
+                if (story.tags && story.tags.length > 0) {
+                  story.tags.forEach(tag => {
+                    tagsHTML += `<span class="story-tag">${tag}</span>`;
+                  });
+                }
+                
+                // Generate excerpt (first 150 characters)
+                const excerpt = story.content.length > 150 
+                  ? story.content.substring(0, 150) + '...' 
+                  : story.content;
+                
+                // Generate story card HTML
+                storiesHTML += `
+                  <div class="story-card">
+                    <div class="story-header">
+                      <div class="story-title">${story.title}</div>
+                      <div class="story-date">${formattedDate}</div>
+                    </div>
+                    <div class="story-excerpt">${excerpt}</div>
+                    <div class="story-meta">
+                      ${tagsHTML}
+                    </div>
+                    <div class="story-actions">
+                      <a href="/stories/view/${story.id}" class="small-action-btn">View Story</a>
+                    </div>
+                  </div>
+                `;
+              });
+              
+              storiesList.innerHTML = storiesHTML;
+            } else {
+              // No stories or error
+              storiesList.innerHTML = `
+                <div class="insight-card">
+                  <div class="insight-title">No recent stories</div>
+                  <div class="insight-body">You haven't created any sustainability stories yet. Click "Create Story" to get started.</div>
+                </div>
+              `;
+            }
+          })
+          .catch(error => {
+            console.error('Error fetching stories:', error);
+            storiesList.innerHTML = `
+              <div class="insight-card">
+                <div class="insight-title">Error loading stories</div>
+                <div class="insight-body">There was an error loading your recent stories. Please try again later.</div>
+              </div>
+            `;
+          });
+      }
+      
+      // Load stories when the storytelling tab is activated
+      const storytellingTab = document.querySelector('.hub-tab[data-tab="storytelling"]');
+      if (storytellingTab) {
+        storytellingTab.addEventListener('click', function() {
+          setTimeout(loadRecentStories, 100); // Slight delay to ensure DOM is updated
+        });
+      }
+      
+      // Load stories on initial page load if storytelling tab is active
+      if (document.querySelector('.hub-tab[data-tab="storytelling"].active')) {
+        loadRecentStories();
       }
     }
   });

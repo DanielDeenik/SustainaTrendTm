@@ -28,19 +28,19 @@ def register_blueprints(app):
         logger.error(f"Enhanced Strategy Hub blueprint import failed: {str(e)}")
         logger.error("This is a critical error as the Enhanced Strategy Hub is now the main strategy interface")
     
-    # Import legacy routes blueprint - for backward compatibility
+    # Import strategy redirect blueprint for backward compatibility
     try:
-        from .legacy import legacy_bp
-        logger.info("Legacy routes blueprint imported successfully")
-    except ImportError:
-        logger.warning("Legacy routes blueprint import failed, backward compatibility may be affected")
+        from .strategy import strategy_bp, register_blueprint as register_strategy_redirect
+        logger.info("Strategy redirect blueprint imported successfully")
+    except ImportError as e:
+        logger.warning(f"Strategy redirect blueprint import failed: {str(e)}")
     
     # Import storytelling blueprint - new modular implementation
     try:
-        from .storytelling import storytelling_bp
-        logger.info("Storytelling blueprint imported successfully")
-    except ImportError:
-        logger.warning("Storytelling blueprint import failed, will rely on enhanced strategy hub")
+        from .stories import stories_bp, register_blueprint as register_stories
+        logger.info("Stories blueprint imported successfully")
+    except ImportError as e:
+        logger.warning(f"Stories blueprint import failed: {str(e)}. Will rely on enhanced strategy hub")
     
     # Import science-based targets blueprint
     try:
@@ -75,19 +75,19 @@ def register_blueprints(app):
         logger.error("Enhanced Strategy Hub blueprint not registered due to import failure")
         logger.error("This is a critical error as the Enhanced Strategy Hub is now the main strategy interface")
     
-    # Register storytelling blueprint - modular implementation with UUID-based identification
+    # Register stories blueprint - modular implementation with UUID-based identification
     try:
-        app.register_blueprint(storytelling_bp)
-        logger.info("Storytelling blueprint registered successfully")
+        register_stories(app)
+        logger.info("Stories blueprint registered successfully")
     except NameError:
-        logger.warning("Storytelling blueprint not registered due to import failure")
+        logger.warning("Stories blueprint not registered due to import failure")
     
-    # Register legacy routes blueprint - must be last to avoid conflicts
+    # Register strategy redirect blueprint - for backward compatibility
     try:
-        app.register_blueprint(legacy_bp)
-        logger.info("Legacy routes blueprint registered successfully")
+        register_strategy_redirect(app)
+        logger.info("Strategy redirect blueprint registered successfully")
     except NameError:
-        logger.warning("Legacy routes blueprint not registered due to import failure")
+        logger.warning("Strategy redirect blueprint not registered due to import failure")
     
     # Register science-based targets blueprint
     try:

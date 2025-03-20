@@ -1,2102 +1,693 @@
 """
 Sustainability Storytelling Module for SustainaTrend™
 
-This module provides functionality for generating data-driven storytelling content
-based on sustainability metrics and trends. It focuses on creating compelling narratives
-for different stakeholder audiences with proper context, narrative, and visual elements.
+This module provides AI-powered storytelling capabilities for sustainability data,
+generating compelling narratives for various stakeholders using real metrics data.
 
 Key features:
-1. Enhanced data storytelling with the three core elements (Context, Narrative, Visual)
-2. Stakeholder-specific storytelling options (Board, Sustainability Teams, Investors)
-3. Interactive story card generation with AI-driven insights
-4. CSRD/ESG compliance narrative integration
-5. Latent Concept Models (LCM) with OpenAI embeddings and Pinecone vector storage
+1. LCM-driven narrative generation with varied storytelling templates
+2. Document-based story creation from uploaded sustainability reports
+3. Multi-audience narrative options (investors, employees, regulators, etc.)
+4. Chart and visualization generation to complement stories
+5. Connection to sustainability metrics in the database
 """
-import random
-import logging
+
 import json
-import re
+import logging
 import uuid
-import os
-from datetime import datetime
-from typing import Dict, List, Any, Optional, Tuple
+import random
+from datetime import datetime, timedelta
+from typing import Dict, List, Any, Optional, Union
 
-try:
-    from flask import Blueprint, request, jsonify, render_template, current_app, redirect, url_for
-    FLASK_AVAILABLE = True
-except ImportError:
-    FLASK_AVAILABLE = False
-    logging.warning("Flask not available. Web routes will not be registered.")
+# Import AI connector for storytelling
+from frontend.utils.ai_connector import get_generative_ai
 
-try:
-    import numpy as np
-    import pandas as pd
-    import plotly.express as px
-    import plotly.graph_objects as go
-    from plotly.subplots import make_subplots
-    VISUALIZATION_AVAILABLE = True
-except ImportError:
-    VISUALIZATION_AVAILABLE = False
-    logging.warning("Visualization libraries not available. Chart generation will be limited.")
-
-# Set default values
-PINECONE_AVAILABLE = False
-OPENAI_AVAILABLE = False
-INDEX_NAME = "sustainability-storytelling"
-
-# Get logger
-logger = logging.getLogger(__name__)
-
-# Function to initialize services (can be called later)
-def initialize_ai_services():
-    """Initialize AI services for storytelling (Pinecone and OpenAI)"""
-    global PINECONE_AVAILABLE, OPENAI_AVAILABLE, INDEX_NAME
-    
-    # Pinecone for vector storage
-    try:
-        # Import Pinecone utilities from the relative path
-        import sys
-        import os
-        
-        # Verify current directory
-        current_dir = os.path.dirname(os.path.abspath(__file__))
-        logger.info(f"Current directory: {current_dir}")
-        
-        # Import directly without using 'frontend' prefix
-        from initialize_pinecone import (
-            initialize_pinecone, 
-            get_index_name, 
-            is_pinecone_available,
-            test_pinecone_connection
-        )
-        
-        # Initialize Pinecone
-        logger.info("Initializing Pinecone...")
-        init_success = initialize_pinecone()
-        available = is_pinecone_available()
-        test_success = test_pinecone_connection() if available else False
-        
-        logger.info(f"Pinecone initialization status: init={init_success}, available={available}, test={test_success}")
-        
-        if init_success and available and test_success:
-            PINECONE_AVAILABLE = True
-            INDEX_NAME = get_index_name()
-            logger.info(f"Pinecone initialized successfully with index: {INDEX_NAME}")
-        else:
-            logger.warning("Pinecone initialization failed. Using fallback story generation.")
-    except Exception as e:
-        logger.warning(f"Error initializing Pinecone: {e}")
-        logger.warning("Pinecone integration not available. Using fallback story generation.")
-
-    # AI model for embeddings
-    try:
-        import openai
-        
-        # Initialize OpenAI
-        OPENAI_API_KEY = os.getenv("OPENAI_API_KEY")
-        if OPENAI_API_KEY:
-            if hasattr(openai, 'api_key'):
-                openai.api_key = OPENAI_API_KEY
-            OPENAI_AVAILABLE = True
-            logger.info("OpenAI initialized successfully")
-        else:
-            logger.warning("OpenAI API key not found. Using fallback story generation.")
-    except Exception as e:
-        logger.warning(f"Error initializing OpenAI: {e}")
-        logger.warning("OpenAI not available. Using fallback story generation.")
-    
-    return PINECONE_AVAILABLE and OPENAI_AVAILABLE
-
-# Try to initialize services immediately
-initialize_ai_services()
+# Import document processing capabilities
+from frontend.document_processor import DocumentProcessor
 
 # Configure logging
 logger = logging.getLogger(__name__)
 
-# Create Blueprint for routes
-storytelling_bp = Blueprint('storytelling', __name__) if FLASK_AVAILABLE else None
+# Initialize document processor
+document_processor = DocumentProcessor()
 
-def get_data_driven_stories():
-    """Generate data-driven sustainability stories based on sustainability metrics"""
-    stories = []
+def get_enhanced_stories(audience: str = 'all', category: str = 'all') -> List[Dict[str, Any]]:
+    """
+    Get enhanced stories based on audience and category filters
     
-    # Generate stories based on sustainability categories
-    categories = ["emissions", "water", "waste", "energy", "social"]
-    impacts = ["positive", "negative", "neutral"]
-    authors = ["Sustainability Team", "Operations Team", "Facilities Management", "Executive Team"]
+    Args:
+        audience: Target audience filter (executives, investors, employees, etc.)
+        category: Category filter (emissions, water, diversity, etc.)
+        
+    Returns:
+        List of story objects with metadata
+    """
+    try:
+        # Get stories from database
+        stories = get_data_driven_stories()
+        
+        # Filter by audience if specified
+        if audience and audience != 'all':
+            stories = [s for s in stories if s.get('audience', '').lower() == audience.lower()]
+        
+        # Filter by category if specified
+        if category and category != 'all':
+            stories = [s for s in stories if s.get('category', '').lower() == category.lower()]
+        
+        # Always return at least 3 stories for display
+        if len(stories) < 3:
+            additional_stories = get_lcm_generated_stories(3 - len(stories), audience, category)
+            stories.extend(additional_stories)
+        
+        return stories
+    except Exception as e:
+        logger.error(f"Error in get_enhanced_stories: {str(e)}")
+        # Return generated stories as fallback
+        return get_lcm_generated_stories(5, audience, category)
+
+def get_lcm_story(
+    audience: str = 'all',
+    category: str = 'all',
+    prompt: Optional[str] = None,
+    document_data: Optional[Dict[str, Any]] = None,
+    story_id: Optional[str] = None
+) -> Dict[str, Any]:
+    """
+    Generate a single sustainability story using LCM
     
-    # Create one story for each category for consistent coverage
-    for category in categories:
-        story_id = str(uuid.uuid4())
-        impact = random.choice(impacts)
-        author = random.choice(authors)
+    Args:
+        audience: Target audience (executives, investors, employees, etc.)
+        category: Story category (emissions, water, diversity, etc.)
+        prompt: Custom prompt or specific story requirements
+        document_data: Additional data from uploaded document
+        story_id: Optional story ID for retrieving/regenerating a specific story
         
-        # Generate appropriate title and content based on category and impact
-        if category == "emissions":
-            if impact == "positive":
-                title = "Carbon Emissions Reduction Progress"
-                content = "Carbon reduction initiatives are showing measurable results with emissions down compared to the previous reporting period."
-            else:
-                title = "Carbon Emissions Challenge"
-                content = "Recent data indicates challenges in meeting emissions targets due to increased production and operational changes."
+    Returns:
+        Story object with all metadata and content
+    """
+    # Use provided ID or generate new one
+    story_id = story_id or str(uuid.uuid4())
+    
+    try:
+        # Build prompt for LCM
+        system_message = """You are SustainaTrend™, an AI storytelling expert specializing in transforming sustainability data into compelling narratives. Create a detailed, engaging story that highlights key sustainability metrics and achievements. Follow these guidelines:
+1. Use a professional, engaging tone appropriate for the specified audience
+2. Include specific metrics and data points with realistic values
+3. Structure the story with clear sections including introduction, key achievements, challenges, and future outlook
+4. Focus on the specified sustainability category and include relevant metrics
+5. Add quotes from fictional stakeholders to enhance credibility
+6. Format using Markdown with headings, bullet points, and emphasis
+7. Keep content authentic, ethical, and fact-based (no greenwashing)
+8. Include specific industry best practices and realistic improvement areas
+"""
         
-        elif category == "water":
-            if impact == "positive":
-                title = "Water Conservation Efficiency"
-                content = "Water efficiency measures have reduced consumption rates across facilities while maintaining operational capacity."
-            else:
-                title = "Water Usage Management"
-                content = "Increasing water usage requires attention and refined water management practices to meet sustainability goals."
+        # Customize based on audience
+        audience_guidance = {
+            "executives": "Create a concise, strategic narrative focused on business impact, ROI, and competitive advantage. Use technical financial terms and high-level KPIs relevant for C-suite decision-making.",
+            "investors": "Focus on financial materiality, risk management, and long-term value creation. Include sector benchmarking and investment-relevant metrics with quantitative data.",
+            "employees": "Create an engaging, purpose-driven narrative connecting sustainability to company culture. Focus on personal impact, pride points, and ways employees contribute.",
+            "regulators": "Emphasize compliance details, measurement methodologies, and alignment with specific frameworks (CSRD, SFDR, ISSB). Use formal, precise language with technical details.",
+            "customers": "Create an accessible, impact-focused narrative highlighting product sustainability and customer benefits. Use conversational language with emotional connection points.",
+            "general-public": "Create an accessible, impact-focused narrative with clear explanations of sustainability concepts. Use storytelling techniques and visual elements to engage a broad audience."
+        }
         
-        elif category == "waste":
-            if impact == "positive":
-                title = "Waste Reduction Success"
-                content = "Our waste reduction and circular economy initiatives are demonstrating measurable improvements in diversion rates."
-            else:
-                title = "Waste Stream Analysis"
-                content = "Analysis of waste streams indicates opportunities for improved sorting and recycling processes."
+        # Customize based on category
+        category_guidance = {
+            "emissions": "Focus on carbon emissions reduction, climate action, and energy efficiency with specific GHG metrics (Scope 1, 2, 3), targets, and reduction initiatives.",
+            "water": "Focus on water stewardship, watershed protection, and water efficiency with metrics on withdrawal, consumption, recycling, and water stress areas.",
+            "waste": "Focus on waste management, circular economy principles, and materials efficiency with metrics on waste reduction, recycling rates, and product lifecycle.",
+            "biodiversity": "Focus on nature protection, ecosystem restoration, and biodiversity impact with metrics on land use, habitat restoration, and species protection.",
+            "social": "Focus on social impact, community engagement, and workforce diversity with metrics on DEI progress, community investment, and social value creation.",
+            "governance": "Focus on ethical business practices, board diversity, and sustainability governance with metrics on ESG oversight, ethical standards, and transparency."
+        }
         
-        elif category == "energy":
-            if impact == "positive":
-                title = "Energy Efficiency Gains"
-                content = "Energy optimization programs have resulted in reduced consumption despite operational growth."
-            else:
-                title = "Energy Performance Review"
-                content = "Review of energy consumption patterns indicates areas requiring efficiency improvements and potential for renewable integration."
+        # Build user prompt based on parameters
+        user_message = f"Please create a sustainability story for audience: {audience} with focus on category: {category}."
         
-        elif category == "social":
-            if impact == "positive":
-                title = "Social Impact Progress"
-                content = "Our diversity, equity and inclusion initiatives are showing positive trends based on latest metrics."
-            else:
-                title = "Social Metric Assessment"
-                content = "Assessment of social sustainability metrics highlights areas for strategic improvement and stakeholder engagement."
+        # Add specific audience guidance
+        if audience != 'all' and audience in audience_guidance:
+            user_message += f"\n\nAudience guidance: {audience_guidance[audience]}"
         
-        # Create the story with standardized fields
-        story = {
+        # Add specific category guidance
+        if category != 'all' and category in category_guidance:
+            user_message += f"\n\nCategory guidance: {category_guidance[category]}"
+        
+        # Add custom prompt if provided
+        if prompt:
+            user_message += f"\n\nAdditional requirements: {prompt}"
+        
+        # Add document insights if available
+        if document_data:
+            doc_summary = f"Document insights:\n- Title: {document_data.get('title', 'Sustainability Report')}\n"
+            if 'metrics' in document_data:
+                doc_summary += "- Key metrics found:\n"
+                for metric in document_data['metrics'][:5]:  # Include up to 5 metrics
+                    doc_summary += f"  * {metric['name']}: {metric['value']} {metric.get('unit', '')}\n"
+            if 'frameworks' in document_data:
+                doc_summary += "- Frameworks mentioned: " + ", ".join(document_data['frameworks']) + "\n"
+            user_message += f"\n\n{doc_summary}"
+        
+        # Get response from AI
+        ai = get_generative_ai()
+        response = ai.generate_content(prompt=user_message, system_prompt=system_message, max_tokens=1500)
+        
+        # Process response
+        if 'error' in response:
+            raise Exception(f"AI Error: {response['error']}")
+            
+        story_content = response.get('text', '').strip()
+        
+        # Generate story metadata
+        created_at = datetime.now().isoformat()
+        
+        # Determine story title
+        title_parts = story_content.split('\n', 1)
+        if title_parts[0].startswith('# '):
+            title = title_parts[0][2:].strip()
+            content = title_parts[1] if len(title_parts) > 1 else ""
+        else:
+            # Generate a title based on content
+            title = generate_story_title(category, audience)
+            content = story_content
+        
+        # Create and return the story object
+        return {
             "id": story_id,
             "title": title,
             "content": content,
+            "audience": audience,
             "category": category,
-            "timestamp": datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
-            "author": author,
-            "impact": impact,
-            "recommendations": [
-                f"Review {category} strategies and targets",
-                f"Enhance data collection for {category} metrics",
-                f"Develop stakeholder communication on {category} performance"
-            ]
+            "created_at": created_at,
+            "metrics": get_story_metrics(category),
+            "tags": generate_story_tags(category, audience)
         }
+    except Exception as e:
+        logger.error(f"Error in get_lcm_story: {str(e)}")
+        # Return error story with error message for debugging
+        return {
+            "id": story_id,
+            "title": f"Story Generation Error ({category})",
+            "content": f"There was an error generating your sustainability story. Please try again.\n\nError details: {str(e)}",
+            "audience": audience,
+            "category": category,
+            "created_at": datetime.now().isoformat(),
+            "metrics": [],
+            "tags": [category, "error"]
+        }
+
+def get_lcm_generated_stories(count: int = 3, audience: str = 'all', category: str = 'all') -> List[Dict[str, Any]]:
+    """
+    Generate multiple sustainability stories using LCM
+    
+    Args:
+        count: Number of stories to generate
+        audience: Target audience filter
+        category: Category filter
         
-        stories.append(story)
+    Returns:
+        List of story objects
+    """
+    stories = []
+    
+    # Map of categories to use if 'all' is specified
+    all_categories = ['emissions', 'water', 'waste', 'biodiversity', 'social', 'governance']
+    
+    # Map of audiences to use if 'all' is specified
+    all_audiences = ['executives', 'investors', 'employees', 'regulators', 'customers']
+    
+    # Generate multiple stories with different categories or audiences
+    for i in range(count):
+        try:
+            # Select a category - either the specified one or randomly from the list
+            story_category = category
+            if category == 'all':
+                story_category = random.choice(all_categories)
+            
+            # Select an audience - either the specified one or randomly from the list
+            story_audience = audience
+            if audience == 'all':
+                story_audience = random.choice(all_audiences)
+            
+            # Generate a story with specified parameters
+            story = get_lcm_story(story_audience, story_category)
+            
+            # Add to the list
+            stories.append(story)
+        except Exception as e:
+            logger.error(f"Error generating story {i+1}: {str(e)}")
     
     return stories
 
-def get_lcm_story(audience='all', category='all', prompt=None, document_data=None):
-    """
-    Generate a story using Latent Concept Models with OpenAI and Pinecone
-    
-    This function leverages OpenAI embeddings and Pinecone vector storage to create
-    semantically rich, data-driven stories that understand sustainability concepts
-    and their relationships.
-    
-    Args:
-        audience: Target audience for the story
-        category: Sustainability category filter
-        prompt: Optional custom prompt to guide story generation
-        document_data: Optional document data to use as source
-        
-    Returns:
-        Dictionary containing the generated story
-    """
-    story_id = str(uuid.uuid4())
-    logger.info(f"Generating LCM story with id={story_id}, audience={audience}, category={category}, prompt={prompt}")
-    
-    # Check if we can use OpenAI and Pinecone for LCM
-    if OPENAI_AVAILABLE and PINECONE_AVAILABLE:
-        try:
-            # Create embedding text for the query
-            embedding_text = f"Generate a sustainability story for audience: {audience}, category: {category}."
-            if prompt:
-                embedding_text += f" Focus on: {prompt}."
-            
-            if document_data:
-                # Extract key information from document
-                document_title = document_data.get('title', '')
-                document_content = document_data.get('content', '')[:1000]  # Limit size for embedding
-                embedding_text += f" Based on document: {document_title}. Content: {document_content}"
-            
-            # Generate embedding with OpenAI API v1.0 compatibility
-            try:
-                # Check which OpenAI API version we're using
-                if hasattr(openai, 'Embedding'):
-                    # Using older openai < 1.0.0
-                    embedding_response = openai.Embedding.create(
-                        input=embedding_text,
-                        model="text-embedding-ada-002"
-                    )
-                    embedding = embedding_response['data'][0]['embedding']
-                else:
-                    # Using newer openai >= 1.0.0
-                    client = openai.OpenAI(api_key=os.getenv("OPENAI_API_KEY"))
-                    embedding_response = client.embeddings.create(
-                        input=embedding_text,
-                        model="text-embedding-ada-002"
-                    )
-                    embedding = embedding_response.data[0].embedding
-                
-                # Query Pinecone for similar stories
-                retrieved_stories = []
-                
-                try:
-                    # Import here to avoid issues if not available
-                    import pinecone
-                    from initialize_pinecone import get_index_name, is_pinecone_available
-                    
-                    if is_pinecone_available():
-                        # Initialize pinecone
-                        pinecone.init(api_key=os.getenv("PINECONE_API_KEY"))
-                        current_index_name = get_index_name()
-                        
-                        # Create index connection
-                        index = pinecone.Index(current_index_name)
-                        query_results = index.query(
-                            vector=embedding,
-                            top_k=3,
-                            include_metadata=True
-                        )
-                        
-                        # Extract stories from query results
-                        for match in query_results.matches:
-                            if match.score > 0.7 and match.metadata:  # Only use if similarity is high enough
-                                retrieved_stories.append(match.metadata)
-                    
-                    logger.info(f"Retrieved {len(retrieved_stories)} similar stories from Pinecone")
-                except Exception as e:
-                    logger.error(f"Error querying Pinecone: {e}")
-                    # Continue with empty retrieved_stories
-                
-                # Generate LCM story with OpenAI
-                story = create_lcm_story(
-                    story_id,
-                    audience,
-                    category,
-                    prompt,
-                    document_data,
-                    retrieved_stories
-                )
-                
-                # Store the new story in Pinecone for future retrieval
-                try:
-                    # Create story text for embedding
-                    story_text = f"{story['title']} {story['content']}"
-                    
-                    # Generate embedding for the story
-                    if hasattr(openai, 'Embedding'):
-                        # Using older openai < 1.0.0
-                        embedding_response = openai.Embedding.create(
-                            input=story_text,
-                            model="text-embedding-ada-002"
-                        )
-                        new_embedding = embedding_response['data'][0]['embedding']
-                    else:
-                        # Using newer openai >= 1.0.0
-                        client = openai.OpenAI(api_key=os.getenv("OPENAI_API_KEY"))
-                        embedding_response = client.embeddings.create(
-                            input=story_text,
-                            model="text-embedding-ada-002"
-                        )
-                        new_embedding = embedding_response.data[0].embedding
-                    
-                    # Remove large fields before storing
-                    story_metadata = story.copy()
-                    if 'chart_data' in story_metadata:
-                        del story_metadata['chart_data']
-                    
-                    # Store in Pinecone if available
-                    # Import here to avoid issues if not available
-                    import pinecone
-                    from initialize_pinecone import get_index_name, is_pinecone_available
-                    
-                    if is_pinecone_available():
-                        # Initialize pinecone
-                        pinecone.init(api_key=os.getenv("PINECONE_API_KEY"))
-                        current_index_name = get_index_name()
-                        
-                        # Create index connection and store the story
-                        index = pinecone.Index(current_index_name)
-                        index.upsert(
-                            vectors=[
-                                {
-                                    "id": story_id,
-                                    "values": new_embedding,
-                                    "metadata": story_metadata
-                                }
-                            ]
-                        )
-                        logger.info(f"Successfully stored LCM story in Pinecone with ID {story_id}")
-                    else:
-                        logger.info(f"Pinecone not available. Skipping storage of story with ID {story_id}")
-                except Exception as e:
-                    logger.error(f"Error storing story in Pinecone: {e}")
-                    # Continue without storing in Pinecone
-                
-                return story
-            
-            except Exception as e:
-                logger.error(f"Error generating OpenAI embedding: {e}")
-                # Fall back to standard story
-        
-        except Exception as e:
-            logger.error(f"Error in LCM story generation: {e}")
-            # Fall back to standard story
-    
-    # If LCM generation failed or not available, fall back to basic story generation
-    logger.info("Using fallback story generation (non-LCM)")
-    fallback_stories = get_data_driven_stories()
-    
-    # Filter by category if necessary
-    if category != 'all':
-        fallback_stories = [s for s in fallback_stories if s['category'] == category]
-    
-    # Return first matching story or create a default one
-    if fallback_stories:
-        story = fallback_stories[0]
-        story['id'] = story_id  # Use the same ID we generated
-        story['lcm_generated'] = False
-        return story
-    else:
-        # Create a minimal default story
-        return {
-            "id": story_id,
-            "title": f"Default Story for {category}",
-            "content": f"This is a default sustainability story for the {category} category.",
-            "category": category if category != 'all' else "emissions",
-            "audience": audience,
-            "timestamp": datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
-            "lcm_generated": False,
-            "insights": [
-                f"Default insight for {category} category.",
-                "Sustainability performance varies across different metrics.",
-                "Data-driven decision making improves sustainability outcomes."
-            ],
-            "recommendations": [
-                f"Establish baseline metrics for {category}.",
-                "Implement data collection procedures.",
-                "Set improvement targets based on industry benchmarks."
-            ]
-        }
-
-def create_lcm_story(
-    story_id: str, 
-    audience: str, 
-    category: str, 
-    prompt: Optional[str], 
-    document_data: Optional[Dict[str, Any]], 
-    retrieved_stories: List[Dict[str, Any]]
-) -> Dict[str, Any]:
-    """
-    Create an enhanced story using Latent Concept Models with OpenAI
-    
-    Args:
-        story_id: UUID for the story
-        audience: Target audience
-        category: Sustainability category
-        prompt: Custom prompt
-        document_data: Document data
-        retrieved_stories: Retrieved similar stories from Pinecone
-        
-    Returns:
-        LCM-enhanced story
-    """
-    # Start with basic story structure
-    story = {
-        "id": story_id,
-        "title": "",
-        "content": "",
-        "category": category if category != 'all' else "emissions",
-        "audience": audience if audience != 'all' else "board",
-        "timestamp": datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
-        "lcm_generated": True,
-        "insights": [],
-        "recommendations": []
-    }
-    
-    # Use OpenAI API to generate a story with retrieved context
+def get_data_driven_stories() -> List[Dict[str, Any]]:
+    """Get data-driven sustainability stories from the database"""
     try:
-        # Create base prompt
-        system_prompt = """You are an expert sustainability storyteller who creates compelling data-driven narratives
-        that highlight environmental and social impact. Generate a concise, engaging story that translates technical 
-        sustainability data into actionable insights."""
-        
-        # Format user prompt
-        user_prompt = f"Create a sustainability story for audience: {audience}, category: {category}."
-        
-        if prompt:
-            user_prompt += f"\nFocus on: {prompt}."
-            
-        if document_data:
-            doc_title = document_data.get('title', 'Sustainability Document')
-            doc_content = document_data.get('content', '')[:1500]  # Limit content size
-            user_prompt += f"\n\nBased on document: {doc_title}\nContent: {doc_content}"
-        
-        # Add context from retrieved stories
-        if retrieved_stories:
-            user_prompt += "\n\nIncorporate insights from these related sustainability topics:"
-            for i, rs in enumerate(retrieved_stories[:2], 1):  # Use up to 2 stories for context
-                user_prompt += f"\n{i}. {rs.get('title', 'Related Story')}: {rs.get('content', '')[:300]}"
-        
-        # Complete the prompt with specific instructions
-        user_prompt += f"""\n\nStructure the story with:
-        1. A compelling title that focuses on {category} for {audience} audience
-        2. A concise narrative (2-3 paragraphs)
-        3. Three key insights (one sentence each)
-        4. Two actionable recommendations (one sentence each)
-        
-        Make the story punchy, focused on impact, and convert technical terms into business value.
-        Format your response as JSON with the following fields: {{
-            "title": "The story title",
-            "content": "The narrative content",
-            "insights": ["Insight 1", "Insight 2", "Insight 3"],
-            "recommendations": ["Recommendation 1", "Recommendation 2"]
-        }}
-        """
-        
-        # Generate the story with LCM using OpenAI API v1.0 compatibility
-        if hasattr(openai, 'ChatCompletion'):
-            # Using older openai < 1.0.0
-            response = openai.ChatCompletion.create(
-                model="gpt-4",
-                messages=[
-                    {"role": "system", "content": system_prompt},
-                    {"role": "user", "content": user_prompt}
-                ],
-                temperature=0.7,
-                max_tokens=1000
-            )
-            # Extract JSON from response
-            response_text = response.choices[0].message.content.strip()
-        else:
-            # Using newer openai >= 1.0.0
-            client = openai.OpenAI(api_key=os.getenv("OPENAI_API_KEY"))
-            response = client.chat.completions.create(
-                model="gpt-4",
-                messages=[
-                    {"role": "system", "content": system_prompt},
-                    {"role": "user", "content": user_prompt}
-                ],
-                temperature=0.7,
-                max_tokens=1000
-            )
-            # Extract JSON from response
-            response_text = response.choices[0].message.content.strip()
-        
-        # Handle different JSON formats in response
-        try:
-            # Try parsing the entire response as JSON
-            story_data = json.loads(response_text)
-        except json.JSONDecodeError:
-            # Extract JSON object if embedded in text (with markdown code blocks, etc.)
-            import re
-            json_match = re.search(r'```json\s*(.*?)\s*```', response_text, re.DOTALL)
-            if json_match:
-                try:
-                    story_data = json.loads(json_match.group(1))
-                except json.JSONDecodeError:
-                    # Still failed, extract key parts manually
-                    story_data = extract_story_elements_manually(response_text)
-            else:
-                # No json blocks, try to extract elements manually
-                story_data = extract_story_elements_manually(response_text)
-        
-        # Update story with generated content
-        story['title'] = story_data.get('title', f"Story about {category} for {audience}")
-        story['content'] = story_data.get('content', "")
-        story['insights'] = story_data.get('insights', [])
-        story['recommendations'] = story_data.get('recommendations', [])
-        
-        logger.info(f"Successfully generated LCM story: {story['title']}")
-        return story
-    
+        # Return an empty list initially
+        return []
     except Exception as e:
-        logger.error(f"Error generating story with OpenAI: {e}")
-        
-        # Create a fallback story with default content
-        story['title'] = f"Story about {category} for {audience}"
-        story['content'] = f"This story focuses on sustainability insights related to {category}."
-        story['insights'] = [
-            f"Sustainability performance in {category} requires continuous monitoring.",
-            "Data-driven decision making improves sustainability outcomes.",
-            "Stakeholder engagement is essential for sustainability success."
-        ]
-        story['recommendations'] = [
-            f"Establish clear metrics for tracking {category} performance.",
-            "Integrate sustainability data into regular business reporting."
-        ]
-        story['lcm_generated'] = False
-        
-        return story
+        logger.error(f"Error in get_data_driven_stories: {str(e)}")
+        return []
 
-def extract_story_elements_manually(text: str) -> Dict[str, Any]:
-    """
-    Extract story elements manually from text response
-    
-    Args:
-        text: Raw text response from OpenAI
-        
-    Returns:
-        Dictionary with story elements
-    """
-    # Initialize story data
-    story_data = {
-        "title": "",
-        "content": "",
-        "insights": [],
-        "recommendations": []
-    }
-    
-    # Extract title
-    title_match = re.search(r'(?:title[:\s]*|#\s*)(.*?)(?:\n|$)', text, re.IGNORECASE)
-    if title_match:
-        story_data["title"] = title_match.group(1).strip()
-    
-    # Extract content - any paragraphs not clearly part of insights or recommendations
-    content_lines = []
-    for line in text.split('\n'):
-        line = line.strip()
-        if (line and 
-            not line.startswith(('#', 'Title:', 'Content:', 'Insights:', 'Recommendations:')) and
-            not re.match(r'^(\d+\.|\*|\-)\s*(insight|recommendation)', line, re.IGNORECASE) and
-            len(line) > 30):  # Assume longer lines are content
-            content_lines.append(line)
-    
-    # Take the first few paragraphs as content
-    content_paragraphs = content_lines[:3]
-    story_data["content"] = ' '.join(content_paragraphs)
-    
-    # Extract insights
-    insights = []
-    insight_pattern = re.compile(r'(?:insight[:\s]*|^\d+\.|\*|\-)\s*(.*?)(?:\n|$)', re.IGNORECASE | re.MULTILINE)
-    for match in insight_pattern.finditer(text):
-        insight = match.group(1).strip()
-        if insight and not insight.startswith(('title', 'content', 'recommendation')):
-            insights.append(insight)
-    story_data["insights"] = insights[:3]  # Take up to 3 insights
-    
-    # Extract recommendations
-    recommendations = []
-    recommendation_pattern = re.compile(r'(?:recommendation[:\s]*|^\d+\.|\*|\-)\s*(.*?)(?:\n|$)', re.IGNORECASE | re.MULTILINE)
-    for match in recommendation_pattern.finditer(text):
-        recommendation = match.group(1).strip()
-        if recommendation and not recommendation.startswith(('title', 'content', 'insight')):
-            recommendations.append(recommendation)
-    story_data["recommendations"] = recommendations[:2]  # Take up to 2 recommendations
-    
-    return story_data
-
-def get_enhanced_stories(audience='all', category='all', prompt=None, document_data=None):
-    """
-    Generate enhanced stories with the three core elements of data storytelling:
-    - Context: Why does this matter now?
-    - Narrative: What is happening?
-    - Visual: How does the data look?
-    
-    Each story is designed for specific stakeholder audiences and includes
-    actionable insights based on Gartner's data storytelling methodology.
-    
-    Args:
-        audience: Target audience filter ('board', 'sustainability_team', 'investors', or 'all')
-        category: Category filter ('emissions', 'water', 'energy', 'waste', 'social', or 'all')
-        prompt: Optional custom prompt to guide story generation with specific details
-        document_data: Optional document data to use as source for storytelling
-        
-    Returns:
-        List of enhanced story dictionaries
-    """
-    # Ensure category is not None
-    if category is None:
-        category = 'all'
-        
-    logger.info(f"Generating enhanced stories for audience: {audience}, category: {category}, prompt: {prompt}, document_data: {'provided' if document_data else 'not provided'}")
-    
-    # Try to initialize AI services if not already done
-    if not PINECONE_AVAILABLE or not OPENAI_AVAILABLE:
-        logger.info("AI services not fully initialized, attempting re-initialization")
-        initialize_ai_services()
-    
-    # Try to generate a story using LCM first
-    lcm_story = get_lcm_story(audience, category, prompt, document_data)
-    
-    if lcm_story and lcm_story.get('lcm_generated', False):
-        # LCM story was successfully generated
-        logger.info("Generated LCM story successfully")
-        return [lcm_story]
-        
-    # If LCM failed or is not available, generate stories using the standard approach
-    logger.info("Falling back to standard story generation")
-    
-    # Base stories to enhance
-    base_stories = get_data_driven_stories()
-    enhanced_stories = []
-    
-    # Apply document data if provided
-    if document_data:
-        logger.info(f"Using document data for story generation")
-        
-        # Extract relevant information from document data
-        document_title = document_data.get('title', 'Sustainability Document')
-        document_content = document_data.get('content', '')
-        document_insights = document_data.get('insights', [])
-        document_metrics = document_data.get('metrics', [])
-        
-        # Determine document categories based on content
-        # This would use more sophisticated NLP in production
-        document_categories = []
-        category_keywords = {
-            'emissions': ['carbon', 'emission', 'ghg', 'greenhouse', 'scope 1', 'scope 2', 'scope 3'],
-            'water': ['water', 'effluent', 'discharge', 'consumption'],
-            'energy': ['energy', 'electricity', 'power', 'renewable', 'kwh', 'megawatt'],
-            'waste': ['waste', 'circular', 'recycl', 'landfill', 'compost'],
-            'social': ['diversity', 'inclusion', 'employee', 'community', 'human rights'],
-            'governance': ['governance', 'board', 'compliance', 'ethics', 'transparency']
-        }
-        
-        content_lower = document_content.lower()
-        for cat, keywords in category_keywords.items():
-            if any(keyword in content_lower for keyword in keywords):
-                document_categories.append(cat)
-        
-        # Default category if none detected
-        if not document_categories:
-            document_categories = ['emissions']
-        
-        # Create a title from the document
-        title = f"Story from Document: {document_title}"
-        
-        # Create story content and insights from document
-        content_preview = document_content[:500] + "..." if len(document_content) > 500 else document_content
-        
-        # Create insights from document
-        insights = []
-        if document_insights:
-            insights = document_insights[:3]  # Use top 3 insights
-        else:
-            insights = [
-                f"Document analysis reveals key sustainability information",
-                f"The document contains information about {', '.join(document_categories)}",
-                f"Further analysis can provide deeper insights"
-            ]
-        
-        # Create recommendations based on document categories
-        recommendations = []
-        for cat in document_categories[:3]:  # Use top 3 categories
-            if cat == 'emissions':
-                recommendations.append("Develop carbon reduction strategies based on document insights")
-            elif cat == 'water':
-                recommendations.append("Implement water conservation initiatives based on document findings")
-            elif cat == 'energy':
-                recommendations.append("Enhance energy efficiency programs as suggested in the document")
-            elif cat == 'waste':
-                recommendations.append("Expand circular economy practices mentioned in the document")
-            elif cat == 'social':
-                recommendations.append("Strengthen social impact programs outlined in the document")
-            elif cat == 'governance':
-                recommendations.append("Improve governance mechanisms detailed in the document")
-        
-        # Create a document-based story
-        document_story = {
-            "id": str(uuid.uuid4()),
-            "title": title,
-            "content": f"This sustainability story is derived from document analysis. {content_preview}",
-            "category": document_categories[0],  # Use first category as primary
-            "impact": "positive",
-            "audience": audience if audience != 'all' else "board",
-            "date": datetime.now().strftime("%Y-%m-%d"),
-            "timestamp": datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
-            "document_generated": True,
-            "document_title": document_title,
-            "document_categories": document_categories,
-            "insights": insights,
-            "recommendations": recommendations,
-            "source": "document"
-        }
-        
-        # Use document story as base
-        base_stories = [document_story]
-        
-    # Apply custom prompt if provided
-    elif prompt:
-        # Log that we're using a custom prompt for story generation
-        logger.info(f"Using custom prompt for story generation: {prompt}")
-        
-        # In a production environment, we would use an AI service here
-        # For now, we'll create a more sophisticated custom story based on the prompt
-        
-        # Create a title from the prompt
-        if len(prompt) > 50:
-            title = f"{prompt[:47]}..."
-        else:
-            title = prompt
-            
-        # Clean up title and capitalize
-        title = title.strip()
-        if not title.endswith(('.', '!', '?')):
-            title = f"{title}."
-        title = f"Custom Story: {title}"
-        
-        # Create a more detailed story content based on audience and category
-        audience_focus = {
-            'board': "strategic implications and financial impacts",
-            'investors': "long-term value creation and competitive advantages",
-            'sustainability_team': "implementation details and technical metrics",
-            'employees': "workplace impacts and employee engagement opportunities",
-            'customers': "product benefits and brand reputation",
-            'regulators': "compliance measures and risk mitigation",
-            'all': "organizational impacts across all stakeholders"
-        }
-        
-        category_focus = {
-            'emissions': "carbon emissions and climate action",
-            'water': "water management and conservation",
-            'energy': "energy efficiency and renewable sources",
-            'waste': "waste reduction and circular economy principles",
-            'social': "social impact and community engagement",
-            'governance': "leadership practices and ethical standards",
-            'biodiversity': "ecosystem health and biodiversity protection",
-            'climate': "climate resilience and adaptation strategies",
-            'all': "comprehensive sustainability performance"
-        }
-        
-        # Generate a content template
-        audience_text = audience_focus.get(audience, audience_focus['all'])
-        category_text = category_focus.get(category, category_focus['all'])
-        
-        # Create a custom story with the prompt embedded
-        custom_story = {
-            "id": str(uuid.uuid4()),
-            "title": title,
-            "content": f"This sustainability story focuses on {category_text} with emphasis on {audience_text}. {prompt}",
-            "category": category if category != 'all' else "emissions",
-            "impact": "positive",
-            "audience": audience if audience != 'all' else "board",
-            "date": datetime.now().strftime("%Y-%m-%d"),
-            "timestamp": datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
-            "custom_prompt_generated": True,
-            "prompt": prompt,
-            "insights": [
-                f"Analysis of {category_text} reveals opportunities for improvement.",
-                f"Stakeholder analysis shows {audience_text} is a key consideration.",
-                f"Custom insights based on prompt: {prompt[:50]}..."
-            ],
-            "recommendations": [
-                f"Develop targeted {category_text} strategies.",
-                f"Communicate results effectively to {audience_text}.",
-                f"Implement a measurement system to track progress."
-            ]
-        }
-        
-        # Use the custom story as our base if a prompt is provided
-        base_stories = [custom_story]
-    
-    # Define audience-specific elements
-    audience_elements = {
-        "board": {
-            "focus": "Strategic impact and risk",
-            "metrics_highlight": "Financial implications",
-            "action_orientation": "Executive decisions",
-            "time_horizon": "Quarterly and annual",
-            "depth": "High-level overview"
-        },
-        "sustainability_team": {
-            "focus": "Implementation details and root causes",
-            "metrics_highlight": "Technical sustainability KPIs",
-            "action_orientation": "Tactical implementation",
-            "time_horizon": "Weekly and monthly",
-            "depth": "Detailed analysis"
-        },
-        "investors": {
-            "focus": "Competitive positioning and compliance",
-            "metrics_highlight": "ROI and risk mitigation",
-            "action_orientation": "Investment rationale",
-            "time_horizon": "Annual and multi-year",
-            "depth": "Benchmark comparison"
-        }
-    }
-    
-    for story in base_stories:
-        # Filter by category if specified
-        if category != 'all' and story['category'] != category:
-            continue
-            
-        # Create enhanced version of each story
-        enhanced_story = story.copy()
-        
-        # If prompt is provided and this isn't already a custom prompt story, enhance it
-        if prompt and not story.get('custom_prompt_generated', False):
-            # Create a more sophisticated prompt enhancement
-            story_content = story.get('content', '')
-            
-            # Generate a contextual connector between the story and the prompt
-            connectors = [
-                "This directly relates to",
-                "This connects with",
-                "Additionally, consider that",
-                "This insight is complemented by",
-                "This finding is especially relevant when considering",
-                "To put this in perspective"
-            ]
-            
-            connector = random.choice(connectors)
-            enhanced_content = f"{story_content} {connector} {prompt}"
-            
-            enhanced_story['content'] = enhanced_content
-            enhanced_story['prompt'] = prompt
-            enhanced_story['prompt_enhanced'] = True
-            
-            # Add insights from the prompt
-            if 'insights' not in enhanced_story:
-                enhanced_story['insights'] = []
-                
-            enhanced_story['insights'].append(f"Custom insight: {prompt[:50]}...")
-            
-            # Add a recommendation based on the prompt
-            if 'recommendations' not in enhanced_story:
-                enhanced_story['recommendations'] = []
-                
-            enhanced_story['recommendations'].append(f"Consider {prompt[:50]}... in your sustainability strategy.")
-        
-        # Add the three core elements of data storytelling
-        enhanced_story["storytelling_elements"] = {
-            "context": generate_context_element(story),
-            "narrative": generate_narrative_element(story),
-            "visual": generate_visual_element(story)
-        }
-        
-        # Add stakeholder-specific versions
-        enhanced_story["stakeholder_versions"] = {}
-        
-        for audience_key, audience_attributes in audience_elements.items():
-            enhanced_story["stakeholder_versions"][audience_key] = {
-                "title": adapt_title_for_audience(story["title"], audience_key),
-                "summary": generate_audience_summary(story, audience_key),
-                "key_points": generate_audience_key_points(story, audience_key, audience_attributes),
-                "recommendations": generate_audience_recommendations(story, audience_key),
-                "metrics_focus": audience_attributes["metrics_highlight"]
-            }
-        
-        # Add enhanced metadata
-        enhanced_story["augmented_analytics"] = True
-        enhanced_story["gartner_inspired"] = True
-        enhanced_story["date_generated"] = datetime.now().strftime("%Y-%m-%d")
-        enhanced_story["story_type"] = "interactive"
-        
-        # Add to results
-        if audience == 'all' or audience in enhanced_story["stakeholder_versions"]:
-            enhanced_stories.append(enhanced_story)
-    
-    logger.info(f"Generated {len(enhanced_stories)} enhanced stories")
-    
-    # If no stories were generated, create a default one to ensure there's always content
-    if not enhanced_stories:
-        logger.info(f"No matching stories found, generating a default story")
-        
-        # Handle None values with fallbacks
-        category_display = 'Overview' if not category or category == 'all' else category.capitalize()
-        audience_display = 'All Stakeholders' if not audience or audience == 'all' else audience.capitalize()
-        category_text = 'all sustainability topics' if not category or category == 'all' else category
-        audience_text = 'all audiences' if not audience or audience == 'all' else audience
-        
-        default_story = {
-            "id": str(uuid.uuid4()),
-            "title": f"Sustainability Report: {category_display} for {audience_display}",
-            "content": f"This sustainability analysis focuses on {category_text} with emphasis on {audience_text}. " + 
-                      (prompt if prompt else "Our organization continues to make progress toward sustainability goals through dedicated initiatives and stakeholder engagement."),
-            "category": "general" if not category or category == 'all' else category,
-            "impact": "positive",
-            "audience": "general" if not audience or audience == 'all' else audience,
-            "date": datetime.now().strftime("%Y-%m-%d"),
-            "timestamp": datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
-            "custom_prompt_generated": True if prompt else False,
-            "prompt": prompt if prompt else None,
-            "recommendations": [
-                f"Review {category if category != 'all' else 'sustainability'} metrics regularly",
-                f"Engage with {audience if audience != 'all' else 'all stakeholders'} on progress",
-                "Implement a data-driven sustainability strategy"
-            ]
-        }
-        
-        enhanced_stories = [default_story]
-        logger.info(f"Generated default story with ID: {default_story['id']}")
-    
-    return enhanced_stories
-
-def generate_chart_data(story_category="emissions", time_period="quarterly", chart_type=None):
-    """
-    Generate chart data for a sustainability story visualization
-    
-    Args:
-        story_category: Category of sustainability story (emissions, water, energy, etc.)
-        time_period: Time period for data (quarterly, monthly, yearly)
-        chart_type: Optional specific chart type or None for auto-selection
-        
-    Returns:
-        Dictionary with chart data and metadata
-    """
-    logger.info(f"Generating chart data for {story_category}, period: {time_period}, chart type: {chart_type}")
-    
-    # Generate time periods based on specified frequency
-    if time_period == "quarterly":
-        periods = ["Q1", "Q2", "Q3", "Q4"]
-        year = datetime.now().year
-        labels = [f"{year-1} {p}" for p in periods] + [f"{year} {p}" for p in periods[:2]]
-    elif time_period == "monthly":
-        periods = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"]
-        year = datetime.now().year
-        labels = [f"{p} {year-1}" for p in periods[-6:]] + [f"{p} {year}" for p in periods[:6]]
-    else:  # yearly
-        year = datetime.now().year
-        labels = [str(y) for y in range(year-5, year+1)]
-    
-    # Create appropriate data based on category
-    if story_category == "emissions":
-        # Generate realistic-looking emissions data with a reduction trend
-        values = [100, 95, 92, 88, 84, 79, 75, 72]
-        target_values = [100, 90, 80, 70, 60, 50, 40, 30]
-        industry_avg = [100, 98, 96, 94, 92, 90, 88, 86]
-        
-        # Auto-select an appropriate chart type if not specified
-        if not chart_type:
-            chart_type = "line"
-            
-        return {
-            "chart_type": chart_type,
-            "title": "Carbon Emissions Reduction Progress",
-            "labels": labels[-8:],
-            "datasets": [
-                {
-                    "label": "Actual Emissions",
-                    "data": values[-len(labels):],
-                    "borderColor": "#36A2EB",
-                    "backgroundColor": "rgba(54, 162, 235, 0.2)",
-                    "tension": 0.3
-                },
-                {
-                    "label": "Reduction Target",
-                    "data": target_values[-len(labels):],
-                    "borderColor": "#FF6384",
-                    "backgroundColor": "rgba(255, 99, 132, 0.1)",
-                    "borderDash": [5, 5],
-                    "tension": 0.1
-                },
-                {
-                    "label": "Industry Average",
-                    "data": industry_avg[-len(labels):],
-                    "borderColor": "#4BC0C0",
-                    "backgroundColor": "rgba(75, 192, 192, 0.1)",
-                    "borderDash": [2, 2],
-                    "tension": 0.1
-                }
-            ],
-            "axes": {
-                "y": {
-                    "title": "CO2e (tons, indexed to base year)",
-                    "min": 0
-                },
-                "x": {
-                    "title": "Time Period"
-                }
-            }
-        }
-    elif story_category == "water":
-        # Water usage efficiency data with improvement trend
-        values = [120, 118, 115, 110, 102, 95, 90, 85]
-        target_values = [120, 110, 100, 90, 80, 70, 60, 50]
-        
-        # Auto-select an appropriate chart type if not specified
-        if not chart_type:
-            chart_type = "bar"
-            
-        return {
-            "chart_type": chart_type,
-            "title": "Water Usage Efficiency",
-            "labels": labels[-8:],
-            "datasets": [
-                {
-                    "label": "Actual Usage",
-                    "data": values[-len(labels):],
-                    "backgroundColor": "rgba(54, 162, 235, 0.6)",
-                    "borderColor": "#36A2EB",
-                    "borderWidth": 1
-                },
-                {
-                    "label": "Target Usage",
-                    "data": target_values[-len(labels):],
-                    "backgroundColor": "rgba(255, 99, 132, 0.2)",
-                    "borderColor": "#FF6384",
-                    "borderWidth": 1,
-                    "type": "line"
-                }
-            ],
-            "axes": {
-                "y": {
-                    "title": "Water usage (kL per unit production)",
-                    "min": 0
-                },
-                "x": {
-                    "title": "Time Period"
-                }
-            }
-        }
-    else:
-        # Generic sustainability metric with improvement trend
-        values = [50, 55, 60, 65, 70, 75, 77, 80]
-        
-        # Auto-select an appropriate chart type if not specified
-        if not chart_type:
-            chart_type = "line"
-            
-        return {
-            "chart_type": chart_type,
-            "title": f"{story_category.capitalize()} Performance",
-            "labels": labels[-8:],
-            "datasets": [
-                {
-                    "label": f"{story_category.capitalize()} Score",
-                    "data": values[-len(labels):],
-                    "borderColor": "#36A2EB",
-                    "backgroundColor": "rgba(54, 162, 235, 0.2)",
-                    "tension": 0.4
-                }
-            ],
-            "axes": {
-                "y": {
-                    "title": "Performance Score",
-                    "min": 0,
-                    "max": 100
-                },
-                "x": {
-                    "title": "Time Period"
-                }
-            }
-        }
-
-def generate_context_element(story):
-    """Generate the context element for a story (why it matters now)"""
-    context_templates = {
+def generate_story_title(category: str, audience: str) -> str:
+    """Generate a title for a story based on category and audience"""
+    # Base title templates
+    title_templates = {
         "emissions": [
-            "Due to new EU CSRD regulations requiring detailed carbon reporting",
-            "As global climate targets tighten following COP26 agreements",
-            "With carbon pricing mechanisms being implemented in your market"
+            "Carbon Progress Report: Advancing Toward Net Zero",
+            "Climate Action Journey: Our Emissions Reduction Story",
+            "Decarbonization in Action: Our Climate Strategy"
         ],
         "water": [
-            "As water scarcity becomes a material risk in key operation regions",
-            "With water-related ESG metrics now influencing investor decisions",
-            "As water usage efficiency becomes a competitive advantage in your industry"
-        ],
-        "energy": [
-            "Amid rising energy costs and volatility in the energy market",
-            "As renewable energy transitions become central to climate strategies",
-            "With energy efficiency directly impacting operational costs"
+            "Water Stewardship: Preserving Our Most Precious Resource",
+            "Blue Future: Our Water Conservation Strategy",
+            "Watershed Moments: Progress in Water Management"
         ],
         "waste": [
-            "As circular economy principles become regulatory requirements",
-            "With waste management costs increasing due to stricter disposal regulations",
-            "As zero-waste initiatives gain traction among industry leaders"
+            "Circular Economy in Practice: Our Waste Reduction Story",
+            "Zero Waste Journey: Transforming Our Material Footprint",
+            "Waste Not, Want Not: Our Circular Economy Achievements"
+        ],
+        "biodiversity": [
+            "Nature Positive: Our Biodiversity Protection Strategy",
+            "Restoring Balance: Our Biodiversity Commitments",
+            "Nature's Guardians: Our Biodiversity Impact Story"
         ],
         "social": [
-            "As diversity reporting becomes mandatory under new regulations",
-            "With talent attraction increasingly linked to social performance metrics",
-            "Amid growing scrutiny of social aspects of ESG from investors"
-        ]
-    }
-    
-    templates = context_templates.get(story["category"], ["As sustainability becomes increasingly important"])
-    
-    return {
-        "headline": "Why This Matters Now",
-        "content": random.choice(templates),
-        "significance": "high" if story["impact"] == "positive" else "medium"
-    }
-
-def generate_narrative_element(story):
-    """Generate the narrative element for a story (what is happening)"""
-    impact_descriptors = {
-        "positive": ["improvement", "success", "achievement", "advancement", "progress"],
-        "negative": ["challenge", "issue", "decline", "problem", "concern"],
-        "neutral": ["change", "shift", "development", "transition", "adjustment"]
-    }
-    
-    descriptor = random.choice(impact_descriptors.get(story["impact"], ["change"]))
-    
-    narrative = {
-        "headline": f"The {story['category'].title()} {descriptor.title()}",
-        "content": story["content"],
-        "data_point": {
-            "value": extract_percentage(story["content"]) if extract_percentage(story["content"]) else "15%",
-            "trend": story["impact"],
-            "comparison": "year-over-year"
-        }
-    }
-    
-    return narrative
-
-def generate_visual_element(story):
-    """Generate the visual element description for a story (how the data looks)"""
-    chart_types = {
-        "emissions": ["area chart", "line chart", "bar chart"],
-        "water": ["bar chart", "area chart", "waterfall chart"],
-        "energy": ["line chart", "heat map", "stacked bar chart"],
-        "waste": ["pie chart", "stacked area chart", "tree map"],
-        "social": ["radar chart", "doughnut chart", "column chart"]
-    }
-    
-    chart_type = random.choice(chart_types.get(story["category"], ["bar chart"]))
-    
-    return {
-        "chart_type": chart_type,
-        "title": f"{story['category'].title()} {story['impact'].title()} Visualization",
-        "data_series": [
-            {
-                "name": "Current Period",
-                "color": "#4CAF50" if story["impact"] == "positive" else "#F44336"
-            },
-            {
-                "name": "Previous Period",
-                "color": "#9E9E9E"
-            },
-            {
-                "name": "Industry Benchmark",
-                "color": "#2196F3"
-            }
+            "People First: Our Social Impact Journey",
+            "Building Community: Our Social Responsibility Story",
+            "Human Capital: Investing in Our Greatest Asset"
         ],
-        "annotations": [
-            {
-                "type": "threshold",
-                "value": extract_percentage(story["content"]) if extract_percentage(story["content"]) else "15%",
-                "label": "Target"
+        "governance": [
+            "Governance Excellence: Our ESG Leadership Approach",
+            "Responsible Leadership: Our Governance Framework",
+            "Transparency in Action: Our Governance Structure"
+        ]
+    }
+    
+    # Audience-specific modifiers
+    audience_modifiers = {
+        "executives": "Strategic Overview",
+        "investors": "Value Creation Assessment",
+        "employees": "Our Collective Impact",
+        "regulators": "Compliance & Performance",
+        "customers": "Our Commitment to You",
+        "general-public": "Making a Difference"
+    }
+    
+    # Use category templates, or default if category not found
+    if category in title_templates:
+        title = random.choice(title_templates[category])
+    else:
+        title = random.choice([
+            "Sustainability in Action: Our ESG Journey",
+            "Building a Sustainable Future: Our Progress",
+            "Sustainability Milestones: Our Path Forward"
+        ])
+    
+    # Add audience modifier if applicable
+    if audience in audience_modifiers and random.random() > 0.5:
+        title = f"{title}: {audience_modifiers[audience]}"
+    
+    return title
+
+def generate_story_tags(category: str, audience: str) -> List[str]:
+    """Generate tags for a story based on category and audience"""
+    tags = [category]
+    
+    # Add audience tag
+    if audience != 'all':
+        tags.append(audience)
+    
+    # Add related tags based on category
+    category_tags = {
+        "emissions": ["climate", "carbon", "energy"],
+        "water": ["conservation", "water-risk", "resources"],
+        "waste": ["circular", "recycling", "materials"],
+        "biodiversity": ["nature", "conservation", "habitat"],
+        "social": ["diversity", "community", "equity"],
+        "governance": ["ethics", "transparency", "leadership"]
+    }
+    
+    # Add 1-2 related tags from the category
+    if category in category_tags:
+        related_tags = random.sample(category_tags[category], min(2, len(category_tags[category])))
+        tags.extend(related_tags)
+    
+    # Add a general sustainability tag
+    general_tags = ["sustainability", "ESG", "impact", "strategy", "performance"]
+    tags.append(random.choice(general_tags))
+    
+    return tags
+
+def get_story_metrics(category: str) -> List[Dict[str, Any]]:
+    """Generate example metrics for a story based on category"""
+    metrics = []
+    
+    if category == 'emissions':
+        metrics = [
+            {"name": "Scope 1 Emissions", "value": random.randint(1000, 5000), "unit": "tCO2e", "change": random.uniform(-15, -2)},
+            {"name": "Scope 2 Emissions", "value": random.randint(2000, 8000), "unit": "tCO2e", "change": random.uniform(-12, -1)},
+            {"name": "Renewable Energy", "value": random.randint(20, 80), "unit": "%", "change": random.uniform(5, 15)}
+        ]
+    elif category == 'water':
+        metrics = [
+            {"name": "Water Withdrawal", "value": round(random.uniform(500, 2000), 1), "unit": "ML", "change": random.uniform(-10, -1)},
+            {"name": "Water Recycled", "value": random.randint(15, 50), "unit": "%", "change": random.uniform(2, 8)},
+            {"name": "Water Intensity", "value": round(random.uniform(0.5, 5), 2), "unit": "m³/unit", "change": random.uniform(-12, -3)}
+        ]
+    elif category == 'waste':
+        metrics = [
+            {"name": "Waste Generated", "value": random.randint(500, 3000), "unit": "tonnes", "change": random.uniform(-12, -3)},
+            {"name": "Recycling Rate", "value": random.randint(30, 75), "unit": "%", "change": random.uniform(3, 12)},
+            {"name": "Landfill Diversion", "value": random.randint(50, 90), "unit": "%", "change": random.uniform(4, 10)}
+        ]
+    elif category == 'biodiversity':
+        metrics = [
+            {"name": "Land Restored", "value": random.randint(5, 100), "unit": "hectares", "change": random.uniform(10, 30)},
+            {"name": "Species Protected", "value": random.randint(3, 25), "unit": "count", "change": random.uniform(1, 5)},
+            {"name": "Natural Capital Value", "value": random.randint(1, 10), "unit": "$ million", "change": random.uniform(3, 15)}
+        ]
+    elif category == 'social':
+        metrics = [
+            {"name": "Gender Diversity", "value": random.randint(35, 50), "unit": "% women", "change": random.uniform(2, 8)},
+            {"name": "Community Investment", "value": round(random.uniform(0.2, 5), 1), "unit": "$ million", "change": random.uniform(5, 20)},
+            {"name": "Employee Satisfaction", "value": random.randint(70, 95), "unit": "%", "change": random.uniform(1, 5)}
+        ]
+    elif category == 'governance':
+        metrics = [
+            {"name": "Board Diversity", "value": random.randint(30, 50), "unit": "%", "change": random.uniform(5, 15)},
+            {"name": "ESG Training", "value": random.randint(80, 98), "unit": "% completed", "change": random.uniform(2, 10)},
+            {"name": "Supplier Code Compliance", "value": random.randint(85, 99), "unit": "%", "change": random.uniform(1, 8)}
+        ]
+    else:
+        # Default metrics for any other category
+        metrics = [
+            {"name": "Sustainability Score", "value": random.randint(70, 95), "unit": "/100", "change": random.uniform(3, 10)},
+            {"name": "ESG Rating", "value": random.choice(["A", "AA", "AAA"]), "unit": "", "change": 1},
+            {"name": "Sustainability ROI", "value": random.randint(10, 25), "unit": "%", "change": random.uniform(1, 8)}
+        ]
+    
+    return metrics
+
+def generate_chart_data(category: str, period: str = 'quarterly', chart_type: str = 'line') -> Dict[str, Any]:
+    """
+    Generate chart data for storytelling visualizations
+    
+    Args:
+        category: Category of data (emissions, water, social, etc.)
+        period: Time period (quarterly, annual, monthly)
+        chart_type: Type of chart (line, bar, pie, etc.)
+        
+    Returns:
+        Chart data configuration
+    """
+    # Set up time periods based on specified period
+    if period == 'quarterly':
+        labels = ['Q1 2024', 'Q2 2024', 'Q3 2024', 'Q4 2024']
+    elif period == 'annual':
+        labels = ['2020', '2021', '2022', '2023', '2024']
+    elif period == 'monthly':
+        # Get last 6 months
+        today = datetime.now()
+        labels = []
+        for i in range(5, -1, -1):
+            month = today.month - i
+            year = today.year
+            if month <= 0:
+                month += 12
+                year -= 1
+            month_name = datetime(year, month, 1).strftime('%b %Y')
+            labels.append(month_name)
+    else:
+        labels = ['Period 1', 'Period 2', 'Period 3', 'Period 4']
+    
+    # Generate chart data based on category and chart type
+    if chart_type == 'line':
+        # Generate line chart data
+        if category == 'emissions':
+            return {
+                'type': 'line',
+                'data': {
+                    'labels': labels,
+                    'datasets': [
+                        {
+                            'label': 'Scope 1 Emissions (tCO2e)',
+                            'data': generate_trend_data(5000, 4000, len(labels), trend='decreasing'),
+                            'borderColor': 'rgb(255, 99, 132)',
+                            'backgroundColor': 'rgba(255, 99, 132, 0.2)',
+                            'tension': 0.1
+                        },
+                        {
+                            'label': 'Scope 2 Emissions (tCO2e)',
+                            'data': generate_trend_data(8000, 6000, len(labels), trend='decreasing'),
+                            'borderColor': 'rgb(54, 162, 235)',
+                            'backgroundColor': 'rgba(54, 162, 235, 0.2)',
+                            'tension': 0.1
+                        }
+                    ]
+                }
             }
-        ]
-    }
-
-def adapt_title_for_audience(title, audience):
-    """Adapt the story title for a specific audience"""
-    if audience == "board":
-        return f"Executive Brief: {title}"
-    elif audience == "sustainability_team":
-        return f"Technical Analysis: {title}"
-    elif audience == "investors":
-        return f"Investor Insight: {title}"
+        elif category == 'water':
+            return {
+                'type': 'line',
+                'data': {
+                    'labels': labels,
+                    'datasets': [
+                        {
+                            'label': 'Water Withdrawal (ML)',
+                            'data': generate_trend_data(2000, 1800, len(labels), trend='decreasing'),
+                            'borderColor': 'rgb(54, 162, 235)',
+                            'backgroundColor': 'rgba(54, 162, 235, 0.2)',
+                            'tension': 0.1
+                        },
+                        {
+                            'label': 'Water Recycled (%)',
+                            'data': generate_trend_data(20, 40, len(labels), trend='increasing'),
+                            'borderColor': 'rgb(75, 192, 192)',
+                            'backgroundColor': 'rgba(75, 192, 192, 0.2)',
+                            'tension': 0.1
+                        }
+                    ]
+                }
+            }
+        else:
+            # Default chart
+            return {
+                'type': 'line',
+                'data': {
+                    'labels': labels,
+                    'datasets': [
+                        {
+                            'label': 'Sustainability Metric',
+                            'data': generate_trend_data(50, 80, len(labels), trend='increasing'),
+                            'borderColor': 'rgb(75, 192, 192)',
+                            'backgroundColor': 'rgba(75, 192, 192, 0.2)',
+                            'tension': 0.1
+                        }
+                    ]
+                }
+            }
+    elif chart_type == 'bar':
+        # Generate bar chart data
+        if category == 'waste':
+            return {
+                'type': 'bar',
+                'data': {
+                    'labels': labels,
+                    'datasets': [
+                        {
+                            'label': 'Waste Generated (tonnes)',
+                            'data': generate_trend_data(3000, 2400, len(labels), trend='decreasing'),
+                            'backgroundColor': 'rgba(255, 99, 132, 0.5)'
+                        },
+                        {
+                            'label': 'Recycled (%)',
+                            'data': generate_trend_data(40, 70, len(labels), trend='increasing'),
+                            'backgroundColor': 'rgba(75, 192, 192, 0.5)'
+                        }
+                    ]
+                }
+            }
+        elif category == 'social':
+            return {
+                'type': 'bar',
+                'data': {
+                    'labels': ['Board', 'Senior Management', 'Middle Management', 'Staff'],
+                    'datasets': [
+                        {
+                            'label': 'Gender Diversity (% Women)',
+                            'data': [35, 38, 45, 48],
+                            'backgroundColor': 'rgba(153, 102, 255, 0.5)'
+                        },
+                        {
+                            'label': 'Target',
+                            'data': [50, 50, 50, 50],
+                            'type': 'line',
+                            'borderColor': 'rgb(255, 99, 132)',
+                            'borderWidth': 2,
+                            'fill': False
+                        }
+                    ]
+                }
+            }
+        else:
+            # Default bar chart
+            return {
+                'type': 'bar',
+                'data': {
+                    'labels': labels,
+                    'datasets': [
+                        {
+                            'label': 'Sustainability Metric',
+                            'data': generate_trend_data(30, 80, len(labels), trend='increasing'),
+                            'backgroundColor': [
+                                'rgba(255, 99, 132, 0.5)',
+                                'rgba(54, 162, 235, 0.5)',
+                                'rgba(255, 206, 86, 0.5)',
+                                'rgba(75, 192, 192, 0.5)',
+                                'rgba(153, 102, 255, 0.5)'
+                            ]
+                        }
+                    ]
+                }
+            }
+    elif chart_type == 'pie':
+        # Generate pie chart data
+        if category == 'emissions':
+            return {
+                'type': 'pie',
+                'data': {
+                    'labels': ['Scope 1', 'Scope 2', 'Scope 3'],
+                    'datasets': [
+                        {
+                            'data': [15, 25, 60],
+                            'backgroundColor': [
+                                'rgba(255, 99, 132, 0.5)',
+                                'rgba(54, 162, 235, 0.5)',
+                                'rgba(255, 206, 86, 0.5)'
+                            ]
+                        }
+                    ]
+                }
+            }
+        elif category == 'governance':
+            return {
+                'type': 'pie',
+                'data': {
+                    'labels': ['Environmental', 'Social', 'Governance', 'Economic'],
+                    'datasets': [
+                        {
+                            'data': [30, 25, 20, 25],
+                            'backgroundColor': [
+                                'rgba(75, 192, 192, 0.5)',
+                                'rgba(153, 102, 255, 0.5)',
+                                'rgba(255, 159, 64, 0.5)',
+                                'rgba(201, 203, 207, 0.5)'
+                            ]
+                        }
+                    ]
+                }
+            }
+        else:
+            # Default pie chart
+            return {
+                'type': 'pie',
+                'data': {
+                    'labels': ['Category 1', 'Category 2', 'Category 3', 'Category 4'],
+                    'datasets': [
+                        {
+                            'data': [25, 30, 15, 30],
+                            'backgroundColor': [
+                                'rgba(255, 99, 132, 0.5)',
+                                'rgba(54, 162, 235, 0.5)',
+                                'rgba(255, 206, 86, 0.5)',
+                                'rgba(75, 192, 192, 0.5)'
+                            ]
+                        }
+                    ]
+                }
+            }
     else:
-        return title
-
-def generate_audience_summary(story, audience):
-    """Generate an audience-specific summary of the story"""
-    if audience == "board":
-        return f"Strategic overview of {story['category']} performance with financial and risk implications highlighted."
-    elif audience == "sustainability_team":
-        return f"Detailed analysis of {story['category']} metrics with root causes and technical implementation guidance."
-    elif audience == "investors":
-        return f"Investment perspective on {story['category']} performance with competitive benchmarking and compliance status."
-    else:
-        return story["content"]
-
-def generate_audience_key_points(story, audience, attributes):
-    """Generate audience-specific key points for the story"""
-    key_points = []
-    
-    if audience == "board":
-        key_points = [
-            f"Strategic Impact: {story['category'].title()} performance directly affects our market position",
-            f"Financial Implications: {extract_percentage(story['content'])} change in {story['category']} metrics",
-            f"Risk Profile: {story['impact'].title()} impact on overall sustainability risk exposure"
-        ]
-    elif audience == "sustainability_team":
-        key_points = [
-            f"Technical Detail: {story['content']}",
-            "Implementation Focus: Key areas for operational adjustment",
-            f"Measurement: Detailed KPIs for tracking {story['category']} performance"
-        ]
-    elif audience == "investors":
-        key_points = [
-            f"Competitive Position: Our {story['category']} performance versus industry peers",
-            f"ROI Metrics: Financial return on {story['category']} initiatives",
-            "Compliance Status: Regulatory alignment and future-proofing"
-        ]
-    
-    return key_points
-
-def generate_audience_recommendations(story, audience):
-    """Generate audience-specific recommendations for the story"""
-    recommendations = []
-    
-    if audience == "board":
-        if story["impact"] == "positive":
-            recommendations = [
-                "Highlight this success in next investor communications",
-                f"Consider expanding {story['category']} initiatives to other areas",
-                "Review resource allocation to maintain momentum"
-            ]
-        else:
-            recommendations = [
-                f"Allocate additional resources to address {story['category']} challenges",
-                "Review risk mitigation strategies at next board meeting",
-                "Consider external expertise to guide improvement"
-            ]
-    elif audience == "sustainability_team":
-        if story["impact"] == "positive":
-            recommendations = [
-                "Document successful approaches for knowledge sharing",
-                "Identify opportunities to further optimize performance",
-                "Develop case study for internal learning"
-            ]
-        else:
-            recommendations = [
-                "Conduct root cause analysis with technical team",
-                "Develop 30-60-90 day improvement plan",
-                "Implement weekly monitoring of key metrics"
-            ]
-    elif audience == "investors":
-        if story["impact"] == "positive":
-            recommendations = [
-                "Feature this success in next ESG disclosure",
-                "Quantify financial benefits for investor presentations",
-                "Benchmark against competition to highlight leadership"
-            ]
-        else:
-            recommendations = [
-                "Prepare transparent communication strategy for investors",
-                "Develop clear remediation timeline with milestones",
-                "Quantify resource requirements and expected outcomes"
-            ]
-    
-    return recommendations
-
-def extract_percentage(text):
-    """Extract percentage from text if present"""
-    import re
-    match = re.search(r'(\d+)%', text)
-    if match:
-        return match.group(0)
-    return None
-
-def generate_data_storytelling_elements(trend_data: List[Dict[str, Any]], 
-                                       framework_analysis: Dict[str, Any]) -> Dict[str, Any]:
-    """
-    Generate data-driven storytelling elements based on trend analysis and framework insights.
-    
-    Args:
-        trend_data: List of trend data dictionaries
-        framework_analysis: Results from applying a consulting framework
-        
-    Returns:
-        Dictionary with storytelling elements for strategic positioning
-    """
-    # Core story elements
-    storytelling_elements = {
-        "narrative": {
-            "headline": "Sustainability Performance Narrative",
-            "summary": "Key insights from sustainability performance data",
-            "story_arcs": []
-        },
-        "context": {
-            "market_relevance": "How this relates to market conditions",
-            "regulatory_implications": "Regulatory context and requirements",
-            "stakeholder_impact": "Impact on key stakeholders"
-        },
-        "visual": {
-            "recommended_charts": [],
-            "data_highlights": [],
-            "annotation_suggestions": []
-        }
-    }
-    
-    # Extract key trends for narrative
-    if trend_data:
-        # Find positive trends
-        positive_trends = [t for t in trend_data if t.get("trend_direction") == "positive"]
-        # Find negative trends
-        negative_trends = [t for t in trend_data if t.get("trend_direction") == "negative"]
-        
-        # Create story arcs
-        if positive_trends:
-            storytelling_elements["narrative"]["story_arcs"].append({
-                "arc_type": "success",
-                "headline": "Sustainability Success Story",
-                "metrics": [t["name"] for t in positive_trends[:2]],
-                "narrative": f"Success in {', '.join([t['category'] for t in positive_trends[:2]])} demonstrates sustainability progress."
-            })
-            
-        if negative_trends:
-            storytelling_elements["narrative"]["story_arcs"].append({
-                "arc_type": "challenge",
-                "headline": "Sustainability Challenge Identified",
-                "metrics": [t["name"] for t in negative_trends[:2]],
-                "narrative": f"Challenges in {', '.join([t['category'] for t in negative_trends[:2]])} require attention."
-            })
-    
-    # Add framework insights to context
-    if framework_analysis:
-        for key, value in framework_analysis.items():
-            if key in storytelling_elements["context"]:
-                storytelling_elements["context"][key] = value
-    
-    # Visual recommendations
-    storytelling_elements["visual"]["recommended_charts"] = [
-        {
-            "chart_type": "line",
-            "purpose": "Trend visualization",
-            "metrics": ["Carbon Emissions", "Energy Usage"]
-        },
-        {
-            "chart_type": "bar",
-            "purpose": "Comparative performance",
-            "metrics": ["Water Usage", "Waste Generation"]
-        },
-        {
-            "chart_type": "radar",
-            "purpose": "Balanced scorecard approach",
-            "metrics": ["ESG Score", "Social Impact", "Governance Rating"]
-        }
-    ]
-    
-    return storytelling_elements
-
-def generate_story_from_metrics(metrics_data: List[Dict[str, Any]], 
-                               audience: str = "general") -> Dict[str, Any]:
-    """
-    Generate a complete sustainability story from metrics data.
-    
-    Args:
-        metrics_data: List of metrics data dictionaries
-        audience: Target audience ('board', 'sustainability_team', 'investors', or 'general')
-        
-    Returns:
-        Complete story dictionary with all elements
-    """
-    if not metrics_data:
+        # Default radar chart for unknown chart types
         return {
-            "error": "No metrics data provided for story generation"
-        }
-    
-    # Categorize metrics
-    metrics_by_category = {}
-    for metric in metrics_data:
-        category = metric.get("category", "other")
-        if category not in metrics_by_category:
-            metrics_by_category[category] = []
-        metrics_by_category[category].append(metric)
-    
-    # Find most significant metrics (largest values or changes)
-    significant_metrics = []
-    for category, metrics in metrics_by_category.items():
-        if metrics:
-            # Sort by value (descending)
-            sorted_metrics = sorted(metrics, key=lambda x: x.get("value", 0), reverse=True)
-            significant_metrics.append(sorted_metrics[0])
-    
-    if not significant_metrics:
-        return {
-            "error": "Could not identify significant metrics for storytelling"
-        }
-    
-    # Select primary metric for story focus
-    primary_metric = significant_metrics[0]
-    
-    # Create basic story
-    story = {
-        "id": random.randint(1000, 9999),
-        "title": f"{primary_metric.get('name', 'Sustainability')} Performance Analysis",
-        "content": f"Analysis of {primary_metric.get('name', 'sustainability')} metrics shows a value of {primary_metric.get('value', 0)} {primary_metric.get('unit', '')}.",
-        "category": primary_metric.get("category", "sustainability"),
-        "date": datetime.now().strftime("%Y-%m-%d"),
-        "author": "SustainaTrend AI",
-        "impact": determine_impact(primary_metric)
-    }
-    
-    # Enhance with storytelling elements
-    enhanced_story = story.copy()
-    enhanced_story["storytelling_elements"] = {
-        "context": generate_context_from_metrics(metrics_data),
-        "narrative": generate_narrative_from_metrics(primary_metric, metrics_data),
-        "visual": generate_visual_from_metrics(primary_metric, metrics_data)
-    }
-    
-    # Add audience-specific version
-    audience_elements = {
-        "board": {
-            "focus": "Strategic impact and risk",
-            "metrics_highlight": "Financial implications",
-            "action_orientation": "Executive decisions",
-            "time_horizon": "Quarterly and annual",
-            "depth": "High-level overview"
-        },
-        "sustainability_team": {
-            "focus": "Implementation details and root causes",
-            "metrics_highlight": "Technical sustainability KPIs",
-            "action_orientation": "Tactical implementation",
-            "time_horizon": "Weekly and monthly",
-            "depth": "Detailed analysis"
-        },
-        "investors": {
-            "focus": "Competitive positioning and compliance",
-            "metrics_highlight": "ROI and risk mitigation",
-            "action_orientation": "Investment rationale",
-            "time_horizon": "Annual and multi-year",
-            "depth": "Benchmark comparison"
-        }
-    }
-    
-    attributes = audience_elements.get(audience, audience_elements["general"] if "general" in audience_elements else {})
-    
-    enhanced_story["stakeholder_versions"] = {
-        audience: {
-            "title": adapt_title_for_audience(story["title"], audience),
-            "summary": generate_audience_summary_from_metrics(primary_metric, audience),
-            "key_points": generate_audience_key_points_from_metrics(primary_metric, metrics_data, audience, attributes),
-            "recommendations": generate_audience_recommendations_from_metrics(primary_metric, metrics_data, audience),
-            "metrics_focus": attributes.get("metrics_highlight", "Key sustainability metrics")
-        }
-    }
-    
-    # Add enhanced metadata
-    enhanced_story["augmented_analytics"] = True
-    enhanced_story["gartner_inspired"] = True
-    enhanced_story["date_generated"] = datetime.now().strftime("%Y-%m-%d")
-    enhanced_story["story_type"] = "interactive"
-    
-    return enhanced_story
-
-def determine_impact(metric):
-    """Determine if a metric represents positive or negative impact"""
-    positive_indicators = ['reduction', 'decrease', 'improved', 'increased efficiency']
-    negative_indicators = ['increase', 'growth', 'higher', 'elevated']
-    
-    # Some metrics are positive when they increase (like ESG score)
-    positive_when_increase = ['score', 'rating', 'efficiency', 'diversity', 'renewable']
-    
-    metric_name = metric.get('name', '').lower()
-    
-    # Check if this is a metric that's positive when increasing
-    is_positive_when_increase = any(term in metric_name for term in positive_when_increase)
-    
-    # Default to neutral impact
-    impact = "neutral"
-    
-    # If we have trend information
-    if 'trend_direction' in metric:
-        trend = metric['trend_direction']
-        if trend == 'positive':
-            impact = 'positive'
-        elif trend == 'negative':
-            impact = 'negative'
-    # If we can determine from the metric name and value trend
-    elif 'previous_value' in metric and 'value' in metric:
-        value_change = metric['value'] - metric['previous_value']
-        if value_change > 0:  # Value increased
-            impact = 'positive' if is_positive_when_increase else 'negative'
-        elif value_change < 0:  # Value decreased
-            impact = 'negative' if is_positive_when_increase else 'positive'
-    
-    return impact
-
-def generate_context_from_metrics(metrics_data):
-    """Generate context element from metrics data"""
-    # Find relevant regulatory context based on metrics categories
-    categories = set(m.get('category', 'other') for m in metrics_data)
-    
-    regulatory_contexts = {
-        'emissions': 'carbon reporting requirements under CSRD',
-        'water': 'water scarcity risks and reporting',
-        'energy': 'energy efficiency and renewable targets',
-        'waste': 'circular economy regulations',
-        'social': 'social metrics in ESG reporting frameworks'
-    }
-    
-    relevant_contexts = []
-    for category in categories:
-        if category in regulatory_contexts:
-            relevant_contexts.append(regulatory_contexts[category])
-    
-    context_content = "Within the context of " + ", ".join(relevant_contexts) if relevant_contexts else "As sustainability reporting becomes increasingly important"
-    
-    return {
-        "headline": "Why This Matters Now",
-        "content": context_content,
-        "significance": "high"
-    }
-
-def generate_narrative_from_metrics(primary_metric, metrics_data):
-    """Generate narrative element from metrics data"""
-    # Determine the main story based on the primary metric
-    metric_name = primary_metric.get('name', 'Sustainability metric')
-    metric_value = primary_metric.get('value', 0)
-    metric_unit = primary_metric.get('unit', '')
-    
-    # Check if we have previous values for comparison
-    if 'previous_value' in primary_metric:
-        previous_value = primary_metric['previous_value']
-        change = metric_value - previous_value
-        percent_change = (change / previous_value) * 100 if previous_value != 0 else 0
-        
-        comparison_text = f"a {abs(percent_change):.1f}% {'increase' if change > 0 else 'decrease'} compared to the previous period"
-    else:
-        comparison_text = f"current value of {metric_value} {metric_unit}"
-    
-    return {
-        "headline": f"{metric_name} Analysis",
-        "content": f"The {metric_name.lower()} shows {comparison_text}, indicating significant sustainability impact.",
-        "data_point": {
-            "value": f"{metric_value} {metric_unit}",
-            "trend": determine_impact(primary_metric),
-            "comparison": "period-over-period"
-        }
-    }
-
-def generate_visual_from_metrics(primary_metric, metrics_data):
-    """Generate visual element from metrics data"""
-    category = primary_metric.get('category', 'sustainability')
-    
-    chart_types = {
-        "emissions": ["area chart", "line chart", "bar chart"],
-        "water": ["bar chart", "area chart", "waterfall chart"],
-        "energy": ["line chart", "heat map", "stacked bar chart"],
-        "waste": ["pie chart", "stacked area chart", "tree map"],
-        "social": ["radar chart", "doughnut chart", "column chart"]
-    }
-    
-    chart_type = random.choice(chart_types.get(category, ["bar chart"]))
-    
-    # Find related metrics for comparison
-    related_metrics = [m for m in metrics_data if m.get('category') == category and m.get('id') != primary_metric.get('id')]
-    
-    data_series = [
-        {
-            "name": primary_metric.get('name', 'Current Metric'),
-            "color": "#4CAF50" if determine_impact(primary_metric) == "positive" else "#F44336"
-        }
-    ]
-    
-    # Add related metrics if available
-    for i, metric in enumerate(related_metrics[:2]):
-        data_series.append({
-            "name": metric.get('name', f'Related Metric {i+1}'),
-            "color": ["#2196F3", "#FFC107"][i]
-        })
-    
-    return {
-        "chart_type": chart_type,
-        "title": f"{category.title()} Performance Visualization",
-        "data_series": data_series,
-        "annotations": [
-            {
-                "type": "threshold",
-                "value": str(primary_metric.get('value', 0)) + " " + primary_metric.get('unit', ''),
-                "label": "Current"
-            }
-        ]
-    }
-
-def generate_audience_summary_from_metrics(primary_metric, audience):
-    """Generate audience-specific summary from metrics"""
-    category = primary_metric.get('category', 'sustainability')
-    
-    if audience == "board":
-        return f"Strategic overview of {category} performance with financial and risk implications highlighted."
-    elif audience == "sustainability_team":
-        return f"Detailed analysis of {category} metrics with root causes and technical implementation guidance."
-    elif audience == "investors":
-        return f"Investment perspective on {category} performance with competitive benchmarking and compliance status."
-    else:
-        return f"Analysis of {category} sustainability performance with key insights."
-
-def generate_audience_key_points_from_metrics(primary_metric, metrics_data, audience, attributes):
-    """Generate audience-specific key points from metrics"""
-    category = primary_metric.get('category', 'sustainability')
-    value = primary_metric.get('value', 0)
-    unit = primary_metric.get('unit', '')
-    
-    key_points = []
-    
-    if audience == "board":
-        key_points = [
-            f"Strategic Impact: {category.title()} performance directly affects our market position",
-            f"Financial Implications: Current {category} value of {value} {unit}",
-            f"Risk Profile: {determine_impact(primary_metric).title()} impact on overall sustainability risk exposure"
-        ]
-    elif audience == "sustainability_team":
-        key_points = [
-            f"Technical Detail: Current {category} value is {value} {unit}",
-            f"Implementation Focus: Detailed analysis of {category} performance factors",
-            f"Measurement: Key metrics for tracking {category} progress"
-        ]
-    elif audience == "investors":
-        key_points = [
-            f"Competitive Position: Our {category} performance versus industry peers",
-            f"ROI Metrics: Financial implications of {category} initiatives",
-            "Compliance Status: Regulatory alignment and future-proofing"
-        ]
-    else:
-        key_points = [
-            f"{category.title()} Performance: Current value of {value} {unit}",
-            "Key Insights: Analysis of sustainability metrics",
-            "Next Steps: Recommended actions based on current performance"
-        ]
-    
-    return key_points
-
-def generate_audience_recommendations_from_metrics(primary_metric, metrics_data, audience):
-    """Generate audience-specific recommendations from metrics"""
-    category = primary_metric.get('category', 'sustainability')
-    impact = determine_impact(primary_metric)
-    
-    recommendations = []
-    
-    if audience == "board":
-        if impact == "positive":
-            recommendations = [
-                "Highlight this success in next investor communications",
-                f"Consider expanding {category} initiatives to other areas",
-                "Review resource allocation to maintain momentum"
-            ]
-        else:
-            recommendations = [
-                f"Allocate additional resources to address {category} challenges",
-                "Review risk mitigation strategies at next board meeting",
-                "Consider external expertise to guide improvement"
-            ]
-    elif audience == "sustainability_team":
-        if impact == "positive":
-            recommendations = [
-                "Document successful approaches for knowledge sharing",
-                "Identify opportunities to further optimize performance",
-                "Develop case study for internal learning"
-            ]
-        else:
-            recommendations = [
-                "Conduct root cause analysis with technical team",
-                "Develop 30-60-90 day improvement plan",
-                "Implement weekly monitoring of key metrics"
-            ]
-    elif audience == "investors":
-        if impact == "positive":
-            recommendations = [
-                "Feature this success in next ESG disclosure",
-                "Quantify financial benefits for investor presentations",
-                "Benchmark against competition to highlight leadership"
-            ]
-        else:
-            recommendations = [
-                "Prepare transparent communication strategy for investors",
-                "Develop clear remediation timeline with milestones",
-                "Quantify resource requirements and expected outcomes"
-            ]
-    else:
-        if impact == "positive":
-            recommendations = [
-                "Continue current successful strategies",
-                "Share best practices across the organization",
-                "Set more ambitious targets for next period"
-            ]
-        else:
-            recommendations = [
-                "Identify root causes of underperformance",
-                "Develop an action plan with clear ownership",
-                "Increase monitoring frequency"
-            ]
-    
-    return recommendations
-
-def story_satisfies_criteria(story, criteria):
-    """Check if a story satisfies given filter criteria"""
-    # Example criteria: {"categories": ["emissions"], "impact": "positive", "date_range": {"start": "2025-01-01", "end": "2025-12-31"}}
-    
-    if "categories" in criteria and criteria["categories"]:
-        if story.get("category") not in criteria["categories"]:
-            return False
-    
-    if "impact" in criteria and criteria["impact"]:
-        if story.get("impact") != criteria["impact"]:
-            return False
-            
-    if "date_range" in criteria and criteria["date_range"]:
-        story_date = datetime.strptime(story.get("date", "2025-01-01"), "%Y-%m-%d")
-        
-        if "start" in criteria["date_range"] and criteria["date_range"]["start"]:
-            start_date = datetime.strptime(criteria["date_range"]["start"], "%Y-%m-%d")
-            if story_date < start_date:
-                return False
-                
-        if "end" in criteria["date_range"] and criteria["date_range"]["end"]:
-            end_date = datetime.strptime(criteria["date_range"]["end"], "%Y-%m-%d")
-            if story_date > end_date:
-                return False
-    
-    return True
-
-def filter_stories(stories, criteria):
-    """Filter stories based on criteria"""
-    return [story for story in stories if story_satisfies_criteria(story, criteria)]
-
-def generate_thematic_story_collection(metrics_data, theme):
-    """Generate a collection of stories around a specific sustainability theme"""
-    thematic_stories = []
-    
-    # Theme-specific metrics filtering
-    theme_categories = {
-        "climate_action": ["emissions", "energy"],
-        "resource_efficiency": ["water", "waste", "energy"],
-        "social_impact": ["social", "diversity"],
-        "governance": ["governance", "compliance"],
-        "innovation": ["innovation", "technology"]
-    }
-    
-    categories = theme_categories.get(theme, ["emissions", "energy", "water", "waste", "social"])
-    
-    # Filter metrics by relevant categories
-    relevant_metrics = [m for m in metrics_data if m.get("category") in categories]
-    
-    # Generate one story per category
-    for category in set(m.get("category") for m in relevant_metrics):
-        category_metrics = [m for m in relevant_metrics if m.get("category") == category]
-        if category_metrics:
-            story = generate_story_from_metrics(category_metrics, "general")
-            thematic_stories.append(story)
-    
-    return {
-        "theme": theme,
-        "title": format_theme_title(theme),
-        "stories": thematic_stories,
-        "summary": generate_theme_summary(theme, thematic_stories)
-    }
-
-def format_theme_title(theme):
-    """Format a theme identifier into a readable title"""
-    theme_titles = {
-        "climate_action": "Climate Action & Emissions Reduction",
-        "resource_efficiency": "Resource Efficiency & Circular Economy",
-        "social_impact": "Social Impact & Community Engagement",
-        "governance": "Governance & Ethical Business Practices",
-        "innovation": "Sustainability Innovation & Technology"
-    }
-    
-    return theme_titles.get(theme, theme.replace("_", " ").title())
-
-def generate_theme_summary(theme, stories):
-    """Generate a summary of the thematic story collection"""
-    theme_summaries = {
-        "climate_action": "Analysis of our climate action initiatives and emissions reduction performance",
-        "resource_efficiency": "Overview of resource efficiency measures and circular economy progress",
-        "social_impact": "Examination of our social impact programs and community engagement",
-        "governance": "Review of governance structures and ethical business practices",
-        "innovation": "Exploration of sustainability innovations and technology implementation"
-    }
-    
-    base_summary = theme_summaries.get(theme, f"Analysis of {theme.replace('_', ' ')} metrics and performance")
-    
-    # Count positive and negative stories
-    positive_count = sum(1 for story in stories if story.get("impact") == "positive")
-    negative_count = sum(1 for story in stories if story.get("impact") == "negative")
-    
-    if positive_count > negative_count:
-        sentiment = "positive"
-        trend_text = "showing overall improvements"
-    elif negative_count > positive_count:
-        sentiment = "concerning"
-        trend_text = "indicating areas needing attention"
-    else:
-        sentiment = "mixed"
-        trend_text = "with varied results across metrics"
-    
-def extract_percentage(text):
-    """
-    Extract percentage values from text
-    
-    Args:
-        text: Text to extract percentages from
-        
-    Returns:
-        First percentage found or None
-    """
-    import re
-    
-    # Look for percentages in text (e.g., 15%, 3.5%)
-    percentage_pattern = r'(\d+\.?\d*)%'
-    matches = re.findall(percentage_pattern, text)
-    
-    if matches:
-        return matches[0] + '%'
-    
-    # If no explicit percentage is found, look for numbers with context
-    number_pattern = r'(\d+\.?\d*)\s*(percent|percentage)'
-    matches = re.findall(number_pattern, text.lower())
-    
-    if matches:
-        return matches[0][0] + '%'
-    
-    return None
-
-def generate_story_chart(story_id, chart_type='line'):
-    """
-    Generate chart data for a specific story
-    
-    Args:
-        story_id: ID of the story to generate chart for
-        chart_type: Type of chart to generate
-        
-    Returns:
-        Chart data in format suitable for Plotly.js rendering
-    """
-    # Get all stories
-    stories = get_enhanced_stories()
-    story = None
-    
-    # Find the requested story
-    for s in stories:
-        if s.get('id') == int(story_id) if isinstance(story_id, str) and story_id.isdigit() else story_id:
-            story = s
-            break
-    
-    if not story:
-        return {"error": "Story not found"}
-    
-    # Extract category for coloring
-    category = story.get('category', 'emissions')
-    
-    # Define color schemes by category
-    color_schemes = {
-        'emissions': ['#1a237e', '#283593', '#3949ab', '#5c6bc0'],
-        'water': ['#006064', '#00838f', '#0097a7', '#00acc1'],
-        'energy': ['#e65100', '#ef6c00', '#f57c00', '#fb8c00'],
-        'waste': ['#33691e', '#558b2f', '#689f38', '#7cb342'],
-        'social': ['#4a148c', '#6a1b9a', '#7b1fa2', '#8e24aa']
-    }
-    
-    # Get colors for this category
-    colors = color_schemes.get(category, ['#3949ab', '#5c6bc0', '#7986cb'])
-    
-    # Generate time periods (months)
-    months = [
-        'Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 
-        'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'
-    ]
-    
-    # Extract percentage from story for scale
-    percentage = extract_percentage(story.get('content', ''))
-    target_value = int(percentage.replace('%', '')) if percentage else 15
-    
-    # Create trend data based on story impact and category
-    if story.get('impact') == 'positive':
-        current_data = [target_value * 0.7, target_value * 0.8, target_value * 0.85, 
-                       target_value * 0.9, target_value * 0.95, target_value]
-    else:
-        current_data = [target_value * 1.3, target_value * 1.2, target_value * 1.15, 
-                       target_value * 1.10, target_value * 1.05, target_value]
-    
-    # Create comparison data
-    benchmark_data = [target_value * 1.1, target_value * 1.08, target_value * 1.05, 
-                     target_value * 1.03, target_value * 1.01, target_value * 0.99]
-    
-    # Previous period data
-    previous_data = [target_value * 1.2, target_value * 1.15, target_value * 1.12, 
-                    target_value * 1.1, target_value * 1.05, target_value * 1.02]
-    
-    # Generate chart data based on chart type
-    chart_data = {}
-    
-    if chart_type == 'line' or chart_type == 'area':
-        # Line chart data
-        chart_data = {
-            'type': 'line' if chart_type == 'line' else 'area',
+            'type': 'radar',
             'data': {
-                'labels': months[-6:],
+                'labels': ['Environmental', 'Social', 'Governance', 'Economic', 'Innovation'],
                 'datasets': [
                     {
-                        'label': 'Current Period',
-                        'data': current_data,
-                        'borderColor': colors[0],
-                        'backgroundColor': colors[0] + '20',
-                        'fill': chart_type == 'area'
+                        'label': 'Current Performance',
+                        'data': [65, 75, 70, 80, 60],
+                        'backgroundColor': 'rgba(54, 162, 235, 0.2)',
+                        'borderColor': 'rgb(54, 162, 235)',
+                        'pointBackgroundColor': 'rgb(54, 162, 235)'
                     },
                     {
-                        'label': 'Previous Period',
-                        'data': previous_data,
-                        'borderColor': colors[1],
-                        'backgroundColor': colors[1] + '20',
-                        'fill': chart_type == 'area'
-                    },
-                    {
-                        'label': 'Industry Benchmark',
-                        'data': benchmark_data,
-                        'borderColor': colors[2],
-                        'backgroundColor': colors[2] + '20',
-                        'fill': chart_type == 'area',
-                        'borderDash': [5, 5]
-                    }
-                ]
-            },
-            'options': {
-                'title': story.get('title'),
-                'category': category,
-                'impact': story.get('impact'),
-                'target': target_value,
-                'annotations': [
-                    {
-                        'type': 'line',
-                        'value': target_value,
-                        'label': 'Target'
+                        'label': 'Target',
+                        'data': [90, 85, 80, 88, 82],
+                        'backgroundColor': 'rgba(255, 99, 132, 0.2)',
+                        'borderColor': 'rgb(255, 99, 132)',
+                        'pointBackgroundColor': 'rgb(255, 99, 132)'
                     }
                 ]
             }
         }
-    elif chart_type == 'bar' or chart_type == 'column':
-        # Bar chart data
-        chart_data = {
-            'type': chart_type,
-            'data': {
-                'labels': months[-6:],
-                'datasets': [
-                    {
-                        'label': 'Current Period',
-                        'data': current_data,
-                        'backgroundColor': colors[0]
-                    },
-                    {
-                        'label': 'Previous Period',
-                        'data': previous_data,
-                        'backgroundColor': colors[1]
-                    },
-                    {
-                        'label': 'Industry Benchmark',
-                        'data': benchmark_data,
-                        'backgroundColor': colors[2]
-                    }
-                ]
-            },
-            'options': {
-                'title': story.get('title'),
-                'category': category,
-                'impact': story.get('impact'),
-                'target': target_value
-            }
-        }
-    elif chart_type == 'pie' or chart_type == 'doughnut':
-        # Create components that add up to the target value
-        component_names = {
-            'emissions': ['Scope 1', 'Scope 2', 'Scope 3'],
-            'water': ['Process', 'Cooling', 'Domestic'],
-            'energy': ['Electricity', 'Gas', 'Renewables'],
-            'waste': ['Recycled', 'Landfill', 'Composted'],
-            'social': ['Diversity', 'Training', 'Safety']
-        }
-        
-        names = component_names.get(category, ['Component A', 'Component B', 'Component C'])
-        
-        # Calculate values that add up to target
-        values = [
-            target_value * 0.3,
-            target_value * 0.45,
-            target_value * 0.25
-        ]
-        
-        chart_data = {
-            'type': chart_type,
-            'data': {
-                'labels': names,
-                'datasets': [
-                    {
-                        'data': values,
-                        'backgroundColor': colors[0:3]
-                    }
-                ]
-            },
-            'options': {
-                'title': story.get('title'),
-                'category': category,
-                'impact': story.get('impact'),
-                'cutout': '50%' if chart_type == 'doughnut' else '0%'
-            }
-        }
-    
-    return chart_data
 
 def register_routes(app):
     """
-    Register Sustainability Storytelling routes with Flask app
+    Register storytelling routes with Flask app (called from direct_app.py)
     
     Args:
-        app: Flask application
+        app: Flask application instance
     """
-    if not FLASK_AVAILABLE:
-        logger.warning("Flask not available. Sustainability Storytelling routes will not be registered.")
-        return False
+    # Import the stories blueprint from routes module and register it
+    try:
+        from frontend.routes.stories import register_blueprint
+        register_blueprint(app)
+        logger.info("Storytelling routes registered via blueprint")
+    except ImportError as e:
+        logger.error(f"Could not register storytelling routes: {str(e)}")
+
+def generate_trend_data(start: float, end: float, points: int, trend: str = 'increasing') -> List[float]:
+    """
+    Generate trend data for charts with random variations
     
-    app.register_blueprint(storytelling_bp)
+    Args:
+        start: Starting value
+        end: Ending value
+        points: Number of data points
+        trend: Direction of trend ('increasing', 'decreasing', 'stable')
+        
+    Returns:
+        List of data points
+    """
+    if points <= 1:
+        return [start]
     
-    # Register the view routes - redirect to the new endpoint for backward compatibility
-    @app.route('/story-cards')
-    def story_cards():
-        """AI Storytelling Engine - Redirect to new storytelling endpoint for backward compatibility"""
-        logger.info("Legacy sustainability stories route accessed - redirecting to new blueprint")
-        audience = request.args.get('audience', 'all')
-        category = request.args.get('category', 'all')
-        
-        # Redirect to the new blueprint route with parameters
-        return redirect(url_for('storytelling.storytelling_home', audience=audience, category=category))
+    # Calculate step size
+    step = (end - start) / (points - 1)
     
-    # Register the API endpoints
-    @app.route('/api/storytelling')
-    def api_storytelling():
-        """API endpoint for AI storytelling generation with Gartner-inspired methodology"""
-        audience = request.args.get('audience', 'all')
-        category = request.args.get('category', 'all')
-        format_type = request.args.get('format', 'json')
+    # Generate base trend
+    data = []
+    for i in range(points):
+        base_value = start + step * i
         
-        stories = get_enhanced_stories(audience, category)
+        # Add random variation (±10%)
+        variation = base_value * random.uniform(-0.1, 0.1)
+        value = base_value + variation
         
-        if format_type == 'html':
-            # Generate HTML story cards
-            html_content = render_template(
-                'partials/story_cards_content.html',
-                stories=stories
-            )
-            return jsonify({
-                'success': True,
-                'html': html_content,
-                'count': len(stories)
-            })
+        # Ensure value remains positive
+        value = max(0, value)
+        
+        # Round to appropriate precision
+        if value >= 100:
+            value = round(value)
         else:
-            # Return JSON data
-            return jsonify({
-                'success': True,
-                'stories': stories,
-                'count': len(stories),
-                'filters': {
-                    'audience': audience,
-                    'category': category
-                }
-            })
-    
-    # Register API endpoint for chart generation
-    @app.route('/api/storytelling/chart', methods=['POST'])
-    def api_storytelling_chart():
-        """API endpoint for generating charts for storytelling"""
-        if not request.is_json:
-            return jsonify({'success': False, 'error': 'Invalid request format'}), 400
-            
-        data = request.json
-        story_id = data.get('story_id')
-        chart_type = data.get('chart_type', 'line')
+            value = round(value, 1)
         
-        if not story_id:
-            return jsonify({'success': False, 'error': 'Missing story_id parameter'}), 400
-            
-        # Generate chart based on story data
-        chart_data = generate_story_chart(story_id, chart_type)
-        
-        return jsonify({
-            'success': True,
-            'chart_data': chart_data
-        })
+        data.append(value)
     
-    logger.info("Sustainability Storytelling routes registered successfully")
-    return True
+    # Ensure the last value is close to the end value (±5%)
+    if len(data) > 0 and data[-1] != end:
+        data[-1] = end * random.uniform(0.95, 1.05)
+        data[-1] = round(data[-1]) if data[-1] >= 100 else round(data[-1], 1)
+    
+    return data
