@@ -1,1469 +1,780 @@
-{% extends 'layouts/finchat_dark_layout.html' %}
-
-{% block title %}Enhanced Strategy Hub | SustainaTrend™{% endblock %}
-
-{% block head %}
-<!-- Chart.js for interactive visualizations -->
-<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-
-<!-- Additional CSS for the enhanced Strategy Hub -->
-<style>
-  :root {
-    --primary-color: #36b37e;
-    --primary-light: #4eca94;
-    --primary-dark: #2d9669;
-    --secondary-color: #0052cc;
-    --secondary-light: #2684ff;
-    --secondary-dark: #0747a6;
-    --accent-color: #ff5630;
-    --accent-light: #ff7452;
-    --accent-dark: #de350b;
-    --dark-bg: #172b4d;
-    --darker-bg: #101e35;
-    --light-text: #f4f5f7;
-    --medium-text: #c1c7d0;
-    --light-bg: #f4f5f7;
-    --card-bg: #1e3357;
-    --card-highlight: #264473;
-    --border-radius: 12px;
-    --card-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
-    --transition-speed: 0.2s;
-    --ai-primary: #36b37e;
-    --ai-secondary: #00b8d9;
-    --ai-tertiary: #6554c0;
-    --ai-quaternary: #ff8b00;
-  }
-
-  .strategy-hub-container {
-    max-width: 1400px;
-    margin: 0 auto;
-    padding: 20px;
-  }
-
-  .strategy-header {
-    margin-bottom: 2rem;
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-  }
-  
-  .strategy-title {
-    font-size: 2rem;
-    font-weight: 700;
-    margin-bottom: 0.5rem;
-    background: linear-gradient(45deg, var(--primary-light), var(--primary-color));
-    -webkit-background-clip: text;
-    background-clip: text;
-    -webkit-text-fill-color: transparent;
-    text-fill-color: transparent;
-  }
-  
-  .strategy-subtitle {
-    font-size: 1.1rem;
-    color: var(--medium-text);
-    margin-bottom: 1rem;
-  }
-
-  .hub-tabs {
-    display: flex;
-    border-bottom: 1px solid rgba(255, 255, 255, 0.1);
-    margin-bottom: 2rem;
-    overflow-x: auto;
-  }
-
-  .hub-tab {
-    padding: 12px 20px;
-    cursor: pointer;
-    border-bottom: 3px solid transparent;
-    color: var(--medium-text);
-    font-weight: 500;
-    transition: all var(--transition-speed) ease;
-    white-space: nowrap;
-  }
-
-  .hub-tab:hover {
-    color: var(--light-text);
-    border-bottom-color: var(--primary-light);
-  }
-
-  .hub-tab.active {
-    color: var(--primary-light);
-    border-bottom-color: var(--primary-color);
-  }
-
-  .tab-content {
-    display: none;
-  }
-  
-  .tab-content.active {
-    display: block;
-    animation: fadeIn 0.5s ease;
-  }
-  
-  /* Monetization Tab Styles */
-  .monetization-categories {
-    display: grid;
-    grid-template-columns: 1fr;
-    gap: 1rem;
-    margin-top: 1rem;
-  }
-  
-  .monetization-category {
-    background-color: var(--card-bg);
-    border-radius: var(--border-radius);
-    padding: 1rem;
-    transition: all var(--transition-speed) ease;
-  }
-  
-  .monetization-category:hover {
-    background-color: var(--card-highlight);
-    transform: translateY(-2px);
-  }
-  
-  .monetization-header {
-    display: flex;
-    align-items: flex-start;
-    margin-bottom: 0.75rem;
-  }
-  
-  .strategy-icon {
-    background-color: var(--primary-color);
-    border-radius: 50%;
-    width: 40px;
-    height: 40px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    margin-right: 1rem;
-    flex-shrink: 0;
-  }
-  
-  .strategy-icon i {
-    color: white;
-    font-size: 1.2rem;
-  }
-  
-  .strategy-header-text {
-    flex: 1;
-  }
-  
-  .strategy-name {
-    font-weight: 600;
-    font-size: 1.1rem;
-    margin-bottom: 0.25rem;
-    color: var(--light-text);
-  }
-  
-  .strategy-desc {
-    font-size: 0.9rem;
-    color: var(--medium-text);
-  }
-  
-  .strategy-metrics {
-    background-color: rgba(0, 0, 0, 0.15);
-    border-radius: var(--border-radius);
-    padding: 0.75rem;
-  }
-  
-  .strategy-metrics-title {
-    font-size: 0.9rem;
-    font-weight: 500;
-    margin-bottom: 0.5rem;
-    color: var(--light-text);
-  }
-  
-  .strategy-metrics-list {
-    display: flex;
-    flex-wrap: wrap;
-    gap: 0.5rem;
-  }
-  
-  .strategy-metric {
-    background-color: var(--primary-dark);
-    color: white;
-    font-size: 0.8rem;
-    padding: 0.25rem 0.5rem;
-    border-radius: 4px;
-  }
-  
-  .strategic-plan-form {
-    background-color: var(--card-bg);
-    border-radius: var(--border-radius);
-    padding: 1.5rem;
-  }
-  
-  .form-group {
-    margin-bottom: 1rem;
-  }
-  
-  .form-group label {
-    display: block;
-    margin-bottom: 0.5rem;
-    font-weight: 500;
-    color: var(--light-text);
-  }
-  
-  .form-group input[type="text"],
-  .form-group select {
-    width: 100%;
-    padding: 0.75rem;
-    border-radius: 6px;
-    border: 1px solid rgba(255, 255, 255, 0.1);
-    background-color: rgba(0, 0, 0, 0.15);
-    color: var(--light-text);
-  }
-  
-  .checkbox-list {
-    display: grid;
-    grid-template-columns: 1fr 1fr;
-    gap: 0.5rem;
-  }
-  
-  .checkbox-item {
-    display: flex;
-    align-items: center;
-  }
-  
-  .checkbox-item input[type="checkbox"] {
-    margin-right: 0.5rem;
-  }
-  
-  .strategic-plan-header {
-    display: flex;
-    justify-content: space-between;
-    margin-bottom: 1.5rem;
-    border-bottom: 1px solid rgba(255, 255, 255, 0.1);
-    padding-bottom: 1rem;
-  }
-  
-  .plan-company {
-    font-size: 1.2rem;
-    font-weight: 600;
-    color: var(--light-text);
-  }
-  
-  .plan-industry {
-    color: var(--medium-text);
-  }
-  
-  .strategic-plan-content {
-    line-height: 1.6;
-  }
-  
-  .strategic-plan-content h3 {
-    color: var(--primary-light);
-    margin-top: 1.5rem;
-    margin-bottom: 0.75rem;
-    font-size: 1.1rem;
-  }
-  
-  .strategic-plan-content ul {
-    padding-left: 1.5rem;
-    margin-bottom: 1rem;
-  }
-  
-  .strategic-plan-content li {
-    margin-bottom: 0.5rem;
-  }
-  
-  @media (min-width: 768px) {
-    .monetization-categories {
-      grid-template-columns: repeat(2, 1fr);
-    }
-  }
-  
-  @keyframes fadeIn {
-    from { opacity: 0; }
-    to { opacity: 1; }
-  }
-
-  .hub-card {
-    background-color: var(--card-bg);
-    border-radius: var(--border-radius);
-    padding: 1.5rem;
-    margin-bottom: 1.5rem;
-    box-shadow: var(--card-shadow);
-    transition: transform var(--transition-speed) ease, box-shadow var(--transition-speed) ease;
-  }
-  
-  .hub-card:hover {
-    transform: translateY(-4px);
-    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.2);
-  }
-  
-  .hub-card-title {
-    font-size: 1.25rem;
-    font-weight: 600;
-    margin-bottom: 0.75rem;
-    color: var(--light-text);
-    display: flex;
-    align-items: center;
-  }
-  
-  .hub-card-title i {
-    margin-right: 10px;
-    color: var(--primary-color);
-  }
-
-  .card-grid {
-    display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
-    gap: 1.5rem;
-  }
-
-  .card-grid-2 {
-    display: grid;
-    grid-template-columns: repeat(2, 1fr);
-    gap: 1.5rem;
-  }
-  
-  @media (max-width: 768px) {
-    .card-grid, .card-grid-2 {
-      grid-template-columns: 1fr;
-    }
-  }
-
-  .trend-tag {
-    display: inline-block;
-    padding: 4px 10px;
-    border-radius: 50px;
-    font-size: 0.8rem;
-    margin-right: 6px;
-    margin-bottom: 6px;
-    background-color: rgba(54, 179, 126, 0.15);
-    color: var(--primary-light);
-    border: 1px solid rgba(54, 179, 126, 0.3);
-    cursor: pointer;
-    transition: all var(--transition-speed) ease;
-    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
-  }
-  
-  .trend-tag:hover {
-    background-color: rgba(54, 179, 126, 0.25);
-    transform: translateY(-2px);
-    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
-  }
-  
-  .pdf-dropzone {
-    border: 2px dashed rgba(255, 255, 255, 0.2);
-    border-radius: var(--border-radius);
-    padding: 2rem;
-    text-align: center;
-    cursor: pointer;
-    transition: all var(--transition-speed) ease;
-  }
-  
-  .pdf-dropzone:hover {
-    border-color: var(--primary-color);
-    background-color: rgba(54, 179, 126, 0.05);
-  }
-  
-  .pdf-icon {
-    font-size: 3rem;
-    color: var(--primary-color);
-    margin-bottom: 1rem;
-  }
-
-  .analysis-options {
-    display: flex;
-    flex-wrap: wrap;
-    gap: 1rem;
-    margin-top: 1rem;
-  }
-  
-  .analysis-option {
-    display: flex;
-    align-items: center;
-  }
-  
-  .analysis-option input {
-    margin-right: 8px;
-  }
-
-  .document-card {
-    background-color: rgba(255, 255, 255, 0.05);
-    border-radius: var(--border-radius);
-    padding: 1rem;
-    display: flex;
-    align-items: center;
-    margin-bottom: 1rem;
-    cursor: pointer;
-    transition: all var(--transition-speed) ease;
-  }
-  
-  .document-card:hover {
-    background-color: rgba(255, 255, 255, 0.1);
-  }
-  
-  .document-icon {
-    font-size: 1.5rem;
-    margin-right: 1rem;
-    color: var(--secondary-light);
-  }
-  
-  .document-info {
-    flex: 1;
-  }
-  
-  .document-title {
-    font-weight: 500;
-    margin-bottom: 4px;
-  }
-  
-  .document-meta {
-    font-size: 0.8rem;
-    color: var(--medium-text);
-  }
-  
-  .document-category {
-    background-color: rgba(38, 132, 255, 0.15);
-    color: var(--secondary-light);
-    padding: 2px 8px;
-    border-radius: 4px;
-    font-size: 0.75rem;
-    margin-left: 0.5rem;
-  }
-
-  .chart-container {
-    height: 300px;
-    width: 100%;
-    margin-top: 1rem;
-  }
-  
-  .trend-score {
-    font-size: 3rem;
-    font-weight: 700;
-    color: var(--primary-color);
-    text-align: center;
-    margin: 1rem 0;
-  }
-  
-  .score-label {
-    font-size: 0.9rem;
-    color: var(--medium-text);
-    text-align: center;
-    margin-bottom: 1rem;
-  }
-  
-  .stepps-grid {
-    display: grid;
-    grid-template-columns: repeat(3, 1fr);
-    gap: 1rem;
-    margin: 1.5rem 0;
-  }
-  
-  @media (max-width: 768px) {
-    .stepps-grid {
-      grid-template-columns: repeat(2, 1fr);
-    }
-  }
-  
-  @media (max-width: 480px) {
-    .stepps-grid {
-      grid-template-columns: 1fr;
-    }
-  }
-  
-  .stepps-item {
-    background-color: rgba(255, 255, 255, 0.05);
-    border-radius: var(--border-radius);
-    padding: 1rem;
-    text-align: center;
-  }
-  
-  .stepps-score {
-    font-size: 1.5rem;
-    font-weight: 600;
-    margin-bottom: 0.5rem;
-  }
-  
-  .stepps-name {
-    font-size: 0.9rem;
-    font-weight: 500;
-    margin-bottom: 0.25rem;
-  }
-  
-  .stepps-desc {
-    font-size: 0.8rem;
-    color: var(--medium-text);
-  }
-  
-  /* Chart container styling */
-  .chart-container {
-    width: 100%;
-    height: 300px;
-    margin: 1.5rem 0;
-    background-color: rgba(0, 0, 0, 0.2);
-    border-radius: 8px;
-    padding: 1rem;
-    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
-  }
-  
-  /* AI Framework Selection Styling */
-  .assessment-sliders {
-    margin-top: 1rem;
-  }
-  
-  .assessment-slider {
-    margin-bottom: 1rem;
-  }
-  
-  .slider-label {
-    display: flex;
-    justify-content: space-between;
-    margin-bottom: 0.5rem;
-    font-size: 0.9rem;
-  }
-  
-  .slider-value {
-    font-weight: 600;
-    color: var(--primary-light);
-  }
-  
-  input[type="range"] {
-    width: 100%;
-    height: 8px;
-    border-radius: 4px;
-    background-color: rgba(255, 255, 255, 0.1);
-    outline: none;
-    -webkit-appearance: none;
-  }
-  
-  input[type="range"]::-webkit-slider-thumb {
-    -webkit-appearance: none;
-    width: 18px;
-    height: 18px;
-    border-radius: 50%;
-    background: var(--primary-color);
-    cursor: pointer;
-  }
-  
-  .auto-select-container {
-    display: flex;
-    align-items: center;
-    margin-bottom: 1rem;
-    padding: 0.75rem;
-    background-color: rgba(54, 179, 126, 0.1);
-    border-radius: var(--border-radius);
-  }
-  
-  .auto-select-container input[type="checkbox"] {
-    margin-right: 0.5rem;
-  }
-  
-  .framework-selection-title {
-    margin: 1rem 0 0.5rem 0;
-    color: var(--medium-text);
-    font-size: 0.9rem;
-  }
-  
-  .framework-options-grid {
-    display: grid;
-    grid-template-columns: 1fr 1fr;
-    gap: 0.5rem;
-  }
-  
-  @media (max-width: 768px) {
-    .framework-options-grid {
-      grid-template-columns: 1fr;
-    }
-  }
-  
-  .framework-option {
-    display: flex;
-    align-items: center;
-    padding: 0.5rem;
-    background-color: rgba(255, 255, 255, 0.05);
-    border-radius: 6px;
-  }
-  
-  .framework-option input[type="radio"] {
-    margin-right: 0.5rem;
-  }
-  
-  .form-actions {
-    margin-top: 1.5rem;
-    text-align: center;
-  }
-  
-  .card-description {
-    margin-bottom: 1.5rem;
-    color: var(--medium-text);
-    font-size: 0.95rem;
-    line-height: 1.5;
-  }
-  
-  .framework-results {
-    margin-top: 2rem;
-  }
-  
-  .loading-spinner {
-    text-align: center;
-    padding: 2rem;
-    color: var(--light-text);
-    font-size: 1.1rem;
-  }
-  
-  .loading-spinner i {
-    margin-right: 0.5rem;
-    color: var(--primary-color);
-  }
-  
-  .framework-badge {
-    padding: 0.5rem 1rem;
-    border-radius: var(--border-radius);
-    font-size: 0.9rem;
-    font-weight: 500;
-    background-color: rgba(54, 179, 126, 0.15);
-    color: var(--primary-light);
-  }
-  
-  .confidence-meter {
-    margin: 1rem 0;
-  }
-  
-  .confidence-label {
-    display: flex;
-    justify-content: space-between;
-    margin-bottom: 0.5rem;
-    font-size: 0.9rem;
-  }
-  
-  .confidence-bar {
-    height: 8px;
-    background-color: rgba(255, 255, 255, 0.1);
-    border-radius: 4px;
-    overflow: hidden;
-  }
-  
-  .confidence-fill {
-    height: 100%;
-    background: linear-gradient(90deg, var(--primary-color), var(--primary-light));
-    border-radius: 4px;
-  }
-  
-  .alternatives {
-    margin-top: 1rem;
-  }
-  
-  .alternatives-label {
-    color: var(--medium-text);
-    font-size: 0.9rem;
-    margin-bottom: 0.5rem;
-  }
-  
-  .alternatives-list {
-    display: flex;
-    flex-wrap: wrap;
-    gap: 0.5rem;
-  }
-  
-  .alternative-tag {
-    display: inline-block;
-    padding: 0.25rem 0.75rem;
-    border-radius: 50px;
-    font-size: 0.8rem;
-    background-color: rgba(255, 255, 255, 0.1);
-    color: var(--light-text);
-  }
-  
-  .porters-grid, .swot-grid, .bcg-grid {
-    display: grid;
-    grid-template-columns: 1fr;
-    gap: 1rem;
-    margin: 1.5rem 0;
-  }
-  
-  @media (min-width: 768px) {
-    .porters-grid {
-      grid-template-columns: repeat(2, 1fr);
-    }
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Enhanced Strategy Hub | SustainaTrend™</title>
     
-    .swot-grid, .bcg-grid {
-      grid-template-columns: repeat(2, 1fr);
-    }
-  }
-  
-  .porters-dimension, .swot-quadrant, .bcg-quadrant {
-    background-color: rgba(255, 255, 255, 0.05);
-    border-radius: var(--border-radius);
-    padding: 1rem;
-  }
-  
-  .dimension-header, .quadrant-header {
-    display: flex;
-    justify-content: space-between;
-    margin-bottom: 0.75rem;
-  }
-  
-  .dimension-name, .quadrant-header {
-    font-weight: 500;
-  }
-  
-  .dimension-score {
-    font-weight: 600;
-    color: var(--primary-light);
-  }
-  
-  .dimension-bar {
-    height: 6px;
-    background-color: rgba(255, 255, 255, 0.1);
-    border-radius: 3px;
-    margin-bottom: 0.75rem;
-    overflow: hidden;
-  }
-  
-  .dimension-fill {
-    height: 100%;
-    background: linear-gradient(90deg, var(--primary-dark), var(--primary-light));
-    border-radius: 3px;
-  }
-  
-  .dimension-insights {
-    font-size: 0.9rem;
-    color: var(--medium-text);
-    line-height: 1.5;
-  }
-  
-  .porters-summary {
-    display: flex;
-    justify-content: space-between;
-    margin-top: 1.5rem;
-  }
-  
-  .summary-item {
-    background-color: rgba(255, 255, 255, 0.05);
-    border-radius: var(--border-radius);
-    padding: 1rem;
-    text-align: center;
-    flex: 1;
-    margin: 0 0.5rem;
-  }
-  
-  .summary-label {
-    font-size: 0.9rem;
-    color: var(--medium-text);
-    margin-bottom: 0.5rem;
-  }
-  
-  .summary-value {
-    font-size: 1.5rem;
-    font-weight: 600;
-    color: var(--primary-light);
-  }
-  
-  .quadrant-list {
-    padding-left: 1.5rem;
-    margin-bottom: 0;
-  }
-  
-  .quadrant-list li {
-    margin-bottom: 0.5rem;
-    font-size: 0.9rem;
-  }
-  
-  .recommendations-list {
-    padding-left: 1.5rem;
-    margin-bottom: 0;
-  }
-  
-  .recommendations-list li {
-    margin-bottom: 0.75rem;
-    font-size: 0.95rem;
-    line-height: 1.5;
-  }
-  
-  .ai-selection-explanation {
-    margin-bottom: 1.5rem;
-  }
-  
-  .industry-impact {
-    margin: 1.5rem 0;
-  }
-  
-  .impact-bar {
-    height: 10px;
-    background-color: rgba(255, 255, 255, 0.1);
-    border-radius: 5px;
-    margin-top: 4px;
-    overflow: hidden;
-  }
-  
-  .impact-fill {
-    height: 100%;
-    background: linear-gradient(90deg, var(--primary-dark), var(--primary-light));
-    border-radius: 5px;
-  }
-  
-  .impact-label {
-    display: flex;
-    justify-content: space-between;
-    font-size: 0.9rem;
-    margin-bottom: 4px;
-  }
-  
-  .strategic-item {
-    background-color: rgba(255, 255, 255, 0.05);
-    border-radius: var(--border-radius);
-    padding: 1rem;
-    margin-bottom: 1rem;
-  }
-  
-  .strategic-header {
-    display: flex;
-    justify-content: space-between;
-    margin-bottom: 0.5rem;
-    align-items: center;
-  }
-  
-  .strategic-area {
-    font-weight: 500;
-  }
-  
-  .strategic-potential {
-    padding: 4px 10px;
-    border-radius: 50px;
-    font-size: 0.8rem;
-  }
-  
-  .potential-high {
-    background-color: rgba(54, 179, 126, 0.15);
-    color: var(--primary-light);
-  }
-  
-  .potential-medium {
-    background-color: rgba(255, 171, 0, 0.15);
-    color: #ffab00;
-  }
-  
-  .potential-low {
-    background-color: rgba(255, 86, 48, 0.15);
-    color: var(--accent-light);
-  }
-  
-  .strategic-timeframe {
-    font-size: 0.8rem;
-    color: var(--medium-text);
-    margin-bottom: 0.5rem;
-  }
-  
-  .strategic-response {
-    font-size: 0.9rem;
-  }
-  
-  .insight-card {
-    background-color: rgba(255, 255, 255, 0.05);
-    border-radius: var(--border-radius);
-    padding: 1.5rem;
-    margin-bottom: 1.5rem;
-    position: relative;
-    overflow: hidden;
-  }
-  
-  .insight-card::before {
-    content: '';
-    position: absolute;
-    top: 0;
-    left: 0;
-    width: 4px;
-    height: 100%;
-    background: linear-gradient(to bottom, var(--primary-color), var(--secondary-color));
-  }
-  
-  .insight-title {
-    font-size: 1.1rem;
-    font-weight: 600;
-    margin-bottom: 0.75rem;
-  }
-  
-  .insight-body {
-    font-size: 0.95rem;
-    color: var(--medium-text);
-    line-height: 1.5;
-  }
-  
-  .insight-meta {
-    display: flex;
-    justify-content: space-between;
-    margin-top: 1rem;
-    font-size: 0.8rem;
-    color: var(--medium-text);
-  }
-  
-  .insight-source {
-    text-decoration: underline;
-    cursor: pointer;
-  }
-  
-  .insight-metrics {
-    margin-top: 1rem;
-    display: flex;
-    gap: 1rem;
-  }
-  
-  .insight-metric {
-    background-color: rgba(255, 255, 255, 0.05);
-    border-radius: var(--border-radius);
-    padding: 0.5rem 1rem;
-    text-align: center;
-    flex: 1;
-  }
-  
-  .metric-value {
-    font-size: 1.2rem;
-    font-weight: 600;
-    margin-bottom: 0.25rem;
-  }
-  
-  .metric-label {
-    font-size: 0.8rem;
-    color: var(--medium-text);
-  }
-  
-  /* Metrics Dashboard Styling */
-  .metrics-dashboard {
-    margin-top: 1.5rem;
-    background-color: var(--card-bg);
-    border-radius: var(--border-radius);
-    padding: 1.5rem;
-    box-shadow: var(--card-shadow);
-  }
-  
-  .metrics-row {
-    display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-    gap: 1.25rem;
-    margin-bottom: 1.5rem;
-  }
-  
-  .metric-box {
-    background-color: rgba(255, 255, 255, 0.05);
-    border-radius: 10px;
-    padding: 1.25rem;
-    text-align: center;
-    position: relative;
-    border-left: 4px solid var(--primary-color);
-    transition: transform 0.3s ease, box-shadow 0.3s ease;
-  }
-  
-  .metric-box:hover {
-    transform: translateY(-3px);
-    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.15);
-  }
-  
-  .metric-box .metric-label {
-    font-size: 0.9rem;
-    font-weight: 500;
-    color: var(--medium-text);
-    margin-bottom: 0.5rem;
-  }
-  
-  .metric-box .metric-value {
-    font-size: 1.8rem;
-    font-weight: 700;
-    margin-bottom: 0.5rem;
-    color: var(--light-text);
-  }
-  
-  .metric-unit {
-    font-size: 0.9rem;
-    color: var(--medium-text);
-    margin-bottom: 0.75rem;
-  }
-  
-  .metric-trend {
-    display: inline-block;
-    padding: 0.25rem 0.75rem;
-    border-radius: 20px;
-    font-size: 0.8rem;
-    font-weight: 500;
-  }
-  
-  .metric-trend.up {
-    background-color: rgba(54, 179, 126, 0.15);
-    color: var(--primary-light);
-  }
-  
-  .metric-trend.down {
-    background-color: rgba(255, 86, 48, 0.15);
-    color: var(--accent-light);
-  }
-  
-  /* Chart Legend Styling */
-  .chart-legend-container {
-    display: flex;
-    flex-wrap: wrap;
-    gap: 1rem;
-    margin-top: 1rem;
-    justify-content: center;
-  }
-  
-  .chart-legend-item {
-    display: flex;
-    align-items: center;
-    margin-right: 1.5rem;
-  }
-  
-  .legend-color {
-    width: 12px;
-    height: 12px;
-    border-radius: 3px;
-    margin-right: 0.5rem;
-  }
-  
-  .legend-text {
-    font-size: 0.9rem;
-    color: var(--medium-text);
-  }
-  
-  /* Framework Visualization Styling */
-  .framework-dashboard {
-    display: grid;
-    grid-template-columns: 1fr;
-    gap: 1.5rem;
-    margin-top: 1.5rem;
-  }
-  
-  @media (min-width: 768px) {
-    .framework-dashboard {
-      grid-template-columns: repeat(2, 1fr);
-    }
-  }
-  
-  .framework-box {
-    background-color: rgba(54, 179, 126, 0.1);
-    border-radius: var(--border-radius);
-    padding: 1.25rem;
-    transition: all 0.3s ease;
-    border-left: 4px solid var(--primary-color);
-  }
-  
-  .framework-box:hover {
-    transform: translateY(-4px);
-    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.15);
-  }
-  
-  .framework-box-header {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    margin-bottom: 0.75rem;
-  }
-  
-  .framework-box-title {
-    font-weight: 600;
-    color: var(--light-text);
-  }
-  
-  .framework-box-score {
-    font-weight: 700;
-    color: var(--primary-light);
-    background: rgba(54, 179, 126, 0.2);
-    padding: 0.25rem 0.5rem;
-    border-radius: 12px;
-    font-size: 0.9rem;
-  }
-  
-  .framework-box-description {
-    color: var(--medium-text);
-    font-size: 0.9rem;
-    margin-bottom: 0.75rem;
-  }
-  
-  .action-btn {
-    display: inline-block;
-    padding: 8px 16px;
-    background-color: var(--primary-color);
-    color: white;
-    border-radius: var(--border-radius);
-    cursor: pointer;
-    transition: all var(--transition-speed) ease;
-    border: none;
-    font-weight: 500;
-    text-align: center;
-  }
-  
-  .action-btn:hover {
-    background-color: var(--primary-light);
-  }
-  
-  .action-btn.secondary {
-    background-color: rgba(255, 255, 255, 0.1);
-    color: var(--light-text);
-  }
-  
-  .action-btn.secondary:hover {
-    background-color: rgba(255, 255, 255, 0.2);
-  }
-  
-  .trend-search {
-    display: flex;
-    gap: 1rem;
-    margin-bottom: 1.5rem;
-  }
-  
-  .trend-search input {
-    flex: 1;
-    background-color: rgba(255, 255, 255, 0.05);
-    border: 1px solid rgba(255, 255, 255, 0.1);
-    color: var(--light-text);
-    padding: 10px 16px;
-    border-radius: var(--border-radius);
-    font-size: 0.95rem;
-  }
-  
-  .trend-search input:focus {
-    border-color: var(--primary-color);
-    outline: none;
-  }
-  
-  .resource-card {
-    display: flex;
-    background-color: rgba(255, 255, 255, 0.05);
-    border-radius: var(--border-radius);
-    overflow: hidden;
-    margin-bottom: 1rem;
-    transition: all var(--transition-speed) ease;
-  }
-  
-  .resource-card:hover {
-    background-color: rgba(255, 255, 255, 0.1);
-  }
-  
-  .resource-icon {
-    width: 80px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    background-color: rgba(54, 179, 126, 0.1);
-    color: var(--primary-color);
-    font-size: 1.5rem;
-  }
-  
-  .resource-content {
-    padding: 1rem;
-    flex: 1;
-  }
-  
-  .resource-title {
-    font-weight: 500;
-    margin-bottom: 0.5rem;
-  }
-  
-  .resource-desc {
-    font-size: 0.9rem;
-    color: var(--medium-text);
-  }
-  
-  .progress-bar {
-    height: 4px;
-    background-color: rgba(255, 255, 255, 0.1);
-    border-radius: 2px;
-    margin-top: 0.5rem;
-    overflow: hidden;
-  }
-  
-  .progress-fill {
-    height: 100%;
-    background: linear-gradient(90deg, var(--primary-color), var(--primary-light));
-    border-radius: 2px;
-  }
+    <!-- Font Awesome -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    
+    <!-- Chart.js for data visualization -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@3.9.1/dist/chart.min.js"></script>
+    
+    <!-- Finchat Dark Theme Base Styles -->
+    <style>
+        :root {
+            /* Color Variables */
+            --fc-bg-primary: #121212;
+            --fc-bg-secondary: #1a1a1a;
+            --fc-bg-tertiary: #222222;
+            --fc-bg-hover: #2a2a2a;
+            --fc-bg-card: #1d1d1d;
+            --primary-rgb: 61, 213, 152;  /* #3dd598 - Green */
+            --fc-primary: rgb(var(--primary-rgb));
+            --fc-primary-hover: rgba(var(--primary-rgb), 0.9);
+            --fc-primary-light: rgba(var(--primary-rgb), 0.15);
+            --fc-positive: #3dd598;
+            --fc-negative: #ff6b81;
+            --fc-warning: #ffad63;
+            --fc-info: #34c3ff;
+            --fc-text-primary: #e4e6eb;
+            --fc-text-secondary: #a0a0a0;
+            --fc-text-muted: #666666;
+            --fc-border: #333333;
+            --fc-shadow: 0 4px 12px rgba(0, 0, 0, 0.5);
+            --fc-radius: 4px;
+            --fc-radius-lg: 8px;
+            
+            /* Spacing Variables */
+            --fc-spacing-xs: 4px;
+            --fc-spacing-sm: 8px;
+            --fc-spacing-md: 16px;
+            --fc-spacing-lg: 24px;
+            --fc-spacing-xl: 32px;
+            
+            /* Sidebar Width */
+            --fc-sidebar-width: 240px;
+            --fc-sidebar-collapsed-width: 60px;
+            --fc-insights-width: 320px;
+        }
+        
+        /* Reset & Base Styles */
+        *, *::before, *::after {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+        
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+            background-color: var(--fc-bg-primary);
+            color: var(--fc-text-primary);
+            line-height: 1.5;
+            font-size: 14px;
+            overflow-x: hidden;
+            height: 100vh;
+            display: grid;
+            grid-template-columns: var(--fc-sidebar-width) 1fr;
+            grid-template-rows: auto 1fr;
+            grid-template-areas:
+                "sidebar header"
+                "sidebar content";
+        }
+        
+        body.insights-open {
+            grid-template-columns: var(--fc-sidebar-width) 1fr var(--fc-insights-width);
+            grid-template-areas:
+                "sidebar header header"
+                "sidebar content insights";
+        }
+        
+        body.sidebar-collapsed {
+            grid-template-columns: var(--fc-sidebar-collapsed-width) 1fr;
+        }
+        
+        body.sidebar-collapsed.insights-open {
+            grid-template-columns: var(--fc-sidebar-collapsed-width) 1fr var(--fc-insights-width);
+        }
+        
+        a {
+            color: var(--fc-primary);
+            text-decoration: none;
+            transition: color 0.2s;
+        }
+        
+        a:hover {
+            color: var(--fc-primary-hover);
+            text-decoration: underline;
+        }
+        
+        button {
+            cursor: pointer;
+        }
+        
+        ul, ol {
+            list-style-position: inside;
+        }
+        
+        /* Header Styles */
+        .finchat-header {
+            grid-area: header;
+            background-color: var(--fc-bg-secondary);
+            border-bottom: 1px solid var(--fc-border);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 0 var(--fc-spacing-lg);
+            height: 60px;
+        }
+        
+        .finchat-header-title {
+            font-size: 1.1rem;
+            font-weight: 600;
+            display: flex;
+            align-items: center;
+            gap: var(--fc-spacing-sm);
+        }
+        
+        .finchat-header-actions {
+            display: flex;
+            align-items: center;
+            gap: var(--fc-spacing-md);
+        }
+        
+        /* Sidebar Styles */
+        .finchat-sidebar {
+            grid-area: sidebar;
+            background-color: var(--fc-bg-secondary);
+            border-right: 1px solid var(--fc-border);
+            display: flex;
+            flex-direction: column;
+            height: 100vh;
+            position: fixed;
+            width: var(--fc-sidebar-width);
+            transition: width 0.3s;
+            z-index: 20;
+        }
+        
+        body.sidebar-collapsed .finchat-sidebar {
+            width: var(--fc-sidebar-collapsed-width);
+        }
+        
+        .finchat-logo {
+            display: flex;
+            align-items: center;
+            gap: var(--fc-spacing-sm);
+            padding: var(--fc-spacing-md);
+            border-bottom: 1px solid var(--fc-border);
+            height: 60px;
+        }
+        
+        .finchat-logo-icon {
+            font-size: 1.4rem;
+            color: var(--fc-primary);
+        }
+        
+        .finchat-logo-text {
+            font-weight: 700;
+            font-size: 1.1rem;
+            white-space: nowrap;
+            opacity: 1;
+            transition: opacity 0.3s;
+        }
+        
+        body.sidebar-collapsed .finchat-logo-text {
+            opacity: 0;
+            width: 0;
+            overflow: hidden;
+        }
+        
+        .finchat-nav {
+            display: flex;
+            flex-direction: column;
+            flex-grow: 1;
+            overflow-y: auto;
+            padding: var(--fc-spacing-md) 0;
+        }
+        
+        .finchat-nav-section {
+            margin-bottom: var(--fc-spacing-md);
+        }
+        
+        .finchat-nav-header {
+            font-size: 0.7rem;
+            text-transform: uppercase;
+            color: var(--fc-text-muted);
+            letter-spacing: 0.5px;
+            padding: var(--fc-spacing-xs) var(--fc-spacing-md);
+            margin-bottom: var(--fc-spacing-xs);
+        }
+        
+        body.sidebar-collapsed .finchat-nav-header {
+            opacity: 0;
+            height: 0;
+            overflow: hidden;
+            margin: 0;
+            padding: 0;
+        }
+        
+        .finchat-nav-item {
+            display: flex;
+            align-items: center;
+            padding: var(--fc-spacing-xs) var(--fc-spacing-md);
+            color: var(--fc-text-secondary);
+            border-left: 2px solid transparent;
+            transition: all 0.2s;
+        }
+        
+        .finchat-nav-item:hover {
+            background-color: var(--fc-bg-hover);
+            color: var(--fc-text-primary);
+            text-decoration: none;
+        }
+        
+        .finchat-nav-item.active {
+            color: var(--fc-primary);
+            border-left-color: var(--fc-primary);
+            background-color: var(--fc-bg-hover);
+        }
+        
+        .finchat-nav-icon {
+            width: 24px;
+            text-align: center;
+            margin-right: var(--fc-spacing-sm);
+        }
+        
+        body.sidebar-collapsed .finchat-nav-icon {
+            margin-right: 0;
+        }
+        
+        .finchat-nav-text {
+            opacity: 1;
+            transition: opacity 0.3s;
+            white-space: nowrap;
+        }
+        
+        body.sidebar-collapsed .finchat-nav-text {
+            opacity: 0;
+            width: 0;
+            overflow: hidden;
+        }
+        
+        .finchat-sidebar-toggle {
+            padding: var(--fc-spacing-md);
+            display: flex;
+            justify-content: flex-end;
+            margin-top: auto;
+            color: var(--fc-text-secondary);
+            cursor: pointer;
+            border-top: 1px solid var(--fc-border);
+        }
+        
+        .finchat-sidebar-toggle:hover {
+            color: var(--fc-text-primary);
+        }
+        
+        /* Main Content Area */
+        .finchat-content {
+            grid-area: content;
+            padding: var(--fc-spacing-lg);
+            overflow-y: auto;
+            height: calc(100vh - 60px);
+        }
+        
+        .finchat-section {
+            margin-bottom: var(--fc-spacing-xl);
+        }
+        
+        .finchat-section-title {
+            font-size: 1.1rem;
+            font-weight: 600;
+            margin-bottom: var(--fc-spacing-md);
+            display: flex;
+            align-items: center;
+            gap: var(--fc-spacing-sm);
+        }
+        
+        /* Card Component */
+        .finchat-card {
+            background-color: var(--fc-bg-card);
+            border: 1px solid var(--fc-border);
+            border-radius: var(--fc-radius);
+            overflow: hidden;
+            margin-bottom: var(--fc-spacing-lg);
+        }
+        
+        .finchat-card-header {
+            padding: var(--fc-spacing-md);
+            border-bottom: 1px solid var(--fc-border);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        
+        .finchat-card-title {
+            font-size: 0.95rem;
+            font-weight: 600;
+            margin: 0;
+            display: flex;
+            align-items: center;
+            gap: var(--fc-spacing-xs);
+        }
+        
+        .finchat-card-body {
+            padding: var(--fc-spacing-md);
+        }
+        
+        .finchat-card-footer {
+            padding: var(--fc-spacing-md);
+            border-top: 1px solid var(--fc-border);
+            display: flex;
+            justify-content: flex-end;
+            gap: var(--fc-spacing-sm);
+        }
+        
+        /* Table Styles */
+        .finchat-table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+        
+        .finchat-table th {
+            text-align: left;
+            padding: var(--fc-spacing-sm);
+            border-bottom: 1px solid var(--fc-border);
+            color: var(--fc-text-secondary);
+            font-weight: 500;
+            font-size: 0.8rem;
+        }
+        
+        .finchat-table td {
+            padding: var(--fc-spacing-sm);
+            border-bottom: 1px solid var(--fc-border);
+        }
+        
+        .finchat-table tr:last-child td {
+            border-bottom: none;
+        }
+        
+        .finchat-table tr:hover {
+            background-color: var(--fc-bg-hover);
+        }
+        
+        /* Button Styles */
+        .finchat-button {
+            background-color: var(--fc-bg-tertiary);
+            color: var(--fc-text-primary);
+            border: 1px solid var(--fc-border);
+            border-radius: var(--fc-radius);
+            padding: 6px 12px;
+            font-size: 0.85rem;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+        
+        .finchat-button:hover {
+            background-color: var(--fc-bg-hover);
+            border-color: var(--fc-text-secondary);
+        }
+        
+        .finchat-button-primary {
+            background-color: var(--fc-primary);
+            color: #000;
+            border-color: var(--fc-primary);
+        }
+        
+        .finchat-button-primary:hover {
+            background-color: var(--fc-primary-hover);
+            border-color: var(--fc-primary-hover);
+        }
+        
+        .finchat-button-icon {
+            background-color: transparent;
+            color: var(--fc-text-secondary);
+            border: none;
+            width: 28px;
+            height: 28px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.2s;
+        }
+        
+        .finchat-button-icon:hover {
+            background-color: var(--fc-bg-hover);
+            color: var(--fc-text-primary);
+        }
+        
+        /* Badge Styles */
+        .finchat-badge {
+            background-color: var(--fc-bg-hover);
+            color: var(--fc-text-secondary);
+            font-size: 0.7rem;
+            padding: 2px 6px;
+            border-radius: 10px;
+        }
+        
+        .finchat-badge-primary {
+            background-color: var(--fc-primary-light);
+            color: var(--fc-primary);
+        }
+        
+        .finchat-badge-warning {
+            background-color: rgba(255, 173, 99, 0.15);
+            color: var(--fc-warning);
+        }
+        
+        /* Value Formatting */
+        .finchat-value-positive {
+            color: var(--fc-positive);
+        }
+        
+        .finchat-value-negative {
+            color: var(--fc-negative);
+        }
+        
+        /* Insights Panel */
+        .finchat-insights {
+            grid-area: insights;
+            background-color: var(--fc-bg-secondary);
+            border-left: 1px solid var(--fc-border);
+            height: 100vh;
+            display: flex;
+            flex-direction: column;
+            transform: translateX(100%);
+            transition: transform 0.3s;
+            position: fixed;
+            top: 0;
+            right: 0;
+            width: var(--fc-insights-width);
+            z-index: 10;
+        }
+        
+        body.insights-open .finchat-insights {
+            transform: translateX(0);
+        }
+        
+        .finchat-insights-header {
+            padding: var(--fc-spacing-md);
+            height: 60px;
+            border-bottom: 1px solid var(--fc-border);
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+        
+        .finchat-insights-header h3 {
+            font-size: 1rem;
+            font-weight: 600;
+            margin: 0;
+        }
+        
+        .finchat-insights-content {
+            flex-grow: 1;
+            overflow-y: auto;
+            padding: var(--fc-spacing-md);
+        }
+        
+        .finchat-insight-item {
+            padding: var(--fc-spacing-md);
+            margin-bottom: var(--fc-spacing-md);
+            background-color: var(--fc-bg-card);
+            border: 1px solid var(--fc-border);
+            border-radius: var(--fc-radius);
+            display: flex;
+            gap: var(--fc-spacing-md);
+        }
+        
+        .finchat-insight-icon {
+            width: 30px;
+            height: 30px;
+            background-color: var(--fc-primary-light);
+            color: var(--fc-primary);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            flex-shrink: 0;
+            margin-top: 4px;
+        }
+        
+        .finchat-insight-content h4 {
+            font-size: 0.9rem;
+            font-weight: 600;
+            margin-bottom: var(--fc-spacing-xs);
+        }
+        
+        .finchat-insight-content p {
+            color: var(--fc-text-secondary);
+            font-size: 0.85rem;
+        }
+        
+        .finchat-chat {
+            margin-top: auto;
+            border-top: 1px solid var(--fc-border);
+            display: flex;
+            flex-direction: column;
+            height: 50%;
+        }
+        
+        .finchat-chat-header {
+            padding: var(--fc-spacing-md);
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            font-weight: 600;
+        }
+        
+        .finchat-chat-messages {
+            flex-grow: 1;
+            overflow-y: auto;
+            padding: var(--fc-spacing-md);
+            display: flex;
+            flex-direction: column;
+            gap: var(--fc-spacing-md);
+        }
+        
+        .finchat-chat-message {
+            display: flex;
+            gap: var(--fc-spacing-md);
+        }
+        
+        .finchat-chat-message-user {
+            justify-content: flex-end;
+        }
+        
+        .finchat-chat-avatar {
+            width: 32px;
+            height: 32px;
+            background-color: var(--fc-primary-light);
+            color: var(--fc-primary);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            flex-shrink: 0;
+        }
+        
+        .finchat-chat-bubble {
+            background-color: var(--fc-bg-tertiary);
+            padding: var(--fc-spacing-sm) var(--fc-spacing-md);
+            border-radius: var(--fc-radius);
+            max-width: 80%;
+        }
+        
+        .finchat-chat-message-user .finchat-chat-bubble {
+            background-color: var(--fc-primary-light);
+            color: var(--fc-text-primary);
+        }
+        
+        .finchat-chat-input {
+            display: flex;
+            padding: var(--fc-spacing-md);
+            gap: var(--fc-spacing-sm);
+            border-top: 1px solid var(--fc-border);
+        }
+        
+        .finchat-input {
+            flex-grow: 1;
+            background-color: var(--fc-bg-tertiary);
+            border: 1px solid var(--fc-border);
+            border-radius: var(--fc-radius);
+            padding: 8px 12px;
+            color: var(--fc-text-primary);
+            font-size: 0.9rem;
+        }
+        
+        .finchat-input:focus {
+            outline: none;
+            border-color: var(--fc-primary);
+        }
+        
+        .finchat-suggested-prompts {
+            padding: var(--fc-spacing-md);
+            display: flex;
+            flex-wrap: wrap;
+            gap: var(--fc-spacing-xs);
+        }
+        
+        .finchat-suggested-prompt {
+            background-color: var(--fc-bg-tertiary);
+            border: 1px solid var(--fc-border);
+            border-radius: var(--fc-radius);
+            padding: 4px 8px;
+            font-size: 0.8rem;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+        
+        .finchat-suggested-prompt:hover {
+            background-color: var(--fc-primary-light);
+            border-color: var(--fc-primary);
+        }
+        
+        /* Toggle Buttons */
+        .finchat-toggle {
+            background-color: transparent;
+            color: var(--fc-text-secondary);
+            border: none;
+            width: 34px;
+            height: 34px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            transition: color 0.2s;
+            border-radius: 4px;
+        }
+        
+        .finchat-toggle:hover {
+            color: var(--fc-text-primary);
+            background-color: var(--fc-bg-hover);
+        }
+        
+        .finchat-toggle.active {
+            color: var(--fc-primary);
+            background-color: var(--fc-primary-light);
+        }
+        
+        /* Responsive adjustments */
+        @media (max-width: 768px) {
+            body {
+                grid-template-columns: 1fr;
+                grid-template-areas:
+                    "header"
+                    "content";
+            }
+            
+            .finchat-sidebar {
+                transform: translateX(-100%);
+            }
+            
+            body.sidebar-open .finchat-sidebar {
+                transform: translateX(0);
+            }
+            
+            .finchat-content {
+                padding: var(--fc-spacing-md);
+            }
+            
+            .finchat-header {
+                padding: 0 var(--fc-spacing-md);
+            }
+            
+            body.insights-open {
+                grid-template-columns: 1fr;
+                grid-template-areas:
+                    "header"
+                    "content";
+            }
+            
+            .finchat-insights {
+                width: 100%;
+            }
+        }
+    </style>
+    
+    
+</head>
 
-  /* AI Agent Card Styles */
-  .ai-agent-card {
-    background-color: var(--card-bg);
-    border-radius: var(--border-radius);
-    position: relative;
-    overflow: hidden;
-  }
-
-  .ai-agent-card::before {
-    content: '';
-    position: absolute;
-    top: 0;
-    right: 0;
-    bottom: 0;
-    width: 4px;
-    background: linear-gradient(to bottom, var(--ai-primary), var(--ai-secondary));
-  }
-
-  .badge-new {
-    background-color: var(--ai-primary);
-    color: white;
-    font-size: 0.7rem;
-    font-weight: 500;
-    padding: 3px 8px;
-    border-radius: 12px;
-    margin-left: 8px;
-    vertical-align: middle;
-  }
-
-  .ai-agent-interface {
-    margin-top: 1rem;
-    background-color: rgba(0, 0, 0, 0.15);
-    border-radius: var(--border-radius);
-    overflow: hidden;
-    display: flex;
-    flex-direction: column;
-    height: 380px;
-  }
-
-  .agent-messages {
-    flex: 1;
-    overflow-y: auto;
-    padding: 1rem;
-  }
-
-  .agent-message {
-    display: flex;
-    margin-bottom: 1rem;
-  }
-
-  .agent-avatar {
-    width: 36px;
-    height: 36px;
-    background-color: var(--ai-primary);
-    border-radius: 50%;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    margin-right: 12px;
-    flex-shrink: 0;
-  }
-
-  .agent-avatar i {
-    color: white;
-    font-size: 1rem;
-  }
-
-  .message-content {
-    background-color: rgba(255, 255, 255, 0.05);
-    padding: 0.75rem 1rem;
-    border-radius: 12px;
-    border-top-left-radius: 4px;
-    max-width: 85%;
-  }
-
-  .message-content p {
-    margin: 0 0 0.5rem 0;
-    color: var(--light-text);
-    line-height: 1.5;
-  }
-
-  .message-content p:last-child {
-    margin-bottom: 0;
-  }
-
-  .user-message {
-    flex-direction: row-reverse;
-  }
-
-  .user-message .agent-avatar {
-    margin-right: 0;
-    margin-left: 12px;
-    background-color: var(--ai-secondary);
-  }
-
-  .user-message .message-content {
-    border-radius: 12px;
-    border-top-right-radius: 4px;
-    background-color: rgba(0, 184, 217, 0.15);
-  }
-
-  .agent-input-container {
-    display: flex;
-    padding: 0.75rem;
-    background-color: rgba(0, 0, 0, 0.2);
-    border-top: 1px solid rgba(255, 255, 255, 0.05);
-  }
-
-  .agent-input {
-    flex: 1;
-    background-color: rgba(255, 255, 255, 0.1);
-    border: 1px solid rgba(255, 255, 255, 0.1);
-    color: var(--light-text);
-    padding: 10px 16px;
-    border-radius: var(--border-radius);
-    font-size: 0.95rem;
-  }
-
-  .agent-input:focus {
-    border-color: var(--ai-primary);
-    outline: none;
-  }
-
-  .send-button {
-    background-color: var(--ai-primary);
-    color: white;
-    border: none;
-    border-radius: var(--border-radius);
-    width: 40px;
-    margin-left: 8px;
-    cursor: pointer;
-    transition: all var(--transition-speed) ease;
-  }
-
-  .send-button:hover {
-    background-color: #2d9669;
-  }
-
-  .agent-capabilities {
-    display: flex;
-    justify-content: space-between;
-    padding: 0.5rem 0.75rem;
-    background-color: rgba(0, 0, 0, 0.15);
-  }
-
-  .capability {
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    padding: 0.5rem;
-    font-size: 0.8rem;
-    color: var(--medium-text);
-  }
-
-  .capability i {
-    margin-bottom: 4px;
-    color: var(--light-text);
-  }
-
-  /* Framework Selector Styles */
-  .framework-selector {
-    margin-top: 1rem;
-  }
-
-  .framework-toggle {
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    margin-bottom: 1rem;
-    gap: 0.5rem;
-  }
-
-  .switch {
-    position: relative;
-    display: inline-block;
-    width: 50px;
-    height: 24px;
-  }
-
-  .switch input {
-    opacity: 0;
-    width: 0;
-    height: 0;
-  }
-
-  .slider {
-    position: absolute;
-    cursor: pointer;
-    top: 0;
-    left: 0;
-    right: 0;
-    bottom: 0;
-    background-color: rgba(255, 255, 255, 0.1);
-    transition: .4s;
-  }
-
-  .slider:before {
-    position: absolute;
-    content: "";
-    height: 18px;
-    width: 18px;
-    left: 3px;
-    bottom: 3px;
-    background-color: white;
-    transition: .4s;
-  }
-
-  input:checked + .slider {
-    background-color: var(--ai-primary);
-  }
-
-  input:checked + .slider:before {
-    transform: translateX(26px);
-  }
-
-  .slider.round {
-    border-radius: 34px;
-  }
-
-  .slider.round:before {
-    border-radius: 50%;
-  }
-
-  .framework-options {
-    display: grid;
-    grid-template-columns: 1fr;
-    gap: 0.75rem;
-  }
-
-  .framework-option {
-    background-color: rgba(255, 255, 255, 0.05);
-    border-radius: var(--border-radius);
-    overflow: hidden;
-  }
-
-  .framework-option input[type="radio"] {
-    display: none;
-  }
-
-  .framework-option label {
-    display: flex;
-    padding: 0.75rem;
-    cursor: pointer;
-    transition: all var(--transition-speed) ease;
-  }
-
-  .framework-option:hover label {
-    background-color: rgba(255, 255, 255, 0.05);
-  }
-
-  .framework-option input[type="radio"]:checked + label {
-    background-color: rgba(54, 179, 126, 0.15);
-    border-left: 3px solid var(--ai-primary);
-  }
-
-  .framework-icon {
-    background-color: rgba(54, 179, 126, 0.1);
-    width: 36px;
-    height: 36px;
-    border-radius: 50%;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    margin-right: 12px;
-    flex-shrink: 0;
-  }
-
-  .framework-icon i {
-    color: var(--ai-primary);
-  }
-
-  .framework-info {
-    flex: 1;
-  }
-
-  .framework-name {
-    font-weight: 500;
-    margin-bottom: 4px;
-    font-size: 0.95rem;
-  }
-
-  .framework-desc {
-    font-size: 0.8rem;
-    color: var(--medium-text);
-  }
-
-  @media (min-width: 768px) {
-    .framework-options {
-      grid-template-columns: 1fr;
-    }
-  }
-</style>
-{% endblock %}
-
-{% block main_content %}
+<body class="insights-open finchat-dark-theme">
+    <!-- Sidebar -->
+    <div class="finchat-sidebar">
+        <div class="finchat-logo">
+            <div class="finchat-logo-icon">
+                <i class="fas fa-leaf"></i>
+            </div>
+            <div class="finchat-logo-text">SustainaTrend™</div>
+        </div>
+        
+        <nav class="finchat-nav">
+            <div class="finchat-nav-section">
+                <div class="finchat-nav-header">Overview</div>
+                
+                <a href="/" class="finchat-nav-item ">
+                    <div class="finchat-nav-icon"><i class="fas fa-chart-line"></i></div>
+                    <div class="finchat-nav-text">Dashboard</div>
+                </a>
+                
+                <a href="/trend-analysis" class="finchat-nav-item ">
+                    <div class="finchat-nav-icon"><i class="fas fa-chart-bar"></i></div>
+                    <div class="finchat-nav-text">Trend Analysis</div>
+                </a>
+                
+                <a href="/analytics-dashboard" class="finchat-nav-item ">
+                    <div class="finchat-nav-icon"><i class="fas fa-chart-pie"></i></div>
+                    <div class="finchat-nav-text">Analytics</div>
+                </a>
+            </div>
+            
+            <div class="finchat-nav-section">
+                <div class="finchat-nav-header">Intelligence</div>
+                
+                <a href="/sustainability-stories" class="finchat-nav-item ">
+                    <div class="finchat-nav-icon"><i class="fas fa-file-alt"></i></div>
+                    <div class="finchat-nav-text">Stories</div>
+                </a>
+                
+                <a href="/document-upload" class="finchat-nav-item ">
+                    <div class="finchat-nav-icon"><i class="fas fa-file-upload"></i></div>
+                    <div class="finchat-nav-text">Documents</div>
+                </a>
+                
+                <a href="/search" class="finchat-nav-item ">
+                    <div class="finchat-nav-icon"><i class="fas fa-search"></i></div>
+                    <div class="finchat-nav-text">Search</div>
+                </a>
+            </div>
+            
+            <div class="finchat-nav-section">
+                <div class="finchat-nav-header">Insights</div>
+                
+                <a href="/unified-strategy-hub" class="finchat-nav-item active">
+                    <div class="finchat-nav-icon"><i class="fas fa-lightbulb"></i></div>
+                    <div class="finchat-nav-text">Strategy Hub</div>
+                </a>
+                
+                <a href="/realestate-trends" class="finchat-nav-item ">
+                    <div class="finchat-nav-icon"><i class="fas fa-home"></i></div>
+                    <div class="finchat-nav-text">Real Estate</div>
+                </a>
+                
+                <a href="/regulatory-ai" class="finchat-nav-item ">
+                    <div class="finchat-nav-icon"><i class="fas fa-clipboard-check"></i></div>
+                    <div class="finchat-nav-text">Regulatory AI Agent</div>
+                </a>
+            </div>
+            
+            <div class="finchat-nav-section">
+                <div class="finchat-nav-header">Settings</div>
+                
+                <a href="/debug" class="finchat-nav-item ">
+                    <div class="finchat-nav-icon"><i class="fas fa-cog"></i></div>
+                    <div class="finchat-nav-text">Settings</div>
+                </a>
+                
+                <a href="/api-status" class="finchat-nav-item ">
+                    <div class="finchat-nav-icon"><i class="fas fa-server"></i></div>
+                    <div class="finchat-nav-text">API Status</div>
+                </a>
+            </div>
+        </nav>
+        
+        <div class="finchat-sidebar-toggle" id="toggleSidebar">
+            <i class="fas fa-chevron-left"></i>
+        </div>
+    </div>
+    
+    <!-- Header -->
+    <header class="finchat-header">
+        <div class="finchat-header-title">
+            <i class="fas fa-chart-line"></i>
+            Dashboard
+        </div>
+        
+        <div class="finchat-header-actions">
+            
+            <button class="finchat-toggle" id="toggleInsights" title="Toggle Insights Panel">
+                <i class="fas fa-lightbulb"></i>
+            </button>
+        </div>
+    </header>
+    
+    <!-- Main Content -->
+    <main class="finchat-content">
+        
 <div class="strategy-hub-container">
   <!-- Header Section - Dashboard-inspired Header with Metrics -->
   <div class="finchat-section">
@@ -1770,20 +1081,72 @@
           </div>
           
           <div class="framework-options" id="framework-options">
-            {% for framework_id, framework in frameworks.items() %}
+            
             <div class="framework-option">
-              <input type="radio" name="framework" id="framework-{{ framework_id }}" value="{{ framework_id }}" {% if framework_id == 'stepps' %}checked{% endif %}>
-              <label for="framework-{{ framework_id }}">
+              <input type="radio" name="framework" id="framework-sbti" value="sbti" >
+              <label for="framework-sbti">
                 <div class="framework-icon">
-                  <i class="{{ framework.icon }}"></i>
+                  <i class="chart-line"></i>
                 </div>
                 <div class="framework-info">
-                  <span class="framework-name">{{ framework.name }}</span>
-                  <span class="framework-desc">{{ framework.description }}</span>
+                  <span class="framework-name">Science-Based Targets Initiative</span>
+                  <span class="framework-desc">Align corporate targets with the Paris Agreement&#39;s 1.5°C pathway.</span>
                 </div>
               </label>
             </div>
-            {% endfor %}
+            
+            <div class="framework-option">
+              <input type="radio" name="framework" id="framework-tcfd" value="tcfd" >
+              <label for="framework-tcfd">
+                <div class="framework-icon">
+                  <i class="file-text"></i>
+                </div>
+                <div class="framework-info">
+                  <span class="framework-name">Task Force on Climate-related Financial Disclosures</span>
+                  <span class="framework-desc">Framework for climate risk assessment and disclosure.</span>
+                </div>
+              </label>
+            </div>
+            
+            <div class="framework-option">
+              <input type="radio" name="framework" id="framework-csrd" value="csrd" >
+              <label for="framework-csrd">
+                <div class="framework-icon">
+                  <i class="clipboard-list"></i>
+                </div>
+                <div class="framework-info">
+                  <span class="framework-name">Corporate Sustainability Reporting Directive</span>
+                  <span class="framework-desc">EU reporting standards for sustainability information.</span>
+                </div>
+              </label>
+            </div>
+            
+            <div class="framework-option">
+              <input type="radio" name="framework" id="framework-gri" value="gri" >
+              <label for="framework-gri">
+                <div class="framework-icon">
+                  <i class="globe"></i>
+                </div>
+                <div class="framework-info">
+                  <span class="framework-name">Global Reporting Initiative</span>
+                  <span class="framework-desc">Standards for sustainability reporting on economic, environmental and social impacts.</span>
+                </div>
+              </label>
+            </div>
+            
+            <div class="framework-option">
+              <input type="radio" name="framework" id="framework-sdg" value="sdg" >
+              <label for="framework-sdg">
+                <div class="framework-icon">
+                  <i class="target"></i>
+                </div>
+                <div class="framework-info">
+                  <span class="framework-name">UN Sustainable Development Goals</span>
+                  <span class="framework-desc">17 integrated global goals for sustainable development.</span>
+                </div>
+              </label>
+            </div>
+            
           </div>
         </div>
       </div>
@@ -1833,37 +1196,54 @@
         <p>Access your recently analyzed documents and reports.</p>
         
         <div class="document-list">
-          {% if recent_documents %}
-            {% for doc in recent_documents %}
-              <div class="document-card" data-id="{{ doc.id }}">
+          
+            
+              <div class="document-card" data-id="sustainability_report_2024.pdf">
                 <div class="document-icon">
-                  {% if doc.id.endswith('.pdf') %}
+                  
                     <i class="fas fa-file-pdf"></i>
-                  {% elif doc.id.endswith('.xlsx') or doc.id.endswith('.xls') %}
-                    <i class="fas fa-file-excel"></i>
-                  {% elif doc.id.endswith('.docx') or doc.id.endswith('.doc') %}
-                    <i class="fas fa-file-word"></i>
-                  {% elif doc.id.endswith('.csv') %}
-                    <i class="fas fa-file-csv"></i>
-                  {% else %}
-                    <i class="fas fa-file-alt"></i>
-                  {% endif %}
+                  
                 </div>
                 <div class="document-info">
-                  <div class="document-title">{{ doc.title }}<span class="document-category">{{ doc.category }}</span></div>
-                  <div class="document-meta">{{ doc.timestamp }} • {{ doc.page_count }} pages</div>
+                  <div class="document-title">Sustainability Report 2024<span class="document-category">ESG Report</span></div>
+                  <div class="document-meta">March 1, 2024 • 42 pages</div>
                 </div>
                 <div>
                   <i class="fas fa-chevron-right"></i>
                 </div>
               </div>
-            {% endfor %}
-          {% else %}
-            <div class="insight-card">
-              <div class="insight-title">No documents found</div>
-              <div class="insight-body">Upload your first document to get started with document intelligence.</div>
-            </div>
-          {% endif %}
+            
+              <div class="document-card" data-id="csrd_assessment.pdf">
+                <div class="document-icon">
+                  
+                    <i class="fas fa-file-pdf"></i>
+                  
+                </div>
+                <div class="document-info">
+                  <div class="document-title">CSRD Compliance Assessment<span class="document-category">Regulatory</span></div>
+                  <div class="document-meta">February 15, 2024 • 18 pages</div>
+                </div>
+                <div>
+                  <i class="fas fa-chevron-right"></i>
+                </div>
+              </div>
+            
+              <div class="document-card" data-id="emissions_data_2023.xlsx">
+                <div class="document-icon">
+                  
+                    <i class="fas fa-file-excel"></i>
+                  
+                </div>
+                <div class="document-info">
+                  <div class="document-title">GHG Emissions Data 2023<span class="document-category">Data</span></div>
+                  <div class="document-meta">January 20, 2024 • 3 pages</div>
+                </div>
+                <div>
+                  <i class="fas fa-chevron-right"></i>
+                </div>
+              </div>
+            
+          
         </div>
       </div>
     </div>
@@ -1880,37 +1260,135 @@
         <p>Explore various monetization strategies for sustainability intelligence to create new value streams.</p>
         
         <div class="monetization-categories">
-          {% if monetization_strategies %}
-            {% for strategy_id, strategy in monetization_strategies.items() %}
+          
+            
               <div class="monetization-category">
                 <div class="monetization-header">
                   <div class="strategy-icon">
                     <i class="fas fa-chart-line"></i>
                   </div>
                   <div class="strategy-header-text">
-                    <div class="strategy-name">{{ strategy.name }}</div>
-                    <div class="strategy-desc">{{ strategy.description }}</div>
+                    <div class="strategy-name">AI-Driven Sustainability Trend Monetization</div>
+                    <div class="strategy-desc">Monetization strategies based on AI-powered trend detection and analysis</div>
                   </div>
                 </div>
                 <div class="strategy-metrics">
                   <div class="strategy-metrics-title">Key Metrics:</div>
                   <div class="strategy-metrics-list">
-                    {% for metric in strategy.key_metrics %}
-                      <span class="strategy-metric">{{ metric }}</span>
-                    {% endfor %}
+                    
                   </div>
                 </div>
                 <div style="margin-top: 0.5rem; text-align: right;">
-                  <button class="small-action-btn analyze-strategy" data-strategy-id="{{ strategy_id }}">Analyze Opportunity</button>
+                  <button class="small-action-btn analyze-strategy" data-strategy-id="M1">Analyze Opportunity</button>
                 </div>
               </div>
-            {% endfor %}
-          {% else %}
-            <div class="insight-card">
-              <div class="insight-title">No monetization strategies found</div>
-              <div class="insight-body">Connect to the monetization strategies module to explore opportunities.</div>
-            </div>
-          {% endif %}
+            
+              <div class="monetization-category">
+                <div class="monetization-header">
+                  <div class="strategy-icon">
+                    <i class="fas fa-chart-line"></i>
+                  </div>
+                  <div class="strategy-header-text">
+                    <div class="strategy-name">Consulting Services Model</div>
+                    <div class="strategy-desc">Advisory and implementation services for sustainability reporting and improvements</div>
+                  </div>
+                </div>
+                <div class="strategy-metrics">
+                  <div class="strategy-metrics-title">Key Metrics:</div>
+                  <div class="strategy-metrics-list">
+                    
+                  </div>
+                </div>
+                <div style="margin-top: 0.5rem; text-align: right;">
+                  <button class="small-action-btn analyze-strategy" data-strategy-id="M2">Analyze Opportunity</button>
+                </div>
+              </div>
+            
+              <div class="monetization-category">
+                <div class="monetization-header">
+                  <div class="strategy-icon">
+                    <i class="fas fa-chart-line"></i>
+                  </div>
+                  <div class="strategy-header-text">
+                    <div class="strategy-name">SaaS Subscription Platform</div>
+                    <div class="strategy-desc">Cloud-based sustainability intelligence platform with tiered subscription options</div>
+                  </div>
+                </div>
+                <div class="strategy-metrics">
+                  <div class="strategy-metrics-title">Key Metrics:</div>
+                  <div class="strategy-metrics-list">
+                    
+                  </div>
+                </div>
+                <div style="margin-top: 0.5rem; text-align: right;">
+                  <button class="small-action-btn analyze-strategy" data-strategy-id="M3">Analyze Opportunity</button>
+                </div>
+              </div>
+            
+              <div class="monetization-category">
+                <div class="monetization-header">
+                  <div class="strategy-icon">
+                    <i class="fas fa-chart-line"></i>
+                  </div>
+                  <div class="strategy-header-text">
+                    <div class="strategy-name">Sustainability Data Marketplace</div>
+                    <div class="strategy-desc">Platform for buying and selling anonymized sustainability datasets and metrics</div>
+                  </div>
+                </div>
+                <div class="strategy-metrics">
+                  <div class="strategy-metrics-title">Key Metrics:</div>
+                  <div class="strategy-metrics-list">
+                    
+                  </div>
+                </div>
+                <div style="margin-top: 0.5rem; text-align: right;">
+                  <button class="small-action-btn analyze-strategy" data-strategy-id="M4">Analyze Opportunity</button>
+                </div>
+              </div>
+            
+              <div class="monetization-category">
+                <div class="monetization-header">
+                  <div class="strategy-icon">
+                    <i class="fas fa-chart-line"></i>
+                  </div>
+                  <div class="strategy-header-text">
+                    <div class="strategy-name">Certification and Verification</div>
+                    <div class="strategy-desc">Revenue from verifying sustainability claims and certifying compliance</div>
+                  </div>
+                </div>
+                <div class="strategy-metrics">
+                  <div class="strategy-metrics-title">Key Metrics:</div>
+                  <div class="strategy-metrics-list">
+                    
+                  </div>
+                </div>
+                <div style="margin-top: 0.5rem; text-align: right;">
+                  <button class="small-action-btn analyze-strategy" data-strategy-id="M5">Analyze Opportunity</button>
+                </div>
+              </div>
+            
+              <div class="monetization-category">
+                <div class="monetization-header">
+                  <div class="strategy-icon">
+                    <i class="fas fa-chart-line"></i>
+                  </div>
+                  <div class="strategy-header-text">
+                    <div class="strategy-name">AI-Generated Reporting as a Service</div>
+                    <div class="strategy-desc">Automated generation of sustainability reports and regulatory filings</div>
+                  </div>
+                </div>
+                <div class="strategy-metrics">
+                  <div class="strategy-metrics-title">Key Metrics:</div>
+                  <div class="strategy-metrics-list">
+                    
+                  </div>
+                </div>
+                <div style="margin-top: 0.5rem; text-align: right;">
+                  <button class="small-action-btn analyze-strategy" data-strategy-id="M6">Analyze Opportunity</button>
+                </div>
+              </div>
+            
+          
         </div>
       </div>
       
@@ -2550,49 +2028,8 @@
                 </div>
               </div>
               
-              <!-- Framework Dashboard - Enhanced Visualization with Dashboard Style -->
-              <div class="framework-dashboard">
-                <div class="framework-box">
-                  <div class="framework-box-header">
-                    <div class="framework-box-title">Global Reporting Initiative</div>
-                    <div class="framework-box-score">92%</div>
-                  </div>
-                  <div class="framework-box-description">
-                    The GRI Standards help organizations understand and communicate their sustainability impact with standardized metrics.
-                  </div>
-                  <div class="framework-categories">
-                    <div class="framework-category">
-                      <div class="framework-category-name">Match</div>
-                      <div class="framework-category-bar">
-                        <div class="framework-category-progress" style="width: 92%;"></div>
-                      </div>
-                      <div class="framework-category-stat">92%</div>
-                    </div>
-                  </div>
-                </div>
-                
-                <div class="framework-box">
-                  <div class="framework-box-header">
-                    <div class="framework-box-title">TCFD</div>
-                    <div class="framework-box-score">88%</div>
-                  </div>
-                  <div class="framework-box-description">
-                    Task Force on Climate-related Financial Disclosures helps organizations report climate-related risks.
-                  </div>
-                  <div class="framework-categories">
-                    <div class="framework-category">
-                      <div class="framework-category-name">Match</div>
-                      <div class="framework-category-bar">
-                        <div class="framework-category-progress" style="width: 88%;"></div>
-                      </div>
-                      <div class="framework-category-stat">88%</div>
-                    </div>
-                  </div>
-                </div>
-              </div>
-              
               <div style="margin-top: 1.5rem; text-align: center;">
-                <a href="{{ url_for('enhanced_strategy.framework_selection_guide') }}" class="fc-button outline">View Framework Selection Guide</a>
+                <a href="/framework-selection-guide" class="fc-button outline">View Framework Selection Guide</a>
               </div>
             </div>
           </div>
@@ -2646,7 +2083,7 @@
                 <div class="resource-content">
                   <div class="resource-title">Framework Selection Guide</div>
                   <div class="resource-desc">Interactive tool to find the perfect sustainability reporting framework</div>
-                  <a href="{{ url_for('enhanced_strategy.framework_selection_guide') }}" class="resource-link">Open Guide</a>
+                  <a href="/framework-selection-guide" class="resource-link">Open Guide</a>
                 </div>
               </div>
             </div>
@@ -3882,4 +3319,103 @@
     }
   });
 </script>
-{% endblock %}
+
+    </main>
+    
+    <!-- Insights Panel -->
+    <div class="finchat-insights">
+        
+        <div class="finchat-insights-header">
+            <h3>Insights</h3>
+            <button class="finchat-button-icon" id="closeInsights">
+                <i class="fas fa-times"></i>
+            </button>
+        </div>
+        
+        <div class="finchat-insights-content">
+            <div class="finchat-insight-item">
+                <div class="finchat-insight-icon">
+                    <i class="fas fa-lightbulb"></i>
+                </div>
+                <div class="finchat-insight-content">
+                    <h4>Example Insight</h4>
+                    <p>This is an example insight that would be generated by the AI.</p>
+                </div>
+            </div>
+        </div>
+        
+        
+        <!-- Chat Interface -->
+        <div class="finchat-chat">
+            <div class="finchat-chat-header">
+                <div>Sustainability Co-Pilot</div>
+                <button class="finchat-button-icon" title="Close Chat">
+                    <i class="fas fa-chevron-down"></i>
+                </button>
+            </div>
+            
+            <div class="finchat-chat-messages" id="chatMessages"></div>
+            
+            <div class="finchat-suggested-prompts">
+                <div class="finchat-suggested-prompt">Analyze my ESG metrics</div>
+                <div class="finchat-suggested-prompt">CSRD requirements overview</div>
+                <div class="finchat-suggested-prompt">Generate climate narrative</div>
+            </div>
+            
+            <div class="finchat-chat-input">
+                <input type="text" class="finchat-input" id="chatInput" placeholder="Ask me anything about sustainability...">
+                <button class="finchat-button-primary" id="sendMessageBtn">
+                    <i class="fas fa-paper-plane"></i>
+                </button>
+            </div>
+        </div>
+    </div>
+    
+    <!-- JavaScript -->
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            // Toggle sidebar
+            const toggleSidebarBtn = document.getElementById('toggleSidebar');
+            toggleSidebarBtn.addEventListener('click', function() {
+                document.body.classList.toggle('sidebar-collapsed');
+                
+                // Update button icon
+                const icon = toggleSidebarBtn.querySelector('i');
+                if (document.body.classList.contains('sidebar-collapsed')) {
+                    icon.classList.remove('fa-chevron-left');
+                    icon.classList.add('fa-chevron-right');
+                } else {
+                    icon.classList.remove('fa-chevron-right');
+                    icon.classList.add('fa-chevron-left');
+                }
+            });
+            
+            // Toggle insights panel
+            const toggleInsightsBtn = document.getElementById('toggleInsights');
+            const closeInsightsBtn = document.getElementById('closeInsights');
+            
+            toggleInsightsBtn.addEventListener('click', function() {
+                document.body.classList.toggle('insights-open');
+                toggleInsightsBtn.classList.toggle('active');
+            });
+            
+            if (closeInsightsBtn) {
+                closeInsightsBtn.addEventListener('click', function() {
+                    document.body.classList.remove('insights-open');
+                    toggleInsightsBtn.classList.remove('active');
+                });
+            }
+            
+            // Mobile sidebar toggle
+            const mobileMenuBtn = document.querySelector('.mobile-menu-toggle');
+            if (mobileMenuBtn) {
+                mobileMenuBtn.addEventListener('click', function() {
+                    document.body.classList.toggle('sidebar-open');
+                });
+            }
+        });
+    </script>
+    
+    
+</body>
+</html>
