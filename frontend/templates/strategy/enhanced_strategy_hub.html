@@ -96,6 +96,178 @@
     animation: fadeIn 0.5s ease;
   }
   
+  /* Monetization Tab Styles */
+  .monetization-categories {
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: 1rem;
+    margin-top: 1rem;
+  }
+  
+  .monetization-category {
+    background-color: var(--card-bg);
+    border-radius: var(--border-radius);
+    padding: 1rem;
+    transition: all var(--transition-speed) ease;
+  }
+  
+  .monetization-category:hover {
+    background-color: var(--card-highlight);
+    transform: translateY(-2px);
+  }
+  
+  .monetization-header {
+    display: flex;
+    align-items: flex-start;
+    margin-bottom: 0.75rem;
+  }
+  
+  .strategy-icon {
+    background-color: var(--primary-color);
+    border-radius: 50%;
+    width: 40px;
+    height: 40px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin-right: 1rem;
+    flex-shrink: 0;
+  }
+  
+  .strategy-icon i {
+    color: white;
+    font-size: 1.2rem;
+  }
+  
+  .strategy-header-text {
+    flex: 1;
+  }
+  
+  .strategy-name {
+    font-weight: 600;
+    font-size: 1.1rem;
+    margin-bottom: 0.25rem;
+    color: var(--light-text);
+  }
+  
+  .strategy-desc {
+    font-size: 0.9rem;
+    color: var(--medium-text);
+  }
+  
+  .strategy-metrics {
+    background-color: rgba(0, 0, 0, 0.15);
+    border-radius: var(--border-radius);
+    padding: 0.75rem;
+  }
+  
+  .strategy-metrics-title {
+    font-size: 0.9rem;
+    font-weight: 500;
+    margin-bottom: 0.5rem;
+    color: var(--light-text);
+  }
+  
+  .strategy-metrics-list {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.5rem;
+  }
+  
+  .strategy-metric {
+    background-color: var(--primary-dark);
+    color: white;
+    font-size: 0.8rem;
+    padding: 0.25rem 0.5rem;
+    border-radius: 4px;
+  }
+  
+  .strategic-plan-form {
+    background-color: var(--card-bg);
+    border-radius: var(--border-radius);
+    padding: 1.5rem;
+  }
+  
+  .form-group {
+    margin-bottom: 1rem;
+  }
+  
+  .form-group label {
+    display: block;
+    margin-bottom: 0.5rem;
+    font-weight: 500;
+    color: var(--light-text);
+  }
+  
+  .form-group input[type="text"],
+  .form-group select {
+    width: 100%;
+    padding: 0.75rem;
+    border-radius: 6px;
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    background-color: rgba(0, 0, 0, 0.15);
+    color: var(--light-text);
+  }
+  
+  .checkbox-list {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 0.5rem;
+  }
+  
+  .checkbox-item {
+    display: flex;
+    align-items: center;
+  }
+  
+  .checkbox-item input[type="checkbox"] {
+    margin-right: 0.5rem;
+  }
+  
+  .strategic-plan-header {
+    display: flex;
+    justify-content: space-between;
+    margin-bottom: 1.5rem;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+    padding-bottom: 1rem;
+  }
+  
+  .plan-company {
+    font-size: 1.2rem;
+    font-weight: 600;
+    color: var(--light-text);
+  }
+  
+  .plan-industry {
+    color: var(--medium-text);
+  }
+  
+  .strategic-plan-content {
+    line-height: 1.6;
+  }
+  
+  .strategic-plan-content h3 {
+    color: var(--primary-light);
+    margin-top: 1.5rem;
+    margin-bottom: 0.75rem;
+    font-size: 1.1rem;
+  }
+  
+  .strategic-plan-content ul {
+    padding-left: 1.5rem;
+    margin-bottom: 1rem;
+  }
+  
+  .strategic-plan-content li {
+    margin-bottom: 0.5rem;
+  }
+  
+  @media (min-width: 768px) {
+    .monetization-categories {
+      grid-template-columns: repeat(2, 1fr);
+    }
+  }
+  
   @keyframes fadeIn {
     from { opacity: 0; }
     to { opacity: 1; }
@@ -580,6 +752,7 @@
   <!-- Navigation Tabs - Simplified for Finchat.io Style -->
   <div class="hub-tabs">
     <div class="hub-tab active" data-tab="strategy-modeler">Strategy Modeler</div>
+    <div class="hub-tab" data-tab="monetization">Monetization</div>
     <div class="hub-tab" data-tab="virality-trends">Virality Trends</div>
     <div class="hub-tab" data-tab="data-analysis">Data Analysis</div>
   </div>
@@ -664,6 +837,152 @@
             </div>
           {% endif %}
         </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Monetization Tab -->
+  <div class="tab-content" id="monetization">
+    <div class="card-grid-2">
+      <!-- Monetization Strategies Overview -->
+      <div class="hub-card">
+        <div class="hub-card-title">
+          <i class="fas fa-hand-holding-usd"></i> Monetization Strategies
+        </div>
+        <p>Explore various monetization strategies for sustainability intelligence to create new value streams.</p>
+        
+        <div class="monetization-categories">
+          {% if monetization_strategies %}
+            {% for strategy_id, strategy in monetization_strategies.items() %}
+              <div class="monetization-category">
+                <div class="monetization-header">
+                  <div class="strategy-icon">
+                    <i class="fas fa-chart-line"></i>
+                  </div>
+                  <div class="strategy-header-text">
+                    <div class="strategy-name">{{ strategy.name }}</div>
+                    <div class="strategy-desc">{{ strategy.description }}</div>
+                  </div>
+                </div>
+                <div class="strategy-metrics">
+                  <div class="strategy-metrics-title">Key Metrics:</div>
+                  <div class="strategy-metrics-list">
+                    {% for metric in strategy.key_metrics %}
+                      <span class="strategy-metric">{{ metric }}</span>
+                    {% endfor %}
+                  </div>
+                </div>
+                <div style="margin-top: 0.5rem; text-align: right;">
+                  <button class="small-action-btn analyze-strategy" data-strategy-id="{{ strategy_id }}">Analyze Opportunity</button>
+                </div>
+              </div>
+            {% endfor %}
+          {% else %}
+            <div class="insight-card">
+              <div class="insight-title">No monetization strategies found</div>
+              <div class="insight-body">Connect to the monetization strategies module to explore opportunities.</div>
+            </div>
+          {% endif %}
+        </div>
+      </div>
+      
+      <!-- Strategic Plan Generator -->
+      <div class="hub-card">
+        <div class="hub-card-title">
+          <i class="fas fa-project-diagram"></i> Strategic Plan Generator
+        </div>
+        <p>Generate a comprehensive strategic plan for monetizing sustainability intelligence.</p>
+        
+        <div class="strategic-plan-form">
+          <div class="form-group">
+            <label for="company-name">Company Name</label>
+            <input type="text" id="company-name" placeholder="Your company name">
+          </div>
+          
+          <div class="form-group">
+            <label for="industry">Industry</label>
+            <select id="industry">
+              <option value="technology">Technology</option>
+              <option value="energy">Energy & Utilities</option>
+              <option value="manufacturing">Manufacturing</option>
+              <option value="financial">Financial Services</option>
+              <option value="retail">Retail & Consumer Goods</option>
+              <option value="healthcare">Healthcare & Life Sciences</option>
+              <option value="transportation">Transportation & Logistics</option>
+              <option value="construction">Construction & Real Estate</option>
+              <option value="agriculture">Agriculture & Food</option>
+            </select>
+          </div>
+          
+          <div class="form-group">
+            <label for="business-objectives">Business Objectives</label>
+            <div class="checkbox-list">
+              <div class="checkbox-item">
+                <input type="checkbox" id="objective-revenue" checked>
+                <label for="objective-revenue">Revenue Growth</label>
+              </div>
+              <div class="checkbox-item">
+                <input type="checkbox" id="objective-differentiation" checked>
+                <label for="objective-differentiation">Market Differentiation</label>
+              </div>
+              <div class="checkbox-item">
+                <input type="checkbox" id="objective-innovation">
+                <label for="objective-innovation">Product Innovation</label>
+              </div>
+              <div class="checkbox-item">
+                <input type="checkbox" id="objective-compliance">
+                <label for="objective-compliance">Regulatory Compliance</label>
+              </div>
+            </div>
+          </div>
+          
+          <div class="form-group">
+            <label for="sustainability-focus">Sustainability Focus Areas</label>
+            <div class="checkbox-list">
+              <div class="checkbox-item">
+                <input type="checkbox" id="focus-climate" checked>
+                <label for="focus-climate">Climate Action</label>
+              </div>
+              <div class="checkbox-item">
+                <input type="checkbox" id="focus-circular">
+                <label for="focus-circular">Circular Economy</label>
+              </div>
+              <div class="checkbox-item">
+                <input type="checkbox" id="focus-social">
+                <label for="focus-social">Social Impact</label>
+              </div>
+              <div class="checkbox-item">
+                <input type="checkbox" id="focus-biodiversity">
+                <label for="focus-biodiversity">Biodiversity</label>
+              </div>
+            </div>
+          </div>
+          
+          <div style="margin-top: 1rem; text-align: center;">
+            <button class="action-btn" id="generate-plan-btn">Generate Strategic Plan</button>
+          </div>
+        </div>
+      </div>
+    </div>
+    
+    <!-- Strategic Plan Results Section -->
+    <div class="hub-card" id="strategic-plan-results" style="display: none; margin-top: 1.5rem;">
+      <div class="hub-card-title">
+        <i class="fas fa-lightbulb"></i> <span id="plan-title">Strategic Plan</span>
+      </div>
+      
+      <div class="strategic-plan-header">
+        <div class="plan-company"></div>
+        <div class="plan-industry"></div>
+      </div>
+      
+      <div class="strategic-plan-content">
+        <!-- Content will be dynamically populated by JavaScript -->
+        <div id="plan-content"></div>
+      </div>
+      
+      <div style="margin-top: 1rem; text-align: center;">
+        <button class="secondary-action-btn" id="export-plan-btn">Export Plan</button>
       </div>
     </div>
   </div>
@@ -1499,5 +1818,185 @@
       }
     }
   });
+
+  // Monetization Tab Functionality
+  function initMonetizationTab() {
+    // Analyze Strategy button functionality
+    const analyzeStrategyButtons = document.querySelectorAll('.analyze-strategy');
+    
+    analyzeStrategyButtons.forEach(button => {
+      button.addEventListener('click', () => {
+        const strategyId = button.getAttribute('data-strategy-id');
+        
+        // API call to analyze strategy
+        fetch(`/api/monetization/analyze?strategy_id=${strategyId}`, {
+          method: 'GET',
+          headers: {
+            'Content-Type': 'application/json'
+          }
+        })
+        .then(response => response.json())
+        .then(data => {
+          if (data.success) {
+            // Display results
+            alert(`Strategy ${strategyId} analyzed: ${data.potential_score}% potential`);
+          } else {
+            console.error('Strategy analysis failed:', data.message);
+          }
+        })
+        .catch(error => {
+          console.error('Error analyzing strategy:', error);
+        });
+      });
+    });
+    
+    // Generate Strategic Plan functionality
+    const generatePlanBtn = document.getElementById('generate-plan-btn');
+    const strategicPlanResults = document.getElementById('strategic-plan-results');
+    
+    if (generatePlanBtn) {
+      generatePlanBtn.addEventListener('click', () => {
+        // Get form values
+        const companyName = document.getElementById('company-name').value || 'Your Company';
+        const industry = document.getElementById('industry').value;
+        
+        // Get selected objectives
+        const objectives = [];
+        if (document.getElementById('objective-revenue').checked) objectives.push('Revenue Growth');
+        if (document.getElementById('objective-differentiation').checked) objectives.push('Market Differentiation');
+        if (document.getElementById('objective-innovation').checked) objectives.push('Product Innovation');
+        if (document.getElementById('objective-compliance').checked) objectives.push('Regulatory Compliance');
+        
+        // Get selected focus areas
+        const focusAreas = [];
+        if (document.getElementById('focus-climate').checked) focusAreas.push('Climate Action');
+        if (document.getElementById('focus-circular').checked) focusAreas.push('Circular Economy');
+        if (document.getElementById('focus-social').checked) focusAreas.push('Social Impact');
+        if (document.getElementById('focus-biodiversity').checked) focusAreas.push('Biodiversity');
+        
+        // If no selections, set defaults
+        if (objectives.length === 0) objectives.push('Revenue Growth');
+        if (focusAreas.length === 0) focusAreas.push('Climate Action');
+        
+        // Make API request
+        fetch('/api/monetization/strategic-plan', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json'
+          },
+          body: JSON.stringify({
+            company_name: companyName,
+            industry: industry,
+            objectives: objectives,
+            focus_areas: focusAreas
+          })
+        })
+        .then(response => response.json())
+        .then(data => {
+          if (data.success) {
+            // Update UI with plan
+            document.getElementById('plan-title').textContent = `Strategic Plan for ${companyName}`;
+            document.querySelector('.plan-company').textContent = companyName;
+            document.querySelector('.plan-industry').textContent = industry;
+            
+            // Format and display plan content
+            const planContent = document.getElementById('plan-content');
+            planContent.innerHTML = formatStrategicPlan(data.plan);
+            
+            // Show results section
+            strategicPlanResults.style.display = 'block';
+            
+            // Scroll to results
+            strategicPlanResults.scrollIntoView({ behavior: 'smooth' });
+          } else {
+            console.error('Plan generation failed:', data.message);
+            alert('Failed to generate strategic plan. Please try again.');
+          }
+        })
+        .catch(error => {
+          console.error('Error generating plan:', error);
+          alert('An error occurred while generating the plan. Please try again.');
+        });
+      });
+    }
+    
+    // Export Plan button functionality
+    const exportPlanBtn = document.getElementById('export-plan-btn');
+    if (exportPlanBtn) {
+      exportPlanBtn.addEventListener('click', () => {
+        const companyName = document.querySelector('.plan-company').textContent;
+        const planContent = document.getElementById('plan-content').innerHTML;
+        
+        // Prepare data for export
+        const exportData = {
+          company_name: companyName,
+          plan_html: planContent
+        };
+        
+        // Make API request to export
+        fetch('/api/monetization/export-plan', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json'
+          },
+          body: JSON.stringify(exportData)
+        })
+        .then(response => response.blob())
+        .then(blob => {
+          // Create a download link
+          const url = window.URL.createObjectURL(blob);
+          const a = document.createElement('a');
+          a.style.display = 'none';
+          a.href = url;
+          a.download = `${companyName.replace(/\s+/g, '_')}_Strategic_Plan.pdf`;
+          document.body.appendChild(a);
+          a.click();
+          window.URL.revokeObjectURL(url);
+        })
+        .catch(error => {
+          console.error('Error exporting plan:', error);
+          alert('Failed to export the strategic plan. Please try again.');
+        });
+      });
+    }
+  }
+  
+  function formatStrategicPlan(plan) {
+    if (!plan || !plan.sections) {
+      return '<p>No plan data available</p>';
+    }
+    
+    let html = '';
+    
+    plan.sections.forEach(section => {
+      html += `<h3>${section.title}</h3>`;
+      html += `<p>${section.content}</p>`;
+      
+      if (section.items && section.items.length > 0) {
+        html += '<ul>';
+        section.items.forEach(item => {
+          html += `<li>${item}</li>`;
+        });
+        html += '</ul>';
+      }
+    });
+    
+    return html;
+  }
+  
+  // Initialize the monetization tab when it becomes active
+  tabs.forEach(tab => {
+    if (tab.getAttribute('data-tab') === 'monetization') {
+      tab.addEventListener('click', () => {
+        // Initialize monetization tab when it's clicked
+        initMonetizationTab();
+      });
+    }
+  });
+
+  // Initialize monetization tab if it's the active tab on page load
+  if (document.querySelector('.hub-tab.active').getAttribute('data-tab') === 'monetization') {
+    initMonetizationTab();
+  }
 </script>
 {% endblock %}
