@@ -28,19 +28,30 @@ import random
 import re
 from datetime import datetime
 from typing import Dict, Any, List, Optional, Union, Tuple
-from flask import Blueprint, render_template, redirect, url_for, flash, request, jsonify, session
+
+# Import Flask 
+try:
+    from flask import Blueprint, render_template, redirect, url_for, flash, request, jsonify, session
+except ImportError:
+    # Add fallback for testing if flask is not available
+    class Blueprint:
+        def __init__(self, *args, **kwargs): pass
+        def route(self, *args, **kwargs): return lambda x: x
 
 # Import common utilities and constants
 import os
 
-# Define path for template utils
-sys.path.append(os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))), 'utils'))
+# Import utility functions
 try:
-    from template_utils import get_context_for_template
+    from frontend.utils.template_utils import get_context_for_template
 except ImportError:
-    # Fallback function if import fails
-    def get_context_for_template():
-        return {"navigation": [], "theme_preference": "dark"}
+    try:
+        sys.path.append(os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))), 'utils'))
+        from template_utils import get_context_for_template
+    except ImportError:
+        # Fallback function if import fails
+        def get_context_for_template():
+            return {"navigation": [], "theme_preference": "dark"}
 
 # Import Strategy AI Consultant
 try:
@@ -284,10 +295,20 @@ def auto_select_framework(
     try:
         # Import AI connector for framework selection
         try:
-            from utils.ai_connector import get_ai, get_rag_system
+            # Try multiple import paths to handle different module structures
+            try:
+                from frontend.utils.ai_connector import get_ai, get_rag_system
+            except ImportError:
+                try:
+                    from utils.ai_connector import get_ai, get_rag_system
+                except ImportError:
+                    # Last resort - relative import from parent directory
+                    sys.path.append('..')
+                    from utils.ai_connector import get_ai, get_rag_system
+            
             ai_available = True
             # Get AI instance for decision making
-            ai = get_ai()
+            ai, ai_type = get_ai()
             rag_system = get_rag_system()
         except ImportError:
             logger.warning("AI connector not available for framework selection")
