@@ -222,6 +222,13 @@ def enhanced_strategy_hub():
             sbti_targets = None
             sbti_reference_companies = None
         
+        # Get active_nav from nav_context if available or set it
+        if 'active_nav' in nav_context:
+            # Remove active_nav from nav_context to avoid duplicate
+            nav_context_copy = {k: v for k, v in nav_context.items() if k != 'active_nav'}
+        else:
+            nav_context_copy = nav_context
+            
         # Render the enhanced template with all components
         return render_template(
             "strategy/enhanced_strategy_hub.html",
@@ -243,7 +250,7 @@ def enhanced_strategy_hub():
             trend_virality_available=TREND_VIRALITY_AVAILABLE,  # Added flag for trend virality
             sbti_available=SBTI_AVAILABLE,  # Added flag for Science-Based Targets
             ai_consultant_available=AI_CONSULTANT_AVAILABLE,  # Added flag for AI Strategy Consultant
-            **nav_context
+            **nav_context_copy
         )
         
     except Exception as e:
@@ -413,6 +420,13 @@ def framework_selection_guide():
         # Get navigation context
         nav_context = get_context_for_template()
         
+        # Get active_nav from nav_context if available or set it
+        if 'active_nav' in nav_context:
+            # Remove active_nav from nav_context to avoid duplicate
+            nav_context_copy = {k: v for k, v in nav_context.items() if k != 'active_nav'}
+        else:
+            nav_context_copy = nav_context
+            
         # Render the framework selection guide template
         return render_template(
             "strategy/framework_selection_guide.html",
@@ -420,7 +434,7 @@ def framework_selection_guide():
             active_nav="strategy",
             frameworks=STRATEGY_FRAMEWORKS,
             industry_mappings=INDUSTRY_FRAMEWORK_MAPPING,
-            **nav_context
+            **nav_context_copy
         )
     except Exception as e:
         logger.error(f"Error in framework selection guide: {str(e)}")
