@@ -499,6 +499,284 @@
     box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
   }
   
+  /* AI Framework Selection Styling */
+  .assessment-sliders {
+    margin-top: 1rem;
+  }
+  
+  .assessment-slider {
+    margin-bottom: 1rem;
+  }
+  
+  .slider-label {
+    display: flex;
+    justify-content: space-between;
+    margin-bottom: 0.5rem;
+    font-size: 0.9rem;
+  }
+  
+  .slider-value {
+    font-weight: 600;
+    color: var(--primary-light);
+  }
+  
+  input[type="range"] {
+    width: 100%;
+    height: 8px;
+    border-radius: 4px;
+    background-color: rgba(255, 255, 255, 0.1);
+    outline: none;
+    -webkit-appearance: none;
+  }
+  
+  input[type="range"]::-webkit-slider-thumb {
+    -webkit-appearance: none;
+    width: 18px;
+    height: 18px;
+    border-radius: 50%;
+    background: var(--primary-color);
+    cursor: pointer;
+  }
+  
+  .auto-select-container {
+    display: flex;
+    align-items: center;
+    margin-bottom: 1rem;
+    padding: 0.75rem;
+    background-color: rgba(54, 179, 126, 0.1);
+    border-radius: var(--border-radius);
+  }
+  
+  .auto-select-container input[type="checkbox"] {
+    margin-right: 0.5rem;
+  }
+  
+  .framework-selection-title {
+    margin: 1rem 0 0.5rem 0;
+    color: var(--medium-text);
+    font-size: 0.9rem;
+  }
+  
+  .framework-options-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 0.5rem;
+  }
+  
+  @media (max-width: 768px) {
+    .framework-options-grid {
+      grid-template-columns: 1fr;
+    }
+  }
+  
+  .framework-option {
+    display: flex;
+    align-items: center;
+    padding: 0.5rem;
+    background-color: rgba(255, 255, 255, 0.05);
+    border-radius: 6px;
+  }
+  
+  .framework-option input[type="radio"] {
+    margin-right: 0.5rem;
+  }
+  
+  .form-actions {
+    margin-top: 1.5rem;
+    text-align: center;
+  }
+  
+  .card-description {
+    margin-bottom: 1.5rem;
+    color: var(--medium-text);
+    font-size: 0.95rem;
+    line-height: 1.5;
+  }
+  
+  .framework-results {
+    margin-top: 2rem;
+  }
+  
+  .loading-spinner {
+    text-align: center;
+    padding: 2rem;
+    color: var(--light-text);
+    font-size: 1.1rem;
+  }
+  
+  .loading-spinner i {
+    margin-right: 0.5rem;
+    color: var(--primary-color);
+  }
+  
+  .framework-badge {
+    padding: 0.5rem 1rem;
+    border-radius: var(--border-radius);
+    font-size: 0.9rem;
+    font-weight: 500;
+    background-color: rgba(54, 179, 126, 0.15);
+    color: var(--primary-light);
+  }
+  
+  .confidence-meter {
+    margin: 1rem 0;
+  }
+  
+  .confidence-label {
+    display: flex;
+    justify-content: space-between;
+    margin-bottom: 0.5rem;
+    font-size: 0.9rem;
+  }
+  
+  .confidence-bar {
+    height: 8px;
+    background-color: rgba(255, 255, 255, 0.1);
+    border-radius: 4px;
+    overflow: hidden;
+  }
+  
+  .confidence-fill {
+    height: 100%;
+    background: linear-gradient(90deg, var(--primary-color), var(--primary-light));
+    border-radius: 4px;
+  }
+  
+  .alternatives {
+    margin-top: 1rem;
+  }
+  
+  .alternatives-label {
+    color: var(--medium-text);
+    font-size: 0.9rem;
+    margin-bottom: 0.5rem;
+  }
+  
+  .alternatives-list {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.5rem;
+  }
+  
+  .alternative-tag {
+    display: inline-block;
+    padding: 0.25rem 0.75rem;
+    border-radius: 50px;
+    font-size: 0.8rem;
+    background-color: rgba(255, 255, 255, 0.1);
+    color: var(--light-text);
+  }
+  
+  .porters-grid, .swot-grid, .bcg-grid {
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: 1rem;
+    margin: 1.5rem 0;
+  }
+  
+  @media (min-width: 768px) {
+    .porters-grid {
+      grid-template-columns: repeat(2, 1fr);
+    }
+    
+    .swot-grid, .bcg-grid {
+      grid-template-columns: repeat(2, 1fr);
+    }
+  }
+  
+  .porters-dimension, .swot-quadrant, .bcg-quadrant {
+    background-color: rgba(255, 255, 255, 0.05);
+    border-radius: var(--border-radius);
+    padding: 1rem;
+  }
+  
+  .dimension-header, .quadrant-header {
+    display: flex;
+    justify-content: space-between;
+    margin-bottom: 0.75rem;
+  }
+  
+  .dimension-name, .quadrant-header {
+    font-weight: 500;
+  }
+  
+  .dimension-score {
+    font-weight: 600;
+    color: var(--primary-light);
+  }
+  
+  .dimension-bar {
+    height: 6px;
+    background-color: rgba(255, 255, 255, 0.1);
+    border-radius: 3px;
+    margin-bottom: 0.75rem;
+    overflow: hidden;
+  }
+  
+  .dimension-fill {
+    height: 100%;
+    background: linear-gradient(90deg, var(--primary-dark), var(--primary-light));
+    border-radius: 3px;
+  }
+  
+  .dimension-insights {
+    font-size: 0.9rem;
+    color: var(--medium-text);
+    line-height: 1.5;
+  }
+  
+  .porters-summary {
+    display: flex;
+    justify-content: space-between;
+    margin-top: 1.5rem;
+  }
+  
+  .summary-item {
+    background-color: rgba(255, 255, 255, 0.05);
+    border-radius: var(--border-radius);
+    padding: 1rem;
+    text-align: center;
+    flex: 1;
+    margin: 0 0.5rem;
+  }
+  
+  .summary-label {
+    font-size: 0.9rem;
+    color: var(--medium-text);
+    margin-bottom: 0.5rem;
+  }
+  
+  .summary-value {
+    font-size: 1.5rem;
+    font-weight: 600;
+    color: var(--primary-light);
+  }
+  
+  .quadrant-list {
+    padding-left: 1.5rem;
+    margin-bottom: 0;
+  }
+  
+  .quadrant-list li {
+    margin-bottom: 0.5rem;
+    font-size: 0.9rem;
+  }
+  
+  .recommendations-list {
+    padding-left: 1.5rem;
+    margin-bottom: 0;
+  }
+  
+  .recommendations-list li {
+    margin-bottom: 0.75rem;
+    font-size: 0.95rem;
+    line-height: 1.5;
+  }
+  
+  .ai-selection-explanation {
+    margin-bottom: 1.5rem;
+  }
+  
   .industry-impact {
     margin: 1.5rem 0;
   }
@@ -1055,6 +1333,133 @@
 
   <!-- Strategy Modeler Tab -->
   <div class="tab-content active" id="strategy-modeler">
+    <!-- AI-Driven Framework Selection -->
+    <div class="strategy-hub-container">
+      <div class="hub-card">
+        <div class="hub-card-title"><i class="fas fa-brain"></i> AI-Driven Framework Selection</div>
+        <p class="card-description">Our intelligent system will select the most appropriate strategic framework based on your company's profile and sustainability goals.</p>
+        
+        <form id="framework-form" class="strategic-plan-form">
+          <div class="form-group">
+            <label for="company-name">Company Name</label>
+            <input type="text" id="company-name" name="company_name" placeholder="Enter your company name" required>
+          </div>
+          
+          <div class="form-group">
+            <label for="industry">Industry</label>
+            <select id="industry" name="industry" required>
+              <option value="">Select industry</option>
+              <option value="real estate">Real Estate</option>
+              <option value="energy">Energy</option>
+              <option value="technology">Technology</option>
+              <option value="manufacturing">Manufacturing</option>
+              <option value="financial services">Financial Services</option>
+              <option value="healthcare">Healthcare</option>
+              <option value="retail">Retail</option>
+              <option value="automotive">Automotive</option>
+              <option value="agriculture">Agriculture</option>
+              <option value="construction">Construction</option>
+            </select>
+          </div>
+          
+          <div class="form-group">
+            <div class="auto-select-container">
+              <input type="checkbox" id="auto-select-framework" name="auto_select" checked>
+              <label for="auto-select-framework">Let AI select the best framework</label>
+            </div>
+            
+            <div id="framework-options" style="opacity: 0.5; pointer-events: none;">
+              <div class="framework-selection-title">Or select a framework manually:</div>
+              <div class="framework-options-grid">
+                <div class="framework-option">
+                  <input type="radio" id="framework-porters" name="framework" value="porters">
+                  <label for="framework-porters">Porter's Five Forces</label>
+                </div>
+                <div class="framework-option">
+                  <input type="radio" id="framework-swot" name="framework" value="swot">
+                  <label for="framework-swot">SWOT Analysis</label>
+                </div>
+                <div class="framework-option">
+                  <input type="radio" id="framework-bcg" name="framework" value="bcg">
+                  <label for="framework-bcg">BCG Matrix</label>
+                </div>
+                <div class="framework-option">
+                  <input type="radio" id="framework-mckinsey" name="framework" value="mckinsey">
+                  <label for="framework-mckinsey">McKinsey Matrix</label>
+                </div>
+                <div class="framework-option">
+                  <input type="radio" id="framework-strategy-pyramid" name="framework" value="strategy_pyramid">
+                  <label for="framework-strategy-pyramid">Strategy Pyramid</label>
+                </div>
+                <div class="framework-option">
+                  <input type="radio" id="framework-blue-ocean" name="framework" value="blue_ocean">
+                  <label for="framework-blue-ocean">Blue Ocean Strategy</label>
+                </div>
+              </div>
+            </div>
+          </div>
+          
+          <div class="form-group">
+            <label>Business Environment Assessment</label>
+            <div class="assessment-sliders">
+              <div class="assessment-slider">
+                <div class="slider-label">
+                  <span>Competitive Rivalry</span>
+                  <span class="slider-value">50</span>
+                </div>
+                <input type="range" id="competitive-rivalry" min="0" max="100" value="50" 
+                  oninput="this.previousElementSibling.querySelector('.slider-value').textContent = this.value">
+              </div>
+              
+              <div class="assessment-slider">
+                <div class="slider-label">
+                  <span>Supplier Power</span>
+                  <span class="slider-value">50</span>
+                </div>
+                <input type="range" id="supplier-power" min="0" max="100" value="50"
+                  oninput="this.previousElementSibling.querySelector('.slider-value').textContent = this.value">
+              </div>
+              
+              <div class="assessment-slider">
+                <div class="slider-label">
+                  <span>Buyer Power</span>
+                  <span class="slider-value">50</span>
+                </div>
+                <input type="range" id="buyer-power" min="0" max="100" value="50"
+                  oninput="this.previousElementSibling.querySelector('.slider-value').textContent = this.value">
+              </div>
+              
+              <div class="assessment-slider">
+                <div class="slider-label">
+                  <span>Threat of Substitution</span>
+                  <span class="slider-value">50</span>
+                </div>
+                <input type="range" id="substitution-threat" min="0" max="100" value="50"
+                  oninput="this.previousElementSibling.querySelector('.slider-value').textContent = this.value">
+              </div>
+              
+              <div class="assessment-slider">
+                <div class="slider-label">
+                  <span>Threat of New Entry</span>
+                  <span class="slider-value">50</span>
+                </div>
+                <input type="range" id="new-entry-threat" min="0" max="100" value="50"
+                  oninput="this.previousElementSibling.querySelector('.slider-value').textContent = this.value">
+              </div>
+            </div>
+          </div>
+          
+          <div class="form-actions">
+            <button type="submit" class="action-btn">Analyze with AI</button>
+          </div>
+        </form>
+      </div>
+      
+      <div id="framework-results" class="framework-results">
+        <!-- Results will be displayed here -->
+      </div>
+    </div>
+    
     <div class="card-grid-2">
       <!-- AI Strategy Agent Card -->
       <div class="hub-card ai-agent-card">
@@ -2457,8 +2862,342 @@
       initMonetizationTab();
     }
     
-    // AI Strategy Agent Implementation
-    const agentInput = document.getElementById('agent-input');
+    // Framework Selection Form Implementation
+  function initFrameworkSelection() {
+    const frameworkForm = document.getElementById('framework-form');
+    const autoSelectCheckbox = document.getElementById('auto-select-framework');
+    const frameworkOptions = document.getElementById('framework-options');
+    
+    // Toggle manual framework selection based on auto-select checkbox
+    if (autoSelectCheckbox) {
+      autoSelectCheckbox.addEventListener('change', function() {
+        if (this.checked) {
+          frameworkOptions.style.opacity = '0.5';
+          frameworkOptions.style.pointerEvents = 'none';
+        } else {
+          frameworkOptions.style.opacity = '1';
+          frameworkOptions.style.pointerEvents = 'auto';
+        }
+      });
+    }
+    
+    // Handle form submission
+    if (frameworkForm) {
+      frameworkForm.addEventListener('submit', function(e) {
+        e.preventDefault();
+        
+        // Show loading state
+        const resultsContainer = document.getElementById('framework-results');
+        resultsContainer.innerHTML = `
+          <div class="loading-spinner">
+            <i class="fas fa-circle-notch fa-spin"></i> Analyzing with AI...
+          </div>
+        `;
+        
+        // Gather form data
+        const formData = new FormData(frameworkForm);
+        const companyName = formData.get('company_name');
+        const industry = formData.get('industry');
+        const autoSelect = formData.get('auto_select') === 'on';
+        const framework = formData.get('framework') || '';
+        
+        // Get slider values
+        const competitiveRivalry = document.getElementById('competitive-rivalry').value;
+        const supplierPower = document.getElementById('supplier-power').value;
+        const buyerPower = document.getElementById('buyer-power').value;
+        const substitutionThreat = document.getElementById('substitution-threat').value;
+        const newEntryThreat = document.getElementById('new-entry-threat').value;
+        
+        // Prepare data payload
+        const payload = {
+          company_name: companyName,
+          industry: industry,
+          auto_select: autoSelect,
+          framework: framework,
+          business_assessment: {
+            competitive_rivalry: parseInt(competitiveRivalry),
+            supplier_power: parseInt(supplierPower),
+            buyer_power: parseInt(buyerPower),
+            substitution_threat: parseInt(substitutionThreat),
+            new_entry_threat: parseInt(newEntryThreat)
+          }
+        };
+        
+        // Send request to API
+        fetch('/api/strategy/select-framework', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json'
+          },
+          body: JSON.stringify(payload)
+        })
+        .then(response => response.json())
+        .then(data => {
+          if (data.success) {
+            // Display the results
+            displayFrameworkResults(data, resultsContainer);
+          } else {
+            console.error('Framework selection failed:', data.message);
+            resultsContainer.innerHTML = `
+              <div class="error-message">
+                <i class="fas fa-exclamation-circle"></i> 
+                Failed to analyze. ${data.message || 'Please try again.'}
+              </div>
+            `;
+          }
+        })
+        .catch(error => {
+          console.error('Error selecting framework:', error);
+          resultsContainer.innerHTML = `
+            <div class="error-message">
+              <i class="fas fa-exclamation-circle"></i> 
+              An error occurred. Please try again.
+            </div>
+          `;
+        });
+      });
+    }
+  }
+  
+  function displayFrameworkResults(data, container) {
+    // Determine the framework type and render the appropriate template
+    const framework = data.selected_framework;
+    let resultsHTML = '';
+    
+    // Common header section
+    resultsHTML += `
+      <div class="framework-result-header">
+        <h3>Strategy Framework Analysis for ${data.company_name}</h3>
+        <div class="framework-badge">
+          <i class="fas fa-check-circle"></i> ${framework.name}
+        </div>
+        
+        <div class="ai-selection-explanation">
+          <p>${data.selection_explanation}</p>
+        </div>
+        
+        <div class="confidence-meter">
+          <div class="confidence-label">
+            <span>AI Confidence</span>
+            <span>${data.confidence_score}%</span>
+          </div>
+          <div class="confidence-bar">
+            <div class="confidence-fill" style="width: ${data.confidence_score}%"></div>
+          </div>
+        </div>
+        
+        <div class="alternatives">
+          <div class="alternatives-label">Alternative Frameworks:</div>
+          <div class="alternatives-list">
+            ${data.alternative_frameworks.map(alt => 
+              `<span class="alternative-tag">${alt}</span>`
+            ).join('')}
+          </div>
+        </div>
+      </div>
+    `;
+    
+    // Framework-specific visualization
+    if (framework.id === 'porters') {
+      resultsHTML += renderPortersFramework(data);
+    } else if (framework.id === 'swot') {
+      resultsHTML += renderSwotFramework(data);
+    } else if (framework.id === 'bcg') {
+      resultsHTML += renderBcgMatrix(data);
+    } else {
+      // Generic framework display
+      resultsHTML += renderGenericFramework(data);
+    }
+    
+    // Recommendations section
+    resultsHTML += `
+      <div class="framework-recommendations">
+        <h4>Strategic Recommendations</h4>
+        <ol class="recommendations-list">
+          ${data.recommendations.map(rec => 
+            `<li>${rec}</li>`
+          ).join('')}
+        </ol>
+      </div>
+      
+      <div class="form-actions">
+        <button type="button" class="action-btn" id="implement-framework">
+          Implement Framework
+        </button>
+        <button type="button" class="action-btn secondary" id="export-analysis">
+          Export Analysis
+        </button>
+      </div>
+    `;
+    
+    // Update the container with the results
+    container.innerHTML = resultsHTML;
+    
+    // Add event listeners to the new buttons
+    const implementBtn = document.getElementById('implement-framework');
+    if (implementBtn) {
+      implementBtn.addEventListener('click', function() {
+        alert('Implementation feature coming soon!');
+      });
+    }
+    
+    const exportBtn = document.getElementById('export-analysis');
+    if (exportBtn) {
+      exportBtn.addEventListener('click', function() {
+        alert('Export feature coming soon!');
+      });
+    }
+  }
+  
+  function renderPortersFramework(data) {
+    const portersData = data.framework_data;
+    
+    return `
+      <div class="porters-grid">
+        ${Object.entries(portersData.forces).map(([key, force]) => `
+          <div class="porters-dimension">
+            <div class="dimension-header">
+              <div class="dimension-name">${force.name}</div>
+              <div class="dimension-score">${force.score}/100</div>
+            </div>
+            <div class="dimension-bar">
+              <div class="dimension-fill" style="width: ${force.score}%"></div>
+            </div>
+            <div class="dimension-insights">${force.insights}</div>
+          </div>
+        `).join('')}
+      </div>
+      
+      <div class="porters-summary">
+        <div class="summary-item">
+          <div class="summary-label">Overall Threat Level</div>
+          <div class="summary-value">${portersData.overall_threat_level}/100</div>
+        </div>
+        <div class="summary-item">
+          <div class="summary-label">Bargaining Position</div>
+          <div class="summary-value">${portersData.bargaining_position}/100</div>
+        </div>
+        <div class="summary-item">
+          <div class="summary-label">Industry Attractiveness</div>
+          <div class="summary-value">${portersData.industry_attractiveness}/100</div>
+        </div>
+      </div>
+    `;
+  }
+  
+  function renderSwotFramework(data) {
+    const swotData = data.framework_data;
+    
+    return `
+      <div class="swot-grid">
+        <div class="swot-quadrant">
+          <div class="quadrant-header">Strengths</div>
+          <ul class="quadrant-list">
+            ${swotData.strengths.map(item => `<li>${item}</li>`).join('')}
+          </ul>
+        </div>
+        <div class="swot-quadrant">
+          <div class="quadrant-header">Weaknesses</div>
+          <ul class="quadrant-list">
+            ${swotData.weaknesses.map(item => `<li>${item}</li>`).join('')}
+          </ul>
+        </div>
+        <div class="swot-quadrant">
+          <div class="quadrant-header">Opportunities</div>
+          <ul class="quadrant-list">
+            ${swotData.opportunities.map(item => `<li>${item}</li>`).join('')}
+          </ul>
+        </div>
+        <div class="swot-quadrant">
+          <div class="quadrant-header">Threats</div>
+          <ul class="quadrant-list">
+            ${swotData.threats.map(item => `<li>${item}</li>`).join('')}
+          </ul>
+        </div>
+      </div>
+    `;
+  }
+  
+  function renderBcgMatrix(data) {
+    const bcgData = data.framework_data;
+    
+    return `
+      <div class="bcg-grid">
+        <div class="bcg-quadrant">
+          <div class="quadrant-header">Stars</div>
+          <ul class="quadrant-list">
+            ${bcgData.stars.map(item => `<li>${item}</li>`).join('')}
+          </ul>
+        </div>
+        <div class="bcg-quadrant">
+          <div class="quadrant-header">Question Marks</div>
+          <ul class="quadrant-list">
+            ${bcgData.question_marks.map(item => `<li>${item}</li>`).join('')}
+          </ul>
+        </div>
+        <div class="bcg-quadrant">
+          <div class="quadrant-header">Cash Cows</div>
+          <ul class="quadrant-list">
+            ${bcgData.cash_cows.map(item => `<li>${item}</li>`).join('')}
+          </ul>
+        </div>
+        <div class="bcg-quadrant">
+          <div class="quadrant-header">Dogs</div>
+          <ul class="quadrant-list">
+            ${bcgData.dogs.map(item => `<li>${item}</li>`).join('')}
+          </ul>
+        </div>
+      </div>
+    `;
+  }
+  
+  function renderGenericFramework(data) {
+    return `
+      <div class="generic-framework">
+        <div class="framework-description">
+          <p>${data.framework_description}</p>
+        </div>
+        
+        <div class="industry-impact">
+          <h4>Industry Impact Assessment</h4>
+          ${Object.entries(data.industry_impact || {}).map(([factor, value]) => `
+            <div class="impact-factor">
+              <div class="impact-label">
+                <span>${factor}</span>
+                <span>${value}/100</span>
+              </div>
+              <div class="impact-bar">
+                <div class="impact-fill" style="width: ${value}%"></div>
+              </div>
+            </div>
+          `).join('')}
+        </div>
+        
+        <div class="strategic-items">
+          <h4>Strategic Focus Areas</h4>
+          ${data.strategic_items.map(item => `
+            <div class="strategic-item">
+              <div class="strategic-header">
+                <div class="strategic-area">${item.area}</div>
+                <div class="strategic-potential ${item.potential_class}">${item.potential}</div>
+              </div>
+              <div class="strategic-timeframe">${item.timeframe}</div>
+              <div class="strategic-response">${item.response}</div>
+            </div>
+          `).join('')}
+        </div>
+      </div>
+    `;
+  }
+  
+  // Call initFrameworkSelection when the page loads
+  document.addEventListener('DOMContentLoaded', function() {
+    // Initialize the framework selection form
+    initFrameworkSelection();
+  });
+  
+  // AI Strategy Agent Implementation
+  const agentInput = document.getElementById('agent-input');
     const sendMessageBtn = document.getElementById('send-message');
     const messagesContainer = document.getElementById('agent-messages');
     const autoFrameworkToggle = document.getElementById('auto-framework');

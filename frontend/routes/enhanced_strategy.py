@@ -25,6 +25,7 @@ import uuid
 import sys
 import json
 import random
+import re
 from datetime import datetime
 from typing import Dict, Any, List, Optional, Union, Tuple
 from flask import Blueprint, render_template, redirect, url_for, flash, request, jsonify, session
@@ -170,13 +171,30 @@ BUSINESS_STRATEGY_FRAMEWORKS = {
     }
 }
 
+# Define Industry to Framework Mapping
+INDUSTRY_FRAMEWORK_MAPPING = {
+    "real estate": ["mckinsey", "swot", "porters"],
+    "energy": ["porters", "bcg", "blue_ocean"],
+    "technology": ["blue_ocean", "strategy_pyramid", "swot"],
+    "manufacturing": ["bcg", "porters", "swot"],
+    "financial services": ["mckinsey", "strategy_pyramid", "porters"],
+    "healthcare": ["swot", "strategy_pyramid", "porters"],
+    "retail": ["bcg", "blue_ocean", "swot"],
+    "automotive": ["blue_ocean", "bcg", "mckinsey"],
+    "agriculture": ["porters", "swot", "strategy_pyramid"],
+    "construction": ["mckinsey", "porters", "swot"]
+}
+
 # Import storytelling functions if available
 try:
     from frontend.sustainability_storytelling import (
-        get_enhanced_stories, get_data_driven_stories, STORYTELLING_AVAILABLE
+        get_enhanced_stories, get_data_driven_stories
     )
+    STORYTELLING_AVAILABLE = True
+    logger.info("Storytelling module imported successfully")
 except ImportError:
     STORYTELLING_AVAILABLE = False
+    logger.warning("Storytelling module import failed, using fallback")
     get_enhanced_stories = lambda **kwargs: []
     get_data_driven_stories = lambda: []
 
@@ -191,21 +209,30 @@ def analyze_with_framework(
     framework_id: str,
     data: Dict[str, Any],
     company_name: str,
-    industry: str
+    industry: str,
+    auto_select: bool = False
 ) -> Dict[str, Any]:
     """
     Analyze sustainability data using the selected strategic framework
     
     Args:
-        framework_id: ID of the framework to use
+        framework_id: ID of the framework to use (or 'auto' for AI selection)
         data: Sustainability data to analyze
         company_name: Company name for context
         industry: Industry for context
+        auto_select: Whether to automatically select best framework using AI
         
     Returns:
         Dictionary with analysis results
     """
     logger.info(f"Analyzing with framework {framework_id} for {company_name} in {industry}")
+    
+    # If auto_select is True or framework_id is 'auto', use AI to determine best framework
+    if auto_select or framework_id == 'auto':
+        logger.info(f"Auto-selecting best framework for {company_name} in {industry}")
+        selected_framework = auto_select_framework(data, company_name, industry)
+        framework_id = selected_framework["framework_id"]
+        logger.info(f"AI selected framework: {framework_id}")
     
     # Check if the framework is valid
     if framework_id not in BUSINESS_STRATEGY_FRAMEWORKS:
@@ -235,6 +262,188 @@ def analyze_with_framework(
         # If we have a framework definition but no specific analysis function,
         # use a generic analysis approach
         return generate_generic_framework_analysis(framework, data, company_name, industry)
+
+def auto_select_framework(
+    data: Dict[str, Any],
+    company_name: str,
+    industry: str
+) -> Dict[str, Any]:
+    """
+    Automatically select the most appropriate framework using AI
+    
+    Args:
+        data: Analysis data
+        company_name: Company name
+        industry: Industry
+        
+    Returns:
+        Dictionary with selected framework ID and explanation
+    """
+    logger.info(f"Auto-selecting framework for {company_name} in {industry}")
+    
+    try:
+        # Import AI connector for framework selection
+        try:
+            from utils.ai_connector import get_ai, get_rag_system
+            ai_available = True
+            # Get AI instance for decision making
+            ai = get_ai()
+            rag_system = get_rag_system()
+        except ImportError:
+            logger.warning("AI connector not available for framework selection")
+            ai_available = False
+        
+        # If AI is not available, use rule-based selection
+        if not ai_available:
+            return rule_based_framework_selection(data, company_name, industry)
+        
+        # Prepare information about available frameworks
+        frameworks_info = {}
+        for fw_id, fw in BUSINESS_STRATEGY_FRAMEWORKS.items():
+            frameworks_info[fw_id] = {
+                "name": fw["name"],
+                "description": fw["description"],
+                "best_for": fw.get("best_for", "General analysis")
+            }
+        
+        # Prepare industry information
+        industry_mapping = {}
+        for ind, frameworks in INDUSTRY_FRAMEWORK_MAPPING.items():
+            industry_mapping[ind] = frameworks
+        
+        # Build prompt for AI
+        prompt = f"""
+        Task: Select the most appropriate strategic framework for this company's situation.
+        
+        Company: {company_name}
+        Industry: {industry}
+        
+        Data provided for analysis:
+        {json.dumps(data, indent=2)}
+        
+        Available frameworks:
+        {json.dumps(frameworks_info, indent=2)}
+        
+        Industry to framework mappings:
+        {json.dumps(industry_mapping, indent=2)}
+        
+        Analyze the company's situation and select the single most appropriate framework.
+        Consider:
+        1. The specific challenges and goals in the data
+        2. Industry-specific considerations
+        3. The strengths of each framework
+        4. The maturity of the company/market
+        
+        Return your analysis in this JSON format:
+        {{
+            "framework_id": "selected_framework_id",
+            "explanation": "Detailed explanation of why this framework is most appropriate",
+            "alternatives": ["framework_id1", "framework_id2"],
+            "confidence": 0.85 (a number between 0 and 1)
+        }}
+        """
+        
+        # Get AI response
+        system_prompt = "You are an expert in strategic frameworks for sustainability. Your task is to select the most appropriate framework based on company data."
+        response = ai.generate_content(prompt, system_prompt=system_prompt, max_tokens=1024)
+        
+        if "error" in response:
+            logger.warning(f"Error in AI framework selection: {response['error']}")
+            return rule_based_framework_selection(data, company_name, industry)
+        
+        # Extract JSON from response
+        try:
+            response_text = response["text"]
+            # Find JSON block in the response
+            json_match = re.search(r'({[\s\S]*})', response_text)
+            if json_match:
+                selection_result = json.loads(json_match.group(1))
+                # Validate result
+                if "framework_id" in selection_result and selection_result["framework_id"] in BUSINESS_STRATEGY_FRAMEWORKS:
+                    selection_result["auto_selected"] = True
+                    return selection_result
+            
+            logger.warning("Failed to parse AI framework selection result")
+            return rule_based_framework_selection(data, company_name, industry)
+        except Exception as e:
+            logger.error(f"Error parsing AI framework selection: {str(e)}")
+            return rule_based_framework_selection(data, company_name, industry)
+            
+    except Exception as e:
+        logger.error(f"Error in auto framework selection: {str(e)}")
+        return rule_based_framework_selection(data, company_name, industry)
+
+def rule_based_framework_selection(
+    data: Dict[str, Any],
+    company_name: str,
+    industry: str
+) -> Dict[str, Any]:
+    """
+    Select framework using rule-based approach as fallback
+    
+    Args:
+        data: Analysis data
+        company_name: Company name
+        industry: Industry
+        
+    Returns:
+        Dictionary with selected framework ID and explanation
+    """
+    logger.info(f"Using rule-based framework selection for {company_name} in {industry}")
+    
+    # Default to SWOT if no better match
+    selected_framework = "swot"
+    explanation = "SWOT analysis is versatile and appropriate for all industries and company sizes."
+    confidence = 0.6
+    alternatives = ["porters", "bcg"]
+    industry_lower = industry.lower() if industry else ""
+    
+    # Use industry-specific framework mapping if available
+    if industry_lower in INDUSTRY_FRAMEWORK_MAPPING:
+        if INDUSTRY_FRAMEWORK_MAPPING[industry_lower]:
+            selected_framework = INDUSTRY_FRAMEWORK_MAPPING[industry_lower][0]
+            confidence = 0.75
+            alternatives = INDUSTRY_FRAMEWORK_MAPPING[industry_lower][1:3] if len(INDUSTRY_FRAMEWORK_MAPPING[industry_lower]) > 1 else alternatives
+    
+    # Ensure the selected framework is in BUSINESS_STRATEGY_FRAMEWORKS
+    if selected_framework not in BUSINESS_STRATEGY_FRAMEWORKS:
+        selected_framework = "swot"  # Fallback to SWOT if the selected framework is invalid
+        
+    # Generate explanation based on framework and industry
+    if selected_framework in BUSINESS_STRATEGY_FRAMEWORKS:
+        framework_name = BUSINESS_STRATEGY_FRAMEWORKS[selected_framework]['name']
+        explanation = f"{industry} industry commonly benefits from {framework_name}."
+    
+    # Check data for indicators of which framework might be best
+    if data:
+        # If competitive landscape is a focus, use Porter's Five Forces
+        if any(key in str(data).lower() for key in ["compet", "rival", "barrier", "supplier", "buyer"]):
+            selected_framework = "porters"
+            explanation = "Porter's Five Forces is recommended due to focus on competitive landscape."
+            confidence = 0.8
+            alternatives = ["swot", "blue_ocean"]
+        
+        # If product portfolio is mentioned, use BCG Matrix
+        elif any(key in str(data).lower() for key in ["portfolio", "product", "market share", "growth"]):
+            selected_framework = "bcg"
+            explanation = "BCG Matrix is recommended due to focus on product portfolio."
+            confidence = 0.8
+            alternatives = ["mckinsey", "swot"]
+        
+        # If differentiation is mentioned, use Blue Ocean
+        elif any(key in str(data).lower() for key in ["differen", "innovat", "disrupt", "uncontested"]):
+            selected_framework = "blue_ocean"
+            explanation = "Blue Ocean Strategy is recommended due to focus on market differentiation."
+            confidence = 0.8
+            alternatives = ["swot", "porters"]
+    
+    return {
+        "framework_id": selected_framework,
+        "explanation": explanation,
+        "alternatives": alternatives,
+        "confidence": confidence,
+        "auto_selected": True
+    }
 
 def analyze_porters_five_forces(data: Dict[str, Any], company_name: str, industry: str) -> Dict[str, Any]:
     """
@@ -984,7 +1193,19 @@ def framework_selection_guide():
 
 @enhanced_strategy_bp.route('/api/strategy-hub/framework-analysis', methods=['POST'])
 def api_framework_analysis():
-    """API endpoint for framework analysis"""
+    """
+    API endpoint for framework analysis
+    
+    Accepts:
+        - framework_id: ID of the framework to use (can be 'auto' for AI selection)
+        - company_name: Name of the company
+        - industry: Industry of the company
+        - data: Analysis data for the framework
+        - auto_select: Optional boolean to force auto-selection even with framework_id
+    
+    Returns:
+        JSON with analysis results
+    """
     try:
         data = request.get_json()
         if not data:
@@ -994,14 +1215,47 @@ def api_framework_analysis():
         company_name = data.get('company_name', 'Sample Company')
         industry = data.get('industry', 'Real Estate')
         analysis_data = data.get('data', {})
+        auto_select = data.get('auto_select', False)
         
+        # If no framework_id is provided, use auto-selection
         if not framework_id:
-            return jsonify({"status": "error", "message": "No framework_id provided"}), 400
+            if auto_select:
+                framework_id = 'auto'  # Signal to auto-select
+            else:
+                return jsonify({"status": "error", "message": "No framework_id provided and auto_select not enabled"}), 400
+        
+        # If auto_select is specified or framework_id is 'auto', perform AI-driven framework selection
+        if auto_select or framework_id == 'auto':
+            logger.info(f"Auto-selecting framework for {company_name} in {industry}")
             
-        result = analyze_with_framework(framework_id, analysis_data, company_name, industry)
-        return jsonify(result)
+            # First get the AI-recommended framework
+            framework_selection = auto_select_framework(analysis_data, company_name, industry)
+            
+            # Then analyze using the selected framework
+            result = analyze_with_framework(
+                framework_selection['framework_id'], 
+                analysis_data, 
+                company_name, 
+                industry
+            )
+            
+            # Add selection metadata to the response
+            result['framework_selection'] = {
+                'selected_framework_id': framework_selection['framework_id'],
+                'explanation': framework_selection.get('explanation', ''),
+                'alternatives': framework_selection.get('alternatives', []),
+                'confidence': framework_selection.get('confidence', 0.7),
+                'auto_selected': True
+            }
+            
+            return jsonify(result)
+        else:
+            # Use the specified framework
+            result = analyze_with_framework(framework_id, analysis_data, company_name, industry)
+            return jsonify(result)
     except Exception as e:
         logger.error(f"Error in framework analysis API: {str(e)}")
+        logger.error(traceback.format_exc())
         return jsonify({"status": "error", "message": str(e)}), 500
 
 @enhanced_strategy_bp.route('/api/strategy-hub/generate-insights', methods=['POST'])
@@ -1046,10 +1300,15 @@ def api_generate_insights():
         insight_type = data.get('insight_type', 'comprehensive')
         
         # Generate AI insights using strategy_ai
+        # Convert strategic_goals to comma-separated string if not empty
+        focus_areas_str = ",".join(strategic_goals) if strategic_goals else None
+        # Convert to list if not None, as the function expects List[str] or None
+        focus_areas_list = focus_areas_str.split(",") if focus_areas_str else None
+        
         base_result = strategy_ai.generate_ai_strategy(
             company_name=company_name,
             industry=industry,
-            focus_areas=",".join(strategic_goals) if strategic_goals else None,
+            focus_areas=focus_areas_list,
             trend_analysis=current_challenges
         )
         
@@ -1586,6 +1845,356 @@ def api_strategy_generate():
     """
     return api_generate_strategy()
     
+
+@enhanced_strategy_bp.route('/api/strategy/select-framework', methods=['POST'])
+def api_select_framework():
+    """API endpoint for AI-driven framework selection"""
+    try:
+        data = request.json
+        
+        # Validate required fields
+        if not data or not isinstance(data, dict):
+            return jsonify({"success": False, "message": "Invalid request data"}), 400
+            
+        company_name = data.get('company_name', '')
+        industry = data.get('industry', '')
+        auto_select = data.get('auto_select', True)
+        framework = data.get('framework', '')
+        
+        if not company_name or not industry:
+            return jsonify({"success": False, "message": "Company name and industry are required"}), 400
+            
+        # If not auto-selecting and no framework provided, return error
+        if not auto_select and not framework:
+            return jsonify({"success": False, "message": "Framework selection is required when auto-select is disabled"}), 400
+            
+        # Get the business assessment data
+        business_assessment = data.get('business_assessment', {})
+        
+        # If auto-selecting, use our AI selection function
+        if auto_select:
+            selection_result = auto_select_framework(business_assessment, company_name, industry)
+            framework_id = selection_result.get('framework_id', 'swot')  # Default to SWOT if selection fails
+            
+            # Get the framework details
+            framework_details = BUSINESS_STRATEGY_FRAMEWORKS.get(framework_id, {})
+            
+            # Prepare mock framework data for the selected framework
+            framework_data = generate_mock_framework_data(framework_id, business_assessment, company_name, industry)
+            
+            # Prepare recommendations based on framework
+            recommendations = generate_recommendations(framework_id, business_assessment, company_name, industry)
+            
+            # Prepare response
+            response = {
+                "success": True,
+                "company_name": company_name,
+                "industry": industry,
+                "selected_framework": {
+                    "id": framework_id,
+                    "name": framework_details.get('name', 'Unknown Framework'),
+                    "description": framework_details.get('description', '')
+                },
+                "selection_explanation": selection_result.get('explanation', 'This framework is most appropriate for your business context.'),
+                "confidence_score": int(selection_result.get('confidence', 0.75) * 100),
+                "alternative_frameworks": selection_result.get('alternatives', []),
+                "framework_data": framework_data,
+                "recommendations": recommendations,
+                "strategic_items": generate_strategic_items(framework_id, business_assessment, company_name, industry),
+                "framework_description": framework_details.get('description', '')
+            }
+            
+            return jsonify(response), 200
+        else:
+            # Use the manually selected framework
+            framework_id = framework
+            
+            # Validate the framework
+            if framework_id not in BUSINESS_STRATEGY_FRAMEWORKS:
+                return jsonify({"success": False, "message": "Invalid framework selected"}), 400
+                
+            # Get the framework details
+            framework_details = BUSINESS_STRATEGY_FRAMEWORKS[framework_id]
+            
+            # Generate mock data for the selected framework
+            framework_data = generate_mock_framework_data(framework_id, business_assessment, company_name, industry)
+            
+            # Generate recommendations
+            recommendations = generate_recommendations(framework_id, business_assessment, company_name, industry)
+            
+            # Prepare response
+            response = {
+                "success": True,
+                "company_name": company_name,
+                "industry": industry,
+                "selected_framework": {
+                    "id": framework_id,
+                    "name": framework_details.get('name', 'Unknown Framework'),
+                    "description": framework_details.get('description', '')
+                },
+                "selection_explanation": f"You manually selected {framework_details.get('name')} as your strategic framework.",
+                "confidence_score": 100,  # Manual selection has 100% confidence
+                "alternative_frameworks": get_alternative_frameworks(framework_id, industry),
+                "framework_data": framework_data,
+                "recommendations": recommendations,
+                "strategic_items": generate_strategic_items(framework_id, business_assessment, company_name, industry),
+                "framework_description": framework_details.get('description', '')
+            }
+            
+            return jsonify(response), 200
+            
+    except Exception as e:
+        logger.error(f"Error in framework selection: {str(e)}")
+        logger.error(traceback.format_exc())
+        return jsonify({"success": False, "message": f"Server error: {str(e)}"}), 500
+
+def generate_mock_framework_data(framework_id, business_assessment, company_name, industry):
+    """Generate mock data for framework visualization (temporary)"""
+    if framework_id == "porters":
+        return {
+            "forces": {
+                "competitive_rivalry": {
+                    "name": "Competitive Rivalry",
+                    "score": business_assessment.get('competitive_rivalry', 50),
+                    "insights": f"The {industry} industry has a moderate level of competition. {company_name} faces several established competitors with similar sustainability offerings."
+                },
+                "supplier_power": {
+                    "name": "Supplier Power",
+                    "score": business_assessment.get('supplier_power', 50),
+                    "insights": f"Suppliers in the {industry} sector have moderate bargaining power. {company_name} should diversify its supplier base to reduce dependency."
+                },
+                "buyer_power": {
+                    "name": "Buyer Power",
+                    "score": business_assessment.get('buyer_power', 50),
+                    "insights": f"Customers in the {industry} industry have significant influence on pricing and service expectations. {company_name} should focus on value differentiation."
+                },
+                "threat_of_substitution": {
+                    "name": "Threat of Substitution",
+                    "score": business_assessment.get('substitution_threat', 50),
+                    "insights": f"There are emerging sustainable alternatives in the {industry} sector. {company_name} needs to emphasize its unique sustainable value proposition."
+                },
+                "threat_of_new_entry": {
+                    "name": "Threat of New Entry",
+                    "score": business_assessment.get('new_entry_threat', 50),
+                    "insights": f"Barriers to entry in the {industry} industry are moderate. {company_name} should invest in innovation to stay ahead of potential new entrants."
+                }
+            },
+            "overall_threat_level": calculate_average([
+                business_assessment.get('competitive_rivalry', 50),
+                business_assessment.get('supplier_power', 50),
+                business_assessment.get('buyer_power', 50),
+                business_assessment.get('substitution_threat', 50),
+                business_assessment.get('new_entry_threat', 50)
+            ]),
+            "bargaining_position": calculate_average([
+                100 - business_assessment.get('supplier_power', 50),
+                100 - business_assessment.get('buyer_power', 50)
+            ]),
+            "industry_attractiveness": calculate_average([
+                100 - business_assessment.get('competitive_rivalry', 50),
+                100 - business_assessment.get('supplier_power', 50),
+                100 - business_assessment.get('buyer_power', 50),
+                100 - business_assessment.get('substitution_threat', 50),
+                100 - business_assessment.get('new_entry_threat', 50)
+            ])
+        }
+    elif framework_id == "swot":
+        return {
+            "strengths": [
+                f"Strong brand recognition in the {industry} sector",
+                f"Innovative sustainable product/service offerings",
+                f"Robust ESG reporting and compliance mechanisms",
+                f"Engaged and sustainability-focused leadership team",
+                f"Efficient resource management and waste reduction systems"
+            ],
+            "weaknesses": [
+                f"Limited geographic market penetration",
+                f"Higher costs compared to less sustainable competitors",
+                f"Gaps in specialized sustainability expertise",
+                f"Dependency on key suppliers for sustainable materials",
+                f"Challenges in measuring and quantifying sustainability impact"
+            ],
+            "opportunities": [
+                f"Growing consumer demand for sustainable products/services in {industry}",
+                f"Emerging green technologies applicable to {company_name}'s operations",
+                f"Potential for strategic partnerships with sustainability-focused organizations",
+                f"Favorable regulatory changes for sustainable businesses",
+                f"Access to green financing and sustainability-linked loans"
+            ],
+            "threats": [
+                f"Increasing regulatory requirements and compliance costs",
+                f"Competitive pressure from larger players in {industry}",
+                f"Greenwashing accusations and reputational risks",
+                f"Supply chain disruptions affecting sustainable material sourcing",
+                f"Economic downturns reducing premium payments for sustainable options"
+            ]
+        }
+    elif framework_id == "bcg":
+        return {
+            "stars": [
+                f"Premium sustainable product line with high growth potential",
+                f"Eco-certified service offerings with strong market share",
+                f"Innovative carbon management solutions",
+                f"Sustainable packaging technologies"
+            ],
+            "question_marks": [
+                f"New bio-based material alternatives",
+                f"Experimental zero-waste initiatives",
+                f"Emerging circular economy business models",
+                f"Early-stage sustainability consulting services"
+            ],
+            "cash_cows": [
+                f"Established energy efficiency solutions",
+                f"Legacy sustainable product lines with strong margins",
+                f"Mature recycling and waste management services",
+                f"Standardized sustainability reporting tools"
+            ],
+            "dogs": [
+                f"Outdated first-generation sustainable products",
+                f"Services facing commoditization pressure",
+                f"Resource-intensive legacy operations",
+                f"Underperforming sustainability initiatives with minimal impact"
+            ]
+        }
+    else:
+        # Generic data structure for other frameworks
+        return {
+            "overall_score": 72,
+            "competitive_position": 68,
+            "sustainability_maturity": 75,
+            "innovation_potential": 80,
+            "market_growth": 65,
+            "sections": [
+                {
+                    "name": "Market Analysis",
+                    "score": 70,
+                    "insights": f"The {industry} market shows moderate growth with increasing demand for sustainable solutions."
+                },
+                {
+                    "name": "Competitive Assessment",
+                    "score": 65,
+                    "insights": f"{company_name} ranks in the upper-middle tier among competitors in sustainability performance."
+                },
+                {
+                    "name": "Innovation Opportunities",
+                    "score": 85,
+                    "insights": f"Significant potential for {company_name} to differentiate through sustainable innovation."
+                },
+                {
+                    "name": "Operational Efficiency",
+                    "score": 73,
+                    "insights": f"Current operations have moderate sustainability efficiency with room for improvement."
+                }
+            ]
+        }
+
+def generate_recommendations(framework_id, business_assessment, company_name, industry):
+    """Generate strategic recommendations based on framework"""
+    base_recommendations = [
+        f"Develop a comprehensive sustainability strategy aligned with {company_name}'s core business objectives and the specific challenges of the {industry} industry.",
+        f"Establish measurable sustainability KPIs and regular reporting mechanisms to track progress and demonstrate value to stakeholders.",
+        f"Invest in employee training and awareness programs to build internal capacity for sustainability innovation and implementation.",
+        f"Evaluate your supply chain for sustainability risks and opportunities, focusing on key materials and services specific to the {industry} sector.",
+        f"Explore green financing options to fund sustainability initiatives while potentially reducing capital costs."
+    ]
+    
+    # Add framework-specific recommendations
+    if framework_id == "porters":
+        framework_specific = [
+            f"Differentiate your offerings through superior sustainability credentials to counter competitive rivalry in the {industry} sector.",
+            f"Build strategic alliances with key suppliers to secure sustainable materials and improve bargaining position.",
+            f"Develop a strong sustainable value proposition that reduces customers' ability to demand price concessions."
+        ]
+    elif framework_id == "swot":
+        framework_specific = [
+            f"Leverage your strengths in sustainability innovation to capitalize on the growing demand for green products in {industry}.",
+            f"Address cost disadvantages by improving operational efficiency and emphasizing total cost of ownership to customers.",
+            f"Develop expertise in emerging areas through strategic hiring or partnerships to address identified weaknesses."
+        ]
+    elif framework_id == "bcg":
+        framework_specific = [
+            f"Invest heavily in your 'star' sustainable products/services to maintain market leadership as the {industry} evolves.",
+            f"Carefully evaluate 'question mark' initiatives, selecting those with true transformative potential for additional investment.",
+            f"Optimize 'cash cow' operations to maximize revenue while minimizing environmental impact."
+        ]
+    else:
+        framework_specific = [
+            f"Align your sustainability strategy with the specific dynamics of the {industry} market.",
+            f"Identify and prioritize initiatives based on both sustainability impact and business value.",
+            f"Develop a phased implementation roadmap that addresses both quick wins and long-term transformation."
+        ]
+    
+    # Combine and return recommendations
+    return base_recommendations + framework_specific
+
+def generate_strategic_items(framework_id, business_assessment, company_name, industry):
+    """Generate strategic focus areas based on framework and assessment"""
+    return [
+        {
+            "area": "Sustainable Product Innovation",
+            "potential": "High Potential",
+            "potential_class": "potential-high",
+            "timeframe": "Medium-term (1-2 years)",
+            "response": f"Develop new sustainable product lines specifically designed for the {industry} sector, focusing on materials with lower environmental impact."
+        },
+        {
+            "area": "Supply Chain Transformation",
+            "potential": "Medium Potential",
+            "potential_class": "potential-medium",
+            "timeframe": "Long-term (2-3 years)",
+            "response": "Implement comprehensive supplier assessment and development program to ensure all key suppliers meet sustainability standards."
+        },
+        {
+            "area": "Operational Efficiency",
+            "potential": "High Potential",
+            "potential_class": "potential-high",
+            "timeframe": "Short-term (6-12 months)",
+            "response": f"Implement energy efficiency measures across all facilities, focusing first on the highest consumption areas specific to {industry} operations."
+        },
+        {
+            "area": "Stakeholder Engagement",
+            "potential": "Medium Potential",
+            "potential_class": "potential-medium",
+            "timeframe": "Short-term (3-6 months)",
+            "response": "Develop a comprehensive stakeholder engagement strategy focusing on transparent communication of sustainability initiatives and progress."
+        },
+        {
+            "area": "Carbon Management",
+            "potential": "High Potential",
+            "potential_class": "potential-high",
+            "timeframe": "Medium-term (1-2 years)",
+            "response": f"Establish a carbon reduction roadmap with science-based targets appropriate for {company_name}'s size and industry position."
+        }
+    ]
+
+def get_alternative_frameworks(selected_framework, industry):
+    """Get alternative frameworks for the given industry excluding the selected one"""
+    # Get recommended frameworks for the industry
+    industry_frameworks = INDUSTRY_FRAMEWORK_MAPPING.get(industry.lower(), [])
+    
+    # If no industry-specific frameworks, use some defaults
+    if not industry_frameworks:
+        industry_frameworks = ["swot", "porters", "bcg"]
+    
+    # Ensure selected framework is not included
+    if selected_framework in industry_frameworks:
+        industry_frameworks.remove(selected_framework)
+    
+    # Add some other frameworks if we need more alternatives
+    all_frameworks = list(BUSINESS_STRATEGY_FRAMEWORKS.keys())
+    while len(industry_frameworks) < 3 and all_frameworks:
+        framework = all_frameworks.pop(0)
+        if framework != selected_framework and framework not in industry_frameworks:
+            industry_frameworks.append(framework)
+    
+    # Get framework names instead of IDs
+    return [BUSINESS_STRATEGY_FRAMEWORKS[fw]["name"] for fw in industry_frameworks[:3]]
+
+def calculate_average(values):
+    """Calculate average of values"""
+    if not values:
+        return 0
+    return int(sum(values) / len(values))
 
 @enhanced_strategy_bp.route('/api/strategy/recommendations', methods=['POST'])
 def api_strategy_recommendations():
