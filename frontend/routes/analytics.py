@@ -65,20 +65,10 @@ def dashboard():
 
 @analytics_bp.route('/monetization-strategies', methods=['GET'])
 def monetization_strategies_dashboard():
-    """Monetization strategies dashboard for sustainability intelligence"""
-    logger.info("Monetization strategies dashboard called")
-    
-    # Include navigation for the template
-    nav_context = get_context_for_template()
-    
-    # Use finchat_dark_dashboard.html with template_type="monetization"
-    logger.info("Using dark themed monetization template")
-    return render_template(
-        'finchat_dark_dashboard.html',
-        page_title="Monetization Strategies Framework",
-        template_type="monetization",
-        **nav_context  # Include all navigation context
-    )
+    """Monetization strategies dashboard - redirects to enhanced strategy hub"""
+    from flask import redirect, url_for
+    logger.info("Monetization strategies dashboard called - redirecting to enhanced strategy hub")
+    return redirect(url_for('enhanced_strategy.enhanced_strategy_hub'))
 
 @analytics_bp.route('/story-cards')
 def story_cards():

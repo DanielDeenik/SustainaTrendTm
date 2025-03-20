@@ -3,6 +3,17 @@ Enhanced Strategy Hub Module for SustainaTrend™
 
 This module provides routes for the new enhanced Strategy Hub with Finchat.io-level
 UI polish and interactive components.
+
+Features:
+- Primary hub for all strategy-related functionality
+- Consolidated monetization strategies (redirected from /monetization-strategies)
+- Consolidated sustainability strategies
+- Interactive framework selection guide
+- Regulatory AI Agent integration
+- Document analysis with PDF upload capabilities
+
+Note: This is the definitive implementation for monetization and strategy features.
+Other routes are configured to redirect here for a unified experience.
 """
 
 import logging
@@ -10,12 +21,7 @@ import traceback
 import uuid
 from datetime import datetime
 from typing import Dict, Any, List, Optional
-
-try:
-    from flask import Blueprint, render_template, redirect, url_for, flash, request, jsonify, session
-except ImportError:
-    # For type checking
-    pass
+from flask import Blueprint, render_template, redirect, url_for, flash, request, jsonify, session
 
 # Import common utilities and constants
 from frontend.utils.template_utils import get_context_for_template
@@ -43,6 +49,20 @@ DOCUMENT_PROCESSOR_AVAILABLE = True
 TREND_VIRALITY_AVAILABLE = True
 SBTI_AVAILABLE = True
 AI_CONSULTANT_AVAILABLE = STRATEGY_AI_CONSULTANT_AVAILABLE
+
+# Industry-to-Framework mapping for recommendation engine
+INDUSTRY_FRAMEWORK_MAPPING = {
+    "energy": ["sbti", "tcfd", "csrd"],
+    "technology": ["sdg", "gri", "csrd"],
+    "financial": ["tcfd", "csrd", "gri"],
+    "manufacturing": ["gri", "sbti", "csrd"],
+    "healthcare": ["sdg", "gri", "csrd"],
+    "retail": ["sdg", "gri", "sbti"],
+    "agriculture": ["sbti", "gri", "sdg"],
+    "transportation": ["sbti", "tcfd", "csrd"],
+    "construction": ["gri", "sbti", "csrd"],
+    "hospitality": ["sdg", "gri", "csrd"]
+}
 
 @enhanced_strategy_bp.route('/enhanced-strategy-hub')
 def enhanced_strategy_hub():
@@ -321,6 +341,156 @@ def api_trend_analysis():
             "status": "error",
             "message": f"An error occurred: {str(e)}"
         }), 500
+
+
+@enhanced_strategy_bp.route('/framework-selection-guide')
+def framework_selection_guide():
+    """
+    Framework Selection Guide - Interactive tool to help users select the most appropriate
+    sustainability reporting framework based on their industry and goals.
+    
+    This page provides:
+    - Industry-specific framework recommendations
+    - Interactive selection tool
+    - Detailed comparisons between frameworks
+    - Case studies of successful implementations
+    """
+    logger.info("Framework Selection Guide route called")
+    
+    try:
+        # Get navigation context
+        nav_context = get_context_for_template()
+        
+        # Render the framework selection guide template
+        return render_template(
+            "strategy/framework_selection_guide.html",
+            page_title="Framework Selection Guide",
+            active_nav="strategy",
+            frameworks=STRATEGY_FRAMEWORKS,
+            industry_mappings=INDUSTRY_FRAMEWORK_MAPPING,
+            **nav_context
+        )
+    except Exception as e:
+        logger.error(f"Error in framework selection guide: {str(e)}")
+        logger.error(traceback.format_exc())
+        
+        # Redirect to enhanced strategy hub in case of error
+        flash("An error occurred loading the Framework Selection Guide. Please try again later.", "error")
+        return redirect(url_for('enhanced_strategy.enhanced_strategy_hub'))
+
+
+@enhanced_strategy_bp.route('/api/framework-recommendation', methods=['POST'])
+def api_framework_recommendation():
+    """API endpoint for getting framework recommendations based on industry and goals"""
+    try:
+        data = request.get_json()
+        
+        if not data:
+            return jsonify({
+                "status": "error",
+                "message": "No data provided"
+            }), 400
+            
+        industry = data.get('industry', '')
+        goals = data.get('goals', [])
+        company_size = data.get('company_size', 'medium')
+        region = data.get('region', 'global')
+        
+        if not industry:
+            return jsonify({
+                "status": "error",
+                "message": "Industry is required"
+            }), 400
+        
+        # Get framework recommendations based on industry
+        if industry.lower() in INDUSTRY_FRAMEWORK_MAPPING:
+            recommended_frameworks = INDUSTRY_FRAMEWORK_MAPPING[industry.lower()]
+        else:
+            # Default to global frameworks if industry not found
+            recommended_frameworks = ["gri", "sdg"]
+        
+        # Build framework details
+        framework_details = []
+        for framework_id in recommended_frameworks:
+            if framework_id in STRATEGY_FRAMEWORKS:
+                framework = STRATEGY_FRAMEWORKS[framework_id]
+                framework_details.append({
+                    "id": framework_id,
+                    "name": framework["name"],
+                    "description": framework["description"],
+                    "icon": framework["icon"],
+                    "color": framework["color"],
+                    "match_score": calculate_match_score(framework_id, industry, goals, company_size, region)
+                })
+        
+        # Sort by match score
+        framework_details.sort(key=lambda x: x["match_score"], reverse=True)
+        
+        return jsonify({
+            "status": "success",
+            "industry": industry,
+            "recommendations": framework_details
+        })
+    except Exception as e:
+        logger.error(f"Error in framework recommendation: {str(e)}")
+        return jsonify({
+            "status": "error",
+            "message": f"An error occurred: {str(e)}"
+        }), 500
+
+
+def calculate_match_score(framework_id, industry, goals, company_size, region):
+    """Calculate match score between framework and company characteristics"""
+    base_score = 50
+    
+    # Industry match bonus
+    if industry.lower() in INDUSTRY_FRAMEWORK_MAPPING:
+        industry_frameworks = INDUSTRY_FRAMEWORK_MAPPING[industry.lower()]
+        if framework_id in industry_frameworks:
+            # Higher bonus for frameworks that are primary recommendations for industry
+            position = industry_frameworks.index(framework_id)
+            base_score += 30 - (position * 5)  # 30 for first, 25 for second, 20 for third
+    
+    # Goal match bonus
+    goal_keywords = {
+        "compliance": ["csrd", "gri"],
+        "emissions": ["sbti", "tcfd"],
+        "reporting": ["gri", "csrd"],
+        "financing": ["tcfd", "gri"],
+        "stakeholder": ["sdg", "gri"],
+        "social": ["sdg", "gri"],
+        "environmental": ["sbti", "tcfd", "csrd"]
+    }
+    
+    for goal in goals:
+        goal_lower = goal.lower()
+        for keyword, frameworks in goal_keywords.items():
+            if keyword in goal_lower and framework_id in frameworks:
+                base_score += 5
+    
+    # Company size adjustment
+    size_mapping = {
+        "small": {"gri": -5, "csrd": -10, "tcfd": -5, "sdg": 5, "sbti": 0},
+        "medium": {"gri": 0, "csrd": 0, "tcfd": 0, "sdg": 0, "sbti": 0},
+        "large": {"gri": 5, "csrd": 10, "tcfd": 5, "sdg": 0, "sbti": 5}
+    }
+    
+    if company_size in size_mapping and framework_id in size_mapping[company_size]:
+        base_score += size_mapping[company_size][framework_id]
+    
+    # Region adjustment
+    region_mapping = {
+        "eu": {"csrd": 15, "gri": 5, "tcfd": 5, "sdg": 0, "sbti": 0},
+        "us": {"csrd": -5, "gri": 5, "tcfd": 10, "sdg": 0, "sbti": 5},
+        "asia": {"csrd": -5, "gri": 5, "tcfd": 0, "sdg": 5, "sbti": 0},
+        "global": {"csrd": 0, "gri": 10, "tcfd": 5, "sdg": 10, "sbti": 5}
+    }
+    
+    if region in region_mapping and framework_id in region_mapping[region]:
+        base_score += region_mapping[region][framework_id]
+    
+    # Ensure score is between 0 and 100
+    return max(0, min(100, base_score))
 
 
 def register_blueprint(app):

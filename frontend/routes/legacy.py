@@ -38,10 +38,10 @@ def analytics_redirect():
 def monetization_redirect():
     """
     Redirects from the legacy /monetization-opportunities route
-    to the new monetization routes
+    to the enhanced strategy hub
     """
-    logger.info("Legacy monetization opportunities route accessed - redirecting to new blueprint")
-    return redirect(url_for('strategy.strategy_hub_monetization'))
+    logger.info("Legacy monetization opportunities route accessed - redirecting to enhanced strategy hub")
+    return redirect(url_for('enhanced_strategy.enhanced_strategy_hub'))
 
 # Function to register blueprint
 def register_legacy_routes(app):

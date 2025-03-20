@@ -55,11 +55,11 @@ logger = logging.getLogger(__name__)
 @monetization_bp.route('/monetization-opportunities')  # Added route to match navigation
 def monetization_strategies_dashboard():
     """
-    Monetization Strategies Dashboard - Redirects to Strategy Hub
-    All monetization functionality is now consolidated in the Strategy Hub
+    Monetization Strategies Dashboard - Redirects to Enhanced Strategy Hub
+    All monetization functionality is now consolidated in the Enhanced Strategy Hub
     """
-    logger.info("Redirecting monetization route to Strategy Hub")
-    return redirect(url_for('strategy.strategy_hub'))
+    logger.info("Redirecting monetization route to Enhanced Strategy Hub")
+    return redirect(url_for('enhanced_strategy.enhanced_strategy_hub'))
 
 @monetization_bp.route('/api/monetization/analyze', methods=['POST'])
 def api_monetization_analyze():
@@ -102,11 +102,11 @@ def api_monetization_opportunities():
 @monetization_bp.route('/monetization-opportunities/strategic-plan')
 def integrated_strategy_plan():
     """
-    Integrated Strategy Plan - Redirects to Strategy Hub
-    All strategic planning is now consolidated in the Strategy Hub
+    Integrated Strategy Plan - Redirects to Enhanced Strategy Hub
+    All strategic planning is now consolidated in the Enhanced Strategy Hub
     """
-    logger.info("Redirecting monetization strategic plan to Strategy Hub")
-    return redirect(url_for('strategy.strategy_hub'))
+    logger.info("Redirecting monetization strategic plan to Enhanced Strategy Hub")
+    return redirect(url_for('enhanced_strategy.enhanced_strategy_hub'))
 
 @monetization_bp.route('/api/monetization/strategic-plan', methods=['POST'])
 def api_strategic_plan():
@@ -134,20 +134,20 @@ def api_strategic_plan():
 @monetization_bp.route('/monetization-strategy-consulting')
 def monetization_strategy_consulting():
     """
-    Monetization Strategy Consulting Dashboard - Redirects to Strategy Hub
-    All consulting functionality is now consolidated in the Strategy Hub
+    Monetization Strategy Consulting Dashboard - Redirects to Enhanced Strategy Hub
+    All consulting functionality is now consolidated in the Enhanced Strategy Hub
     """
-    logger.info("Redirecting monetization strategy consulting to Strategy Hub")
-    return redirect(url_for('strategy.strategy_hub'))
+    logger.info("Redirecting monetization strategy consulting to Enhanced Strategy Hub")
+    return redirect(url_for('enhanced_strategy.enhanced_strategy_hub'))
 
 @monetization_bp.route('/monetization-strategy/framework/<framework_id>')
 def monetization_strategy_framework(framework_id):
     """
-    Specific Monetization Strategy Framework - Redirects to Strategy Hub
-    All framework analysis is now consolidated in the Strategy Hub
+    Specific Monetization Strategy Framework - Redirects to Enhanced Strategy Hub
+    All framework analysis is now consolidated in the Enhanced Strategy Hub
     """
-    logger.info(f"Redirecting monetization framework {framework_id} to Strategy Hub")
-    return redirect(url_for('strategy.strategy_framework', framework_id=framework_id))
+    logger.info(f"Redirecting monetization framework {framework_id} to Enhanced Strategy Hub")
+    return redirect(url_for('enhanced_strategy.framework_selection_guide'))
 
 @monetization_bp.route('/api/monetization/strategy-frameworks')
 def api_strategy_frameworks():
@@ -155,6 +155,6 @@ def api_strategy_frameworks():
     API endpoint for getting available strategy frameworks
     This endpoint is maintained for backward compatibility
     """
-    # Forward the request to the Strategy Hub API endpoint
-    logger.info("Redirecting strategy frameworks API request to Strategy Hub API")
-    return redirect(url_for('strategy.api_strategy_frameworks'))
+    # Forward the request to the Enhanced Strategy Hub API endpoint
+    logger.info("Redirecting strategy frameworks API request to Enhanced Strategy Hub API")
+    return redirect(url_for('enhanced_strategy.api_framework_recommendation'))
