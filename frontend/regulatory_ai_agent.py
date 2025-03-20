@@ -14,9 +14,29 @@ Key features:
 import json
 import logging
 import os
+import sys
 from typing import Dict, List, Any, Optional, Tuple
 from datetime import datetime
-from flask import Blueprint, render_template, request, jsonify, current_app
+
+# Add backend path to make Flask module available
+try:
+    from flask import Blueprint, render_template, request, jsonify, current_app
+except ImportError:
+    # This is a fallback if the normal import fails
+    try:
+        backend_path = os.path.abspath(os.path.join(os.path.dirname(__file__), '..'))
+        if backend_path not in sys.path:
+            sys.path.append(backend_path)
+        from flask import Blueprint, render_template, request, jsonify, current_app
+    except ImportError as e:
+        print(f"Error importing Flask: {e}")
+        # Define stub classes for type checking only
+        class Blueprint:
+            def __init__(self, *args, **kwargs):
+                pass
+        class Request:
+            pass
+        request = Request()
 
 # Set up logging
 logger = logging.getLogger(__name__)
@@ -24,21 +44,36 @@ logger = logging.getLogger(__name__)
 # Create blueprint
 regulatory_ai_bp = Blueprint('regulatory_ai', __name__, url_prefix='/regulatory-ai')
 
+def register_routes(app):
+    """
+    Register the Regulatory AI Agent routes with a Flask application
+    
+    Args:
+        app: Flask application
+    """
+    # This function is called from routes/regulatory_ai_agent.py
+    # The blueprint 'regulatory_ai_bp' is registered separately
+    logger.info("Regulatory AI Agent routes registered")
+    return app
+
 # Try to import AI connector module
 try:
-    import sys
-    import os
-    # Get the utils directory path
-    utils_path = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'utils')
-    sys.path.append(utils_path)
-    from ai_connector import get_generative_ai, generate_embedding, get_rag_system
+    from frontend.utils.ai_connector import get_generative_ai, generate_embedding, get_rag_system
     AI_CONNECTOR_AVAILABLE = True
     RAG_AVAILABLE = True
     logger.info("AI connector module loaded successfully")
+    logger.info("Imported regulatory_ai_agent from absolute path")
 except ImportError as e:
-    AI_CONNECTOR_AVAILABLE = False
-    RAG_AVAILABLE = False
-    logger.warning(f"AI connector not available, using fallback regulatory assessment: {str(e)}")
+    try:
+        # Fallback to relative import for when running from within the frontend directory
+        from utils.ai_connector import get_generative_ai, generate_embedding, get_rag_system
+        AI_CONNECTOR_AVAILABLE = True
+        RAG_AVAILABLE = True
+        logger.info("AI connector module loaded successfully from relative path")
+    except ImportError as e2:
+        AI_CONNECTOR_AVAILABLE = False
+        RAG_AVAILABLE = False
+        logger.warning(f"AI connector not available, using fallback regulatory assessment: {str(e2)}")
 
 # Regulatory framework data structure
 REGULATORY_FRAMEWORKS = {
