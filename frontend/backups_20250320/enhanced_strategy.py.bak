@@ -19,62 +19,14 @@ Other routes are configured to redirect here for a unified experience.
 import logging
 import traceback
 import uuid
-import sys
 from datetime import datetime
 from typing import Dict, Any, List, Optional
 from flask import Blueprint, render_template, redirect, url_for, flash, request, jsonify, session
 
 # Import common utilities and constants
-import os
-
-# Define path for template utils
-sys.path.append(os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))), 'utils'))
-try:
-    from template_utils import get_context_for_template
-except ImportError:
-    # Fallback function if import fails
-    def get_context_for_template():
-        return {"navigation": [], "theme_preference": "dark"}
-
-# Import Strategy AI Consultant availability
-try:
-    from frontend.strategy_ai_consultant import STRATEGY_AI_CONSULTANT_AVAILABLE
-except ImportError:
-    STRATEGY_AI_CONSULTANT_AVAILABLE = False
-
-# Define Strategy Frameworks (moved from strategy.py to here for consolidation)
-STRATEGY_FRAMEWORKS = {
-    "sbti": {
-        "name": "Science-Based Targets Initiative",
-        "description": "Align corporate targets with the Paris Agreement's 1.5°C pathway.",
-        "icon": "chart-line",
-        "color": "green"
-    },
-    "tcfd": {
-        "name": "Task Force on Climate-related Financial Disclosures",
-        "description": "Framework for climate risk assessment and disclosure.",
-        "icon": "file-text",
-        "color": "blue" 
-    },
-    "csrd": {
-        "name": "Corporate Sustainability Reporting Directive",
-        "description": "EU reporting standards for sustainability information.",
-        "icon": "clipboard-list",
-        "color": "indigo"
-    },
-    "gri": {
-        "name": "Global Reporting Initiative",
-        "description": "Standards for sustainability reporting on economic, environmental and social impacts.",
-        "icon": "globe",
-        "color": "teal"
-    },
-    "sdg": {
-        "name": "UN Sustainable Development Goals",
-        "description": "17 integrated global goals for sustainable development.",
-        "icon": "target",
-        "color": "cyan"
-    }
-}
+from frontend.utils.template_utils import get_context_for_template
+from frontend.strategy_ai_consultant import STRATEGY_AI_CONSULTANT_AVAILABLE
+from frontend.routes.strategy import STRATEGY_FRAMEWORKS
 
 # Import storytelling functions if available
 try:
@@ -250,13 +202,9 @@ def enhanced_strategy_hub():
         logger.error(f"Error in enhanced strategy hub: {str(e)}")
         logger.error(traceback.format_exc())
         
-        # Show error page instead of redirecting to the now-removed strategy hub
+        # Redirect to the original strategy hub in case of error
         flash("An error occurred loading the Enhanced Strategy Hub. Please try again later.", "error")
-        return render_template('error.html', 
-                            error_title="Strategy Hub Error",
-                            error_message="An error occurred loading the Enhanced Strategy Hub. Please try again later.",
-                            return_link="/",
-                            return_text="Return to Home")
+        return redirect(url_for('strategy.unified_strategy_hub'))
 
 
 @enhanced_strategy_bp.route('/api/strategy-hub/upload-pdf', methods=['POST'])
@@ -306,7 +254,7 @@ def api_upload_pdf():
             "message": "Document uploaded successfully",
             "file_id": file_id,
             "filename": file.filename,
-            "analysis_url": url_for('enhanced_strategy.strategy_hub_document_view_redirect', document_id=file_id)
+            "analysis_url": url_for('strategy.strategy_hub_document_view', document_id=file_id)
         })
         
     except Exception as e:
@@ -543,117 +491,6 @@ def calculate_match_score(framework_id, industry, goals, company_size, region):
     
     # Ensure score is between 0 and 100
     return max(0, min(100, base_score))
-
-
-# Legacy route redirects - consolidating all strategy routes into enhanced_strategy.py
-@enhanced_strategy_bp.route('/strategy-hub')
-def strategy_hub_redirect():
-    """Redirect from old strategy hub to enhanced strategy hub"""
-    logger.info("Legacy strategy hub route called - redirecting to Enhanced Strategy Hub")
-    return redirect(url_for('enhanced_strategy.enhanced_strategy_hub'))
-
-@enhanced_strategy_bp.route('/unified-strategy-hub')
-def unified_strategy_hub_redirect():
-    """Redirect from unified strategy hub to enhanced strategy hub"""
-    logger.info("Unified Strategy Hub route called - redirecting to Enhanced Strategy Hub")
-    return redirect(url_for('enhanced_strategy.enhanced_strategy_hub'))
-
-@enhanced_strategy_bp.route('/ai-first-strategy-hub')
-def ai_first_strategy_hub_redirect():
-    """Redirect from AI-first strategy hub to enhanced strategy hub"""
-    logger.info("AI-First Strategy Hub route called - redirecting to Enhanced Strategy Hub")
-    return redirect(url_for('enhanced_strategy.enhanced_strategy_hub'))
-
-@enhanced_strategy_bp.route('/strategy-modeling-tool')
-def strategy_modeling_tool_redirect():
-    """Redirect from strategy modeling tool to enhanced strategy hub"""
-    logger.info("Strategy Modeling Tool route called - redirecting to Enhanced Strategy Hub")
-    return redirect(url_for('enhanced_strategy.enhanced_strategy_hub'))
-
-@enhanced_strategy_bp.route('/strategy-hub-full')
-def strategy_hub_full_redirect():
-    """Redirect from full strategy hub to enhanced strategy hub"""
-    logger.info("Full Strategy Hub route called - redirecting to Enhanced Strategy Hub")
-    return redirect(url_for('enhanced_strategy.enhanced_strategy_hub'))
-
-@enhanced_strategy_bp.route('/strategy-hub/framework/<framework_id>')
-def strategy_framework_redirect(framework_id):
-    """Redirect from framework view to framework selection guide"""
-    logger.info(f"Strategy Framework route called for {framework_id} - redirecting to Framework Selection Guide")
-    return redirect(url_for('enhanced_strategy.framework_selection_guide'))
-
-@enhanced_strategy_bp.route('/strategy-hub/monetization')
-def strategy_monetization_redirect():
-    """Redirect from monetization page to enhanced strategy hub"""
-    logger.info("Strategy Monetization route called - redirecting to Enhanced Strategy Hub")
-    return redirect(url_for('enhanced_strategy.enhanced_strategy_hub'))
-
-@enhanced_strategy_bp.route('/monetization-opportunities')
-def monetization_opportunities_redirect():
-    """Redirect from monetization opportunities to enhanced strategy hub"""
-    logger.info("Monetization Opportunities route called - redirecting to Enhanced Strategy Hub")
-    return redirect(url_for('enhanced_strategy.enhanced_strategy_hub'))
-
-@enhanced_strategy_bp.route('/monetization-strategies')
-def monetization_strategies_redirect():
-    """Redirect from monetization strategies to enhanced strategy hub"""
-    logger.info("Monetization Strategies route called - redirecting to Enhanced Strategy Hub")
-    return redirect(url_for('enhanced_strategy.enhanced_strategy_hub'))
-
-@enhanced_strategy_bp.route('/sustainability-strategies')
-def sustainability_strategies_redirect():
-    """Redirect from sustainability strategies to enhanced strategy hub"""
-    logger.info("Sustainability Strategies route called - redirecting to Enhanced Strategy Hub")
-    return redirect(url_for('enhanced_strategy.enhanced_strategy_hub'))
-
-@enhanced_strategy_bp.route('/strategy-simulation')
-def strategy_simulation_redirect():
-    """Redirect from strategy simulation to enhanced strategy hub"""
-    logger.info("Strategy Simulation route called - redirecting to Enhanced Strategy Hub")
-    return redirect(url_for('enhanced_strategy.enhanced_strategy_hub'))
-
-@enhanced_strategy_bp.route('/strategy-hub/storytelling')
-def strategy_hub_storytelling_redirect():
-    """Redirect from storytelling page to enhanced strategy hub"""
-    logger.info("Strategy Hub Storytelling route called - redirecting to Enhanced Strategy Hub")
-    return redirect(url_for('enhanced_strategy.enhanced_strategy_hub'))
-
-@enhanced_strategy_bp.route('/strategy-hub/documents')
-def strategy_hub_documents_redirect():
-    """Redirect from documents page to enhanced strategy hub"""
-    logger.info("Strategy Hub Documents route called - redirecting to Enhanced Strategy Hub")
-    return redirect(url_for('enhanced_strategy.enhanced_strategy_hub'))
-
-@enhanced_strategy_bp.route('/strategy-hub/document-upload', methods=['GET', 'POST'])
-def strategy_hub_document_upload_redirect():
-    """Redirect from document upload page to enhanced strategy hub"""
-    logger.info("Strategy Hub Document Upload route called - redirecting to Enhanced Strategy Hub")
-    return redirect(url_for('enhanced_strategy.enhanced_strategy_hub'))
-
-@enhanced_strategy_bp.route('/strategy-hub/document/<document_id>')
-def strategy_hub_document_view_redirect(document_id):
-    """Redirect from document view page to enhanced strategy hub"""
-    logger.info(f"Strategy Hub Document View route called for document ID {document_id} - redirecting to Enhanced Strategy Hub")
-    return redirect(url_for('enhanced_strategy.enhanced_strategy_hub'))
-
-@enhanced_strategy_bp.route('/strategy-hub/analysis/<file_id>', methods=['GET'])
-def strategy_hub_data_analysis_redirect(file_id):
-    """Redirect from data analysis page to enhanced strategy hub"""
-    logger.info(f"Strategy Hub Data Analysis route called for file ID {file_id} - redirecting to Enhanced Strategy Hub")
-    return redirect(url_for('enhanced_strategy.enhanced_strategy_hub'))
-
-@enhanced_strategy_bp.route('/strategy-hub/debug')
-def strategy_hub_debug_redirect():
-    """Redirect from debug page to enhanced strategy hub"""
-    logger.info("Strategy Hub Debug route called - redirecting to Enhanced Strategy Hub")
-    return redirect(url_for('enhanced_strategy.enhanced_strategy_hub'))
-
-# API routes that should redirect to enhanced strategy API endpoints
-@enhanced_strategy_bp.route('/api/strategy/frameworks')
-def api_strategy_frameworks_redirect():
-    """Redirect from frameworks API to framework recommendation API"""
-    logger.info("Strategy Frameworks API route called - redirecting to Framework Recommendation API")
-    return redirect(url_for('enhanced_strategy.api_framework_recommendation'))
 
 
 def register_blueprint(app):

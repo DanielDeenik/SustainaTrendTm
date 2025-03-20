@@ -22,7 +22,26 @@ def register_blueprint(app):
         app: Flask application
     """
     # Import the module to register its routes
-    from frontend.regulatory_ai_agent import register_routes
+    try:
+        # Use relative or absolute path depending on the project structure
+        try:
+            from ..regulatory_ai_agent import register_routes
+            logger.info("Imported regulatory_ai_agent from relative path")
+        except ImportError:
+            import sys
+            from pathlib import Path
+            
+            # Add the parent directory to sys.path to allow importing
+            sys.path.append(str(Path(__file__).parent.parent))
+            
+            from regulatory_ai_agent import register_routes
+            logger.info("Imported regulatory_ai_agent from absolute path")
+    except ImportError as e:
+        logger.warning(f"Failed to import regulatory_ai_agent: {str(e)}")
+        # Define a simple no-op function as fallback
+        def register_routes(app):
+            logger.warning("Using fallback empty register_routes for regulatory_ai_agent")
+            pass
     
     # Register the routes with the app
     register_routes(app)

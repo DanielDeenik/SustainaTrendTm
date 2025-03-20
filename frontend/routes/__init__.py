@@ -18,14 +18,15 @@ def register_blueprints(app):
     from .analytics import analytics_bp
     from .trend import trend_bp
     from .realestate import realestate_bp
-    from .strategy import strategy_bp
     
-    # Import enhanced strategy blueprint - new implementation with Finchat.io-style UI
+    # Import enhanced strategy blueprint - centralized implementation with Finchat.io-style UI
+    # This is now the only strategy blueprint as all others have been consolidated into it
     try:
         from .enhanced_strategy import enhanced_strategy_bp, register_blueprint as register_enhanced_strategy
         logger.info("Enhanced Strategy Hub blueprint imported successfully")
     except ImportError as e:
-        logger.warning(f"Enhanced Strategy Hub blueprint import failed: {str(e)}")
+        logger.error(f"Enhanced Strategy Hub blueprint import failed: {str(e)}")
+        logger.error("This is a critical error as the Enhanced Strategy Hub is now the main strategy interface")
     
     # Import legacy routes blueprint - for backward compatibility
     try:
@@ -39,15 +40,8 @@ def register_blueprints(app):
         from .storytelling import storytelling_bp
         logger.info("Storytelling blueprint imported successfully")
     except ImportError:
-        logger.warning("Storytelling blueprint import failed, will rely on strategy hub")
+        logger.warning("Storytelling blueprint import failed, will rely on enhanced strategy hub")
     
-    # Import the monetization blueprint but don't register it - we'll consolidate it into strategy
-    try:
-        from .monetization import monetization_bp
-        logger.info("Monetization blueprint imported successfully")
-    except ImportError:
-        logger.warning("Monetization blueprint import failed, will rely on strategy hub")
-        
     # Import science-based targets blueprint
     try:
         import sys
@@ -72,15 +66,14 @@ def register_blueprints(app):
     app.register_blueprint(analytics_bp)
     app.register_blueprint(trend_bp)
     app.register_blueprint(realestate_bp)
-    # Register strategy blueprint - this contains the consolidated strategy hub
-    app.register_blueprint(strategy_bp)
     
-    # Register enhanced strategy blueprint
+    # Register enhanced strategy blueprint - now the only strategy-related blueprint
     try:
         register_enhanced_strategy(app)
         logger.info("Enhanced Strategy Hub blueprint registered successfully")
     except NameError:
-        logger.warning("Enhanced Strategy Hub blueprint not registered due to import failure")
+        logger.error("Enhanced Strategy Hub blueprint not registered due to import failure")
+        logger.error("This is a critical error as the Enhanced Strategy Hub is now the main strategy interface")
     
     # Register storytelling blueprint - modular implementation with UUID-based identification
     try:
