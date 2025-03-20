@@ -24,6 +24,7 @@ import traceback
 import uuid
 import sys
 import json
+import random
 from datetime import datetime
 from typing import Dict, Any, List, Optional, Union, Tuple
 from flask import Blueprint, render_template, redirect, url_for, flash, request, jsonify, session
@@ -61,6 +62,17 @@ except ImportError as e:
             }
     
     strategy_ai = FallbackStrategyAI()
+
+# Import trend virality benchmarking module
+try:
+    from trend_virality_benchmarking import analyze_trend_with_stepps, benchmark_against_competitors
+    TREND_VIRALITY_MODULE_IMPORTED = True
+    TREND_VIRALITY_AVAILABLE = True
+    logger.info("Trend Virality Benchmarking module loaded successfully")
+except ImportError as e:
+    TREND_VIRALITY_MODULE_IMPORTED = False
+    TREND_VIRALITY_AVAILABLE = False
+    logger.warning(f"Trend Virality Benchmarking module import failed: {str(e)}")
 
 # Import monetization strategies functions if available
 try:
@@ -718,8 +730,16 @@ def enhanced_strategy_hub():
         
         # Get STEPPS components
         try:
-            from frontend.trend_virality_benchmarking import STEPPS_COMPONENTS
-        except ImportError:
+            from frontend.trend_virality_benchmarking import (
+                STEPPS_COMPONENTS,
+                analyze_trend_with_stepps,
+                benchmark_against_competitors
+            )
+            TREND_VIRALITY_MODULE_IMPORTED = True
+            logger.info("Trend Virality module imported successfully in enhanced strategy")
+        except ImportError as e:
+            TREND_VIRALITY_MODULE_IMPORTED = False
+            logger.warning(f"Trend Virality module import failed in enhanced strategy: {str(e)}")
             STEPPS_COMPONENTS = {
                 "S": {"name": "Social Currency", "description": "How sharing information makes people look to others"},
                 "T": {"name": "Triggers", "description": "Environmental cues that prompt people to think about related things"},
@@ -1147,6 +1167,122 @@ def api_generate_action_plan():
             "message": f"An error occurred: {str(e)}"
         }), 500
 
+@enhanced_strategy_bp.route('/api/strategy-hub/analyze-trend-virality', methods=['POST'])
+def api_analyze_trend_virality():
+    """
+    API endpoint to analyze the virality potential of a sustainability trend
+    using the STEPPS framework (Social Currency, Triggers, Emotion, Public, Practical Value, Stories)
+    
+    Accepts:
+        - trend_name: Name of the sustainability trend
+        - trend_description: Description of the trend
+        - industry: Industry context for analysis
+        - competitors: List of competitors for benchmarking (optional)
+        
+    Returns:
+        JSON with trend virality analysis and benchmarking
+    """
+    try:
+        data = request.get_json()
+        
+        if not data:
+            return jsonify({
+                "status": "error",
+                "message": "No data provided"
+            }), 400
+            
+        # Extract required parameters
+        trend_name = data.get('trend_name')
+        trend_description = data.get('trend_description')
+        
+        if not trend_name or not trend_description:
+            return jsonify({
+                "status": "error",
+                "message": "Please provide both trend name and description."
+            }), 400
+            
+        # Extract optional parameters
+        industry = data.get('industry', 'General')
+        competitors = data.get('competitors', [])
+        
+        # Initialize response structure
+        result = {
+            "status": "success",
+            "trend_name": trend_name,
+            "industry": industry,
+            "timestamp": datetime.now().isoformat(),
+            "stepps_analysis": {},
+            "benchmark_results": [],
+            "virality_score": 0,
+            "virality_rating": ""
+        }
+        
+        # Check if trend virality module is properly imported
+        if TREND_VIRALITY_MODULE_IMPORTED and TREND_VIRALITY_AVAILABLE:
+            try:
+                # Use the actual STEPPS analysis function
+                # Create trend data in the format expected by analyze_trend_with_stepps
+                trend_data = {
+                    "name": trend_name,
+                    "category": "sustainability",
+                    "trend_direction": "improving",
+                    "virality_score": 70,  # Initial placeholder score
+                    "keywords": trend_description.split()
+                }
+                
+                logger.info(f"Analyzing trend virality for '{trend_name}' using STEPPS framework")
+                stepps_result = analyze_trend_with_stepps(trend_data)
+                
+                # Update response with real analysis
+                result["stepps_analysis"] = stepps_result.get("components", {})
+                result["virality_score"] = stepps_result.get("overall_stepps_score", 0)
+                
+                # Generate benchmarking if competitors provided
+                if competitors:
+                    logger.info(f"Benchmarking trend '{trend_name}' against {len(competitors)} competitors")
+                    # Create trend data list for benchmarking
+                    trend_data_list = [trend_data]
+                    
+                    benchmark_results = benchmark_against_competitors(
+                        company_name="Your Company",
+                        industry=industry,
+                        trend_data=trend_data_list
+                    )
+                    result["benchmark_results"] = benchmark_results.get("comparisons", [])
+                
+                # Determine rating based on score
+                score = result["virality_score"]
+                if score >= 8.0:
+                    result["virality_rating"] = "Exceptional"
+                elif score >= 7.0:
+                    result["virality_rating"] = "High"
+                elif score >= 5.5:
+                    result["virality_rating"] = "Moderate"
+                elif score >= 4.0:
+                    result["virality_rating"] = "Low"
+                else:
+                    result["virality_rating"] = "Poor"
+                    
+            except Exception as e:
+                logger.error(f"Error using trend virality module: {str(e)}")
+                logger.error(traceback.format_exc())
+                raise e
+        else:
+            logger.warning("Trend virality module not available, returning error")
+            return jsonify({
+                "status": "error",
+                "message": "Trend virality analysis module is not available."
+            }), 500
+        
+        return jsonify(result)
+    except Exception as e:
+        logger.error(f"Error in trend virality analysis: {str(e)}")
+        logger.error(traceback.format_exc())
+        return jsonify({
+            "status": "error",
+            "message": f"An error occurred while analyzing trend virality: {str(e)}"
+        }), 500
+
 @enhanced_strategy_bp.route('/api/framework-recommendation', methods=['POST'])
 def api_framework_recommendation():
     """API endpoint for getting framework recommendations based on industry and goals"""
@@ -1370,6 +1506,13 @@ def api_strategy_frameworks_redirect():
     """Redirect from frameworks API to framework recommendation API"""
     logger.info("Strategy Frameworks API route called - redirecting to Framework Recommendation API")
     return redirect(url_for('enhanced_strategy.api_framework_recommendation'))
+
+@enhanced_strategy_bp.route('/api/trend-virality-analysis', methods=['POST'])
+def api_trend_virality_analysis_redirect():
+    """Redirect from old trend virality API to analyze-trend-virality API"""
+    logger.info("Legacy Trend Virality Analysis API route called - forwarding to analyze-trend-virality API")
+    # Instead of redirecting, we'll call the actual function directly to preserve POST data
+    return api_analyze_trend_virality()
 
 
 @enhanced_strategy_bp.route('/api/generate-strategy', methods=['POST'])
