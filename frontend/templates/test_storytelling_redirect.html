@@ -1,0 +1,72 @@
+{% extends "layouts/finchat_dark_layout.html" %}
+
+{% block header_title %}
+<i class="fas fa-exchange-alt me-2"></i> Storytelling Routes Test Page
+{% endblock %}
+
+{% block main_content %}
+<div class="container">
+    <div class="row">
+        <div class="col-12">
+            <div class="card">
+                <div class="card-header bg-primary text-white">
+                    <h5 class="mb-0">Storytelling Routes Test</h5>
+                </div>
+                <div class="card-body">
+                    <h6 class="mb-3">Testing route redirects...</h6>
+                    
+                    <div class="list-group mb-4">
+                        <div class="list-group-item">
+                            <div class="d-flex justify-content-between align-items-center">
+                                <span><i class="fas fa-link me-2"></i> Legacy Home Route</span>
+                                <a href="/storytelling" class="btn btn-sm btn-outline-primary">Test</a>
+                            </div>
+                            <div class="small text-muted mt-1">Should redirect to /stories/</div>
+                        </div>
+                        
+                        <div class="list-group-item">
+                            <div class="d-flex justify-content-between align-items-center">
+                                <span><i class="fas fa-link me-2"></i> Legacy Create Story Route</span>
+                                <a href="/storytelling/create" class="btn btn-sm btn-outline-primary">Test</a>
+                            </div>
+                            <div class="small text-muted mt-1">Should redirect to /stories/create</div>
+                        </div>
+                        
+                        <div class="list-group-item">
+                            <div class="d-flex justify-content-between align-items-center">
+                                <span><i class="fas fa-link me-2"></i> Legacy Sustainability Stories Route</span>
+                                <a href="/sustainability-stories" class="btn btn-sm btn-outline-primary">Test</a>
+                            </div>
+                            <div class="small text-muted mt-1">Should redirect to /stories/</div>
+                        </div>
+                    </div>
+                    
+                    <h6 class="mb-3">API Endpoints:</h6>
+                    
+                    <div class="alert alert-info">
+                        <i class="fas fa-info-circle me-2"></i> API endpoints can't be tested with direct links. See code for redirects:
+                        <ul class="mt-2 mb-0">
+                            <li><code>/api/generate-story</code> → <code>/stories/api/generate</code></li>
+                            <li><code>/api/stories/generate</code> → <code>/stories/api/generate</code></li>
+                        </ul>
+                    </div>
+                    
+                    <div class="mt-4">
+                        <a href="{{ url_for('stories.stories_home') }}" class="btn btn-primary">
+                            <i class="fas fa-arrow-left me-2"></i> Back to Stories
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    console.log('Storytelling redirect test page loaded');
+});
+</script>
+{% endblock extra_js %}

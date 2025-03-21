@@ -5,7 +5,7 @@ This module provides redirects from old routes to the new blueprint-based routes
 to maintain backward compatibility while migrating to a more modular structure.
 """
 import logging
-from flask import Blueprint, redirect, url_for
+from flask import Blueprint, redirect, url_for, request
 
 # Configure logging
 logger = logging.getLogger(__name__)
@@ -30,7 +30,6 @@ def storytelling_create_redirect():
     Redirects from the legacy /storytelling/create route 
     to the new modular stories create page
     """
-    from flask import request
     logger.info("Legacy storytelling create route accessed - redirecting to stories create page")
     
     # Check if template parameter is present and carry it over to the new URL
@@ -49,6 +48,34 @@ def sustainability_stories_redirect():
     """
     logger.info("Legacy sustainability stories route accessed - redirecting to new blueprint")
     return redirect(url_for('stories.stories_home'))
+
+# API routes for legacy story generation endpoints
+@legacy_bp.route('/api/generate-story', methods=['POST'])
+def api_generate_story_redirect():
+    """
+    Redirects from the legacy /api/generate-story route 
+    to the new modular stories.api_generate_story endpoint
+    """
+    logger.info("Legacy API generate story endpoint accessed - redirecting to stories blueprint")
+    return redirect(url_for('stories.api_generate_story'))
+
+@legacy_bp.route('/api/stories/generate', methods=['POST'])
+def api_stories_generate_redirect():
+    """
+    Redirects from the legacy /api/stories/generate route 
+    to the new modular stories.api_generate_story endpoint
+    """
+    logger.info("Legacy API stories generate endpoint accessed - redirecting to stories blueprint")
+    return redirect(url_for('stories.api_generate_story'))
+
+@legacy_bp.route('/storytelling/api/generate-story', methods=['POST'])
+def storytelling_api_generate_story_redirect():
+    """
+    Redirects from the legacy /storytelling/api/generate-story route
+    to the new modular stories.api_generate_story endpoint
+    """
+    logger.info("Legacy storytelling API generate story endpoint accessed - redirecting to stories blueprint")
+    return redirect(url_for('stories.api_generate_story'))
 
 # Route for legacy analytics
 @legacy_bp.route('/analytics')

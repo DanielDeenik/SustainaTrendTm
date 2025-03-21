@@ -212,6 +212,20 @@ def api_get_story(story_id):
             'error': str(e)
         }), 500
 
+@stories_bp.route('/test-redirects')
+def test_redirects():
+    """Test page for storytelling redirects"""
+    # Set up template context with navigation
+    template_context = get_context_for_template()
+    
+    # Add page context
+    template_context.update({
+        'page_title': 'Test Storytelling Redirects',
+        'active_section': 'stories'
+    })
+    
+    return render_template('test_storytelling_redirect.html', **template_context)
+
 @stories_bp.route('/api/templates')
 def api_get_templates():
     """API endpoint for getting story templates"""

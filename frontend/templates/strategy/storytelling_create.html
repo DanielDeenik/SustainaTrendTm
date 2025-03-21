@@ -80,7 +80,7 @@
             <h5 class="mb-0"><i class="fas fa-edit me-2"></i> Create New Story</h5>
         </div>
         <div class="card-body">
-            <form id="storyGenerationForm" method="POST" action="{{ url_for('stories.create_story') }}">
+            <form id="storyGenerationForm" method="POST" action="{{ url_for('stories.api_generate_story') }}">
                 <div class="mb-3">
                     <label for="audience" class="form-label">Target Audience</label>
                     <select class="form-select" id="audience" name="audience" required>
@@ -189,7 +189,7 @@ document.addEventListener('DOMContentLoaded', function() {
     const errorElement = document.getElementById('storyGenerationError');
     
     form.addEventListener('submit', function(e) {
-        // Don't prevent default as we want the form to actually submit
+        e.preventDefault(); // Prevent default form submission
         
         // Hide any previous errors
         errorElement.classList.add('d-none');
@@ -199,7 +199,48 @@ document.addEventListener('DOMContentLoaded', function() {
         
         // Disable submit button to prevent double submission
         document.getElementById('generateStoryBtn').disabled = true;
+        
+        // Get form data
+        const formData = {
+            audience: document.getElementById('audience').value,
+            category: document.getElementById('category').value,
+            prompt: document.getElementById('prompt').value
+        };
+        
+        // Send AJAX request
+        fetch(form.action, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify(formData)
+        })
+        .then(response => response.json())
+        .then(data => {
+            spinner.classList.add('d-none');
+            if (data.success || data.status === 'success') {
+                // Redirect to story detail page
+                if (data.story && data.story.id) {
+                    window.location.href = "{{ url_for('stories.stories_home') }}";
+                } else {
+                    showError('Story generated but no ID was returned');
+                }
+            } else {
+                showError(data.error || 'An error occurred while generating the story');
+            }
+        })
+        .catch(error => {
+            spinner.classList.add('d-none');
+            showError('Network error: ' + error.message);
+            document.getElementById('generateStoryBtn').disabled = false;
+        });
     });
+    
+    function showError(message) {
+        errorElement.textContent = message;
+        errorElement.classList.remove('d-none');
+        document.getElementById('generateStoryBtn').disabled = false;
+    }
 });
 </script>
 {% endblock extra_js %}
