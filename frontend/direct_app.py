@@ -139,9 +139,11 @@ except ImportError as e:
 
 # Import Trend Virality Benchmarking Module
 try:
-    from trend_virality_benchmarking import register_routes as register_trend_virality_routes
+    # We no longer need to register routes for trend virality as they are now integrated
+    # into the Enhanced Strategy Hub's virality-trends tab, but we import core functions for use
+    from trend_virality_benchmarking import api_trend_virality_analysis
     TREND_VIRALITY_AVAILABLE = True
-    logger.info("Trend Virality Benchmarking module loaded successfully")
+    logger.info("Trend Virality Benchmarking functions loaded successfully")
 except ImportError as e:
     TREND_VIRALITY_AVAILABLE = False
     logger.warning(f"Trend Virality Benchmarking module not available: {e}")
@@ -234,10 +236,13 @@ if MARKETING_STRATEGIES_AVAILABLE:
     register_marketing_strategies_routes(app)
     logger.info("Marketing Strategies routes registered successfully")
 
-# Register Trend Virality routes if available
+# Trend Virality functionality has been moved to the Enhanced Strategy Hub
+# We keep this section for backward compatibility, but routes are now registered
+# via the Enhanced Strategy Hub blueprint
 if TREND_VIRALITY_AVAILABLE:
-    register_trend_virality_routes(app)
-    logger.info("Trend Virality Benchmarking routes registered successfully")
+    # Directly register the API endpoint for backward compatibility
+    app.route("/api/trend-virality-analysis", methods=["GET", "POST"])(api_trend_virality_analysis)
+    logger.info("Trend Virality API endpoint registered for backward compatibility")
 
 # Register Sustainability Storytelling routes if available
 if SUSTAINABILITY_STORYTELLING_AVAILABLE:

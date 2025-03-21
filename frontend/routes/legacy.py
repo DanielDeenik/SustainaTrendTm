@@ -23,6 +23,23 @@ def storytelling_redirect():
     logger.info("Legacy storytelling route accessed - redirecting to stories blueprint")
     return redirect(url_for('stories.stories_home'))
 
+# Route for legacy story creation page
+@legacy_bp.route('/storytelling/create')
+def storytelling_create_redirect():
+    """
+    Redirects from the legacy /storytelling/create route 
+    to the new modular stories create page
+    """
+    from flask import request
+    logger.info("Legacy storytelling create route accessed - redirecting to stories create page")
+    
+    # Check if template parameter is present and carry it over to the new URL
+    template_param = request.args.get('template')
+    if template_param:
+        return redirect(url_for('stories.create_story', template=template_param))
+    else:
+        return redirect(url_for('stories.create_story'))
+
 # Route for legacy sustainability stories page
 @legacy_bp.route('/sustainability-stories')
 def sustainability_stories_redirect():
@@ -52,6 +69,16 @@ def monetization_redirect():
     """
     logger.info("Legacy monetization opportunities route accessed - redirecting to enhanced strategy hub")
     return redirect(url_for('enhanced_strategy.enhanced_strategy_hub'))
+
+# Route for legacy trend virality dashboard
+@legacy_bp.route('/trend-virality-dashboard')
+def trend_virality_redirect():
+    """
+    Redirects from the legacy /trend-virality-dashboard route
+    to the enhanced strategy hub's virality trends tab
+    """
+    logger.info("Legacy trend virality dashboard route accessed - redirecting to enhanced strategy hub with virality tab")
+    return redirect(url_for('enhanced_strategy.enhanced_strategy_hub') + '#virality-trends')
 
 # Function to register blueprint
 def register_blueprint(app):

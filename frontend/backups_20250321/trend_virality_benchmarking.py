@@ -1398,94 +1398,35 @@ def api_trend_virality_analysis():
     return jsonify(analysis)
 
 # Function to register API routes with Flask
-# API function for trend virality analysis
-def api_trend_virality_analysis():
+def register_routes(app):
     """
-    API endpoint to analyze trend virality using the STEPPS framework.
+    Register trend virality analysis routes with Flask application.
     
-    Note: This function is now directly integrated into the Enhanced Strategy Hub
-    API endpoint at /api/strategy-hub/analyze-trend-virality. This function
-    is a compatibility layer for backward compatibility.
-    
-    The newer API expects:
-        - trend_name: Name of the sustainability trend
-        - trend_description: Description of the trend
-        - industry: Industry context for analysis (optional)
-        - competitors: List of competitors for benchmarking (optional)
+    Args:
+        app: Flask application
     """
-    from flask import request, jsonify, current_app
-    import logging
+    from flask import render_template
     
-    logger = logging.getLogger(__name__)
-    logger.info("Legacy Trend Virality Analysis API route called - forwarding to analyze-trend-virality API")
+    # API endpoint for trend virality analysis
+    app.route("/api/trend-virality-analysis")(api_trend_virality_analysis)
     
-    # Get request parameters
-    data = request.get_json() or {}
-    
-    # Extract parameters from the older API format
-    company_name = data.get("company_name", "Your Company")
-    industry = data.get("industry", "technology")
-    
-    # Check if we're getting parameters in the new format already
-    trend_name = data.get("trend_name")
-    trend_description = data.get("trend_description")
-    
-    if not trend_name:
-        # If we don't have the new format parameters, we need them
-        return jsonify({
-            "status": "error",
-            "message": "Please provide both trend name and description."
-        }), 400
+    # Dashboard page for trend virality analysis
+    @app.route("/trend-virality-dashboard")
+    def trend_virality_dashboard():
+        """Trend & Virality Benchmarking Dashboard page"""
+        # Get default company and industry parameters for initial display
+        company_name = "Askin Inc"
+        industry = "technology"
         
-    # Prepare data for the Enhanced Strategy Hub format API
-    trend_data = {
-        "name": trend_name,
-        "category": "sustainability", 
-        "industry": industry,
-        "trend_direction": "improving",
-        "virality_score": 70,  # Initial placeholder score
-        "keywords": trend_description.split() if trend_description else []
-    }
-    
-    # Analyze using the STEPPS framework directly
-    stepps_result = analyze_trend_with_stepps(trend_data)
-    
-    # Get competitors if provided
-    competitors = data.get("competitors", [])
-    
-    result = {
-        "status": "success",
-        "trend_name": trend_name,
-        "industry": industry,
-        "timestamp": datetime.now().isoformat(),
-        "stepps_analysis": stepps_result.get("components", {}),
-        "virality_score": stepps_result.get("overall_stepps_score", 0),
-        "virality_rating": ""
-    }
-    
-    # Generate benchmarking if competitors provided
-    if competitors:
-        # Create trend data list for benchmarking
-        trend_data_list = [trend_data]
+        # Get analysis data for default parameters
+        analysis = get_trend_virality_analysis(company_name, industry)
         
-        benchmark_results = benchmark_against_competitors(
+        return render_template(
+            "trend_virality_dashboard.html",
+            title="Trend & Virality Benchmarking",
             company_name=company_name,
             industry=industry,
-            trend_data=trend_data_list
+            analysis=analysis
         )
-        result["benchmark_results"] = benchmark_results.get("comparisons", [])
     
-    # Determine rating based on score
-    score = result["virality_score"]
-    if score >= 8.0:
-        result["virality_rating"] = "Exceptional"
-    elif score >= 7.0:
-        result["virality_rating"] = "High"
-    elif score >= 5.5:
-        result["virality_rating"] = "Moderate"
-    elif score >= 4.0:
-        result["virality_rating"] = "Low"
-    else:
-        result["virality_rating"] = "Poor"
-    
-    return jsonify(result)
+    return app
