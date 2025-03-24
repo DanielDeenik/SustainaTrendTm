@@ -53,7 +53,16 @@ def register_routes(app):
     """
     # This function is called from routes/regulatory_ai_agent.py
     # The blueprint 'regulatory_ai_bp' is registered separately
-    logger.info("Regulatory AI Agent routes registered")
+    
+    # Check if we're in direct mode by looking for specific attribute
+    if hasattr(app, 'direct_mode') and app.direct_mode:
+        # Register directly in direct mode only
+        app.register_blueprint(regulatory_ai_bp)
+        logger.info("Regulatory AI Agent routes registered directly (direct mode)")
+    else:
+        # In regular mode, the blueprint is registered by routes/regulatory_ai_agent.py
+        logger.info("Regulatory AI Agent routes NOT registered directly - use blueprint registration instead")
+    
     return app
 
 # Try to import AI connector module
@@ -1098,12 +1107,22 @@ def api_rag_analysis_form():
         return jsonify({"error": str(e)}), 500
 
 # Blueprint registration function
+# NOTE: This function is now meant to be directly used by the app.py main file only,
+# not by the routes/regulatory_ai_agent.py blueprint registration.
 def register_routes(app):
     """
-    Register routes with Flask application
+    Register routes with Flask application - Direct mode only
+    
+    This function should only be called directly from app.py when using 
+    the direct application mode (direct_app.py), not from the blueprint 
+    registration in routes/regulatory_ai_agent.py to avoid duplication.
     
     Args:
         app: Flask application
     """
-    app.register_blueprint(regulatory_ai_bp)
-    logger.info("Regulatory AI Agent routes registered")
+    # Check if we're in direct mode by looking for specific attribute
+    if hasattr(app, 'direct_mode') and app.direct_mode:
+        app.register_blueprint(regulatory_ai_bp)
+        logger.info("Regulatory AI Agent routes registered (direct mode)")
+    else:
+        logger.info("Regulatory AI Agent routes NOT registered - use blueprint registration instead")

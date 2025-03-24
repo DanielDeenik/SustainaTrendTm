@@ -638,13 +638,17 @@ def register_routes(app):
     Args:
         app: Flask application instance
     """
-    # Import the stories blueprint from routes module and register it
-    try:
-        from frontend.routes.stories import register_blueprint
-        register_blueprint(app)
-        logger.info("Storytelling routes registered via blueprint")
-    except ImportError as e:
-        logger.error(f"Could not register storytelling routes: {str(e)}")
+    # Check if we're in direct mode by looking for specific attribute
+    if hasattr(app, 'direct_mode') and app.direct_mode:
+        # Import the stories blueprint from routes module and register it
+        try:
+            from frontend.routes.stories import register_blueprint
+            register_blueprint(app)
+            logger.info("Storytelling routes registered via blueprint (direct mode)")
+        except ImportError as e:
+            logger.error(f"Could not register storytelling routes: {str(e)}")
+    else:
+        logger.info("Storytelling routes NOT registered - use blueprint registration instead")
 
 def generate_trend_data(start: float, end: float, points: int, trend: str = 'increasing') -> List[float]:
     """
