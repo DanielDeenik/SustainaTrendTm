@@ -201,6 +201,16 @@
           </div>
         </div>
       </div>
+      
+      <!-- Quick Action Buttons -->
+      <div class="d-flex flex-wrap gap-2 mb-3">
+        <a href="{{ url_for('regulatory_ai.document_upload') }}" class="btn btn-outline-primary">
+          <i class="fas fa-file-upload me-2"></i> Klarity-Style Document Upload
+        </a>
+        <a href="{{ url_for('regulatory_ai.compliance_visualization') }}" class="btn btn-outline-secondary">
+          <i class="fas fa-chart-bar me-2"></i> View Compliance Dashboard
+        </a>
+      </div>
     </div>
   </div>
   

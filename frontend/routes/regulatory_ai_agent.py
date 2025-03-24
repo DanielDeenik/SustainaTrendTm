@@ -12,7 +12,7 @@ from flask import Blueprint
 logger = logging.getLogger(__name__)
 
 # Create blueprint
-regulatory_ai_bp = Blueprint('regulatory_ai_routes', __name__, url_prefix='/regulatory-ai')
+regulatory_ai_bp = Blueprint('regulatory_ai', __name__, url_prefix='/regulatory-ai')
 
 def register_blueprint(app):
     """

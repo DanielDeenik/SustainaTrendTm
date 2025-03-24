@@ -51,17 +51,12 @@ def register_routes(app):
     Args:
         app: Flask application
     """
-    # This function is called from routes/regulatory_ai_agent.py
-    # The blueprint 'regulatory_ai_bp' is registered separately
+    # This function is ONLY for backwards compatibility - it no longer registers the blueprint
+    # The blueprint 'regulatory_ai_bp' is registered ONLY through routes/__init__.py
+    # to avoid conflicting registrations
     
-    # Check if we're in direct mode by looking for specific attribute
-    if hasattr(app, 'direct_mode') and app.direct_mode:
-        # Register directly in direct mode only
-        app.register_blueprint(regulatory_ai_bp)
-        logger.info("Regulatory AI Agent routes registered directly (direct mode)")
-    else:
-        # In regular mode, the blueprint is registered by routes/regulatory_ai_agent.py
-        logger.info("Regulatory AI Agent routes NOT registered directly - use blueprint registration instead")
+    # DO NOT register the blueprint here anymore
+    logger.info("Regulatory AI Agent routes NOT registered directly - use blueprint registration instead")
     
     return app
 
@@ -719,6 +714,26 @@ def compliance_visualization():
                           page_title="Compliance Visualization",
                           active_page="regulatory-ai")
 
+@regulatory_ai_bp.route('/document-upload')
+def document_upload():
+    """Klarity-Style Document Upload & Analysis Page"""
+    frameworks = get_frameworks()
+    
+    # Get parameters from Strategy Hub if they were passed
+    company = request.args.get('company', '')
+    industry = request.args.get('industry', '')
+    
+    # Check if RAG system is available
+    rag_system_available = is_rag_available()
+    
+    return render_template('regulatory/document_upload.html',
+                          frameworks=frameworks,
+                          company=company,
+                          industry=industry,
+                          is_rag_available=rag_system_available,
+                          page_title="Document Upload & Analysis",
+                          active_page="regulatory-ai")
+
 @regulatory_ai_bp.route('/api/assessment', methods=['POST'])
 def api_regulatory_assessment():
     """API endpoint for regulatory compliance assessment"""
@@ -929,7 +944,7 @@ def api_file_assessment():
         return jsonify(assessment_result)
     except Exception as e:
         # Log the error
-        app.logger.error(f"Error in file assessment: {str(e)}")
+        logger.error(f"Error in file assessment: {str(e)}")
         return jsonify({"error": f"An error occurred: {str(e)}"}), 500
 
 @regulatory_ai_bp.route('/api/rag-analysis-form', methods=['POST'])

@@ -206,10 +206,14 @@ if ETHICAL_AI_AVAILABLE:
 
 # Register Regulatory AI Agent routes if available
 if REGULATORY_AI_AVAILABLE:
-    # Register Regulatory AI Agent routes
+    # Don't register the blueprint directly since it's handled by routes/__init__.py
+    # This prevents duplicate blueprint registration and route conflicts
+    logger.info("Regulatory AI Agent routes NOT registered directly - handled by routes/__init__.py")
+    # Keeping this block for backward compatibility
     try:
-        register_regulatory_ai_agent_routes(app)
-        logger.info("Regulatory AI Agent routes registered successfully")
+        # We're not actually calling this anymore
+        # register_regulatory_ai_agent_routes(app)
+        pass
     except NameError:
         logger.warning("Failed to register Regulatory AI Agent routes")
 
