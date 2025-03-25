@@ -1,4 +1,4 @@
-{% extends "layouts/base.html" %}
+{% extends "base.html" %}
 
 {% block title %}Regulatory Document Upload - SustainaTrend™{% endblock %}
 
@@ -251,8 +251,8 @@
     <div class="col-12">
       <nav aria-label="breadcrumb">
         <ol class="breadcrumb">
-          <li class="breadcrumb-item"><a href="{{ url_for('index') }}">Home</a></li>
-          <li class="breadcrumb-item"><a href="{{ url_for('regulatory_ai.index') }}">Regulatory AI</a></li>
+          <li class="breadcrumb-item"><a href="{{ url_for('analytics.home') }}">Home</a></li>
+          <li class="breadcrumb-item"><a href="{{ url_for('regulatory_ai.regulatory_ai_dashboard') }}">Regulatory AI</a></li>
           <li class="breadcrumb-item active" aria-current="page">Document Upload</li>
         </ol>
       </nav>
@@ -697,36 +697,49 @@
     analyzeBtn.addEventListener('click', function() {
       // Show progress
       progressContainer.classList.remove('d-none');
+      progressBar.style.width = '10%';
+      progressStatus.textContent = 'Preparing document for upload...';
       
-      // Simulate document processing
-      simulateDocumentProcessing();
-    });
-    
-    // Simulate document processing
-    function simulateDocumentProcessing() {
-      let progress = 0;
-      const interval = setInterval(function() {
-        progress += 5;
-        progressBar.style.width = progress + '%';
+      // Get selected framework and analysis type
+      const frameworkId = document.getElementById('frameworkSelect').value;
+      const analysisType = document.getElementById('analysisType').value;
+      
+      // Create FormData object to send the file
+      const formData = new FormData();
+      formData.append('framework_id', frameworkId);
+      formData.append('analysis_type', analysisType);
+      
+      // Get file from fileInput
+      if (fileInput.files.length > 0) {
+        formData.append('file', fileInput.files[0]);
         
-        // Update status text based on progress
-        if (progress < 20) {
-          progressStatus.textContent = 'Extracting text from document...';
-        } else if (progress < 40) {
-          progressStatus.textContent = 'Identifying frameworks and requirements...';
-        } else if (progress < 60) {
-          progressStatus.textContent = 'Analyzing compliance gaps...';
-        } else if (progress < 80) {
-          progressStatus.textContent = 'Generating recommendations...';
-        } else {
-          progressStatus.textContent = 'Finalizing analysis...';
-        }
+        // Update progress
+        progressBar.style.width = '20%';
+        progressStatus.textContent = 'Uploading document...';
         
-        // When progress is complete
-        if (progress >= 100) {
-          clearInterval(interval);
+        // Make API request to file assessment endpoint
+        fetch('/regulatory-ai/api/file-assessment', {
+          method: 'POST',
+          body: formData
+        })
+        .then(response => {
+          progressBar.style.width = '70%';
+          progressStatus.textContent = 'Processing server response...';
           
-          // Hide progress
+          if (!response.ok) {
+            throw new Error(`Server responded with status: ${response.status}`);
+          }
+          return response.json();
+        })
+        .then(data => {
+          // Complete progress
+          progressBar.style.width = '100%';
+          progressStatus.textContent = 'Analysis complete!';
+          
+          // Process assessment data
+          processAssessmentResult(data);
+          
+          // Hide progress after a short delay
           setTimeout(function() {
             progressContainer.classList.add('d-none');
             
@@ -736,11 +749,152 @@
             
             // Update result information
             document.getElementById('resultFileName').textContent = fileName.textContent;
-            document.getElementById('resultFramework').textContent = document.getElementById('frameworkSelect').value;
+            document.getElementById('resultFramework').textContent = frameworkId;
             document.getElementById('resultAnalysisType').textContent = document.getElementById('analysisType').options[document.getElementById('analysisType').selectedIndex].text;
+            
+            // Show document preview if available
+            previewCard.classList.remove('d-none');
           }, 500);
-        }
-      }, 200);
+        })
+        .catch(error => {
+          console.error('Error during document analysis:', error);
+          progressContainer.classList.add('d-none');
+          
+          // Show error message
+          alert(`Error analyzing document: ${error.message}. Please try again.`);
+        });
+      } else {
+        progressContainer.classList.add('d-none');
+        alert('Please select a file to analyze.');
+      }
+    });
+    
+    // Process the assessment result
+    function processAssessmentResult(data) {
+      // Clear previous results
+      const complianceTable = document.getElementById('complianceTable');
+      complianceTable.innerHTML = '';
+      
+      const resultsFeed = document.getElementById('resultsFeed');
+      resultsFeed.innerHTML = '';
+      
+      const detectedFrameworks = document.getElementById('detectedFrameworks');
+      detectedFrameworks.innerHTML = '';
+      
+      const validationResults = document.getElementById('validationResults');
+      validationResults.innerHTML = '';
+      
+      // Update overall compliance score
+      const overallScore = data.overall_score || 0;
+      const complianceElement = document.getElementById('resultCompliance');
+      let complianceLevel = 'low';
+      if (overallScore >= 70) {
+        complianceLevel = 'high';
+      } else if (overallScore >= 40) {
+        complianceLevel = 'medium';
+      }
+      complianceElement.className = `compliance-level ${complianceLevel}`;
+      complianceElement.textContent = `${overallScore}/100`;
+      
+      // Add detected frameworks
+      if (data.framework) {
+        const frameworkBadge = document.createElement('span');
+        frameworkBadge.className = 'framework-badge primary';
+        frameworkBadge.textContent = data.framework;
+        detectedFrameworks.appendChild(frameworkBadge);
+      }
+      
+      // Add validation result items
+      validationResults.innerHTML = `
+        <div class="validation-item">
+          <div class="validation-icon success"><i class="fas fa-check"></i></div>
+          <div>Document processed successfully</div>
+        </div>
+      `;
+      
+      // Add compliance table rows
+      if (data.categories) {
+        Object.entries(data.categories).forEach(([categoryId, categoryData]) => {
+          const row = document.createElement('tr');
+          
+          // Get category name
+          let categoryName = categoryId;
+          if (categoryData.name) {
+            categoryName = categoryData.name;
+          }
+          
+          // Get framework
+          let framework = data.framework_id || '';
+          
+          // Get compliance level
+          let score = categoryData.score || 0;
+          let complianceClass = 'low';
+          if (score >= 70) {
+            complianceClass = 'high';
+          } else if (score >= 40) {
+            complianceClass = 'medium';
+          }
+          
+          // Get key gaps
+          let keyGaps = '';
+          if (categoryData.findings && categoryData.findings.length > 0) {
+            keyGaps = categoryData.findings[0];
+          }
+          
+          // Create row cells
+          row.innerHTML = `
+            <td>${categoryName}</td>
+            <td>${framework} ${categoryId}</td>
+            <td><span class="compliance-level ${complianceClass}">${score}/100</span></td>
+            <td>${keyGaps}</td>
+          `;
+          
+          complianceTable.appendChild(row);
+          
+          // Add category findings to results feed
+          if (categoryData.findings && categoryData.findings.length > 0) {
+            const resultItem = document.createElement('div');
+            resultItem.className = 'result-item';
+            resultItem.innerHTML = `
+              <div class="result-type text-primary">Category: ${categoryId}</div>
+              <div class="result-content">
+                <div class="result-title">${categoryName}</div>
+                <p>${categoryData.findings[0]}</p>
+              </div>
+            `;
+            resultsFeed.appendChild(resultItem);
+          }
+        });
+      }
+      
+      // Add overall findings to results feed
+      if (data.overall_findings && data.overall_findings.length > 0) {
+        const resultItem = document.createElement('div');
+        resultItem.className = 'result-item';
+        resultItem.innerHTML = `
+          <div class="result-type text-success">Overall Assessment</div>
+          <div class="result-content">
+            <div class="result-title">Key Findings</div>
+            <p>${data.overall_findings[0]}</p>
+          </div>
+        `;
+        resultsFeed.appendChild(resultItem);
+      }
+      
+      // Add recommendations to results feed
+      if (data.overall_recommendations && data.overall_recommendations.length > 0) {
+        const resultItem = document.createElement('div');
+        resultItem.className = 'result-item';
+        resultItem.innerHTML = `
+          <div class="result-type text-info">Recommendations</div>
+          <div class="result-content">
+            <div class="result-title">Improvement Actions</div>
+            <p>${data.overall_recommendations[0]}</p>
+          </div>
+        `;
+        resultsFeed.appendChild(resultItem);
+      }
+    }
     }
     
     // Action buttons
@@ -771,23 +925,80 @@
         `;
         document.getElementById('resultsFeed').appendChild(userItem);
         
-        // Simulate AI response
-        setTimeout(function() {
+        // Get current framework
+        const frameworkId = document.getElementById('resultFramework').textContent;
+        
+        // Create loading indicator
+        const loadingItem = document.createElement('div');
+        loadingItem.className = 'result-item';
+        loadingItem.innerHTML = `
+          <div class="result-type text-warning">Processing</div>
+          <div class="result-content">
+            <p><i class="fas fa-spinner fa-spin me-2"></i>Generating response...</p>
+          </div>
+        `;
+        document.getElementById('resultsFeed').appendChild(loadingItem);
+        
+        // Scroll to bottom of feed
+        const resultsFeed = document.getElementById('resultsFeed');
+        resultsFeed.scrollTop = resultsFeed.scrollHeight;
+        
+        // Make API request for follow-up question
+        fetch('/regulatory-ai/api/follow-up-question', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({
+            question: question,
+            framework_id: frameworkId,
+            context: 'document_analysis'
+          })
+        })
+        .then(response => {
+          if (!response.ok) {
+            throw new Error(`Server responded with status: ${response.status}`);
+          }
+          return response.json();
+        })
+        .then(data => {
+          // Remove loading indicator
+          resultsFeed.removeChild(loadingItem);
+          
+          // Add AI response
           const aiResponse = document.createElement('div');
           aiResponse.className = 'result-item';
           aiResponse.innerHTML = `
             <div class="result-type text-primary">AI Response</div>
             <div class="result-content">
               <div class="result-title">Response to Your Question</div>
-              <p>Based on the document analysis, the key gaps in climate disclosures include incomplete Scope 3 emissions reporting, lack of detailed transition plan alignment with Paris Agreement goals, and insufficient quantification of climate-related financial impacts.</p>
+              <p>${data.response || "I'm unable to answer that question based on the available information."}</p>
             </div>
           `;
           document.getElementById('resultsFeed').appendChild(aiResponse);
           
-          // Scroll to bottom of feed
-          const resultsFeed = document.getElementById('resultsFeed');
+          // Scroll to bottom of feed again
           resultsFeed.scrollTop = resultsFeed.scrollHeight;
-        }, 1000);
+        })
+        .catch(error => {
+          // Remove loading indicator
+          resultsFeed.removeChild(loadingItem);
+          
+          // Add error response
+          const errorResponse = document.createElement('div');
+          errorResponse.className = 'result-item';
+          errorResponse.innerHTML = `
+            <div class="result-type text-danger">Error</div>
+            <div class="result-content">
+              <div class="result-title">Error Processing Question</div>
+              <p>Sorry, there was an error processing your question: ${error.message}</p>
+            </div>
+          `;
+          document.getElementById('resultsFeed').appendChild(errorResponse);
+          
+          // Scroll to bottom of feed
+          resultsFeed.scrollTop = resultsFeed.scrollHeight;
+        });
         
         // Clear input
         document.getElementById('followupQuestion').value = '';

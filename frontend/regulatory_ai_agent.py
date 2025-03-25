@@ -15,6 +15,7 @@ import json
 import logging
 import os
 import sys
+import uuid
 from typing import Dict, List, Any, Optional, Tuple
 from datetime import datetime
 
@@ -659,6 +660,198 @@ def get_frameworks() -> Dict[str, Dict[str, Any]]:
     """
     return REGULATORY_FRAMEWORKS
 
+def generate_gap_analysis(document_text: str, framework_id: str = "ESRS") -> Dict[str, Any]:
+    """
+    Generate a gap analysis for a document against a regulatory framework
+    
+    Args:
+        document_text: Text content of the document to analyze
+        framework_id: ID of the regulatory framework to assess against
+        
+    Returns:
+        Dictionary with gap analysis results
+    """
+    # First get standard compliance assessment
+    compliance_assessment = assess_regulatory_compliance(document_text, framework_id)
+    
+    # Start with the same structure but focus on gaps and recommendations
+    gap_analysis = {
+        "framework": compliance_assessment.get("framework", framework_id),
+        "framework_id": framework_id,
+        "date": datetime.now().isoformat(),
+        "overall_score": compliance_assessment.get("overall_score", 50),
+        "categories": {},
+        "overall_findings": compliance_assessment.get("overall_findings", []),
+        "overall_recommendations": compliance_assessment.get("overall_recommendations", []),
+        "gap_analysis": {
+            "summary": "Gap analysis identifies discrepancies between current reporting and framework requirements",
+            "priority_gaps": [],
+            "implementation_timeline": []
+        }
+    }
+    
+    # Copy categories from compliance assessment
+    categories = compliance_assessment.get("categories", {})
+    gap_analysis["categories"] = categories
+    
+    # If AI connector is available, use it for enhanced gap analysis
+    if AI_CONNECTOR_AVAILABLE:
+        try:
+            genai = get_generative_ai()
+            
+            # Prepare framework information
+            framework = get_frameworks().get(framework_id, {})
+            framework_info = (
+                f"Framework: {framework.get('full_name', framework_id)}\n"
+                f"Description: {framework.get('description', '')}\n"
+                f"Categories: {json.dumps(framework.get('categories', {}), indent=2)}"
+            )
+            
+            # Find low-scoring categories
+            low_scoring_categories = []
+            for category_id, category_data in categories.items():
+                score = category_data.get("score", 0)
+                if score < 50:
+                    low_scoring_categories.append({
+                        "category_id": category_id,
+                        "name": framework.get("categories", {}).get(category_id, category_id),
+                        "score": score,
+                        "findings": category_data.get("findings", [])
+                    })
+            
+            # Create prompt for gap analysis
+            prompt = f"""
+            You are a sustainability reporting expert specializing in gap analysis.
+            
+            Framework Information:
+            {framework_info}
+            
+            Low-scoring Categories in Current Document:
+            {json.dumps(low_scoring_categories, indent=2)}
+            
+            Overall assessment findings:
+            {json.dumps(compliance_assessment.get("overall_findings", []), indent=2)}
+            
+            Based on this information, provide:
+            1. A prioritized list of the most critical gaps to address
+            2. An implementation timeline with specific steps
+            3. Resource requirements for addressing the gaps
+            
+            Format your response as a JSON object with the following structure:
+            {{
+                "gap_analysis": {{
+                    "summary": "Summary of overall gaps",
+                    "priority_gaps": [
+                        {{
+                            "category_id": "E1",
+                            "description": "Description of gap",
+                            "priority": "high/medium/low",
+                            "impact": "Impact of not addressing"
+                        }},
+                        ...
+                    ],
+                    "implementation_timeline": [
+                        {{
+                            "timeframe": "Immediate (1-3 months)",
+                            "actions": ["Action 1", "Action 2"],
+                            "resources_needed": ["Resource 1", "Resource 2"]
+                        }},
+                        ...
+                    ],
+                    "resource_requirements": {{
+                        "expertise": ["Expertise 1", "Expertise 2"],
+                        "systems": ["System 1", "System 2"],
+                        "estimated_effort": "Estimated person-months"
+                    }}
+                }}
+            }}
+            """
+            
+            # Generate gap analysis
+            response = genai.generate_content(prompt)
+            
+            try:
+                # Parse the response
+                gap_results = json.loads(response.text)
+                
+                # Merge the gap analysis into the main results
+                if "gap_analysis" in gap_results:
+                    gap_analysis["gap_analysis"] = gap_results["gap_analysis"]
+                    
+                return gap_analysis
+                
+            except (json.JSONDecodeError, AttributeError) as e:
+                logger.error(f"Error parsing AI gap analysis response: {str(e)}")
+                # Fall back to basic gap analysis
+        
+        except Exception as e:
+            logger.error(f"Error generating AI gap analysis: {str(e)}")
+            # Fall back to basic gap analysis
+    
+    # Create basic gap analysis if AI approach failed or isn't available
+    priority_gaps = []
+    implementation_timeline = []
+    
+    # Extract low-scoring categories for basic gap analysis
+    for category_id, category_data in categories.items():
+        score = category_data.get("score", 0)
+        if score < 50:
+            priority = "high" if score < 30 else "medium"
+            gap_description = category_data.get("findings", ["Incomplete disclosure"])[0] if category_data.get("findings") else "Incomplete disclosure"
+            
+            priority_gaps.append({
+                "category_id": category_id,
+                "description": gap_description,
+                "priority": priority,
+                "impact": "Non-compliance with framework requirements"
+            })
+    
+    # Sort priority gaps by priority
+    priority_gaps.sort(key=lambda x: 0 if x["priority"] == "high" else 1 if x["priority"] == "medium" else 2)
+    
+    # Generate implementation timeline
+    if priority_gaps:
+        # Immediate actions for high priority
+        high_priority = [gap for gap in priority_gaps if gap["priority"] == "high"]
+        if high_priority:
+            immediate_actions = [f"Address {gap['category_id']} disclosure gaps" for gap in high_priority]
+            implementation_timeline.append({
+                "timeframe": "Immediate (1-3 months)",
+                "actions": immediate_actions,
+                "resources_needed": ["Sustainability reporting expertise", "Data collection systems"]
+            })
+        
+        # Medium-term actions for medium priority
+        medium_priority = [gap for gap in priority_gaps if gap["priority"] == "medium"]
+        if medium_priority:
+            medium_actions = [f"Improve {gap['category_id']} reporting" for gap in medium_priority]
+            implementation_timeline.append({
+                "timeframe": "Medium-term (3-6 months)",
+                "actions": medium_actions,
+                "resources_needed": ["Data analysis capabilities", "Reporting systems enhancements"]
+            })
+            
+        # Long-term actions for overall improvement
+        implementation_timeline.append({
+            "timeframe": "Long-term (6-12 months)",
+            "actions": ["Develop comprehensive compliance program", "Implement automated data collection"],
+            "resources_needed": ["Integrated reporting system", "Compliance monitoring tools"]
+        })
+    
+    # Add gap analysis to results
+    gap_analysis["gap_analysis"] = {
+        "summary": f"Analysis identified {len(priority_gaps)} priority gaps requiring attention",
+        "priority_gaps": priority_gaps,
+        "implementation_timeline": implementation_timeline,
+        "resource_requirements": {
+            "expertise": ["Sustainability reporting expertise", "Framework-specific knowledge"],
+            "systems": ["Data collection and management systems", "Reporting tools"],
+            "estimated_effort": f"{len(priority_gaps) * 2} person-months"
+        }
+    }
+    
+    return gap_analysis
+
 def is_rag_available() -> bool:
     """
     Check if RAG system is available
@@ -799,7 +992,12 @@ def api_regulatory_gap_analysis():
                     "recommendations": recommendations
                 }
         
-        gap_analysis = generate_regulatory_gaps(assessment)
+        # Use the document text from the assessment for gap analysis if available
+        document_text = assessment.get('document_text', '')
+        framework_id = assessment.get('framework_id', 'ESRS')
+        
+        # Use our new generate_gap_analysis function
+        gap_analysis = generate_gap_analysis(document_text, framework_id)
         return jsonify(gap_analysis)
     except Exception as e:
         logger.error(f"Error in regulatory gap analysis API: {str(e)}")
@@ -917,6 +1115,7 @@ def api_file_assessment():
     try:
         # Get form data
         framework_id = request.form.get('framework_id', 'ESRS')
+        analysis_type = request.form.get('analysis_type', 'compliance')
         
         # Check for file upload
         if 'file' not in request.files:
@@ -938,13 +1137,116 @@ def api_file_assessment():
         if not document_text:
             return jsonify({"error": "Could not extract text from file"}), 400
             
+        # Store file info in session for later use in follow-up questions
+        if hasattr(current_app, 'session') and current_app.session:
+            session_id = request.cookies.get('session_id', str(uuid.uuid4()))
+            current_app.session[session_id] = {
+                'document_text': document_text,
+                'framework_id': framework_id,
+                'filename': file.filename,
+                'timestamp': datetime.now().isoformat()
+            }
+            
         # Get AI assistant to perform the assessment
-        assessment_result = assess_document_compliance(document_text, framework_id)
+        if analysis_type == 'gap':
+            # For gap analysis, use a specialized function
+            assessment_result = generate_gap_analysis(document_text, framework_id)
+        else:
+            # For regular compliance assessment
+            assessment_result = assess_document_compliance(document_text, framework_id)
+        
+        # Add document metadata
+        assessment_result['document_info'] = {
+            'filename': file.filename,
+            'size': len(document_text),
+            'word_count': len(document_text.split()),
+            'processed_at': datetime.now().isoformat()
+        }
         
         return jsonify(assessment_result)
     except Exception as e:
         # Log the error
         logger.error(f"Error in file assessment: {str(e)}")
+        return jsonify({"error": f"An error occurred: {str(e)}"}), 500
+        
+@regulatory_ai_bp.route('/api/follow-up-question', methods=['POST'])
+def api_follow_up_question():
+    """API endpoint for answering follow-up questions about document analysis"""
+    try:
+        # Get request data
+        data = request.get_json()
+        if not data:
+            return jsonify({"error": "No request data provided"}), 400
+            
+        question = data.get('question', '')
+        framework_id = data.get('framework_id', 'ESRS')
+        context = data.get('context', 'document_analysis')
+        
+        if not question:
+            return jsonify({"error": "No question provided"}), 400
+        
+        # Try to get document from session
+        document_text = None
+        session_id = request.cookies.get('session_id')
+        
+        if hasattr(current_app, 'session') and current_app.session and session_id in current_app.session:
+            document_text = current_app.session[session_id].get('document_text')
+        
+        # If AI connector is available, use it for response generation
+        if AI_CONNECTOR_AVAILABLE:
+            try:
+                genai = get_generative_ai()
+                
+                # Create prompt based on context
+                if context == 'document_analysis' and document_text:
+                    prompt = f"""
+                    You are an expert in sustainability reporting and regulatory compliance,
+                    particularly regarding the {framework_id} framework. 
+                    
+                    A user has uploaded a document for analysis and is asking a follow-up question.
+                    
+                    Document excerpt: 
+                    {document_text[:2000]}...
+                    
+                    User question: {question}
+                    
+                    Provide a detailed, but concise answer to the user's question based on
+                    the document content and your knowledge of the {framework_id} framework.
+                    """
+                else:
+                    prompt = f"""
+                    You are an expert in sustainability reporting and regulatory compliance,
+                    particularly regarding the {framework_id} framework.
+                    
+                    User question: {question}
+                    
+                    Provide a detailed, but concise answer to the user's question based on
+                    your knowledge of the {framework_id} framework.
+                    """
+                
+                # Generate AI response
+                ai_response = genai.generate_content(prompt)
+                
+                # Return response
+                return jsonify({
+                    "response": ai_response.text,
+                    "question": question,
+                    "framework_id": framework_id
+                })
+            except Exception as e:
+                logger.error(f"Error generating AI response: {str(e)}")
+                # Fall back to simple response
+        
+        # Fallback response if AI is not available
+        return jsonify({
+            "response": f"I can help answer questions about {framework_id} framework compliance. However, I don't have enough context to answer your specific question about '{question}'. Try uploading a document first or asking about general framework requirements.",
+            "question": question,
+            "framework_id": framework_id
+        })
+        
+    except Exception as e:
+        # Log the error
+        logger.error(f"Error in follow-up question: {str(e)}")
         return jsonify({"error": f"An error occurred: {str(e)}"}), 500
 
 @regulatory_ai_bp.route('/api/rag-analysis-form', methods=['POST'])
