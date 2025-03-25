@@ -1,0 +1,86 @@
+# ACME Corporation Sustainability Report 2025
+
+## Executive Summary
+
+ACME Corporation is committed to sustainable business practices that create long-term value while minimizing negative environmental and social impacts. This report outlines our progress toward our sustainability goals for the year 2025, aligned with key frameworks including ESRS, CSRD, and TCFD.
+
+## Climate Change & Emissions (ESRS E1)
+
+### Scope 1 & 2 Emissions
+- Total Scope 1 Emissions: 34,500 tCO2e (15% reduction from 2024)
+- Total Scope 2 Emissions: 42,300 tCO2e (12% reduction from 2024)
+- Combined Emissions Intensity: 0.32 tCO2e per $1M revenue
+
+### Scope 3 Emissions
+- Total Scope 3 Emissions: 186,400 tCO2e
+- Major sources: Purchased goods and services (48%), Use of sold products (32%)
+
+### Transition Plan
+ACME has developed a climate transition plan targeting net-zero emissions by 2040. Key elements include:
+- 50% reduction in Scope 1 & 2 emissions by 2030
+- 30% reduction in Scope 3 emissions by 2030
+- 100% renewable electricity for all operations by 2028
+
+## Water & Marine Resources (ESRS E3)
+
+### Water Consumption
+- Total water withdrawal: 3.2 million cubic meters
+- Water recycling rate: 28%
+- Water-stressed regions: 15% of operations
+
+## Biodiversity & Ecosystems (ESRS E4)
+
+### Biodiversity Impact
+- Comprehensive biodiversity impact assessment completed for 87% of operations
+- Protected or high biodiversity value areas near operations: 3 sites
+- Habitat restoration projects: 5 ongoing initiatives
+
+### Biodiversity Strategy
+Our biodiversity action plan includes:
+- No net loss commitment for all new developments
+- Restoration targets for previously impacted areas
+- Supplier requirements for biodiversity protection
+
+## Governance & Business Conduct (ESRS G1, G2)
+
+### Sustainability Governance
+- Board oversight: Dedicated sustainability committee meeting quarterly
+- Executive compensation: 15% of variable pay linked to sustainability metrics
+- Risk management: Climate risks fully integrated into enterprise risk process
+
+### Ethics & Compliance
+- Anti-corruption training: 100% of employees completed
+- Whistleblower reports: 32 received, 100% investigated
+- Third-party due diligence: Implemented for all high-risk suppliers
+
+## Social Metrics (ESRS S1-S4)
+
+### Workforce
+- Gender diversity: 42% female representation overall, 38% in management
+- Pay equity: 97% pay equity ratio achieved
+- Employee engagement: 78% favorable score
+
+### Workers in Value Chain
+- Supplier code of conduct: 95% of suppliers signed
+- High-risk supplier audits: 83% completed
+- Modern slavery prevention: Enhanced due diligence implemented
+
+## TCFD Disclosures
+
+### Governance
+The Board's Sustainability Committee oversees climate-related risks and opportunities, meeting quarterly to review progress.
+
+### Strategy
+Climate scenario analysis has been performed under 1.5°C, 2°C, and 3°C scenarios, with mitigation strategies developed for each pathway.
+
+### Risk Management
+Climate-related risks are integrated into our enterprise risk management process, with quarterly reviews and annual in-depth assessments.
+
+### Metrics & Targets
+Our key climate metrics include absolute emissions, emissions intensity, renewable energy percentage, and water consumption in stressed regions.
+
+## Contact Information
+
+For questions regarding this report:
+sustainability@acme-example.com
++1-555-123-4567

@@ -3,6 +3,8 @@ language = "python"
 entrypoint = "frontend/app.py"
 hidden = false
 persistent = true
+onBoot = "wait"
 wait_for_port = 5000
+timeout = 60000
 onPort = { action = "open", port = 5000, url_path = "/regulatory-ai/" }
 environment = { DEBUG = "false", FLASK_ENV = "development", HOST = "0.0.0.0", PORT = "5000" }
