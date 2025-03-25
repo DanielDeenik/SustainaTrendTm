@@ -289,6 +289,12 @@
             <input type="file" class="file-input" id="fileInput" accept=".pdf,.docx,.doc,.xlsx,.csv,.txt">
           </div>
           
+          <div class="text-center mt-3">
+            <button type="button" class="btn btn-outline-primary btn-sm" id="loadSampleBtn">
+              <i class="fas fa-file-alt me-2"></i> Load Sample Sustainability Report
+            </button>
+          </div>
+          
           <div id="uploadedFileContainer" class="d-none">
             <div class="uploaded-file" id="uploadedFile">
               <div class="file-icon"><i class="fas fa-file-pdf"></i></div>
@@ -534,6 +540,7 @@
     // DOM Elements
     const dropZone = document.getElementById('dropZone');
     const fileInput = document.getElementById('fileInput');
+    const loadSampleBtn = document.getElementById('loadSampleBtn');
     const uploadedFileContainer = document.getElementById('uploadedFileContainer');
     const uploadedFile = document.getElementById('uploadedFile');
     const fileName = document.getElementById('fileName');
@@ -596,6 +603,39 @@
         updatePreview(file);
       }
     }
+    
+    // Load Sample Sustainability Report
+    loadSampleBtn.addEventListener('click', async function() {
+      try {
+        // Fetch the sample report
+        const response = await fetch('/static/test-sustainability-report.txt');
+        
+        if (!response.ok) {
+          throw new Error('Failed to load sample report');
+        }
+        
+        const text = await response.text();
+        
+        // Create a file object from the text
+        const blob = new Blob([text], { type: 'text/plain' });
+        const file = new File([blob], 'sample-sustainability-report.txt', { type: 'text/plain' });
+        
+        // Set the file to the file input (for form submission)
+        const dataTransfer = new DataTransfer();
+        dataTransfer.items.add(file);
+        fileInput.files = dataTransfer.files;
+        
+        // Display file information and preview
+        displayFileInfo(file);
+        updatePreview(file);
+        
+        // Show a success message
+        alert('Sample sustainability report loaded successfully! Click "Analyze Document" to process it.');
+      } catch (error) {
+        console.error('Error loading sample report:', error);
+        alert('Error loading sample report: ' + error.message);
+      }
+    });
     
     // Display file information
     function displayFileInfo(file) {
