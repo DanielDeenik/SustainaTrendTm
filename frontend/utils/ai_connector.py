@@ -125,16 +125,48 @@ def openai_available_models():
         return {}
 
 # Text embeddings
-def generate_embedding(text: str) -> Optional[List[float]]:
-    """Generate embedding for text using the best available model"""
+def generate_embedding(text: str, model: str = None) -> Optional[List[float]]:
+    """
+    Generate embedding for text using the best available model
+    
+    Args:
+        text: Text to generate embedding for
+        model: Optional model name to use
+        
+    Returns:
+        List of floats representing the embedding vector or None if generation fails
+    """
+    # Get proper embedding model for Regulatory AI
+    try:
+        from frontend.initialize_pinecone import DIMENSION
+        dimension = DIMENSION  # Should be 3072 for the RegulatoryAI index
+    except ImportError:
+        dimension = 3072  # Default to 3072 dimensions (text-embedding-3-large)
+    
+    # Determine the right model based on dimensions
+    if not model:
+        if dimension == 3072:
+            # For Regulatory AI with 3072 dimensions
+            model = "text-embedding-3-large"
+        elif dimension == 1536:
+            # For 1536-dimensional indexes
+            model = "text-embedding-ada-002"
+        else:
+            # Default to small model for efficiency
+            model = "text-embedding-3-small"
+    
+    logger.info(f"Generating embedding with model: {model}")
+        
     if OPENAI_AVAILABLE and os.getenv("OPENAI_API_KEY"):
         try:
-            # Use text-embedding-3-small for efficiency
+            # Use OpenAI's embedding models
             response = openai.Embedding.create(
-                model="text-embedding-3-small",
+                model=model,
                 input=text
             )
-            return response["data"][0]["embedding"]
+            embedding = response["data"][0]["embedding"]
+            logger.info(f"Generated embedding with {len(embedding)} dimensions")
+            return embedding
         except Exception as e:
             logger.error(f"Error generating OpenAI embedding: {str(e)}")
     
@@ -142,6 +174,7 @@ def generate_embedding(text: str) -> Optional[List[float]]:
         try:
             # Note: At the time of writing, Gemini doesn't have a dedicated embeddings API
             # This is a placeholder for when it becomes available
+            logger.warning("Gemini embeddings not yet supported")
             pass
         except Exception as e:
             logger.error(f"Error generating Gemini embedding: {str(e)}")
@@ -300,104 +333,203 @@ class FallbackAI:
 
 # RAG (Retrieval Augmented Generation) Implementation
 class RAGSystem:
-    """Retrieval Augmented Generation system"""
+    """Retrieval Augmented Generation system with in-memory fallback"""
     def __init__(self):
         self.ai = get_generative_ai()
         self.pinecone_index = None
+        self.in_memory_docs = []  # In-memory fallback storage
+        self.use_fallback = True  # Default to fallback mode, change if Pinecone works
         self.initialize_vector_store()
     
     def initialize_vector_store(self):
         """Initialize the vector store (Pinecone)"""
         if not PINECONE_AVAILABLE:
-            logger.warning("Pinecone not available for RAG system")
+            logger.warning("Pinecone not available for RAG system, using in-memory fallback")
+            self.use_fallback = True
             return False
         
         pinecone_api_key = os.getenv("PINECONE_API_KEY")
         if not pinecone_api_key:
-            logger.warning("Pinecone API key not found")
+            logger.warning("Pinecone API key not found, using in-memory fallback")
+            self.use_fallback = True
             return False
         
         try:
-            pc = Pinecone(api_key=pinecone_api_key)
+            # Import Pinecone configuration from initialize_pinecone.py
+            try:
+                from frontend.initialize_pinecone import DEFAULT_INDEX_NAME, PINECONE_HOST, REGION, DIMENSION
+                index_name = DEFAULT_INDEX_NAME  # Should be 'regulatoryai'
+                region = REGION  # Should be 'us-east-1'
+                host = PINECONE_HOST  # Should be the provided host URL
+                dimension = DIMENSION  # Should be 3072
+                logger.info(f"Using RegulatoryAI Pinecone configuration: index={index_name}, region={region}, dimension={dimension}")
+            except ImportError:
+                # Fallback to default values if import fails
+                index_name = os.getenv("PINECONE_INDEX_NAME", "regulatoryai")
+                region = "us-east-1"
+                host = "https://regulatoryai-lk1ck8e.svc.aped-4627-b74a.pinecone.io"
+                dimension = 3072
+                logger.warning(f"Using fallback Pinecone configuration: index={index_name}, region={region}")
             
-            # Create index if it doesn't exist
-            index_name = os.getenv("PINECONE_INDEX_NAME", "sustainatrend-rag")
-            self.pinecone_index = pc.Index(index_name)
-            logger.info(f"Connected to Pinecone index: {index_name}")
+            try:
+                # Try to use direct Pinecone client
+                import pinecone
+                
+                # Initialize with API key and environment
+                pinecone.init(api_key=pinecone_api_key, environment=region)
+                
+                # Connect to the existing index
+                self.pinecone_index = pinecone.Index(index_name)
+                logger.info(f"Connected to Pinecone index '{index_name}' in {region}")
+                self.use_fallback = False
+                return True
+            except (ImportError, Exception) as e1:
+                logger.warning(f"Direct Pinecone client failed: {str(e1)}, trying alternate method")
+                
+                try:
+                    # Try alternate Pinecone client (for newer versions)
+                    from pinecone import Pinecone
+                    pc = Pinecone(api_key=pinecone_api_key)
+                    
+                    # Connect to the existing index
+                    self.pinecone_index = pc.Index(index_name)
+                    logger.info(f"Connected to Pinecone index: {index_name} via alternate client")
+                    self.use_fallback = False
+                    return True
+                except Exception as e2:
+                    logger.warning(f"Alternate Pinecone client failed: {str(e2)}, using in-memory fallback")
+                    self.use_fallback = True
+                    return False
+                
+        except Exception as e:
+            logger.error(f"Error initializing Pinecone: {str(e)}, using in-memory fallback")
+            self.use_fallback = True
+            return False
+    
+    def _add_to_memory(self, doc_id: str, document_text: str, metadata: Dict[str, Any]) -> bool:
+        """Add document to in-memory storage"""
+        try:
+            # Store document text and metadata in memory
+            self.in_memory_docs.append({
+                "id": doc_id,
+                "text": document_text[:1000],  # Store first 1000 chars only for consistency
+                "timestamp": datetime.now().isoformat(),
+                "metadata": metadata
+            })
+            logger.info(f"Added document to in-memory fallback with ID: {doc_id}")
             return True
         except Exception as e:
-            logger.error(f"Error initializing Pinecone: {str(e)}")
+            logger.error(f"Error adding document to in-memory fallback: {str(e)}")
             return False
     
     def add_document(self, document_text: str, metadata: Dict[str, Any]) -> bool:
-        """Add document to the vector store"""
-        if not self.pinecone_index:
-            logger.warning("Vector store not available")
-            return False
+        """Add document to the vector store or in-memory fallback"""
+        # Create unique ID
+        doc_id = str(uuid.uuid4())
         
-        try:
-            # Generate embedding
-            embedding = generate_embedding(document_text)
-            if not embedding:
-                logger.warning("Failed to generate embedding")
-                return False
-            
-            # Create unique ID
-            doc_id = str(uuid.uuid4())
-            
-            # Add to vector store
-            self.pinecone_index.upsert(
-                vectors=[
-                    {
-                        "id": doc_id,
-                        "values": embedding,
-                        "metadata": {
-                            "text": document_text[:1000],  # Store first 1000 chars only
-                            "timestamp": datetime.now().isoformat(),
-                            **metadata
+        # If Pinecone is available, try to use it
+        if not self.use_fallback and self.pinecone_index:
+            try:
+                # Generate embedding
+                embedding = generate_embedding(document_text)
+                if not embedding:
+                    logger.warning("Failed to generate embedding, falling back to in-memory storage")
+                    return self._add_to_memory(doc_id, document_text, metadata)
+                
+                # Add to vector store
+                self.pinecone_index.upsert(
+                    vectors=[
+                        {
+                            "id": doc_id,
+                            "values": embedding,
+                            "metadata": {
+                                "text": document_text[:1000],  # Store first 1000 chars only
+                                "timestamp": datetime.now().isoformat(),
+                                **metadata
+                            }
                         }
-                    }
-                ]
-            )
-            logger.info(f"Added document to vector store with ID: {doc_id}")
-            return True
+                    ]
+                )
+                logger.info(f"Added document to Pinecone with ID: {doc_id}")
+                return True
+            except Exception as e:
+                logger.error(f"Error adding document to Pinecone: {str(e)}")
+                # Fall back to in-memory storage
+                return self._add_to_memory(doc_id, document_text, metadata)
+        else:
+            # Use in-memory fallback
+            return self._add_to_memory(doc_id, document_text, metadata)
+    
+    def _search_in_memory(self, query: str, top_k: int = 3) -> List[Dict[str, Any]]:
+        """Search for documents in in-memory storage"""
+        try:
+            if not self.in_memory_docs:
+                return []
+                
+            # Simple keyword-based relevance ranking
+            query_terms = query.lower().split()
+            results = []
+            
+            for doc in self.in_memory_docs:
+                text = doc.get("text", "").lower()
+                
+                # Calculate a simple relevance score based on term frequency
+                score = 0
+                for term in query_terms:
+                    score += text.count(term)
+                
+                if score > 0:
+                    results.append({
+                        "text": doc.get("text", ""),
+                        "score": score / len(query_terms),  # Normalize score
+                        "metadata": doc.get("metadata", {})
+                    })
+            
+            # Sort by score and limit to top_k
+            results = sorted(results, key=lambda x: x.get("score", 0), reverse=True)[:top_k]
+            return results
         except Exception as e:
-            logger.error(f"Error adding document to vector store: {str(e)}")
-            return False
+            logger.error(f"Error searching in-memory: {str(e)}")
+            return []
     
     def search_similar_documents(self, query: str, top_k: int = 3) -> List[Dict[str, Any]]:
-        """Search for similar documents in the vector store"""
-        if not self.pinecone_index:
-            logger.warning("Vector store not available")
-            return []
-        
-        try:
-            # Generate embedding
-            embedding = generate_embedding(query)
-            if not embedding:
-                logger.warning("Failed to generate embedding")
-                return []
-            
-            # Search
-            results = self.pinecone_index.query(
-                vector=embedding,
-                top_k=top_k,
-                include_metadata=True
-            )
-            
-            # Format results
-            formatted_results = []
-            for match in results.matches:
-                formatted_results.append({
-                    "text": match.metadata.get("text", ""),
-                    "score": match.score,
-                    "metadata": {k: v for k, v in match.metadata.items() if k != "text"}
-                })
-            
-            return formatted_results
-        except Exception as e:
-            logger.error(f"Error searching vector store: {str(e)}")
-            return []
+        """Search for similar documents in the vector store or in-memory fallback"""
+        # If Pinecone is available, try to use it
+        if not self.use_fallback and self.pinecone_index:
+            try:
+                # Generate embedding
+                embedding = generate_embedding(query)
+                if not embedding:
+                    logger.warning("Failed to generate embedding, falling back to in-memory search")
+                    return self._search_in_memory(query, top_k)
+                
+                # Search in Pinecone
+                results = self.pinecone_index.query(
+                    vector=embedding,
+                    top_k=top_k,
+                    include_metadata=True
+                )
+                
+                # Format results
+                formatted_results = []
+                for match in results.matches:
+                    formatted_results.append({
+                        "text": match.metadata.get("text", ""),
+                        "score": match.score,
+                        "metadata": {k: v for k, v in match.metadata.items() if k != "text"}
+                    })
+                
+                if formatted_results:
+                    return formatted_results
+                else:
+                    logger.info("No results from Pinecone, trying in-memory search")
+                    return self._search_in_memory(query, top_k)
+            except Exception as e:
+                logger.error(f"Error searching Pinecone: {str(e)}, falling back to in-memory search")
+                return self._search_in_memory(query, top_k)
+        else:
+            # Use in-memory fallback
+            return self._search_in_memory(query, top_k)
     
     def generate_with_context(
         self, 
@@ -406,24 +538,40 @@ class RAGSystem:
         top_k: int = 3,
         max_tokens: int = 1024
     ) -> Dict[str, Any]:
-        """Generate content with context from the vector store"""
-        # Search for similar documents
-        similar_docs = self.search_similar_documents(query, top_k=top_k)
-        
-        # If no similar documents found, just use the query
-        if not similar_docs:
-            return self.ai.generate_content(query, system_prompt, max_tokens)
-        
-        # Build context from similar documents
-        context = "I'll answer based on the following information:\n\n"
-        for i, doc in enumerate(similar_docs):
-            context += f"Document {i+1}:\n{doc['text']}\n\n"
-        
-        # Build final prompt
-        final_prompt = f"{context}\nNow, based on this information, {query}"
-        
-        # Generate content
-        return self.ai.generate_content(final_prompt, system_prompt, max_tokens)
+        """Generate content with context from vector store or in-memory fallback"""
+        try:
+            # Search for similar documents
+            similar_docs = self.search_similar_documents(query, top_k=top_k)
+            
+            # If no similar documents found, just use the query
+            if not similar_docs:
+                response = self.ai.generate_content(query, system_prompt, max_tokens)
+                response['source'] = 'no_context'
+                return response
+            
+            # Build context from similar documents
+            context = "I'll answer based on the following information:\n\n"
+            for i, doc in enumerate(similar_docs):
+                context += f"Document {i+1}:\n{doc['text']}\n\n"
+            
+            # Build final prompt
+            final_prompt = f"{context}\nNow, based on this information, {query}"
+            
+            # Generate content
+            response = self.ai.generate_content(final_prompt, system_prompt, max_tokens)
+            
+            # Add source information
+            response['source'] = 'pinecone' if not self.use_fallback else 'in_memory'
+            response['context_used'] = True
+            
+            return response
+        except Exception as e:
+            logger.error(f"Error in generate_with_context: {str(e)}")
+            # Fallback to direct generation
+            response = self.ai.generate_content(query, system_prompt, max_tokens)
+            response['error'] = str(e)
+            response['source'] = 'direct_fallback'
+            return response
 
 # Create RAG system instance
 rag_system = None

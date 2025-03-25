@@ -1195,17 +1195,84 @@ def api_file_assessment():
         # Get framework details
         framework_info = get_frameworks().get(framework_id, {})
         
-        # Prepare categories data based on framework
+        # Load document into Pinecone if RAG is available
+        rag_document_id = None
+        if RAG_AVAILABLE:
+            try:
+                logger.info("RAG system available, attempting to store document embedding")
+                # Get the RAG system
+                rag_system = get_rag_system()
+                
+                # Create metadata for the document
+                metadata = {
+                    "document_id": document_id,
+                    "filename": file.filename,
+                    "framework_id": framework_id,
+                    "analysis_type": analysis_type,
+                    "word_count": document_info["word_count"],
+                    "processed_at": document_info["processed_at"]
+                }
+                
+                # Add document to RAG system
+                success = rag_system.add_document(document_text, metadata)
+                
+                if success:
+                    rag_document_id = document_id
+                    logger.info(f"Document successfully added to RAG system with ID: {rag_document_id}")
+                else:
+                    logger.warning("Failed to add document to RAG system")
+            except Exception as e:
+                logger.error(f"Error using RAG system: {str(e)}")
+                logger.error(traceback.format_exc())
+        
+        # Store document text in session for follow-up questions
+        session_id = request.cookies.get('session_id', str(uuid.uuid4()))
+        if not hasattr(current_app, 'session'):
+            current_app.session = {}
+        current_app.session[session_id] = {
+            'document_text': document_text,
+            'document_id': document_id,
+            'framework_id': framework_id
+        }
+        
+        # Perform AI assessment of the document if available
+        assessment_result = None
+        try:
+            if AI_CONNECTOR_AVAILABLE:
+                logger.info("Using AI connector for document assessment")
+                assessment_result = assess_document_compliance(document_text, framework_id)
+            else:
+                logger.warning("AI connector not available, using rules-based assessment")
+                assessment_result = assess_regulatory_compliance(document_text, framework_id)
+                
+            logger.info("Document assessment completed successfully")
+        except Exception as e:
+            logger.error(f"Error performing document assessment: {str(e)}")
+            logger.error(traceback.format_exc())
+            assessment_result = None
+        
+        # Prepare categories data based on framework or assessment results
         categories_data = {}
-        if 'categories' in framework_info:
-            # Create structured category data for the UI
+        if assessment_result and 'categories' in assessment_result:
+            # Use assessment results for categories
+            for cat_id, cat_data in assessment_result['categories'].items():
+                categories_data[cat_id] = {
+                    "id": cat_id,
+                    "name": framework_info.get('categories', {}).get(cat_id, cat_id),
+                    "score": cat_data.get('score', 50),
+                    "compliance_level": cat_data.get('compliance_level', 'medium'),
+                    "findings": cat_data.get('findings', [f"Assessment for {cat_id} completed"]),
+                    "recommendations": cat_data.get('recommendations', [f"Review disclosures related to {cat_id}"])
+                }
+        elif 'categories' in framework_info:
+            # Fallback to framework-based categories if assessment failed
             for cat_id, cat_name in framework_info['categories'].items():
-                # Randomize a bit for demonstration, but ensure higher scores for stronger sections
+                # Default scores for demonstration
                 if "climate" in cat_name.lower() or "governance" in cat_name.lower():
-                    score = 85
+                    score = 80
                     level = "high"
                 elif "water" in cat_name.lower() or "biodiversity" in cat_name.lower():
-                    score = 65
+                    score = 60
                     level = "medium"
                 else:
                     score = 50
@@ -1229,13 +1296,23 @@ def api_file_assessment():
             "framework": framework_info.get('full_name', framework_id),
             "framework_id": framework_id,
             "analysis_type": analysis_type,
-            "overall_score": 75,
-            "overall_findings": [
+            "rag_enabled": RAG_AVAILABLE and rag_document_id is not None,
+            "rag_document_id": rag_document_id,
+            "overall_score": assessment_result.get('overall_score', 75) if assessment_result else 75,
+            "overall_findings": assessment_result.get('overall_findings', [
+                "Document processed successfully",
+                "Framework alignment analysis completed",
+                "Regulatory compliance assessment generated"
+            ]) if assessment_result else [
                 "Document processed successfully",
                 "Framework alignment analysis completed",
                 "Regulatory compliance assessment generated"
             ],
-            "overall_recommendations": [
+            "overall_recommendations": assessment_result.get('overall_recommendations', [
+                "Review climate disclosures for TCFD alignment",
+                "Enhance biodiversity impact reporting",
+                "Consider adding more quantitative metrics"
+            ]) if assessment_result else [
                 "Review climate disclosures for TCFD alignment",
                 "Enhance biodiversity impact reporting",
                 "Consider adding more quantitative metrics"
@@ -1258,7 +1335,7 @@ def api_file_assessment():
         
 @regulatory_ai_bp.route('/api/follow-up-question', methods=['POST'])
 def api_follow_up_question():
-    """API endpoint for answering follow-up questions about document analysis"""
+    """API endpoint for answering follow-up questions about document analysis using RAG when available"""
     try:
         # Get request data
         data = request.get_json()
@@ -1268,6 +1345,7 @@ def api_follow_up_question():
         question = data.get('question', '')
         framework_id = data.get('framework_id', 'ESRS')
         context = data.get('context', 'document_analysis')
+        document_id = data.get('document_id')  # This may be provided for RAG-based retrieval
         
         if not question:
             return jsonify({"error": "No question provided"}), 400
@@ -1279,16 +1357,68 @@ def api_follow_up_question():
         if hasattr(current_app, 'session') and current_app.session and session_id in current_app.session:
             document_text = current_app.session[session_id].get('document_text')
         
-        # If AI connector is available, use it for response generation
+        # Get framework information for context
+        framework_info = get_frameworks().get(framework_id, {})
+        framework_name = framework_info.get('full_name', framework_id)
+        
+        # Try to use RAG system for context-aware responses if available
+        if RAG_AVAILABLE:
+            try:
+                logger.info(f"Using RAG system for follow-up question: {question}")
+                rag_system = get_rag_system()
+                
+                # Create system prompt for regulatory compliance expert
+                system_prompt = f"""
+                You are an expert in sustainability reporting and regulatory compliance,
+                particularly regarding the {framework_name} ({framework_id}) framework.
+                
+                Provide a detailed, but concise answer to the user's question based on
+                the most relevant context from their document and your knowledge of 
+                sustainability regulations.
+                
+                Always focus on the specific content from the user's document and avoid
+                generic responses when possible.
+                
+                When citing requirements from {framework_id}, be specific about the
+                category codes (like E1, S2, etc.) and provide actionable recommendations.
+                """
+                
+                # Generate RAG-enhanced response
+                response = rag_system.generate_with_context(
+                    query=question,
+                    system_prompt=system_prompt,
+                    top_k=3  # Retrieve top 3 most relevant chunks
+                )
+                
+                if response and ('text' in response or 'error' not in response):
+                    # RAG-enhanced response generated successfully
+                    logger.info("Successfully generated RAG-enhanced response")
+                    return jsonify({
+                        "response": response.get('text', ''),
+                        "question": question,
+                        "framework_id": framework_id,
+                        "using_rag": True,
+                        "model": response.get('model', 'unknown')
+                    })
+                else:
+                    logger.warning(f"RAG response failed or returned error: {response}")
+                    # Fall back to standard AI response
+            except Exception as e:
+                logger.error(f"Error using RAG system: {str(e)}")
+                logger.error(traceback.format_exc())
+                # Continue to fallback methods
+        
+        # If RAG didn't work, try standard AI connector
         if AI_CONNECTOR_AVAILABLE:
             try:
+                logger.info("Using standard AI connector for follow-up question")
                 genai = get_generative_ai()
                 
                 # Create prompt based on context
                 if context == 'document_analysis' and document_text:
                     prompt = f"""
                     You are an expert in sustainability reporting and regulatory compliance,
-                    particularly regarding the {framework_id} framework. 
+                    particularly regarding the {framework_name} ({framework_id}) framework. 
                     
                     A user has uploaded a document for analysis and is asking a follow-up question.
                     
@@ -1299,16 +1429,18 @@ def api_follow_up_question():
                     
                     Provide a detailed, but concise answer to the user's question based on
                     the document content and your knowledge of the {framework_id} framework.
+                    Focus on specific requirements, categories, and recommendations.
                     """
                 else:
                     prompt = f"""
                     You are an expert in sustainability reporting and regulatory compliance,
-                    particularly regarding the {framework_id} framework.
+                    particularly regarding the {framework_name} ({framework_id}) framework.
                     
                     User question: {question}
                     
                     Provide a detailed, but concise answer to the user's question based on
-                    your knowledge of the {framework_id} framework.
+                    your knowledge of the {framework_id} framework. Be specific about categories,
+                    requirements, and best practices.
                     """
                 
                 # Generate AI response
@@ -1318,17 +1450,22 @@ def api_follow_up_question():
                 return jsonify({
                     "response": ai_response.get('text', 'No response generated'),
                     "question": question,
-                    "framework_id": framework_id
+                    "framework_id": framework_id,
+                    "using_rag": False,
+                    "model": ai_response.get('model', 'unknown')
                 })
             except Exception as e:
                 logger.error(f"Error generating AI response: {str(e)}")
+                logger.error(traceback.format_exc())
                 # Fall back to simple response
         
-        # Fallback response if AI is not available
+        # Fallback response if neither RAG nor standard AI is available
         return jsonify({
-            "response": f"I can help answer questions about {framework_id} framework compliance. However, I don't have enough context to answer your specific question about '{question}'. Try uploading a document first or asking about general framework requirements.",
+            "response": f"I can help answer questions about the {framework_name} ({framework_id}) framework compliance. However, I don't have enough context to answer your specific question about '{question}'. Try uploading a document first or asking about general framework requirements.",
             "question": question,
-            "framework_id": framework_id
+            "framework_id": framework_id,
+            "using_rag": False,
+            "model": "fallback"
         })
         
     except Exception as e:

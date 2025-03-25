@@ -607,27 +607,34 @@
     // Load Sample Sustainability Report
     loadSampleBtn.addEventListener('click', async function() {
       try {
+        console.log("Load Sample button clicked");
         // Fetch the sample report
         const response = await fetch('/static/test-sustainability-report.txt');
         
         if (!response.ok) {
+          console.error("Failed to load sample report:", response.status, response.statusText);
           throw new Error('Failed to load sample report');
         }
         
         const text = await response.text();
+        console.log("Sample report loaded, text length:", text.length);
         
         // Create a file object from the text
         const blob = new Blob([text], { type: 'text/plain' });
         const file = new File([blob], 'sample-sustainability-report.txt', { type: 'text/plain' });
         
-        // Set the file to the file input (for form submission)
-        const dataTransfer = new DataTransfer();
-        dataTransfer.items.add(file);
-        fileInput.files = dataTransfer.files;
+        // Modern browsers don't support DataTransfer for security reasons
+        // We'll use a different approach to handle the file
+        
+        // Show the uploaded file container
+        document.getElementById('uploadedFileContainer').classList.remove('d-none');
         
         // Display file information and preview
         displayFileInfo(file);
         updatePreview(file);
+        
+        // Store the file in a global variable for later use
+        window.uploadedFile = file;
         
         // Show a success message
         alert('Sample sustainability report loaded successfully! Click "Analyze Document" to process it.');
@@ -749,13 +756,27 @@
       formData.append('framework_id', frameworkId);
       formData.append('analysis_type', analysisType);
       
-      // Get file from fileInput
+      // Check if we have a file from the input or the sample file
+      let fileToUpload = null;
+      
       if (fileInput.files.length > 0) {
-        formData.append('file', fileInput.files[0]);
+        // Use the file from the file input
+        fileToUpload = fileInput.files[0];
+        console.log("Using file from input:", fileToUpload.name);
+      } else if (window.uploadedFile) {
+        // Use the sample file that was loaded
+        fileToUpload = window.uploadedFile;
+        console.log("Using sample file:", fileToUpload.name);
+      }
+      
+      if (fileToUpload) {
+        formData.append('file', fileToUpload);
         
         // Update progress
         progressBar.style.width = '20%';
         progressStatus.textContent = 'Uploading document...';
+        
+        console.log("Sending file to endpoint:", fileToUpload.name, fileToUpload.size, "bytes");
         
         // Make API request to file assessment endpoint
         fetch('/regulatory-ai/api/file-assessment', {
@@ -805,7 +826,7 @@
         });
       } else {
         progressContainer.classList.add('d-none');
-        alert('Please select a file to analyze.');
+        alert('Please select a file to analyze or load the sample report.');
       }
     });
     

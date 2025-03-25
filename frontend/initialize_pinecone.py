@@ -22,8 +22,11 @@ except ImportError:
 
 # Global constants
 PINECONE_API_KEY = os.environ.get('PINECONE_API_KEY', '')
-DEFAULT_INDEX_NAME = 'sustainability-storytelling'
-DIMENSION = 1536  # OpenAI ada-002 embedding dimension
+DEFAULT_INDEX_NAME = 'regulatoryai'
+PINECONE_HOST = 'https://regulatoryai-lk1ck8e.svc.aped-4627-b74a.pinecone.io'
+DIMENSION = 3072  # Dimension for regulatoryai index
+METRIC = 'cosine'
+REGION = 'us-east-1'
 
 # Global state
 current_index_name = DEFAULT_INDEX_NAME
@@ -50,9 +53,9 @@ def initialize_pinecone() -> bool:
         
         # Initialize with pinecone-client API
         try:
-            # Simple initialization with API key only (let Pinecone determine the best environment)
-            pinecone.init(api_key=PINECONE_API_KEY)
-            logger.info("Pinecone client initialized successfully with v2.2.4")
+            # Initialize with API key and environment (using us-east-1 for RegulatoryAI index)
+            pinecone.init(api_key=PINECONE_API_KEY, environment=REGION)
+            logger.info(f"Pinecone client initialized successfully with v2.2.4 in {REGION} region")
             
             # Check if index exists
             existing_indexes = pinecone.list_indexes()
@@ -135,9 +138,9 @@ def test_pinecone_connection() -> bool:
         import pinecone
         
         try:
-            # Simple initialization with API key only (let Pinecone determine the best environment)
-            pinecone.init(api_key=PINECONE_API_KEY)
-            logger.info("Pinecone client initialized successfully for testing")
+            # Initialize with API key and environment for testing
+            pinecone.init(api_key=PINECONE_API_KEY, environment=REGION)
+            logger.info(f"Pinecone client initialized successfully for testing in {REGION} region")
             
             # List available indexes
             indexes = pinecone.list_indexes()
@@ -203,7 +206,7 @@ def is_pinecone_available() -> bool:
             
             try:
                 # Simple initialization with minimal overhead
-                pinecone.init(api_key=PINECONE_API_KEY)
+                pinecone.init(api_key=PINECONE_API_KEY, environment=REGION)
                 
                 # Just try to list indexes - don't need to actually connect
                 try:
