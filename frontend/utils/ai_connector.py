@@ -583,5 +583,32 @@ def get_rag_system() -> RAGSystem:
         rag_system = RAGSystem()
     return rag_system
 
+def is_pinecone_available() -> bool:
+    """
+    Check if Pinecone is actually available and connected.
+    This checks not just if the module is imported, but if we can 
+    actually use it for vector storage.
+    
+    Returns:
+        bool: True if Pinecone is available and connected, False otherwise
+    """
+    # Check if module is imported
+    if not PINECONE_AVAILABLE:
+        return False
+    
+    # Check if we have the API key
+    pinecone_api_key = os.getenv("PINECONE_API_KEY")
+    if not pinecone_api_key:
+        return False
+    
+    # Check if RAG system is initialized and not using fallback
+    global rag_system
+    if rag_system is None:
+        # Initialize it now
+        rag_system = RAGSystem()
+    
+    # If RAG system is using fallback, Pinecone is not actually available
+    return not rag_system.use_fallback
+
 # Initialize on module import
 initialize_ai_services()

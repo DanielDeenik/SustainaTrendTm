@@ -64,18 +64,22 @@ def register_routes(app):
 
 # Try to import AI connector module
 try:
-    from frontend.utils.ai_connector import get_generative_ai, generate_embedding, get_rag_system
+    from frontend.utils.ai_connector import get_generative_ai, generate_embedding, get_rag_system, is_pinecone_available
     AI_CONNECTOR_AVAILABLE = True
-    RAG_AVAILABLE = True
+    # We'll check actual RAG availability with is_pinecone_available() which considers actual connection state
+    RAG_AVAILABLE = is_pinecone_available()
     logger.info("AI connector module loaded successfully")
+    logger.info(f"Pinecone RAG system availability: {'Connected' if RAG_AVAILABLE else 'Using fallback'}")
     logger.info("Imported regulatory_ai_agent from absolute path")
 except ImportError as e:
     try:
         # Fallback to relative import for when running from within the frontend directory
-        from utils.ai_connector import get_generative_ai, generate_embedding, get_rag_system
+        from utils.ai_connector import get_generative_ai, generate_embedding, get_rag_system, is_pinecone_available
         AI_CONNECTOR_AVAILABLE = True
-        RAG_AVAILABLE = True
+        # We'll check actual RAG availability with is_pinecone_available() which considers actual connection state
+        RAG_AVAILABLE = is_pinecone_available()
         logger.info("AI connector module loaded successfully from relative path")
+        logger.info(f"Pinecone RAG system availability: {'Connected' if RAG_AVAILABLE else 'Using fallback'}")
     except ImportError as e2:
         AI_CONNECTOR_AVAILABLE = False
         RAG_AVAILABLE = False
@@ -951,6 +955,9 @@ def document_upload():
     
     # Check if RAG system is available
     rag_system_available = is_rag_available()
+    
+    # Log RAG system status for debugging
+    current_app.logger.info(f"RAG system availability: {rag_system_available}")
     
     return render_template('regulatory/document_upload.html',
                           frameworks=frameworks,

@@ -270,6 +270,32 @@
           </div>
         </div>
       </div>
+      
+      {% if is_rag_available %}
+      <div class="alert alert-success">
+        <div class="d-flex">
+          <div class="me-3">
+            <i class="fas fa-database fa-2x"></i>
+          </div>
+          <div>
+            <h5 class="alert-heading">Pinecone Vector Database Connected</h5>
+            <p class="mb-0">Our RAG system is using Pinecone vector database for enhanced semantic document analysis and retrieval.</p>
+          </div>
+        </div>
+      </div>
+      {% else %}
+      <div class="alert alert-warning">
+        <div class="d-flex">
+          <div class="me-3">
+            <i class="fas fa-exclamation-triangle fa-2x"></i>
+          </div>
+          <div>
+            <h5 class="alert-heading">Local Storage Mode Active</h5>
+            <p class="mb-0">The system is currently operating with in-memory vector storage. All features are functional, but for optimal performance with large document collections, Pinecone connectivity is recommended.</p>
+          </div>
+        </div>
+      </div>
+      {% endif %}
     </div>
   </div>
   
