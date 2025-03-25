@@ -992,12 +992,8 @@ def api_regulatory_gap_analysis():
                     "recommendations": recommendations
                 }
         
-        # Use the document text from the assessment for gap analysis if available
-        document_text = assessment.get('document_text', '')
-        framework_id = assessment.get('framework_id', 'ESRS')
-        
-        # Use our new generate_gap_analysis function
-        gap_analysis = generate_gap_analysis(document_text, framework_id)
+        # Use the existing generate_regulatory_gaps function which is designed to work with assessment data
+        gap_analysis = generate_regulatory_gaps(assessment)
         return jsonify(gap_analysis)
     except Exception as e:
         logger.error(f"Error in regulatory gap analysis API: {str(e)}")
@@ -1149,8 +1145,10 @@ def api_file_assessment():
             
         # Get AI assistant to perform the assessment
         if analysis_type == 'gap':
-            # For gap analysis, use a specialized function
-            assessment_result = generate_gap_analysis(document_text, framework_id)
+            # First get the basic compliance assessment
+            compliance_assessment = assess_document_compliance(document_text, framework_id)
+            # Then generate gap analysis based on the assessment
+            assessment_result = generate_regulatory_gaps(compliance_assessment)
         else:
             # For regular compliance assessment
             assessment_result = assess_document_compliance(document_text, framework_id)
