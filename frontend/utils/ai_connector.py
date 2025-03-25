@@ -87,7 +87,7 @@ def get_generative_ai():
         if os.getenv("GEMINI_API_KEY"):
             try:
                 models = genai.list_models()
-                for model_name in ["gemini-pro", "gemini-1.5-pro"]:  # Prefer newer models
+                for model_name in ["gemini-1.5-flash", "gemini-1.5-pro", "gemini-pro"]:  # Prefer newer models
                     for model in models:
                         if model_name in model.name and 'generateContent' in model.supported_generation_methods:
                             logger.info(f"Using Gemini model: {model.name}")
@@ -152,7 +152,7 @@ def generate_embedding(text: str) -> Optional[List[float]]:
 # AI Class Implementations
 class GeminiAI:
     """Gemini AI implementation"""
-    def __init__(self, model_name="gemini-pro"):
+    def __init__(self, model_name="gemini-1.5-flash"):
         self.model_name = model_name
         self.model = genai.GenerativeModel(model_name=model_name)
         self.history = []

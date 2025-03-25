@@ -1,3 +1,1 @@
-This is a sample document about climate change and carbon emissions.
-It includes data on our company's carbon footprint and emission reduction targets.
-We have set a goal to reduce scope 1 and scope 2 emissions by 30% by 2030.
+This is a test document for CSRD compliance analysis.

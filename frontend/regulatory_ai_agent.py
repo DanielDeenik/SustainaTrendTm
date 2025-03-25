@@ -291,7 +291,17 @@ def assess_document_compliance(document_text: str, framework_id: str = "ESRS") -
             
             try:
                 # Parse the AI response as JSON
-                result = json.loads(ai_response.text)
+                # Handle different response formats (dict vs object with text attribute)
+                if hasattr(ai_response, 'text'):
+                    result = json.loads(ai_response.text)
+                elif isinstance(ai_response, dict) and 'text' in ai_response:
+                    result = json.loads(ai_response['text'])
+                elif isinstance(ai_response, dict):
+                    # Try to parse the entire response as the result
+                    result = ai_response
+                else:
+                    # Fallback to string representation
+                    result = json.loads(str(ai_response))
                 
                 # Add timestamp if not provided
                 if 'date' not in result:
@@ -374,13 +384,25 @@ def assess_regulatory_compliance(document_text: str, framework_id: str = "ESRS")
             
             response = genai.generate_content(prompt)
             try:
-                assessment = json.loads(response.text)
+                # Handle different response formats (dict vs object with text attribute)
+                if hasattr(response, 'text'):
+                    assessment = json.loads(response.text)
+                elif isinstance(response, dict) and 'text' in response:
+                    assessment = json.loads(response['text'])
+                elif isinstance(response, dict):
+                    # Try to parse the entire response as the result
+                    assessment = response
+                else:
+                    # Fallback to string representation
+                    assessment = json.loads(str(response))
+                
                 assessment["framework"] = framework_id
                 assessment["framework_name"] = framework["full_name"]
                 assessment["date"] = datetime.now().isoformat()
                 return assessment
             except json.JSONDecodeError:
-                logger.warning(f"Failed to parse AI response as JSON: {response.text}")
+                response_text = response.text if hasattr(response, 'text') else str(response)
+                logger.warning(f"Failed to parse AI response as JSON: {response_text}")
                 # Fall back to simple assessment
                 return _perform_simple_assessment(document_text, framework)
                 
@@ -772,7 +794,17 @@ def generate_gap_analysis(document_text: str, framework_id: str = "ESRS") -> Dic
             
             try:
                 # Parse the response
-                gap_results = json.loads(response.text)
+                # Handle different response formats (dict vs object with text attribute)
+                if hasattr(response, 'text'):
+                    gap_results = json.loads(response.text)
+                elif isinstance(response, dict) and 'text' in response:
+                    gap_results = json.loads(response['text'])
+                elif isinstance(response, dict):
+                    # Try to parse the entire response as the result
+                    gap_results = response
+                else:
+                    # Fallback to string representation
+                    gap_results = json.loads(str(response))
                 
                 # Merge the gap analysis into the main results
                 if "gap_analysis" in gap_results:
@@ -1225,9 +1257,9 @@ def api_follow_up_question():
                 # Generate AI response
                 ai_response = genai.generate_content(prompt)
                 
-                # Return response
+                # Return response - ai_response is a dict with text key from our AI connector
                 return jsonify({
-                    "response": ai_response.text,
+                    "response": ai_response.get('text', 'No response generated'),
                     "question": question,
                     "framework_id": framework_id
                 })
