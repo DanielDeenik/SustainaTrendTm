@@ -1,10 +1,17 @@
-run = "cd frontend && python app.py"
+run = "cd frontend && python start_for_replit.py"
 language = "python"
-entrypoint = "frontend/app.py"
+entrypoint = "frontend/start_for_replit.py"
 hidden = false
 persistent = true
 onBoot = "wait"
 wait_for_port = 5000
-timeout = 60000
+timeout = 120000
 onPort = { action = "open", port = 5000, url_path = "/regulatory-ai/" }
-environment = { DEBUG = "false", FLASK_ENV = "development", HOST = "0.0.0.0", PORT = "5000" }
+environment = { 
+  DEBUG = "false", 
+  FLASK_ENV = "development", 
+  HOST = "0.0.0.0", 
+  PORT = "5000",
+  REPLIT_ENVIRONMENT = "true",
+  APP_URL_PATH = "/regulatory-ai/"
+}

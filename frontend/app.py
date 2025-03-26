@@ -125,4 +125,15 @@ def create_app(test_config=None):
 # If this file is run directly, start the application
 if __name__ == "__main__":
     app = create_app()
-    app.run(host="0.0.0.0", port=5000, debug=True)
+    
+    # Get host and port from environment variables with defaults
+    host = os.environ.get('HOST', '0.0.0.0')
+    port = int(os.environ.get('PORT', 5000))
+    debug = os.environ.get('FLASK_ENV', 'development') == 'development'
+    
+    # Log the server startup information
+    print(f"Starting Flask server on {host}:{port} with debug={debug}")
+    app.logger.info(f"Starting Flask server on {host}:{port} with debug={debug}")
+    
+    # Run the application with the specified host and port
+    app.run(host=host, port=port, debug=debug)

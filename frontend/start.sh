@@ -74,6 +74,11 @@ export FLASK_APP=app.py
 export FLASK_ENV=development
 export FLASK_DEBUG=1
 
+# Set Replit-specific variables to ensure proper connectivity
+export REPLIT_ENVIRONMENT=true
+export HOST="0.0.0.0"
+export PORT="5000"
+
 # Create required directories
 mkdir -p static
 mkdir -p templates
@@ -84,7 +89,14 @@ mkdir -p logs
 > logs/error.log
 > logs/access.log
 
-echo "Starting Sustainability Dashboard on port 5000..."
-# Use app.py which is our bridge to direct_app.py
-# Add timeout for stability
-python app.py 2>&1 | tee logs/flask.log
+echo "Starting Sustainability Dashboard on ${HOST}:${PORT}..."
+echo "Running in Replit environment: ${REPLIT_ENVIRONMENT}"
+
+# For Replit, use the special start_for_replit.py script
+if [ "$REPLIT_ENVIRONMENT" = "true" ]; then
+  echo "Using Replit-specific startup script..."
+  python start_for_replit.py 2>&1 | tee logs/flask.log
+else
+  # Use app.py which is our bridge to direct_app.py
+  python app.py 2>&1 | tee logs/flask.log
+fi
