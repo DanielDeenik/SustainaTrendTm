@@ -101,6 +101,22 @@ def create_app(test_config=None):
     except Exception as e:
         app.logger.error(f"Error registering API views blueprint: {e}")
     
+    # Directly register the Regulatory AI blueprint to ensure it's available
+    try:
+        # Import the blueprint directly from the module
+        import frontend.regulatory_ai_agent as reg_module
+        app.register_blueprint(reg_module.regulatory_ai_bp)
+        app.logger.info("Regulatory AI blueprint registered directly in app.py")
+    except Exception as e:
+        app.logger.error(f"Error directly registering Regulatory AI blueprint: {e}")
+        try:
+            # Alternative import path
+            import regulatory_ai_agent as reg_module
+            app.register_blueprint(reg_module.regulatory_ai_bp)
+            app.logger.info("Regulatory AI blueprint registered directly in app.py (alternative path)")
+        except Exception as e2:
+            app.logger.error(f"Error with alternative Regulatory AI blueprint registration: {e2}")
+    
     # Log the registered routes
     app.logger.info(f"Registered routes: {len(list(app.url_map.iter_rules()))}")
     
