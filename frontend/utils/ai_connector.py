@@ -36,12 +36,22 @@ except ImportError:
     logger.warning("OpenAI not available")
 
 try:
-    from pinecone import Pinecone
+    # Try with Pinecone import (supports both V2 and V3 APIs)
+    import pinecone
     PINECONE_AVAILABLE = True
-    logger.info("Pinecone module loaded successfully")
-except ImportError:
+    
+    # Check if we have V3 API support
+    try:
+        from pinecone import Pinecone
+        PINECONE_V3_AVAILABLE = True
+        logger.info("Pinecone module loaded successfully (with V3 API support)")
+    except ImportError:
+        PINECONE_V3_AVAILABLE = False
+        logger.info("Pinecone module loaded successfully (V2 API only)")
+except ImportError as e:
+    logger.warning(f"Pinecone not available: {str(e)}")
     PINECONE_AVAILABLE = False
-    logger.warning("Pinecone not available")
+    PINECONE_V3_AVAILABLE = False
 
 # Initialize AI services
 def initialize_ai_services():
@@ -354,57 +364,93 @@ class RAGSystem:
             self.use_fallback = True
             return False
         
+        # Import Pinecone configuration from initialize_pinecone.py
         try:
-            # Import Pinecone configuration from initialize_pinecone.py
+            from frontend.initialize_pinecone import DEFAULT_INDEX_NAME, PINECONE_HOST, REGION, DIMENSION
+            index_name = DEFAULT_INDEX_NAME  # Should be 'regulatoryai'
+            region = REGION  # Should be 'us-east-1'
+            host = PINECONE_HOST  # Should be the provided host URL
+            dimension = DIMENSION  # Should be 3072
+            logger.info(f"Using RegulatoryAI Pinecone configuration: index={index_name}, region={region}, dimension={dimension}")
+        except ImportError:
+            # Fallback to default values if import fails
+            index_name = os.getenv("PINECONE_INDEX_NAME", "regulatoryai")
+            region = "us-east-1"
+            host = "https://regulatoryai-lk1ck8e.svc.aped-4627-b74a.pinecone.io"
+            dimension = 3072
+            logger.warning(f"Using fallback Pinecone configuration: index={index_name}, region={region}")
+        
+        # Use Pinecone V3 API (preferred with pinecone-client>=3.0.0)
+        if PINECONE_V3_AVAILABLE:
             try:
-                from frontend.initialize_pinecone import DEFAULT_INDEX_NAME, PINECONE_HOST, REGION, DIMENSION
-                index_name = DEFAULT_INDEX_NAME  # Should be 'regulatoryai'
-                region = REGION  # Should be 'us-east-1'
-                host = PINECONE_HOST  # Should be the provided host URL
-                dimension = DIMENSION  # Should be 3072
-                logger.info(f"Using RegulatoryAI Pinecone configuration: index={index_name}, region={region}, dimension={dimension}")
-            except ImportError:
-                # Fallback to default values if import fails
-                index_name = os.getenv("PINECONE_INDEX_NAME", "regulatoryai")
-                region = "us-east-1"
-                host = "https://regulatoryai-lk1ck8e.svc.aped-4627-b74a.pinecone.io"
-                dimension = 3072
-                logger.warning(f"Using fallback Pinecone configuration: index={index_name}, region={region}")
-            
-            try:
-                # Try to use direct Pinecone client
-                import pinecone
+                from pinecone import Pinecone
+                pc = Pinecone(api_key=pinecone_api_key)
                 
-                # Initialize with API key and environment
-                pinecone.init(api_key=pinecone_api_key, environment=region)
+                # Check if index exists
+                indexes = pc.list_indexes()
+                index_exists = any(idx.name == index_name for idx in indexes)
                 
-                # Connect to the existing index
-                self.pinecone_index = pinecone.Index(index_name)
-                logger.info(f"Connected to Pinecone index '{index_name}' in {region}")
+                if not index_exists:
+                    logger.warning(f"Index {index_name} does not exist yet, attempting to create it")
+                    try:
+                        pc.create_index(
+                            name=index_name,
+                            dimension=dimension,
+                            metric="cosine"
+                        )
+                        logger.info(f"Created new Pinecone index: {index_name}")
+                    except Exception as e:
+                        logger.warning(f"Could not create index: {str(e)}")
+                
+                # Connect to the index
+                self.pinecone_index = pc.Index(index_name)
+                logger.info(f"Successfully connected to Pinecone index '{index_name}' with V3 API")
                 self.use_fallback = False
                 return True
-            except (ImportError, Exception) as e1:
-                logger.warning(f"Direct Pinecone client failed: {str(e1)}, trying alternate method")
+            except Exception as e2:
+                logger.warning(f"Pinecone V3 client failed: {str(e2)}, trying V2 API")
+        
+        # Try with Pinecone V2 API as fallback
+        try:
+            # Try to use Pinecone client V2 API
+            import pinecone
+            
+            # Try to initialize with API key and environment
+            try:
+                pinecone.init(api_key=pinecone_api_key, environment=region)
                 
-                try:
-                    # Try alternate Pinecone client (for newer versions)
-                    from pinecone import Pinecone
-                    pc = Pinecone(api_key=pinecone_api_key)
-                    
-                    # Connect to the existing index
-                    self.pinecone_index = pc.Index(index_name)
-                    logger.info(f"Connected to Pinecone index: {index_name} via alternate client")
-                    self.use_fallback = False
-                    return True
-                except Exception as e2:
-                    logger.warning(f"Alternate Pinecone client failed: {str(e2)}, using in-memory fallback")
-                    self.use_fallback = True
-                    return False
+                # First check if the index exists
+                if index_name not in pinecone.list_indexes():
+                    logger.warning(f"Index {index_name} does not exist yet, attempting to create it")
+                    # Create it
+                    try:
+                        pinecone.create_index(
+                            name=index_name,
+                            dimension=dimension,
+                            metric="cosine"
+                        )
+                        logger.info(f"Created new Pinecone index: {index_name}")
+                    except Exception as e:
+                        logger.warning(f"Could not create index: {str(e)}")
                 
-        except Exception as e:
-            logger.error(f"Error initializing Pinecone: {str(e)}, using in-memory fallback")
+                # Connect to the index
+                self.pinecone_index = pinecone.Index(index_name)
+                logger.info(f"Successfully connected to Pinecone index '{index_name}' in {region} with V2 API")
+                self.use_fallback = False
+                return True
+            except AttributeError:
+                logger.warning(f"Pinecone V2 client failed: module 'pinecone' has no attribute 'init', using in-memory fallback")
+                self.use_fallback = True
+                return False
+        except Exception as e1:
+            logger.warning(f"Pinecone V2 client failed: {str(e1)}, using in-memory fallback")
             self.use_fallback = True
             return False
+        
+        # If we get here, all attempts have failed
+        logger.error("All Pinecone connection attempts failed, using in-memory fallback")
+        self.use_fallback = True
+        return False
     
     def _add_to_memory(self, doc_id: str, document_text: str, metadata: Dict[str, Any]) -> bool:
         """Add document to in-memory storage"""
@@ -436,24 +482,41 @@ class RAGSystem:
                     logger.warning("Failed to generate embedding, falling back to in-memory storage")
                     return self._add_to_memory(doc_id, document_text, metadata)
                 
-                # Add to vector store
-                self.pinecone_index.upsert(
-                    vectors=[
-                        {
-                            "id": doc_id,
-                            "values": embedding,
-                            "metadata": {
-                                "text": document_text[:1000],  # Store first 1000 chars only
-                                "timestamp": datetime.now().isoformat(),
-                                **metadata
+                # Prepare the document with metadata
+                doc_metadata = {
+                    "text": document_text[:1000],  # Store first 1000 chars only
+                    "timestamp": datetime.now().isoformat(),
+                    **metadata
+                }
+                
+                # Try to add document to Pinecone with proper vector format based on API version
+                try:
+                    # First try V3 API format
+                    self.pinecone_index.upsert(
+                        vectors=[
+                            {
+                                "id": doc_id,
+                                "values": embedding,
+                                "metadata": doc_metadata
                             }
-                        }
-                    ]
-                )
-                logger.info(f"Added document to Pinecone with ID: {doc_id}")
-                return True
+                        ]
+                    )
+                    logger.info(f"Added document to Pinecone with ID: {doc_id} (V3 API format)")
+                    return True
+                except (TypeError, AttributeError) as e:
+                    # If that fails, try V2 API format
+                    logger.warning(f"V3 API upsert format failed: {str(e)}, trying V2 API format")
+                    
+                    # V2 API sometimes expects (id, vector, metadata) tuples
+                    self.pinecone_index.upsert(
+                        vectors=[(doc_id, embedding, doc_metadata)]
+                    )
+                    logger.info(f"Added document to Pinecone with ID: {doc_id} (V2 API format)")
+                    return True
+                    
             except Exception as e:
                 logger.error(f"Error adding document to Pinecone: {str(e)}")
+                logger.error(traceback.format_exc())
                 # Fall back to in-memory storage
                 return self._add_to_memory(doc_id, document_text, metadata)
         else:
@@ -510,14 +573,39 @@ class RAGSystem:
                     include_metadata=True
                 )
                 
-                # Format results
+                # Format results - handle both V2 and V3 API response formats
                 formatted_results = []
-                for match in results.matches:
-                    formatted_results.append({
-                        "text": match.metadata.get("text", ""),
-                        "score": match.score,
-                        "metadata": {k: v for k, v in match.metadata.items() if k != "text"}
-                    })
+                
+                # Check if we have a V3 API response (has 'matches' attribute as a list)
+                if hasattr(results, 'matches'):
+                    # V2 API format or compatible V3 format
+                    for match in results.matches:
+                        formatted_results.append({
+                            "text": match.metadata.get("text", ""),
+                            "score": match.score,
+                            "metadata": {k: v for k, v in match.metadata.items() if k != "text"}
+                        })
+                elif isinstance(results, dict) and 'matches' in results:
+                    # V3 API might return a dict with 'matches' key
+                    for match in results['matches']:
+                        formatted_results.append({
+                            "text": match['metadata'].get("text", ""),
+                            "score": match['score'],
+                            "metadata": {k: v for k, v in match['metadata'].items() if k != "text"}
+                        })
+                elif isinstance(results, list):
+                    # Another possible V3 API format where results is a list of matches directly
+                    for match in results:
+                        metadata = match.get('metadata', {})
+                        formatted_results.append({
+                            "text": metadata.get("text", ""),
+                            "score": match.get('score', 0),
+                            "metadata": {k: v for k, v in metadata.items() if k != "text"}
+                        })
+                else:
+                    logger.warning(f"Unexpected Pinecone response format: {type(results)}")
+                    
+                logger.info(f"Found {len(formatted_results)} results from Pinecone")
                 
                 if formatted_results:
                     return formatted_results
@@ -526,6 +614,7 @@ class RAGSystem:
                     return self._search_in_memory(query, top_k)
             except Exception as e:
                 logger.error(f"Error searching Pinecone: {str(e)}, falling back to in-memory search")
+                logger.error(traceback.format_exc())
                 return self._search_in_memory(query, top_k)
         else:
             # Use in-memory fallback
