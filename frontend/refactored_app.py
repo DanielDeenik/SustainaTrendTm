@@ -168,7 +168,7 @@ def regulatory_dashboard():
     
     return render_template(
         'regulatory/dashboard_refactored.html',
-        active_nav='regulatory',
+        active_nav='regulatory-ai-refactored',
         page_title="Regulatory AI Dashboard",
         stats=DASHBOARD_STATS,
         recent_documents=RECENT_DOCUMENTS,
@@ -186,7 +186,7 @@ def regulatory_upload():
     
     return render_template(
         'regulatory/upload_refactored.html',
-        active_nav='regulatory',
+        active_nav='regulatory-ai-refactored',
         page_title="Document Upload",
         frameworks=FRAMEWORKS,
         is_rag_available=pinecone_available
@@ -254,7 +254,7 @@ def regulatory_analysis():
     
     return render_template(
         'regulatory/analysis.html',
-        active_nav='regulatory',
+        active_nav='regulatory-ai-refactored',
         page_title="Document Analysis",
         document=document_info
     )
