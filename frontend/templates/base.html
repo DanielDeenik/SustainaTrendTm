@@ -256,10 +256,10 @@
                     <a href="/"><i class="fas fa-home me-2"></i> Home</a>
                 </li>
                 <li class="{{ 'active' if active_nav == 'dashboard' else '' }}">
-                    <a href="/dashboard"><i class="fas fa-chart-line me-2"></i> Dashboard</a>
+                    <a href="/regulatory-ai-refactored/dashboard"><i class="fas fa-chart-line me-2"></i> Dashboard</a>
                 </li>
                 <li class="{{ 'active' if active_nav == 'document-upload' else '' }}">
-                    <a href="/document-upload"><i class="fas fa-file-upload me-2"></i> Document Upload</a>
+                    <a href="/regulatory-ai-refactored/upload"><i class="fas fa-file-upload me-2"></i> Document Upload</a>
                 </li>
                 <li class="{{ 'active' if active_nav == 'search' else '' }}">
                     <a href="/search"><i class="fas fa-search me-2"></i> Search</a>
@@ -284,8 +284,8 @@
                         <i class="fas fa-balance-scale-right me-2"></i> Regulatory AI V2
                     </a>
                     <ul class="collapse {{ 'show' if active_nav == 'regulatory-ai-refactored' else '' }} list-unstyled" id="regulatorySubmenu">
-                        <li><a href="/regulatory/upload" class="ps-4">Upload Document</a></li>
-                        <li><a href="/regulatory/dashboard" class="ps-4">Dashboard</a></li>
+                        <li><a href="/regulatory-ai-refactored/upload" class="ps-4">Upload Document</a></li>
+                        <li><a href="/regulatory-ai-refactored/dashboard" class="ps-4">Dashboard</a></li>
                     </ul>
                 </li>
             </ul>
@@ -316,7 +316,7 @@
                         <h3>{% block page_title %}{{ self.title() }}{% endblock %}</h3>
                     </div>
                     <div class="ms-auto">
-                        <a href="/document-upload" class="btn btn-outline-primary">
+                        <a href="/regulatory-ai-refactored/upload" class="btn btn-outline-primary">
                             <i class="fas fa-file-upload me-2"></i> Upload Report
                         </a>
                     </div>
