@@ -9,7 +9,20 @@ from flask import Blueprint, render_template, request
 
 # Import necessary functions from centralized utils module
 from navigation_config import get_context_for_template
-from utils import get_sustainability_trends, get_sustainability_metrics
+
+# Try different import paths for utils
+try:
+    # Direct relative import first
+    from utils.data_providers import get_sustainability_trends, get_sustainability_metrics
+except ImportError:
+    try:
+        # Then try with frontend prefix
+        from frontend.utils.data_providers import get_sustainability_trends, get_sustainability_metrics
+    except ImportError:
+        # Finally try parent directory import
+        import sys, os
+        sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+        from utils.data_providers import get_sustainability_trends, get_sustainability_metrics
 
 # Create blueprint
 trend_bp = Blueprint('trend', __name__)

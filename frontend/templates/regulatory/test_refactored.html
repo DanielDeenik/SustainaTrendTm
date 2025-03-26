@@ -1,0 +1,46 @@
+{% extends "base.html" %}
+
+{% block title %}Refactored Regulatory AI Agent Test{% endblock %}
+
+{% block content %}
+<div class="container mx-auto px-4 py-8">
+    <h1 class="text-3xl font-bold mb-6">Refactored Regulatory AI Agent</h1>
+    
+    <div class="bg-white dark:bg-gray-800 shadow-md rounded-lg p-6 mb-8">
+        <h2 class="text-2xl font-semibold mb-4">Test Page</h2>
+        <p class="mb-4">This page confirms that the refactored Regulatory AI Agent blueprint is working correctly.</p>
+        
+        <div class="flex flex-col md:flex-row gap-4 mt-6">
+            <a href="/regulatory-ai-refactored/dashboard" class="px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700 transition">
+                Go to Refactored Dashboard
+            </a>
+            <a href="/regulatory-ai/dashboard" class="px-4 py-2 bg-gray-600 text-white rounded hover:bg-gray-700 transition">
+                Go to Original Dashboard
+            </a>
+        </div>
+    </div>
+    
+    <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
+        <div class="bg-white dark:bg-gray-800 shadow-md rounded-lg p-6">
+            <h3 class="text-xl font-semibold mb-3">Refactored Features</h3>
+            <ul class="list-disc pl-5 space-y-2">
+                <li>Enhanced framework assessment</li>
+                <li>Improved RAG analysis system</li>
+                <li>Better document processing</li>
+                <li>Modern UI/UX design</li>
+                <li>Optimized performance</li>
+            </ul>
+        </div>
+        
+        <div class="bg-white dark:bg-gray-800 shadow-md rounded-lg p-6">
+            <h3 class="text-xl font-semibold mb-3">Endpoints</h3>
+            <ul class="list-disc pl-5 space-y-2">
+                <li><code>/regulatory-ai-refactored/dashboard</code> - Main dashboard</li>
+                <li><code>/regulatory-ai-refactored/upload</code> - Document upload</li>
+                <li><code>/regulatory-ai-refactored/api/file-assessment</code> - API endpoint</li>
+                <li><code>/regulatory-ai-refactored/api/follow-up-question</code> - Follow-up questions</li>
+            </ul>
+        </div>
+    </div>
+</div>
+{% endblock %}

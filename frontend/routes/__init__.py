@@ -61,6 +61,13 @@ def register_blueprints(app):
         logger.info("Regulatory AI Agent blueprint imported successfully")
     except ImportError as e:
         logger.warning(f"Regulatory AI Agent blueprint import failed: {str(e)}")
+        
+    # Import refactored regulatory AI agent blueprint
+    try:
+        from .regulatory_ai_agent_refactored import regulatory_ai_bp as regulatory_ai_bp_refactored, register_blueprint as register_regulatory_ai_refactored
+        logger.info("Refactored Regulatory AI Agent blueprint imported successfully")
+    except ImportError as e:
+        logger.warning(f"Refactored Regulatory AI Agent blueprint import failed: {str(e)}")
     
     # Register blueprints
     app.register_blueprint(analytics_bp)
@@ -102,6 +109,13 @@ def register_blueprints(app):
         logger.info("Regulatory AI Agent blueprint registered successfully")
     except NameError:
         logger.warning("Regulatory AI Agent blueprint not registered due to import failure")
+        
+    # Register refactored regulatory AI agent blueprint
+    try:
+        register_regulatory_ai_refactored(app)
+        logger.info("Refactored Regulatory AI Agent blueprint registered successfully")
+    except NameError:
+        logger.warning("Refactored Regulatory AI Agent blueprint not registered due to import failure")
     
     # Register legacy routes blueprint for backward compatibility
     try:

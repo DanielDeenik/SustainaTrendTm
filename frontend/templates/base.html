@@ -279,6 +279,15 @@
                 <li class="{{ 'active' if active_nav == 'strategy' else '' }}">
                     <a href="/unified-strategy-hub"><i class="fas fa-lightbulb me-2"></i> Strategy Hub</a>
                 </li>
+                <li class="{{ 'active' if active_nav == 'regulatory-ai-refactored' else '' }}">
+                    <a href="#regulatorySubmenu" data-bs-toggle="collapse" aria-expanded="{{ 'true' if active_nav == 'regulatory-ai-refactored' else 'false' }}" class="dropdown-toggle">
+                        <i class="fas fa-balance-scale-right me-2"></i> Regulatory AI V2
+                    </a>
+                    <ul class="collapse {{ 'show' if active_nav == 'regulatory-ai-refactored' else '' }} list-unstyled" id="regulatorySubmenu">
+                        <li><a href="/regulatory-ai-refactored/upload" class="ps-4">Upload Document</a></li>
+                        <li><a href="/regulatory-ai-refactored/dashboard" class="ps-4">Dashboard</a></li>
+                    </ul>
+                </li>
             </ul>
 
             <div class="px-3 py-2">

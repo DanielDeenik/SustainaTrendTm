@@ -93,6 +93,15 @@ def get_navigation_structure():
                         "description": "AI-powered regulatory compliance assessment"
                     },
                     {
+                        "id": "regulatory_ai_refactored",
+                        "title": "Regulatory AI Agent V2",
+                        "url": "/regulatory-ai-refactored/upload",
+                        "icon": "fa-balance-scale-right",
+                        "badge": "Beta",
+                        "badge_color": "success",
+                        "description": "Refactored AI-powered regulatory compliance assessment"
+                    },
+                    {
                         "id": "strategy-modeling",
                         "title": "Strategy Modeling",
                         "url": "/strategy-modeling-tool",
