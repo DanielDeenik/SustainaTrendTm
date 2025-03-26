@@ -1,0 +1,658 @@
+{% extends "base.html" %}
+
+{% block title %}SustainaTrend™ | Document Upload{% endblock %}
+
+{% block head %}
+<style>
+  .upload-container {
+    background-color: white;
+    border-radius: 8px;
+    padding: 2rem;
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+    margin-bottom: 2rem;
+  }
+  
+  .drop-zone {
+    border: 2px dashed #1e5f74;
+    border-radius: 8px;
+    padding: 3rem;
+    text-align: center;
+    transition: all 0.3s ease;
+    background-color: #f5f9fc;
+  }
+  
+  .drop-zone.dragover {
+    background-color: #e3f2fd;
+    border-color: #133b5c;
+  }
+  
+  .drop-zone-icon {
+    font-size: 3rem;
+    color: #1e5f74;
+    margin-bottom: 1rem;
+  }
+  
+  .file-input {
+    display: none;
+  }
+  
+  .browse-button {
+    background-color: #1e5f74;
+    color: white;
+    padding: 0.5rem 1.5rem;
+    border-radius: 4px;
+    cursor: pointer;
+    transition: background-color 0.3s ease;
+    display: inline-block;
+  }
+  
+  .browse-button:hover {
+    background-color: #133b5c;
+  }
+  
+  .upload-option {
+    margin-bottom: 1rem;
+  }
+  
+  .progress-container {
+    display: none;
+    margin-top: 2rem;
+  }
+  
+  .progress {
+    height: 0.5rem;
+    border-radius: 1rem;
+    margin-bottom: 0.5rem;
+  }
+  
+  .step-checklist {
+    list-style-type: none;
+    padding: 0;
+    margin-top: 1.5rem;
+  }
+  
+  .step-checklist li {
+    padding: 0.75rem 1rem;
+    margin-bottom: 0.5rem;
+    border-radius: 4px;
+    display: flex;
+    align-items: center;
+    background-color: #f5f9fc;
+  }
+  
+  .step-checklist li .step-icon {
+    margin-right: 1rem;
+    width: 24px;
+    height: 24px;
+    line-height: 24px;
+    text-align: center;
+    border-radius: 50%;
+    background-color: #e0e0e0;
+    color: white;
+  }
+  
+  .step-checklist li.active .step-icon {
+    background-color: #2196F3;
+  }
+  
+  .step-checklist li.completed .step-icon {
+    background-color: #4CAF50;
+  }
+  
+  .step-checklist li.error .step-icon {
+    background-color: #F44336;
+  }
+  
+  .result-container {
+    display: none;
+    margin-top: 2rem;
+  }
+  
+  .framework-badge {
+    display: inline-block;
+    padding: 0.25rem 0.75rem;
+    border-radius: 1rem;
+    font-size: 0.85rem;
+    margin-right: 0.5rem;
+    margin-bottom: 0.5rem;
+    background-color: #e3f2fd;
+    color: #0d47a1;
+  }
+  
+  .confidence-indicator {
+    height: 6px;
+    border-radius: 3px;
+    background-color: #eeeeee;
+    margin-top: 0.5rem;
+    overflow: hidden;
+  }
+  
+  .confidence-bar {
+    height: 100%;
+    background-color: #4CAF50;
+    width: 0%;
+    transition: width 1s ease;
+  }
+  
+  .tooltip-icon {
+    color: #1e5f74;
+    cursor: pointer;
+    margin-left: 0.5rem;
+  }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="container my-5">
+  <div class="row">
+    <div class="col-md-8 offset-md-2">
+      <div class="upload-container">
+        <h2 class="mb-4">Upload Sustainability Report</h2>
+        
+        <div id="upload-form">
+          <div class="drop-zone" id="drop-zone">
+            <div class="drop-zone-icon">
+              <i class="fas fa-file-upload"></i>
+            </div>
+            <h4>Drag & Drop Your Document Here</h4>
+            <p class="text-muted">or</p>
+            <label class="browse-button">
+              Browse Files
+              <input type="file" class="file-input" id="file-input" accept=".pdf,.docx,.txt,.csv,.xlsx">
+            </label>
+            <p class="mt-3 text-muted small">Supported formats: PDF, DOCX, TXT, CSV, XLSX</p>
+          </div>
+          
+          <div class="options mt-4">
+            <div class="row">
+              <div class="col-md-6">
+                <div class="upload-option">
+                  <div class="custom-control custom-switch">
+                    <input type="checkbox" class="custom-control-input" id="use-ocr">
+                    <label class="custom-control-label" for="use-ocr">
+                      Use OCR for Scanned Documents
+                      <i class="fas fa-info-circle tooltip-icon" data-toggle="tooltip" title="Enable OCR (Optical Character Recognition) for scanned documents or images with text"></i>
+                    </label>
+                  </div>
+                </div>
+              </div>
+              <div class="col-md-6">
+                <div class="upload-option">
+                  <div class="custom-control custom-switch">
+                    <input type="checkbox" class="custom-control-input" id="auto-detect-framework" checked>
+                    <label class="custom-control-label" for="auto-detect-framework">
+                      Auto-detect Regulatory Framework
+                      <i class="fas fa-info-circle tooltip-icon" data-toggle="tooltip" title="Automatically detect which sustainability frameworks (ESRS, CSRD, GRI, etc.) are relevant to this document"></i>
+                    </label>
+                  </div>
+                </div>
+              </div>
+            </div>
+            
+            <div class="form-group mt-3">
+              <label for="document-type">
+                Document Type
+                <i class="fas fa-info-circle tooltip-icon" data-toggle="tooltip" title="Select the type of document you're uploading"></i>
+              </label>
+              <select class="form-control" id="document-type">
+                <option value="sustainability_report">Sustainability Report</option>
+                <option value="esg_disclosure">ESG Disclosure</option>
+                <option value="annual_report">Annual Report</option>
+                <option value="csrd_report">CSRD Report</option>
+                <option value="tcfd_report">TCFD Report</option>
+                <option value="gri_report">GRI Report</option>
+                <option value="integrated_report">Integrated Report</option>
+              </select>
+            </div>
+            
+            <div class="text-center mt-4">
+              <button id="upload-button" class="btn btn-primary" disabled>
+                <i class="fas fa-upload mr-2"></i> Start Processing
+              </button>
+            </div>
+          </div>
+        </div>
+        
+        <div id="progress-container" class="progress-container">
+          <h4>Processing Document</h4>
+          <div class="progress">
+            <div id="upload-progress" class="progress-bar progress-bar-striped progress-bar-animated" role="progressbar" style="width: 0%"></div>
+          </div>
+          <p id="progress-text" class="text-muted">Initializing...</p>
+          
+          <ul class="step-checklist">
+            <li id="step-upload" data-step="upload">
+              <div class="step-icon"><i class="fas fa-spinner fa-spin"></i></div>
+              <div class="step-content">
+                <strong>Uploading Document</strong>
+                <div class="text-muted small">Transferring file to server</div>
+              </div>
+            </li>
+            <li id="step-extract" data-step="extract">
+              <div class="step-icon"><i class="fas fa-clock"></i></div>
+              <div class="step-content">
+                <strong>Extracting Text</strong>
+                <div class="text-muted small">Converting document to machine-readable text</div>
+              </div>
+            </li>
+            <li id="step-analyze" data-step="analyze">
+              <div class="step-icon"><i class="fas fa-clock"></i></div>
+              <div class="step-content">
+                <strong>Analyzing Content</strong>
+                <div class="text-muted small">Identifying metrics and frameworks</div>
+              </div>
+            </li>
+            <li id="step-framework" data-step="framework">
+              <div class="step-icon"><i class="fas fa-clock"></i></div>
+              <div class="step-content">
+                <strong>Framework Mapping</strong>
+                <div class="text-muted small">Mapping content to regulatory frameworks</div>
+              </div>
+            </li>
+            <li id="step-enrich" data-step="enrich">
+              <div class="step-icon"><i class="fas fa-clock"></i></div>
+              <div class="step-content">
+                <strong>Data Enrichment</strong>
+                <div class="text-muted small">Enhancing document with additional insights</div>
+              </div>
+            </li>
+          </ul>
+        </div>
+        
+        <div id="result-container" class="result-container">
+          <div class="alert alert-success">
+            <i class="fas fa-check-circle mr-2"></i> Document processed successfully!
+          </div>
+          
+          <div class="card mt-4">
+            <div class="card-header">
+              <h5 class="mb-0">Processing Results</h5>
+            </div>
+            <div class="card-body">
+              <div class="row">
+                <div class="col-md-6">
+                  <h6><i class="fas fa-chart-bar mr-2"></i> Metrics Extracted</h6>
+                  <p id="metrics-count" class="lead">-</p>
+                </div>
+                <div class="col-md-6">
+                  <h6><i class="fas fa-balance-scale mr-2"></i> Primary Framework</h6>
+                  <p id="primary-framework" class="lead">-</p>
+                </div>
+              </div>
+              
+              <div class="mt-4">
+                <h6><i class="fas fa-tags mr-2"></i> Detected Frameworks</h6>
+                <div id="frameworks-container"></div>
+              </div>
+              
+              <div class="mt-4">
+                <h6>
+                  <i class="fas fa-chart-line mr-2"></i> Confidence Score
+                  <i class="fas fa-info-circle tooltip-icon" data-toggle="tooltip" title="Overall confidence in the extracted data and analysis"></i>
+                </h6>
+                <div class="confidence-indicator">
+                  <div id="confidence-bar" class="confidence-bar"></div>
+                </div>
+                <p id="confidence-text" class="text-muted mt-2 small">Processing confidence: <span id="confidence-value">-</span></p>
+              </div>
+            </div>
+            <div class="card-footer text-center">
+              <a id="analysis-link" href="#" class="btn btn-primary">
+                <i class="fas fa-search-plus mr-2"></i> View Full Analysis
+              </a>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+  $(document).ready(function() {
+    // Initialize tooltips
+    $('[data-toggle="tooltip"]').tooltip();
+    
+    const dropZone = document.getElementById('drop-zone');
+    const fileInput = document.getElementById('file-input');
+    const uploadButton = document.getElementById('upload-button');
+    const uploadForm = document.getElementById('upload-form');
+    const progressContainer = document.getElementById('progress-container');
+    const resultContainer = document.getElementById('result-container');
+    const uploadProgress = document.getElementById('upload-progress');
+    const progressText = document.getElementById('progress-text');
+    
+    // Handle file selection
+    fileInput.addEventListener('change', function(e) {
+      if (fileInput.files.length > 0) {
+        const fileName = fileInput.files[0].name;
+        uploadButton.removeAttribute('disabled');
+        dropZone.innerHTML = `
+          <div class="drop-zone-icon">
+            <i class="fas fa-file-alt"></i>
+          </div>
+          <h4>${fileName}</h4>
+          <p class="text-muted">File selected</p>
+          <button type="button" class="btn btn-outline-secondary btn-sm mt-2" id="change-file">
+            <i class="fas fa-exchange-alt mr-1"></i> Change File
+          </button>
+        `;
+        
+        // Handle change file button
+        document.getElementById('change-file').addEventListener('click', function(e) {
+          e.preventDefault();
+          fileInput.value = '';
+          uploadButton.setAttribute('disabled', true);
+          dropZone.innerHTML = `
+            <div class="drop-zone-icon">
+              <i class="fas fa-file-upload"></i>
+            </div>
+            <h4>Drag & Drop Your Document Here</h4>
+            <p class="text-muted">or</p>
+            <label class="browse-button">
+              Browse Files
+              <input type="file" class="file-input" id="file-input" accept=".pdf,.docx,.txt,.csv,.xlsx">
+            </label>
+            <p class="mt-3 text-muted small">Supported formats: PDF, DOCX, TXT, CSV, XLSX</p>
+          `;
+          // Reattach event listeners
+          document.querySelector('.file-input').addEventListener('change', fileInput.onchange);
+        });
+      } else {
+        uploadButton.setAttribute('disabled', true);
+      }
+    });
+    
+    // Handle drag and drop
+    ['dragenter', 'dragover', 'dragleave', 'drop'].forEach(eventName => {
+      dropZone.addEventListener(eventName, function(e) {
+        e.preventDefault();
+        e.stopPropagation();
+      }, false);
+    });
+    
+    ['dragenter', 'dragover'].forEach(eventName => {
+      dropZone.addEventListener(eventName, function() {
+        dropZone.classList.add('dragover');
+      }, false);
+    });
+    
+    ['dragleave', 'drop'].forEach(eventName => {
+      dropZone.addEventListener(eventName, function() {
+        dropZone.classList.remove('dragover');
+      }, false);
+    });
+    
+    dropZone.addEventListener('drop', function(e) {
+      fileInput.files = e.dataTransfer.files;
+      if (fileInput.files.length > 0) {
+        const fileName = fileInput.files[0].name;
+        uploadButton.removeAttribute('disabled');
+        dropZone.innerHTML = `
+          <div class="drop-zone-icon">
+            <i class="fas fa-file-alt"></i>
+          </div>
+          <h4>${fileName}</h4>
+          <p class="text-muted">File selected</p>
+          <button type="button" class="btn btn-outline-secondary btn-sm mt-2" id="change-file">
+            <i class="fas fa-exchange-alt mr-1"></i> Change File
+          </button>
+        `;
+        
+        // Handle change file button
+        document.getElementById('change-file').addEventListener('click', function(e) {
+          e.preventDefault();
+          fileInput.value = '';
+          uploadButton.setAttribute('disabled', true);
+          dropZone.innerHTML = `
+            <div class="drop-zone-icon">
+              <i class="fas fa-file-upload"></i>
+            </div>
+            <h4>Drag & Drop Your Document Here</h4>
+            <p class="text-muted">or</p>
+            <label class="browse-button">
+              Browse Files
+              <input type="file" class="file-input" id="file-input" accept=".pdf,.docx,.txt,.csv,.xlsx">
+            </label>
+            <p class="mt-3 text-muted small">Supported formats: PDF, DOCX, TXT, CSV, XLSX</p>
+          `;
+          // Reattach event listeners
+          document.querySelector('.file-input').addEventListener('change', fileInput.onchange);
+        });
+      } else {
+        uploadButton.setAttribute('disabled', true);
+      }
+    });
+    
+    // Handle upload button click
+    uploadButton.addEventListener('click', function() {
+      uploadDocument();
+    });
+    
+    function uploadDocument() {
+      if (!fileInput.files.length) {
+        alert('Please select a file to upload');
+        return;
+      }
+      
+      // Show progress container
+      uploadForm.style.display = 'none';
+      progressContainer.style.display = 'block';
+      
+      // Update progress
+      uploadProgress.style.width = '10%';
+      progressText.innerText = 'Uploading document...';
+      
+      // Update step indicators
+      document.querySelectorAll('.step-checklist li').forEach(li => {
+        li.classList.remove('active', 'completed', 'error');
+        li.querySelector('.step-icon').innerHTML = '<i class="fas fa-clock"></i>';
+      });
+      
+      // Mark upload step as active
+      const uploadStep = document.getElementById('step-upload');
+      uploadStep.classList.add('active');
+      uploadStep.querySelector('.step-icon').innerHTML = '<i class="fas fa-spinner fa-spin"></i>';
+      
+      // Prepare form data
+      const formData = new FormData();
+      formData.append('file', fileInput.files[0]);
+      formData.append('use_ocr', document.getElementById('use-ocr').checked);
+      formData.append('auto_detect_framework', document.getElementById('auto-detect-framework').checked);
+      formData.append('document_type', document.getElementById('document-type').value);
+      
+      // Send AJAX request
+      $.ajax({
+        url: '{{ url_for("data_moat.document_upload") }}',
+        type: 'POST',
+        data: formData,
+        processData: false,
+        contentType: false,
+        xhr: function() {
+          const xhr = $.ajaxSettings.xhr();
+          xhr.upload.onprogress = function(e) {
+            if (e.lengthComputable) {
+              const percent = Math.round((e.loaded / e.total) * 100);
+              uploadProgress.style.width = Math.max(10, Math.min(30, percent)) + '%';
+            }
+          };
+          return xhr;
+        },
+        success: function(response) {
+          if (response.success) {
+            // Update progress for extraction
+            uploadProgress.style.width = '30%';
+            progressText.innerText = 'Extracting text from document...';
+            
+            // Mark upload step as completed
+            uploadStep.classList.remove('active');
+            uploadStep.classList.add('completed');
+            uploadStep.querySelector('.step-icon').innerHTML = '<i class="fas fa-check"></i>';
+            
+            // Mark extract step as active
+            const extractStep = document.getElementById('step-extract');
+            extractStep.classList.add('active');
+            extractStep.querySelector('.step-icon').innerHTML = '<i class="fas fa-spinner fa-spin"></i>';
+            
+            // Simulate progress through the steps
+            setTimeout(function() {
+              // Update progress for analysis
+              uploadProgress.style.width = '50%';
+              progressText.innerText = 'Analyzing document content...';
+              
+              // Mark extract step as completed
+              extractStep.classList.remove('active');
+              extractStep.classList.add('completed');
+              extractStep.querySelector('.step-icon').innerHTML = '<i class="fas fa-check"></i>';
+              
+              // Mark analyze step as active
+              const analyzeStep = document.getElementById('step-analyze');
+              analyzeStep.classList.add('active');
+              analyzeStep.querySelector('.step-icon').innerHTML = '<i class="fas fa-spinner fa-spin"></i>';
+              
+              setTimeout(function() {
+                // Update progress for framework mapping
+                uploadProgress.style.width = '70%';
+                progressText.innerText = 'Mapping to regulatory frameworks...';
+                
+                // Mark analyze step as completed
+                analyzeStep.classList.remove('active');
+                analyzeStep.classList.add('completed');
+                analyzeStep.querySelector('.step-icon').innerHTML = '<i class="fas fa-check"></i>';
+                
+                // Mark framework step as active
+                const frameworkStep = document.getElementById('step-framework');
+                frameworkStep.classList.add('active');
+                frameworkStep.querySelector('.step-icon').innerHTML = '<i class="fas fa-spinner fa-spin"></i>';
+                
+                setTimeout(function() {
+                  // Update progress for enrichment
+                  uploadProgress.style.width = '90%';
+                  progressText.innerText = 'Enriching document with insights...';
+                  
+                  // Mark framework step as completed
+                  frameworkStep.classList.remove('active');
+                  frameworkStep.classList.add('completed');
+                  frameworkStep.querySelector('.step-icon').innerHTML = '<i class="fas fa-check"></i>';
+                  
+                  // Mark enrich step as active
+                  const enrichStep = document.getElementById('step-enrich');
+                  enrichStep.classList.add('active');
+                  enrichStep.querySelector('.step-icon').innerHTML = '<i class="fas fa-spinner fa-spin"></i>';
+                  
+                  setTimeout(function() {
+                    // Complete progress
+                    uploadProgress.style.width = '100%';
+                    progressText.innerText = 'Processing complete!';
+                    
+                    // Mark enrich step as completed
+                    enrichStep.classList.remove('active');
+                    enrichStep.classList.add('completed');
+                    enrichStep.querySelector('.step-icon').innerHTML = '<i class="fas fa-check"></i>';
+                    
+                    // Show results
+                    setTimeout(function() {
+                      showResults(response);
+                    }, 500);
+                  }, 1000);
+                }, 1000);
+              }, 1000);
+            }, 1000);
+          } else {
+            // Show error
+            progressText.innerText = 'Error: ' + (response.error || 'Unknown error');
+            uploadProgress.classList.add('bg-danger');
+            
+            // Mark upload step as error
+            uploadStep.classList.remove('active');
+            uploadStep.classList.add('error');
+            uploadStep.querySelector('.step-icon').innerHTML = '<i class="fas fa-times"></i>';
+            
+            // Add retry button
+            const retryButton = document.createElement('button');
+            retryButton.className = 'btn btn-danger mt-3';
+            retryButton.innerHTML = '<i class="fas fa-redo mr-2"></i> Try Again';
+            retryButton.addEventListener('click', function() {
+              progressContainer.style.display = 'none';
+              uploadForm.style.display = 'block';
+              uploadProgress.classList.remove('bg-danger');
+            });
+            progressContainer.appendChild(retryButton);
+          }
+        },
+        error: function(xhr, status, error) {
+          // Show error
+          progressText.innerText = 'Error: ' + error;
+          uploadProgress.classList.add('bg-danger');
+          
+          // Mark upload step as error
+          uploadStep.classList.remove('active');
+          uploadStep.classList.add('error');
+          uploadStep.querySelector('.step-icon').innerHTML = '<i class="fas fa-times"></i>';
+          
+          // Add retry button
+          const retryButton = document.createElement('button');
+          retryButton.className = 'btn btn-danger mt-3';
+          retryButton.innerHTML = '<i class="fas fa-redo mr-2"></i> Try Again';
+          retryButton.addEventListener('click', function() {
+            progressContainer.style.display = 'none';
+            uploadForm.style.display = 'block';
+            uploadProgress.classList.remove('bg-danger');
+          });
+          progressContainer.appendChild(retryButton);
+        }
+      });
+    }
+    
+    function showResults(response) {
+      // Hide progress container
+      progressContainer.style.display = 'none';
+      
+      // Show result container
+      resultContainer.style.display = 'block';
+      
+      // Update metrics count
+      document.getElementById('metrics-count').innerText = response.metrics_count || 0;
+      
+      // Update primary framework
+      const primaryFramework = response.primary_framework || 'Unknown';
+      document.getElementById('primary-framework').innerText = primaryFramework.toUpperCase();
+      
+      // Update frameworks
+      const frameworksContainer = document.getElementById('frameworks-container');
+      frameworksContainer.innerHTML = '';
+      
+      if (response.frameworks_detected && Object.keys(response.frameworks_detected).length > 0) {
+        for (const [framework, confidence] of Object.entries(response.frameworks_detected)) {
+          const frameworkBadge = document.createElement('div');
+          frameworkBadge.className = 'framework-badge';
+          frameworkBadge.innerHTML = `${framework.toUpperCase()} <span class="badge badge-pill badge-light">${Math.round(confidence * 100)}%</span>`;
+          frameworksContainer.appendChild(frameworkBadge);
+        }
+      } else {
+        frameworksContainer.innerHTML = '<p class="text-muted">No frameworks detected</p>';
+      }
+      
+      // Update confidence score
+      const confidenceScore = response.confidence_score || 0;
+      document.getElementById('confidence-value').innerText = `${Math.round(confidenceScore * 100)}%`;
+      document.getElementById('confidence-bar').style.width = `${Math.round(confidenceScore * 100)}%`;
+      
+      // Set color based on confidence
+      const confidenceBar = document.getElementById('confidence-bar');
+      if (confidenceScore < 0.3) {
+        confidenceBar.style.backgroundColor = '#F44336';  // Red
+      } else if (confidenceScore < 0.7) {
+        confidenceBar.style.backgroundColor = '#FFC107';  // Yellow
+      } else {
+        confidenceBar.style.backgroundColor = '#4CAF50';  // Green
+      }
+      
+      // Update analysis link
+      document.getElementById('analysis-link').href = response.redirect_url || '#';
+    }
+  });
+</script>
+{% endblock %}

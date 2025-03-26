@@ -1,0 +1,170 @@
+{% extends "base.html" %}
+
+{% block title %}SustainaTrend™ | Data Moat{% endblock %}
+
+{% block head %}
+<style>
+  .data-moat-header {
+    background: linear-gradient(135deg, #1e5f74 0%, #133b5c 100%);
+    color: white;
+    padding: 2rem;
+    border-radius: 8px;
+    margin-bottom: 2rem;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+  }
+  
+  .data-moat-card {
+    background-color: white;
+    border-radius: 8px;
+    padding: 1.5rem;
+    margin-bottom: 1.5rem;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+    transition: transform 0.3s ease, box-shadow 0.3s ease;
+  }
+  
+  .data-moat-card:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 8px 15px rgba(0, 0, 0, 0.1);
+  }
+  
+  .feature-icon {
+    font-size: 2.5rem;
+    margin-bottom: 1rem;
+    color: #1e5f74;
+  }
+  
+  .statistics-card {
+    background-color: #f5f9fc;
+    border-left: 4px solid #1e5f74;
+  }
+  
+  .cta-button {
+    background-color: #1e5f74;
+    color: white;
+    padding: 0.75rem 1.5rem;
+    border-radius: 4px;
+    text-decoration: none;
+    font-weight: bold;
+    transition: background-color 0.3s ease;
+    display: inline-block;
+    margin-top: 1rem;
+  }
+  
+  .cta-button:hover {
+    background-color: #133b5c;
+    color: white;
+  }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="container my-5">
+  <div class="data-moat-header">
+    <div class="row align-items-center">
+      <div class="col-md-8">
+        <h1 class="mb-3">Data Moat Intelligence Platform</h1>
+        <p class="lead mb-4">Transform sustainability reports into actionable intelligence with AI-powered document analysis.</p>
+        <a href="{{ url_for('data_moat.document_upload') }}" class="cta-button">
+          <i class="fas fa-upload mr-2"></i> Upload Document
+        </a>
+      </div>
+      <div class="col-md-4 text-center">
+        <i class="fas fa-shield-alt" style="font-size: 6rem; opacity: 0.8;"></i>
+      </div>
+    </div>
+  </div>
+  
+  <div class="row">
+    <div class="col-md-6">
+      <div class="data-moat-card">
+        <div class="feature-icon">
+          <i class="fas fa-robot"></i>
+        </div>
+        <h3>AI-Powered Document Analysis</h3>
+        <p>Our advanced AI automatically extracts sustainability metrics, identifies frameworks, and assesses regulatory compliance.</p>
+      </div>
+    </div>
+    
+    <div class="col-md-6">
+      <div class="data-moat-card">
+        <div class="feature-icon">
+          <i class="fas fa-chart-line"></i>
+        </div>
+        <h3>Standardized Metrics</h3>
+        <p>Extract and normalize sustainability metrics for accurate benchmarking against industry peers and regulatory standards.</p>
+      </div>
+    </div>
+    
+    <div class="col-md-6">
+      <div class="data-moat-card">
+        <div class="feature-icon">
+          <i class="fas fa-balance-scale"></i>
+        </div>
+        <h3>Regulatory Compliance</h3>
+        <p>Automatically assess compliance with ESRS, CSRD, GRI, TCFD, and other sustainability reporting frameworks.</p>
+      </div>
+    </div>
+    
+    <div class="col-md-6">
+      <div class="data-moat-card">
+        <div class="feature-icon">
+          <i class="fas fa-database"></i>
+        </div>
+        <h3>Defensible Data Moat</h3>
+        <p>Each document enriches our collective intelligence, creating a defensible data advantage that grows over time.</p>
+      </div>
+    </div>
+  </div>
+  
+  <div class="row mt-4">
+    <div class="col-12">
+      <div class="data-moat-card statistics-card">
+        <h3 class="mb-4">Platform Intelligence</h3>
+        <div class="row">
+          <div class="col-md-3 col-6 text-center mb-3">
+            <h2 class="text-primary">145+</h2>
+            <p class="text-muted">Metrics Tracked</p>
+          </div>
+          <div class="col-md-3 col-6 text-center mb-3">
+            <h2 class="text-primary">7</h2>
+            <p class="text-muted">Regulatory Frameworks</p>
+          </div>
+          <div class="col-md-3 col-6 text-center mb-3">
+            <h2 class="text-primary">94%</h2>
+            <p class="text-muted">Extraction Accuracy</p>
+          </div>
+          <div class="col-md-3 col-6 text-center mb-3">
+            <h2 class="text-primary">22+</h2>
+            <p class="text-muted">Industries Covered</p>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+  
+  <div class="text-center mt-5">
+    <a href="{{ url_for('data_moat.document_upload') }}" class="cta-button">
+      <i class="fas fa-upload mr-2"></i> Start Analyzing Documents
+    </a>
+  </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+  $(document).ready(function() {
+    // Animation for statistics
+    $('.statistics-card h2').each(function() {
+      $(this).prop('Counter', 0).animate({
+        Counter: $(this).text()
+      }, {
+        duration: 2000,
+        easing: 'swing',
+        step: function(now) {
+          $(this).text(Math.ceil(now));
+        }
+      });
+    });
+  });
+</script>
+{% endblock %}

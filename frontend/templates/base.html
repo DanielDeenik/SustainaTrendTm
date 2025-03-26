@@ -261,6 +261,9 @@
                 <li class="{{ 'active' if active_nav == 'document-upload' else '' }}">
                     <a href="/regulatory-ai-refactored/upload"><i class="fas fa-file-upload me-2"></i> Document Upload</a>
                 </li>
+                <li class="{{ 'active' if active_nav == 'data-moat' else '' }}">
+                    <a href="/data-moat/"><i class="fas fa-database me-2"></i> Data Moat</a>
+                </li>
                 <li class="{{ 'active' if active_nav == 'search' else '' }}">
                     <a href="/search"><i class="fas fa-search me-2"></i> Search</a>
                 </li>
@@ -316,9 +319,14 @@
                         <h3>{% block page_title %}{{ self.title() }}{% endblock %}</h3>
                     </div>
                     <div class="ms-auto">
-                        <a href="/regulatory-ai-refactored/upload" class="btn btn-outline-primary">
-                            <i class="fas fa-file-upload me-2"></i> Upload Report
-                        </a>
+                        <div class="btn-group">
+                            <a href="/regulatory-ai-refactored/upload" class="btn btn-outline-primary">
+                                <i class="fas fa-file-upload me-2"></i> Standard Upload
+                            </a>
+                            <a href="/data-moat/upload" class="btn btn-primary">
+                                <i class="fas fa-database me-2"></i> Data Moat Upload
+                            </a>
+                        </div>
                     </div>
                 </div>
             </nav>

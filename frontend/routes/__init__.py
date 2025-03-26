@@ -69,6 +69,13 @@ def register_blueprints(app):
     except ImportError as e:
         logger.warning(f"Refactored Regulatory AI Agent blueprint import failed: {str(e)}")
     
+    # Import data moat blueprint
+    try:
+        from .data_moat_routes import data_moat_bp, register_routes as register_data_moat
+        logger.info("Data Moat blueprint imported successfully")
+    except ImportError as e:
+        logger.warning(f"Data Moat blueprint import failed: {str(e)}")
+    
     # Register blueprints
     app.register_blueprint(analytics_bp)
     app.register_blueprint(trend_bp)
@@ -116,6 +123,13 @@ def register_blueprints(app):
         logger.info("Refactored Regulatory AI Agent blueprint registered successfully")
     except NameError:
         logger.warning("Refactored Regulatory AI Agent blueprint not registered due to import failure")
+    
+    # Register data moat blueprint
+    try:
+        register_data_moat(app)
+        logger.info("Data Moat blueprint registered successfully")
+    except NameError:
+        logger.warning("Data Moat blueprint not registered due to import failure")
     
     # Register legacy routes blueprint for backward compatibility
     try:
