@@ -1,0 +1,9 @@
+run = "./start_refactored_dashboard.sh"
+language = "bash"
+entrypoint = "start_refactored_dashboard.sh"
+hidden = false
+persistent = true
+onBoot = "wait"
+wait_for_port = 3000
+timeout = 180000
+onPort = { action = "open", port = 3000, url_path = "/regulatory/dashboard" }

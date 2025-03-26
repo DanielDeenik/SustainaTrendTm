@@ -1,0 +1,19 @@
+run = "cd frontend && PORT=3000 python refactored_app.py"
+language = "python"
+entrypoint = "frontend/refactored_app.py"
+hidden = false
+persistent = true
+onBoot = "wait"
+wait_for_port = 3000
+timeout = 180000
+onPort = { action = "open", port = 3000, url_path = "/regulatory/dashboard" }
+environment = { 
+  DEBUG = "true", 
+  FLASK_ENV = "development", 
+  HOST = "0.0.0.0", 
+  PORT = "3000",
+  REPLIT_ENVIRONMENT = "true",
+  APP_URL_PATH = "/",
+  ENABLE_REPLIT_AUTH = "false",
+  WERKZEUG_RUN_MAIN = "true"
+}
