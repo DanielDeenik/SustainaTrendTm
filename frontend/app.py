@@ -62,7 +62,19 @@ def create_app(test_config=None):
     app.config.from_mapping(
         SECRET_KEY=os.environ.get('SECRET_KEY', 'dev'),
         DEBUG=os.environ.get('FLASK_ENV', 'development') == 'development',
+        # Replit specific configurations
+        SERVER_NAME=None,  # Set to None to handle Replit's proxy
+        PREFERRED_URL_SCHEME='https',
+        APPLICATION_ROOT='/',
     )
+    
+    # Replit-specific configuration for proxy
+    if os.environ.get('REPLIT_ENVIRONMENT') == 'true':
+        from werkzeug.middleware.proxy_fix import ProxyFix
+        app.wsgi_app = ProxyFix(
+            app.wsgi_app, x_for=1, x_proto=1, x_host=1, x_prefix=1
+        )
+        app.logger.info("Configured ProxyFix middleware for Replit environment")
     
     if test_config:
         app.config.update(test_config)
@@ -116,6 +128,14 @@ def create_app(test_config=None):
             app.logger.info("Regulatory AI blueprint registered directly in app.py (alternative path)")
         except Exception as e2:
             app.logger.error(f"Error with alternative Regulatory AI blueprint registration: {e2}")
+    
+    # Register direct document upload shortcut
+    @app.route('/document-upload-standalone')
+    def document_upload_standalone():
+        """Redirect to standalone document upload on port 7000"""
+        from flask import redirect
+        host = request.host.split(':')[0]  # Get hostname without port
+        return redirect(f'http://{host}:7000')
     
     # Log the registered routes
     app.logger.info(f"Registered routes: {len(list(app.url_map.iter_rules()))}")

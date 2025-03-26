@@ -136,6 +136,15 @@ def get_navigation_structure():
                         "title": "Real Estate",
                         "url": "/real-estate",
                         "icon": "fa-building"
+                    },
+                    {
+                        "id": "document_upload_standalone",
+                        "title": "Document Upload (Standalone)",
+                        "url": "/document-upload-standalone",
+                        "icon": "fa-file-upload",
+                        "badge": "New",
+                        "badge_color": "warning",
+                        "description": "Reliable document upload on port 7000"
                     }
                 ]
             }
