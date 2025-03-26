@@ -1,5 +1,5 @@
 """
-Regulatory AI Agent Module for SustainaTrend™
+Regulatory AI Agent Module for SustainaTrend™ (Refactored)
 
 This module provides AI-powered regulatory compliance assessment and analysis
 for sustainability reports and ESG disclosures.
@@ -9,6 +9,8 @@ Key features:
 2. AI-powered compliance gap analysis
 3. Timeline recommendations for regulatory transitions
 4. Visual compliance reporting dashboard
+
+This is the refactored version that uses the shared regulatory AI service.
 """
 
 import json
@@ -48,6 +50,36 @@ except ImportError:
         def jsonify(*args, **kwargs): pass
 
 # Set up logging
+logger = logging.getLogger(__name__)
+
+# Import shared regulatory AI service
+try:
+    from frontend.services.regulatory_ai_service import (
+        get_supported_frameworks,
+        analyze_document_compliance,
+        generate_compliance_visualization_data,
+        handle_document_upload,
+        get_upload_folder
+    )
+    from frontend.services.ai_connector import (
+        connect_to_ai_services,
+        is_pinecone_available
+    )
+    # Initialize AI connector
+    connect_to_ai_services()
+    logger.info("AI connector module loaded successfully")
+    # Log Pinecone availability
+    pinecone_status = "Connected" if is_pinecone_available() else "Not connected"
+    logger.info(f"Pinecone RAG system availability: {pinecone_status}")
+    logger.info("Imported refactored regulatory_ai_agent via regular import")
+except ImportError as e:
+    logger.warning(f"Error importing regulatory AI service: {str(e)}")
+    # Create stub functions for development
+    def get_supported_frameworks(): return {"CSRD": "Corporate Sustainability Reporting Directive"}
+    def analyze_document_compliance(text, frameworks=None): return {"frameworks": {}}
+    def generate_compliance_visualization_data(results): return {"frameworks": []}
+    def handle_document_upload(file): return (False, "Service unavailable", None)
+    def get_upload_folder(): return os.path.join(os.path.dirname(__file__), 'uploads')
 logger = logging.getLogger(__name__)
 
 # Create blueprint with a different name to avoid conflicts
@@ -577,30 +609,61 @@ def split_document_into_chunks(text: str, chunk_size: int = 1000, overlap: int =
 @regulatory_ai_bp.route('/index')
 def regulatory_ai_dashboard():
     """Regulatory AI Agent Dashboard"""
-    frameworks = get_frameworks()
-    timeline = get_regulatory_timeline()
-    
-    # Get parameters from Strategy Hub if passed
-    company = request.args.get('company', '')
-    industry = request.args.get('industry', '')
-    challenges = request.args.get('challenges', '')
-    
-    # Set pre-filled flag if we have parameters from Strategy Hub
-    from_strategy_hub = bool(company and industry)
-    
-    # Check if RAG system is available
-    rag_system_available = is_rag_available()
-    
-    return render_template('regulatory_ai_agent.html', 
-                         frameworks=frameworks,
-                         timeline=timeline,
-                         company=company,
-                         industry=industry,
-                         challenges=challenges,
-                         from_strategy_hub=from_strategy_hub,
-                         is_rag_available=rag_system_available,
-                         page_title="Regulatory AI Agent",
-                         active_page="regulatory-ai")
+    try:
+        logger.info("Starting regulatory_ai_dashboard function")
+        
+        logger.info("Getting frameworks")
+        frameworks = get_frameworks()
+        
+        logger.info("Getting timeline")
+        timeline = get_regulatory_timeline()
+        
+        # Get parameters from Strategy Hub if passed
+        logger.info("Getting request parameters")
+        company = request.args.get('company', '')
+        industry = request.args.get('industry', '')
+        challenges = request.args.get('challenges', '')
+        
+        # Set pre-filled flag if we have parameters from Strategy Hub
+        from_strategy_hub = bool(company and industry)
+        logger.info(f"from_strategy_hub: {from_strategy_hub}")
+        
+        # Check if RAG system is available
+        logger.info("Checking RAG system availability")
+        rag_system_available = is_rag_available()
+        logger.info(f"RAG system available: {rag_system_available}")
+        
+        # In a real implementation, we would fetch this data from a database
+        # For now, we'll use sample data to showcase the dashboard
+        logger.info("Creating stats dictionary")
+        stats = {
+            'documents_count': 12,
+            'document_growth': '24%',
+            'frameworks_count': 7,
+            'recent_framework': 'EU CSRD',
+            'avg_compliance': '74%',
+            'analysis_count': 48,
+            'analysis_growth': '18%'
+        }
+        
+        logger.info("Rendering template")
+        return render_template('regulatory/dashboard_refactored.html', 
+                            frameworks=frameworks,
+                            timeline=timeline,
+                            company=company,
+                            industry=industry,
+                            challenges=challenges,
+                            from_strategy_hub=from_strategy_hub,
+                            is_rag_available=rag_system_available,
+                            page_title="Regulatory AI Agent (Refactored)",
+                            active_page="regulatory-ai-refactored",
+                            stats=stats,
+                            recent_documents=[],  # Use template defaults
+                            recent_activity=[])   # Use template defaults
+    except Exception as e:
+        logger.error(f"Error in regulatory_ai_dashboard: {str(e)}", exc_info=True)
+        # Return a simple error page instead of failing completely
+        return f"<h1>Error loading dashboard</h1><p>Details: {str(e)}</p>", 500
 
 @regulatory_ai_bp.route('/compliance-visualization')
 def compliance_visualization():

@@ -22,14 +22,14 @@ from datetime import datetime
 
 # Add backend path to make Flask module available
 try:
-    from flask import Blueprint, render_template, request, jsonify, current_app
+    from flask import Blueprint, render_template, request, jsonify, current_app, send_from_directory
 except ImportError:
     # This is a fallback if the normal import fails
     try:
         backend_path = os.path.abspath(os.path.join(os.path.dirname(__file__), '..'))
         if backend_path not in sys.path:
             sys.path.append(backend_path)
-        from flask import Blueprint, render_template, request, jsonify, current_app
+        from flask import Blueprint, render_template, request, jsonify, current_app, send_from_directory
     except ImportError as e:
         print(f"Error importing Flask: {e}")
         # Define stub classes for type checking only
@@ -43,7 +43,36 @@ except ImportError:
 # Set up logging
 logger = logging.getLogger(__name__)
 
-# Create blueprint
+# Import shared regulatory AI service
+try:
+    from frontend.services.regulatory_ai_service import (
+        get_supported_frameworks,
+        analyze_document_compliance,
+        generate_compliance_visualization_data,
+        handle_document_upload,
+        get_upload_folder
+    )
+    from frontend.services.ai_connector import (
+        connect_to_ai_services,
+        is_pinecone_available
+    )
+    # Initialize AI connector
+    connect_to_ai_services()
+    logger.info("AI connector module loaded successfully")
+    # Log Pinecone availability
+    pinecone_status = "Connected" if is_pinecone_available() else "Not connected"
+    logger.info(f"Pinecone RAG system availability: {pinecone_status}")
+    logger.info("Imported regulatory_ai_agent from absolute path")
+except ImportError as e:
+    logger.warning(f"Error importing regulatory AI service: {str(e)}")
+    # Create stub functions for development
+    def get_supported_frameworks(): return {"CSRD": "Corporate Sustainability Reporting Directive"}
+    def analyze_document_compliance(text, frameworks=None): return {"frameworks": {}}
+    def generate_compliance_visualization_data(results): return {"frameworks": []}
+    def handle_document_upload(file): return (False, "Service unavailable", None)
+    def get_upload_folder(): return os.path.join(os.path.dirname(__file__), 'uploads')
+
+# Create blueprint for the original regulatory AI endpoints
 regulatory_ai_bp = Blueprint('regulatory_ai', __name__, url_prefix='/regulatory-ai')
 
 def register_routes(app):

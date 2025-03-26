@@ -1,8 +1,10 @@
 """
-Regulatory AI Agent Blueprint for SustainaTrend™
+Regulatory AI Agent Blueprint for SustainaTrend™ (Refactored)
 
 This blueprint registers the routes for the Regulatory AI Agent module, which
 provides AI-powered assessment and assurance for regulatory compliance.
+
+This module uses shared regulatory AI services for improved maintainability.
 """
 
 import logging

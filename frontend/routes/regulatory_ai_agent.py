@@ -3,6 +3,8 @@ Regulatory AI Agent Blueprint for SustainaTrend™
 
 This blueprint registers the routes for the Regulatory AI Agent module, which
 provides AI-powered assessment and assurance for regulatory compliance.
+
+This module uses the shared regulatory AI services for improved maintenance.
 """
 
 import logging
@@ -49,9 +51,6 @@ def register_blueprint(app):
     # Register the blueprint with all its routes
     app.register_blueprint(regulatory_ai_bp)
     
-    # We can't directly check blueprint routes here, but we know they exist in the imported module
-    # So this warning is misleading since the routes are defined, just not visible in the blueprint object yet
-    # We'll log success with a dummy count that will be updated when the routes are registered with the app
     logger.info(f"Regulatory AI Agent blueprint registered successfully (routes will be shown in the app's URL map)")
     
     return app
