@@ -169,16 +169,20 @@ def generate_embedding(text: str, model: str = None) -> Optional[List[float]]:
         
     if OPENAI_AVAILABLE and os.getenv("OPENAI_API_KEY"):
         try:
-            # Use OpenAI's embedding models
-            response = openai.Embedding.create(
+            # Use OpenAI's client-style embedding API (>=1.0.0)
+            import openai
+            client = openai.OpenAI(api_key=os.getenv("OPENAI_API_KEY"))
+            
+            response = client.embeddings.create(
                 model=model,
                 input=text
             )
-            embedding = response["data"][0]["embedding"]
+            embedding = response.data[0].embedding
             logger.info(f"Generated embedding with {len(embedding)} dimensions")
             return embedding
         except Exception as e:
             logger.error(f"Error generating OpenAI embedding: {str(e)}")
+            logger.error(traceback.format_exc())
     
     if GEMINI_AVAILABLE and os.getenv("GEMINI_API_KEY"):
         try:
@@ -247,10 +251,24 @@ class OpenAI:
     def __init__(self, model_name="gpt-3.5-turbo"):
         self.model_name = model_name
         self.history = []
+        self.client = None
+        
+        # Initialize the client
+        if os.getenv("OPENAI_API_KEY"):
+            try:
+                import openai
+                self.client = openai.OpenAI(api_key=os.getenv("OPENAI_API_KEY"))
+            except Exception as e:
+                logger.error(f"Error initializing OpenAI client: {str(e)}")
     
     def generate_content(self, prompt: str, system_prompt: Optional[str] = None, max_tokens: int = 1024) -> Dict[str, Any]:
         """Generate content using OpenAI"""
         try:
+            # Check if client is initialized
+            if not self.client:
+                logger.error("OpenAI client not initialized")
+                return {"error": "OpenAI client not initialized", "model": self.model_name}
+                
             messages = []
             
             # Add system prompt if provided
@@ -264,8 +282,8 @@ class OpenAI:
             # Add user's current prompt
             messages.append({"role": "user", "content": prompt})
             
-            # Generate content
-            response = openai.ChatCompletion.create(
+            # Generate content with new API
+            response = self.client.chat.completions.create(
                 model=self.model_name,
                 messages=messages,
                 max_tokens=max_tokens,
@@ -276,7 +294,7 @@ class OpenAI:
             )
             
             # Extract and return text
-            if response.choices and response.choices[0].message:
+            if response.choices and len(response.choices) > 0 and response.choices[0].message:
                 content = response.choices[0].message.content
                 self.history.append({"role": "user", "content": prompt})
                 self.history.append({"role": "assistant", "content": content})
