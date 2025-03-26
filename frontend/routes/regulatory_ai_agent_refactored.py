@@ -26,8 +26,8 @@ try:
         module_path = os.path.join(os.path.dirname(os.path.dirname(__file__)), 'regulatory_ai_agent_refactored.py')
         if not os.path.exists(module_path):
             logger.error(f"Could not find regulatory_ai_agent_refactored.py at {module_path}")
-            # Create empty blueprint as fallback
-            regulatory_ai_bp = Blueprint('regulatory_ai', __name__, url_prefix='/regulatory-ai')
+            # Create empty blueprint as fallback with a unique name
+            regulatory_ai_bp = Blueprint('regulatory_ai_refactored', __name__, url_prefix='/regulatory-ai-refactored')
         else:
             spec = util.spec_from_file_location("regulatory_ai_agent_refactored", module_path)
             reg_ai_module = util.module_from_spec(spec)

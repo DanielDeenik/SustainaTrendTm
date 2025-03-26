@@ -49,6 +49,13 @@ def get_navigation_structure():
                         "title": "Analytics",
                         "url": "/analytics-dashboard",
                         "icon": "fa-chart-line"
+                    },
+                    {
+                        "id": "regulatory-dashboard",
+                        "title": "Regulatory Dashboard",
+                        "url": "http://localhost:6000",
+                        "icon": "fa-tachometer-alt",
+                        "external": True
                     }
                 ]
             },

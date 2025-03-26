@@ -110,6 +110,18 @@
 
 {% block content %}
 <div class="container-fluid px-4 py-4">
+    {% if navigation and navigation.standalone %}
+    <div class="alert alert-info mb-4">
+        <div class="d-flex align-items-center">
+            <i class="fas fa-info-circle me-2"></i>
+            <div>
+                <strong>Standalone Mode:</strong> You are viewing the Regulatory AI Dashboard in standalone mode.
+                <a href="{{ navigation.main_dashboard }}" class="alert-link">Return to main dashboard</a> or 
+                <a href="{{ navigation.strategy_hub }}" class="alert-link">go to Strategy Hub</a>.
+            </div>
+        </div>
+    </div>
+    {% endif %}
     <!-- Overview Section -->
     <div class="row mb-4">
         <div class="col-md-3">
@@ -227,7 +239,12 @@
                         {% endfor %}
                     </div>
                     <div class="text-center mt-3">
-                        <a href="/regulatory-ai-refactored/upload" class="btn btn-outline-primary">Upload New Document</a>
+                        {% if navigation and navigation.standalone %}
+                            <a href="{{ navigation.document_upload }}" class="btn btn-outline-primary">Upload New Document</a>
+                            <a href="{{ navigation.strategy_hub }}" class="btn btn-outline-secondary ms-2">Strategy Hub</a>
+                        {% else %}
+                            <a href="/regulatory-ai-refactored/upload" class="btn btn-outline-primary">Upload New Document</a>
+                        {% endif %}
                     </div>
                 </div>
             </div>

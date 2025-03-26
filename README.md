@@ -90,10 +90,19 @@ The platform follows a visual-first, AI-driven architecture focused on storytell
 
 The platform can be started in different configurations:
 
-- **Complete Platform**: `npm run dev`
-- **Frontend Only**: `npm run dev:frontend`
-- **Backend Only**: `npm run dev:backend`
-- **Story Generator Service**: `npm run dev:storytelling`
+- **Complete Platform**: `./start_platform_complete.sh`
+- **Main Dashboard**: `cd frontend && python app.py`
+- **Standalone Regulatory Dashboard**: `cd frontend && python standalone_dashboard.py`
+- **Backend Only**: `cd backend && python main.py`
+- **Story Generator Service**: `cd backend && python storytelling_api.py`
+
+For Replit usage, we've implemented multiple approaches to handle routing limitations:
+
+- **Standalone Components**: Separate Flask applications running on different ports
+- **Main Dashboard**: http://localhost:5000/ (Port 5000)
+- **Regulatory Dashboard**: http://localhost:6000/ (Port 6000)
+
+See [STANDALONE-DASHBOARD.md](STANDALONE-DASHBOARD.md) for details on our standalone dashboard architecture.
 
 ## Development
 
@@ -123,12 +132,22 @@ The platform can be started in different configurations:
 
 ### Key Interfaces
 
-- **Home Feed**: `http://localhost:5000/`
-- **Company Risk Tracker**: `http://localhost:5000/risk-tracker`
-- **PDF Analyzer**: `http://localhost:5000/document-analysis`
-- **Story Generator**: `http://localhost:5000/story-generator`
-- **Co-Pilot API**: `http://localhost:8080/api/copilot`
-- **Data Terminal**: `http://localhost:8080/api/terminal`
+Main Application (Port 5000):
+- **Strategy Hub**: `http://localhost:5000/strategy-hub`
+- **Sustainability Stories**: `http://localhost:5000/stories`
+- **Document Upload**: `http://localhost:5000/regulatory-ai-refactored/upload`
+- **Analytics Dashboard**: `http://localhost:5000/analytics`
+- **Sustainability Co-Pilot**: `http://localhost:5000/sustainability-copilot`
+
+Standalone Dashboard (Port 6000):
+- **Regulatory Dashboard**: `http://localhost:6000/`
+- **Framework Analysis**: `http://localhost:6000/api/frameworks`
+- **Compliance Data**: `http://localhost:6000/api/compliance-data`
+
+Backend APIs (Port 8080):
+- **Metrics API**: `http://localhost:8080/api/metrics`
+- **Storytelling API**: `http://localhost:8080/api/storytelling`
+- **Framework Assessment**: `http://localhost:8080/api/framework-assessment`
 
 ## License
 
