@@ -113,8 +113,11 @@ def create_app(test_config=None):
     except Exception as e:
         app.logger.error(f"Error registering API views blueprint: {e}")
     
-    # Note: Regulatory AI blueprints are now registered exclusively through routes/__init__.py
-    # Commenting out direct registration to avoid conflicts
+    # The Strategy Hub blueprint is now registered via routes/__init__.py
+    # Removed direct registration to avoid duplicate registration
+    app.logger.info("Strategy Hub blueprint is registered through routes/__init__.py")
+    
+    # Note: Regulatory AI blueprints are also registered exclusively through routes/__init__.py
     app.logger.info("Regulatory AI blueprints are registered through routes/__init__.py")
     
     # Add home route that redirects to dashboard (2025 refresh)

@@ -44,7 +44,7 @@ def register_blueprints(app):
     # Import enhanced strategy blueprint - centralized implementation with Finchat.io-style UI
     # This is now the only strategy blueprint as all others have been consolidated into it
     try:
-        from .enhanced_strategy import enhanced_strategy_bp, register_blueprint as register_enhanced_strategy
+        from .enhanced_strategy import register_blueprint as register_enhanced_strategy
         logger.info("Enhanced Strategy Hub blueprint imported successfully")
     except ImportError as e:
         logger.error(f"Enhanced Strategy Hub blueprint import failed: {str(e)}")

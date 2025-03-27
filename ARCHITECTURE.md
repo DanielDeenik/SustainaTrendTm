@@ -2,7 +2,7 @@
 
 ## System Architecture
 
-The SustainaTrend™ platform follows a modular, service-oriented architecture designed for scalability, maintainability, and performance. This document provides a comprehensive overview of the system architecture and design principles.
+The SustainaTrend™ platform implements a modular, Flask-based web application architecture designed for sustainability data analysis, document processing, and AI-powered insights generation.
 
 ```
 ┌─────────────────────────────────────────────────────────────┐
@@ -18,239 +18,222 @@ The SustainaTrend™ platform follows a modular, service-oriented architecture d
 └───────────────────────────┬─────────────────────────────────┘
                             │
 ┌───────────────────────────▼─────────────────────────────────┐
-│                    FastAPI Backend                           │
+│                 External Services & Data                     │
 │                                                             │
 │  ┌─────────────┐  ┌────────────┐  ┌─────────────────────┐   │
-│  │    API      │  │  Services  │  │   Data Models       │   │
-│  │   Routes    │  │            │  │                     │   │
-│  └─────────────┘  └────────────┘  └─────────────────────┘   │
-└───────────────────────────┬─────────────────────────────────┘
-                            │
-┌───────────────────────────▼─────────────────────────────────┐
-│                     Data Layer                               │
-│                                                             │
-│  ┌─────────────┐  ┌────────────┐  ┌─────────────────────┐   │
-│  │ PostgreSQL  │  │  MongoDB   │  │       Redis         │   │
-│  │   (Core)    │  │(Documents) │  │     (Cache)         │   │
+│  │ PostgreSQL  │  │ Google AI  │  │    Document         │   │
+│  │  Database   │  │  (Gemini)  │  │    Processing       │   │
 │  └─────────────┘  └────────────┘  └─────────────────────┘   │
 └─────────────────────────────────────────────────────────────┘
 ```
 
-## Architectural Layers
+## Core Application Components
 
-### 1. Presentation Layer
+### 1. Frontend Layer
 
-The presentation layer is implemented as a Flask web application providing the user interface and experience. It follows an atomic design system for consistent UI components.
+The frontend is implemented as a Flask web application with Jinja2 templates, structured around a modular blueprint-based architecture:
 
 **Key Components:**
-- **Templates**: Jinja2 templates for HTML rendering
-- **Routes**: Request handlers mapped to URL patterns
+- **Templates Directory**: Contains all HTML templates organized by feature
 - **Static Assets**: CSS, JavaScript, and image resources
-- **Service Modules**: Business logic specific to the frontend
+- **Layouts**: Base templates with shared structure (finchat_dark_layout.html)
+- **Component Templates**: Reusable UI components (cards, metrics, etc.)
 
-**Design Patterns:**
-- Model-View-Controller (MVC) pattern
-- Atomic Design methodology for UI components
-- Progressive enhancement for cross-browser compatibility
-- Responsive design for mobile and desktop experiences
+### 2. Application Routes
 
-### 2. Application Layer
+The application is organized into modular blueprint-based routes for different functional areas:
 
-The application layer consists of both Flask routes and FastAPI microservices responsible for processing requests, implementing business logic, and orchestrating data access.
+**Primary Route Modules:**
+- **Dashboard Routes**: Main dashboard interface and sustainability metrics
+- **Document Routes**: Document processing, upload, and analysis
+- **Strategy Routes**: AI-powered strategy generation and storytelling
+- **Trend Analysis Routes**: Sustainability trend visualization and analysis
+- **Performance Routes**: Detailed performance assessment and monitoring
 
-**Key Components:**
-- **Flask Routes**: Web request handlers with rendering logic
-- **FastAPI Routes**: REST API endpoints for specific domains
-- **Services**: Domain-specific business logic and data processing
-- **Utilities**: Shared functions and helpers
+**Key Route Structure:**
+```
+frontend/
+├── routes/
+│   ├── __init__.py              # Blueprint registration
+│   ├── dashboard.py             # Main dashboard views
+│   ├── performance.py           # Performance metrics
+│   ├── overview.py              # Platform overview
+│   ├── enhanced_strategy.py     # Strategy generation
+│   ├── trend.py                 # Trend analysis
+│   ├── documents/               # Document-related routes
+│   │   ├── __init__.py
+│   │   └── document_routes.py   # Document processing & analysis
+```
 
-**Design Patterns:**
-- Microservices architecture for domain separation
-- Dependency injection for service composition
-- Command Query Responsibility Segregation (CQRS)
-- Repository pattern for data access abstraction
+### 3. Service Layer
 
-### 3. Data Layer
+The service layer contains business logic and integrations with external systems:
 
-The data layer manages persistence and provides interfaces for storing and retrieving data from various databases and external services.
+**Key Services:**
+- **Document Processing**: Extracting and analyzing sustainability data from documents
+- **AI Integration**: Connecting to Google Gemini or other LLMs
+- **Data Access**: Database interaction and data management
+- **Visualization**: Chart generation and data formatting
 
-**Key Components:**
-- **PostgreSQL**: Relational database for structured data
-- **MongoDB**: Document database for metrics, trends, and stories
-- **Redis**: In-memory cache for performance optimization
-- **Data Access Objects**: Abstraction over database operations
+**Service Structure:**
+```
+frontend/
+├── services/
+│   ├── regulatory_ai_service.py     # AI for regulatory analysis
+│   ├── ai_connector.py              # Generic AI service connector
+│   ├── document_processor.py        # Document parsing and extraction
+│   └── visualization_service.py     # Chart and graph generation
+```
 
-**Design Patterns:**
-- Repository pattern for database abstraction
-- Unit of Work pattern for transaction management
-- Cache-aside pattern for performance optimization
-- Data Mapper pattern for ORM functionality
+### 4. Data Layer
 
-## Core Modules
+Data persistence is handled through various storage mechanisms:
 
-### Sustainability Dashboard Module
+**Storage Components:**
+- **PostgreSQL Database**: Core structured data storage for metrics and user data
+- **File Storage**: Document storage for uploaded sustainability reports
+- **Session Storage**: Temporary data for in-progress analyses
 
-The dashboard provides real-time visualization of key sustainability metrics with trend analysis and comparative benchmarks.
+## Core Functional Modules
 
-**Components:**
-- Metrics collection and aggregation
-- Real-time data processing and visualization
-- Category-based filtering and organization
-- Time-series trend analysis
+### Dashboard Module
 
-### Analytics Module
+The dashboard provides real-time visualization of key sustainability metrics and serves as the main entry point to the platform.
 
-The analytics module offers predictive insights and trend forecasting based on historical sustainability data.
+**Key Features:**
+- Metric cards for key performance indicators
+- Comparative charts for ESG scores
+- Progress tracking against sustainability targets
+- Historical performance trends
 
-**Components:**
-- Time-series forecasting models
-- Anomaly detection for unusual patterns
-- Scenario modeling for impact assessment
-- Benchmark comparison against industry standards
+**Implementation:**
+- `/dashboard/` route in `routes/dashboard.py`
+- Template: `templates/dashboard.html`
+- Card components for modular organization
 
-### Document Processing Module
+### Document Hub Module
 
-This module handles the extraction, analysis, and categorization of information from sustainability reports and documentation.
+The document hub provides a unified interface for uploading, analyzing, and extracting insights from sustainability documents.
 
-**Components:**
-- PDF text extraction with PyMuPDF
-- OCR processing for scanned documents
-- Framework mapping (ESRS, GRI, SASB)
-- RAG-based insight generation
+**Key Features:**
+- Document upload with drag-and-drop functionality
+- Tabbed interface (Upload, Regulatory, Analysis)
+- Horizontal regulatory timeline visualization
+- Document compliance assessment
 
-### Storytelling Module
+**Implementation:**
+- `/documents/document-hub` route in `routes/documents/document_routes.py`
+- Template: `templates/integrated_document_hub.html`
+- Tabbed navigation using JavaScript for content switching
 
-The storytelling module transforms sustainability data into compelling narratives and visual stories for reporting and communication.
+### Strategy Hub Module
 
-**Components:**
-- Data-based narrative generation
-- Visual storytelling templates
-- AI-powered content optimization
-- Audience-specific communication adaptation
+The strategy hub (formerly "Stories") provides AI-generated strategic recommendations and storytelling for sustainability initiatives.
 
-### Search Engine Module
+**Key Features:**
+- Framework-based strategy generation
+- Monetization and implementation planning
+- Competitive benchmarking
+- Strategy visualization and export
 
-A hybrid search engine providing advanced querying across sustainability data, reports, and external resources.
+**Implementation:**
+- `/strategy/` routes in `routes/enhanced_strategy.py`
+- Integration with AI services for content generation
+- Standardized strategy structure and formatting
 
-**Components:**
-- Keyword-based search with semantic enhancement
-- Gemini-powered query understanding
-- External data source integration
-- Result ranking and categorization
+### Trend Analysis Module
 
-### Sustainability Co-Pilot Module
+The trend analysis module enables deep exploration of sustainability metrics over time with AI-powered insights.
 
-An AI-powered assistant that provides contextual insights and recommendations based on sustainability data.
+**Key Features:**
+- Time-series analysis of key metrics
+- Forecasting and predictive analytics
+- Industry benchmarking
+- AI-driven question answering
 
-**Components:**
-- Google Gemini integration
-- Context-aware recommendation system
-- Natural language query processing
-- Interactive dialogue management
+**Implementation:**
+- `/trends/` routes in `routes/trend.py`
+- Integration with visualization libraries for interactive charts
+- Natural language query processing for metric exploration
 
-### Real Estate Sustainability Module
+## Technical Implementation
 
-Specialized functionality for analyzing and optimizing sustainability aspects of real estate properties.
+### UI Framework
 
-**Components:**
-- Energy efficiency analysis (EPC labels)
-- Carbon footprint assessment
-- Green financing eligibility evaluation
-- Property value impact assessment
+The user interface is built with a customized component system:
 
-## Integration Points
+**Key UI Elements:**
+- **Layout System**: CSS Grid-based responsive layout
+- **Sidebar Navigation**: Collapsible sidebar with categorized links
+- **Card System**: Standardized card components for content organization
+- **Data Visualization**: Chart.js integration for metrics and trends
+- **Tabbed Interface**: Custom tab switching for document hub
 
-### External APIs
+### Integration Points
 
-- **Google Search API**: For enhanced search capabilities
-- **Google Generative AI**: For Gemini-powered text generation
-- **OpenAI API**: For document analysis and summarization (optional)
+The platform integrates with external services for enhanced functionality:
 
-### Internal Microservices
+**External Integrations:**
+- **Google Generative AI (Gemini)**: For document analysis and AI-powered insights
+- **PostgreSQL Database**: For structured data storage
+- **PDF Processing**: Using PyMuPDF and related libraries
+- **Chart Rendering**: Using Chart.js, Plotly, or Bokeh
 
-- **Metrics Service**: Core sustainability metrics management
-- **Storytelling API**: Data narrative and story generation
-- **Search Service**: Unified search across all data sources
-- **Document Processing Service**: PDF and document analysis
+### Front-End Technologies
 
-## Data Flow
+- **Template Engine**: Jinja2 for server-side rendering
+- **CSS Framework**: Custom CSS with design system variables
+- **JavaScript**: Vanilla JS with modern ES6 features
+- **Visualization**: Chart.js and custom visualization components
 
-1. **User Requests**: Browser requests are handled by Flask routes
-2. **Template Rendering**: Data is processed and rendered into HTML
-3. **API Requests**: AJAX/Fetch calls communicate with FastAPI endpoints
-4. **Data Processing**: Business logic processes and transforms data
-5. **Database Operations**: Persistence layer stores and retrieves data
-6. **Response Generation**: Results are formatted and returned to the user
+### Back-End Technologies
 
-## Security Architecture
+- **Web Framework**: Flask with blueprint-based architecture
+- **Database Access**: Direct PostgreSQL connection
+- **Document Processing**: PyMuPDF, BeautifulSoup4, etc.
+- **AI Integration**: Google Generative AI SDK
 
-- **Authentication**: Session-based authentication with secure cookies
-- **Authorization**: Role-based access control for functionality
-- **Data Protection**: Encryption for sensitive data at rest and in transit
-- **API Security**: Rate limiting and request validation
-- **Input Validation**: Form and API request validation
+## Application Flow
 
-## Deployment Architecture
+### Standard Request Flow
 
-The platform can be deployed in various configurations:
+1. User navigates to a route (e.g., `/dashboard/`)
+2. Flask routes the request to the appropriate blueprint handler
+3. Route handler retrieves necessary data from services
+4. Template is rendered with the data context
+5. Response is returned to the browser
 
-### Development Environment
+### Document Processing Flow
 
-- Local deployment with all services on a single machine
-- Docker-based development environment with containerized services
+1. User uploads a document on the document hub
+2. Document is saved to the uploads directory
+3. Document processor extracts text and structure
+4. AI services analyze the content for insights
+5. Results are displayed in the appropriate tab
 
-### Production Environment
+### AI Interaction Flow
 
-- Multi-server deployment with load balancing
-- Containerized microservices with orchestration
-- Cloud-native deployment on AWS, GCP, or Azure
+1. User submits a query in an AI-enabled interface
+2. Request is sent to the appropriate service endpoint
+3. Service formats the query and sends to AI provider (e.g., Google Gemini)
+4. Response is processed and formatted
+5. Results are displayed to the user with visualizations
 
-## Technology Stack Details
+## Deployment Configuration
 
-### Frontend Technologies
+The application is configured for Replit deployment:
 
-- **Flask**: Web application framework
-- **Jinja2**: Template engine
-- **Tailwind CSS**: Utility-first CSS framework
-- **Plotly/Recharts/Bokeh**: Data visualization libraries
-- **JavaScript/ES6+**: Client-side interactivity
-
-### Backend Technologies
-
-- **FastAPI**: High-performance API framework
-- **Pydantic**: Data validation and settings management
-- **SQLAlchemy**: SQL toolkit and ORM
-- **PyMongo**: MongoDB driver
-- **Redis-Py**: Redis client
-
-### AI & Analytics Technologies
-
-- **Google Generative AI**: Large language model integration
-- **Scikit-learn**: Machine learning for predictive analytics
-- **PyTorch/Transformers**: Deep learning for NLP tasks
-- **pandas/NumPy**: Data manipulation and analysis
-- **spaCy**: Natural language processing
-
-## Extensibility and Customization
-
-The platform is designed for extensibility through:
-
-1. **Plugin Architecture**: For adding new features and integrations
-2. **Service Interfaces**: Well-defined interfaces for service replacement
-3. **Configuration Management**: Environment-based configuration system
-4. **Feature Flags**: Toggle features for different environments or clients
-
-## Monitoring and Observability
-
-- **Logging**: Structured logging with severity levels
-- **Metrics**: Performance and business metrics collection
-- **Tracing**: Request tracing across services
-- **Alerting**: Anomaly detection and notification system
+**Key Configuration Elements:**
+- Flask running on `0.0.0.0` host for Replit compatibility
+- ProxyFix middleware for proper request handling
+- Environment variable configuration
+- Port management for service conflicts
 
 ## Future Architecture Considerations
 
-- **Microservice Migration**: Further decomposition of monolithic components
-- **Event-Driven Architecture**: Adoption of message queues for async processing
-- **Serverless Components**: Migration of suitable workloads to serverless
-- **Edge Computing**: Distribution of computation for global performance
-- **Blockchain Integration**: For immutable sustainability certification
+**Planned Enhancements:**
+- Enhanced microservices architecture for better separation of concerns
+- Improved API-driven frontend with more interactive components
+- Expanded AI integration for deeper document analysis
+- Real-time update capabilities for collaborative analysis
+- Comprehensive data pipeline for automated sustainability reporting

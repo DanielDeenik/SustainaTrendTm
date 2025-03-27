@@ -1,0 +1,390 @@
+<!-- Enhanced Story Detail View -->
+<div class="story-detail-container">
+    <!-- Story Header -->
+    <div class="story-detail-header">
+        <div class="story-detail-category">{{ story.category|capitalize }}</div>
+        <h2 class="story-detail-title">{{ story.title }}</h2>
+        <div class="story-detail-meta">
+            <div class="story-detail-meta-item">
+                <i class="fas fa-calendar-alt me-1"></i> Generated: {{ story.date_generated|default(story.date, true) }}
+            </div>
+            <div class="story-detail-meta-item">
+                <i class="fas fa-building me-1"></i> {{ story.company_name }}
+            </div>
+            <div class="story-detail-meta-item">
+                <i class="fas fa-industry me-1"></i> {{ story.industry }}
+            </div>
+        </div>
+    </div>
+    
+    <!-- Context Section -->
+    <div class="story-detail-section">
+        <h3 class="story-detail-section-title">
+            <i class="fas fa-info-circle"></i> Context
+        </h3>
+        <div class="story-detail-content">
+            {% if story.storytelling_elements and story.storytelling_elements.context %}
+                <p>{{ story.storytelling_elements.context.content }}</p>
+            {% else %}
+                <p>{{ story.context|default('This sustainability story provides key insights into the organization\'s environmental, social, and governance performance.', true) }}</p>
+            {% endif %}
+        </div>
+    </div>
+    
+    <!-- Data Visualization Section -->
+    <div class="story-detail-section">
+        <h3 class="story-detail-section-title">
+            <i class="fas fa-chart-bar"></i> Performance Visualization
+        </h3>
+        <div class="story-detail-visualization">
+            <canvas id="detailChart-{{ story.id }}" width="100%" height="100%"></canvas>
+        </div>
+    </div>
+    
+    <!-- Narrative Section -->
+    <div class="story-detail-section">
+        <h3 class="story-detail-section-title">
+            <i class="fas fa-align-left"></i> Narrative
+        </h3>
+        <div class="story-detail-content">
+            {% if story.storytelling_elements and story.storytelling_elements.narrative %}
+                <p>{{ story.storytelling_elements.narrative.content }}</p>
+                
+                <!-- Key Data Point -->
+                {% if story.storytelling_elements.narrative.data_point %}
+                <div class="key-data-point">
+                    <div class="key-data-point-title">Key Metric</div>
+                    <div class="key-data-point-value {{ story.impact }}">
+                        {{ story.storytelling_elements.narrative.data_point.value }}
+                        {% if story.storytelling_elements.narrative.data_point.trend == 'positive' %}
+                        <i class="fas fa-arrow-up"></i>
+                        {% elif story.storytelling_elements.narrative.data_point.trend == 'negative' %}
+                        <i class="fas fa-arrow-down"></i>
+                        {% else %}
+                        <i class="fas fa-minus"></i>
+                        {% endif %}
+                    </div>
+                    <div class="key-data-point-description">
+                        {{ story.storytelling_elements.narrative.data_point.comparison }} comparison
+                    </div>
+                </div>
+                {% endif %}
+            {% else %}
+                <p>{{ story.content|default('The data indicates significant progress in meeting sustainability targets across key areas of focus.', true) }}</p>
+            {% endif %}
+        </div>
+    </div>
+    
+    <!-- Key Insights Section -->
+    <div class="story-detail-section">
+        <h3 class="story-detail-section-title">
+            <i class="fas fa-lightbulb"></i> Key Insights
+        </h3>
+        <div class="story-detail-insights">
+            {% if story.insights %}
+                {% for insight in story.insights %}
+                <div class="story-detail-insight">
+                    <div class="story-detail-insight-title">Insight</div>
+                    <div class="story-detail-insight-content">{{ insight }}</div>
+                </div>
+                {% endfor %}
+            {% elif story.storytelling_elements and story.storytelling_elements.insights %}
+                {% for insight in story.storytelling_elements.insights %}
+                <div class="story-detail-insight">
+                    <div class="story-detail-insight-title">Insight</div>
+                    <div class="story-detail-insight-content">{{ insight.content }}</div>
+                </div>
+                {% endfor %}
+            {% else %}
+                <div class="story-detail-insight">
+                    <div class="story-detail-insight-title">Performance Trend</div>
+                    <div class="story-detail-insight-content">The organization is showing consistent improvement in its environmental metrics year over year.</div>
+                </div>
+                <div class="story-detail-insight">
+                    <div class="story-detail-insight-title">Industry Comparison</div>
+                    <div class="story-detail-insight-content">Performance is above the industry average in key sustainability indicators.</div>
+                </div>
+            {% endif %}
+        </div>
+    </div>
+    
+    <!-- Recommendations Section -->
+    <div class="story-detail-section">
+        <h3 class="story-detail-section-title">
+            <i class="fas fa-tasks"></i> Recommendations
+        </h3>
+        <div class="story-detail-recommendations">
+            {% if story.recommendations %}
+                {% for recommendation in story.recommendations %}
+                <div class="story-detail-recommendation">
+                    <div class="story-detail-recommendation-icon">
+                        <i class="fas fa-check-circle"></i>
+                    </div>
+                    <div class="story-detail-recommendation-content">
+                        <div class="story-detail-recommendation-title">Action Item</div>
+                        <div>{{ recommendation }}</div>
+                    </div>
+                </div>
+                {% endfor %}
+            {% elif story.storytelling_elements and story.storytelling_elements.recommendations %}
+                {% for recommendation in story.storytelling_elements.recommendations %}
+                <div class="story-detail-recommendation">
+                    <div class="story-detail-recommendation-icon">
+                        <i class="fas fa-check-circle"></i>
+                    </div>
+                    <div class="story-detail-recommendation-content">
+                        <div class="story-detail-recommendation-title">{{ recommendation.title|default('Action Item', true) }}</div>
+                        <div>{{ recommendation.content }}</div>
+                    </div>
+                </div>
+                {% endfor %}
+            {% else %}
+                <div class="story-detail-recommendation">
+                    <div class="story-detail-recommendation-icon">
+                        <i class="fas fa-check-circle"></i>
+                    </div>
+                    <div class="story-detail-recommendation-content">
+                        <div class="story-detail-recommendation-title">Increase Renewable Energy</div>
+                        <div>Accelerate the transition to renewable energy sources across all operations.</div>
+                    </div>
+                </div>
+                <div class="story-detail-recommendation">
+                    <div class="story-detail-recommendation-icon">
+                        <i class="fas fa-check-circle"></i>
+                    </div>
+                    <div class="story-detail-recommendation-content">
+                        <div class="story-detail-recommendation-title">Supply Chain Engagement</div>
+                        <div>Implement a comprehensive supplier sustainability assessment program.</div>
+                    </div>
+                </div>
+            {% endif %}
+        </div>
+    </div>
+    
+    <!-- Stakeholder-Specific Content -->
+    {% if story.stakeholder_versions and audience and audience != 'all' and audience in story.stakeholder_versions %}
+    <div class="story-detail-section">
+        <h3 class="story-detail-section-title">
+            <i class="fas fa-user-tie"></i> {{ story.stakeholder_versions[audience].title }}
+        </h3>
+        <div class="story-detail-content">
+            <p>{{ story.stakeholder_versions[audience].summary }}</p>
+        </div>
+        
+        <!-- Key points -->
+        <div class="story-detail-insights mt-3">
+            {% for key_point in story.stakeholder_versions[audience].key_points %}
+            <div class="story-detail-insight">
+                <div class="story-detail-insight-title">Key Point</div>
+                <div class="story-detail-insight-content">{{ key_point }}</div>
+            </div>
+            {% endfor %}
+        </div>
+    </div>
+    {% endif %}
+    
+    <!-- Actions -->
+    <div class="story-detail-actions">
+        <button type="button" class="btn btn-outline-primary" id="editStoryDetailBtn">
+            <i class="fas fa-edit me-1"></i> Edit Story
+        </button>
+        <button type="button" class="btn btn-outline-secondary" id="downloadStoryDetailBtn">
+            <i class="fas fa-download me-1"></i> Download
+        </button>
+        <button type="button" class="btn btn-outline-secondary" id="shareStoryDetailBtn">
+            <i class="fas fa-share-alt me-1"></i> Share
+        </button>
+        <button type="button" class="btn btn-primary" id="adaptStoryDetailBtn">
+            <i class="fas fa-magic me-1"></i> Adapt for Audience
+        </button>
+    </div>
+</div>
+
+<!-- Chart initialization script for this story detail view -->
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    try {
+        const ctx = document.getElementById('detailChart-{{ story.id }}').getContext('2d');
+        const chartConfig = getChartConfig('{{ story.category }}', '{{ story.id }}');
+        
+        // Create chart with enhanced configuration for detail view
+        new Chart(ctx, {
+            type: chartConfig.type,
+            data: chartConfig.data,
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                    legend: {
+                        position: 'top',
+                        labels: {
+                            color: 'rgba(255, 255, 255, 0.7)',
+                            font: {
+                                size: 12
+                            }
+                        }
+                    },
+                    tooltip: {
+                        enabled: true,
+                        mode: 'index',
+                        intersect: false
+                    },
+                    title: {
+                        display: true,
+                        text: '{{ story.title }} - Performance Data',
+                        color: 'rgba(255, 255, 255, 0.9)',
+                        font: {
+                            size: 14,
+                            weight: 'bold'
+                        }
+                    }
+                },
+                scales: chartConfig.type !== 'doughnut' && chartConfig.type !== 'polarArea' && chartConfig.type !== 'radar' ? {
+                    x: {
+                        display: true,
+                        grid: {
+                            color: 'rgba(255, 255, 255, 0.1)'
+                        },
+                        ticks: {
+                            color: 'rgba(255, 255, 255, 0.7)'
+                        }
+                    },
+                    y: {
+                        display: true,
+                        grid: {
+                            color: 'rgba(255, 255, 255, 0.1)'
+                        },
+                        ticks: {
+                            color: 'rgba(255, 255, 255, 0.7)'
+                        }
+                    }
+                } : undefined
+            }
+        });
+    } catch (error) {
+        console.error('Failed to create detail chart:', error);
+    }
+    
+    // Button event handlers
+    document.getElementById('editStoryDetailBtn').addEventListener('click', function() {
+        window.location.href = `/strategy/edit/{{ story.id }}`;
+    });
+    
+    document.getElementById('downloadStoryDetailBtn').addEventListener('click', function() {
+        alert('Download functionality would be implemented here');
+    });
+    
+    document.getElementById('shareStoryDetailBtn').addEventListener('click', function() {
+        alert('Share functionality would be implemented here');
+    });
+    
+    document.getElementById('adaptStoryDetailBtn').addEventListener('click', function() {
+        // This would open a modal or navigate to adapt for audience page
+        alert('Adapt for audience functionality would be implemented here');
+    });
+});
+
+// Helper function to get chart configuration based on story category
+function getChartConfig(category, storyId) {
+    let chartType, colors, labels, datasets;
+    
+    // Select chart type and colors based on category
+    switch(category.toLowerCase()) {
+        case 'emissions':
+            chartType = 'line';
+            colors = ['#34D399', '#10B981'];
+            labels = ['2020', '2021', '2022', '2023', '2024', '2025 (Projected)'];
+            datasets = [{
+                label: 'Scope 1 & 2 Emissions (tCO₂e)',
+                data: [100, 95, 87, 82, 70, 65],
+                backgroundColor: `${colors[0]}33`,
+                borderColor: colors[0],
+                tension: 0.4
+            }, {
+                label: 'Industry Average (tCO₂e)',
+                data: [100, 98, 95, 93, 90, 87],
+                backgroundColor: `${colors[1]}33`,
+                borderColor: colors[1],
+                tension: 0.4,
+                borderDash: [5, 5]
+            }];
+            break;
+        case 'water':
+            chartType = 'bar';
+            colors = ['#60A5FA', '#3B82F6'];
+            labels = ['Q1 2024', 'Q2 2024', 'Q3 2024', 'Q4 2024'];
+            datasets = [{
+                label: 'Water Withdrawal (m³)',
+                data: [1200, 1350, 1100, 900],
+                backgroundColor: colors[0]
+            }, {
+                label: 'Water Discharge (m³)',
+                data: [900, 1050, 850, 700],
+                backgroundColor: colors[1]
+            }];
+            break;
+        case 'social':
+            chartType = 'radar';
+            colors = ['#A78BFA', '#8B5CF6'];
+            labels = ['Diversity', 'Inclusion', 'Community Impact', 'Training', 'Employee Well-being'];
+            datasets = [{
+                label: 'Current Year',
+                data: [78, 65, 90, 81, 85],
+                fill: true,
+                backgroundColor: `${colors[0]}33`,
+                borderColor: colors[0],
+                pointBackgroundColor: colors[0],
+                pointBorderColor: '#fff',
+            }, {
+                label: 'Previous Year',
+                data: [65, 59, 75, 70, 70],
+                fill: true,
+                backgroundColor: `${colors[1]}33`,
+                borderColor: colors[1],
+                pointBackgroundColor: colors[1],
+                pointBorderColor: '#fff',
+            }];
+            break;
+        case 'governance':
+            chartType = 'doughnut';
+            colors = ['#F59E0B', '#D97706', '#B45309', '#92400E'];
+            labels = ['Board Diversity', 'Ethics & Compliance', 'Risk Management', 'Stakeholder Engagement'];
+            datasets = [{
+                data: [25, 30, 20, 25],
+                backgroundColor: colors,
+                hoverOffset: 4
+            }];
+            break;
+        case 'circular':
+            chartType = 'polarArea';
+            colors = ['#34D399', '#10B981', '#059669', '#047857'];
+            labels = ['Recycled Content', 'Waste Reduction', 'Product Longevity', 'Take-back Programs'];
+            datasets = [{
+                data: [70, 85, 65, 55],
+                backgroundColor: colors
+            }];
+            break;
+        default:
+            chartType = 'bar';
+            colors = ['#10B981', '#059669'];
+            labels = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun'];
+            datasets = [{
+                label: 'Current Year',
+                data: [65, 72, 78, 75, 82, 88],
+                backgroundColor: colors[0]
+            }, {
+                label: 'Previous Year',
+                data: [55, 60, 65, 68, 70, 73],
+                backgroundColor: colors[1]
+            }];
+    }
+    
+    return {
+        type: chartType,
+        data: {
+            labels: labels,
+            datasets: datasets
+        }
+    };
+}
+</script>
