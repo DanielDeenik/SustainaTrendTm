@@ -355,7 +355,7 @@ def create_from_template(template_id):
     """Create a new story from a specific template"""
     # Check if the requested template exists
     if template_id not in STORY_TEMPLATES:
-        return redirect(url_for('strategy.create_story'))
+        return redirect(url_for('enhanced_strategy.create_story'))
     
     # Load the template data
     template = STORY_TEMPLATES[template_id]
@@ -379,7 +379,7 @@ def edit_story(story_id):
     story = next((s for s in SAMPLE_STORIES if s["id"] == story_id), None)
     
     if not story:
-        return redirect(url_for('strategy.strategy_hub'))
+        return redirect(url_for('enhanced_strategy.strategy_hub'))
     
     # Render the edit form with the story data
     return render_template(

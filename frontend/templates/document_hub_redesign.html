@@ -22,57 +22,86 @@
         
         <!-- Upload Documents Tab -->
         <div id="uploadDocsContent" class="doc-hub-tab-content active">
-            <div class="upload-zone" id="dropZone">
-                <div class="upload-icon">
-                    <i class="fas fa-file-upload"></i>
-                </div>
-                <h3 class="upload-title">Upload Your Sustainability Documents</h3>
-                <p class="upload-description">
-                    Drop your sustainability reports, ESG disclosures, or regulatory compliance documents here. 
-                    We'll analyze them for insights and compliance tracking.
-                </p>
-                <div class="upload-actions">
-                    <button class="upload-btn" id="uploadBtn">
-                        <i class="fas fa-upload"></i> Upload File
-                    </button>
-                    <button class="paste-btn" id="pasteBtn">
-                        <i class="fas fa-paste"></i> Paste Text
-                    </button>
-                </div>
-                <input type="file" id="fileInput" class="hidden" accept=".pdf,.docx,.txt">
-                <div class="drag-message hidden">Drop your file here</div>
-            </div>
-            
-            <!-- File Info (appears after upload) -->
-            <div class="file-info" id="fileInfo">
-                <div class="file-name">
-                    <i class="fas fa-file-pdf"></i>
-                    <span id="fileName">Sustainability_Report_2024.pdf</span>
-                </div>
-                <div class="file-detail" id="fileDetail">4.2 MB • 32 pages</div>
-                <div class="file-progress">
-                    <div class="file-progress-bar" id="fileProgressBar" style="width: 0%"></div>
-                </div>
-                <div class="file-actions">
-                    <button class="upload-btn" id="analyzeBtn">
-                        <i class="fas fa-chart-line"></i> Analyze Document
-                    </button>
-                </div>
-            </div>
-            
-            <!-- Co-Pilot Suggestions -->
-            <div class="mt-6">
-                <div class="sidebar-section-title">Sustainability Co-Pilot Suggests</div>
-                <div class="copilot-options">
-                    <div class="copilot-option" data-suggestion="Upload your latest ESG report for CSRD insights">
-                        Upload your latest ESG report for CSRD insights
+            <div class="simplified-upload-container">
+                <div class="upload-zone" id="dropZone" aria-label="Document upload area. Drag and drop files here or click to upload.">
+                    <div class="upload-icon">
+                        <i class="fas fa-file-upload"></i>
                     </div>
-                    <div class="copilot-option" data-suggestion="Analyze TCFD compliance in your climate disclosures">
-                        Analyze TCFD compliance in your climate disclosures
+                    <h3 class="upload-title">Drag and drop your documents here or click to upload</h3>
+                    <p class="upload-description">
+                        Upload sustainability reports, ESG disclosures, or regulatory compliance documents for analysis.
+                    </p>
+                    <button class="upload-btn centered-btn" id="uploadBtn">
+                        <i class="fas fa-upload"></i> Upload Document
+                    </button>
+                    <input type="file" id="fileInput" class="hidden" accept=".pdf,.docx,.txt">
+                    <div class="drag-message">Drop your file here</div>
+                </div>
+                
+                <!-- Upload States -->
+                <!-- 1. File Selected State -->
+                <div class="upload-state file-selected" id="fileSelectedState">
+                    <div class="file-name">
+                        <i class="fas fa-file-pdf"></i>
+                        <span id="fileName">Annual_Report_2024.pdf</span>
                     </div>
-                    <div class="copilot-option" data-suggestion="Check biodiversity reporting against ESRS E4">
-                        Check biodiversity reporting against ESRS E4
+                    <div class="upload-state-actions">
+                        <button class="upload-btn" id="confirmUploadBtn">
+                            <i class="fas fa-upload"></i> Upload
+                        </button>
+                        <button class="cancel-btn" id="cancelUploadBtn">
+                            <i class="fas fa-times"></i> Cancel
+                        </button>
                     </div>
+                </div>
+                
+                <!-- 2. Upload Progress State -->
+                <div class="upload-state upload-progress" id="uploadProgressState">
+                    <div class="upload-status">
+                        <i class="fas fa-sync-alt fa-spin"></i>
+                        <span id="uploadStatusText">Uploading...</span>
+                        <span id="uploadPercentage">75%</span>
+                    </div>
+                    <div class="file-progress">
+                        <div class="file-progress-bar" id="fileProgressBar"></div>
+                    </div>
+                </div>
+                
+                <!-- 3. Upload Success State -->
+                <div class="upload-state upload-success" id="uploadSuccessState">
+                    <div class="upload-status">
+                        <i class="fas fa-check-circle"></i>
+                        <span>Upload Successful</span>
+                    </div>
+                    <div class="upload-state-actions">
+                        <button class="success-btn" id="viewDocumentBtn">
+                            <i class="fas fa-eye"></i> View Uploaded Document
+                        </button>
+                        <button class="upload-btn" id="analyzeBtn">
+                            <i class="fas fa-chart-line"></i> Analyze Document
+                        </button>
+                    </div>
+                </div>
+                
+                <!-- 4. Upload Error State -->
+                <div class="upload-state upload-error" id="uploadErrorState">
+                    <div class="upload-status">
+                        <i class="fas fa-exclamation-circle"></i>
+                        <span>Upload Failed</span>
+                    </div>
+                    <p id="errorMessage">File too large. Please try again with a smaller file.</p>
+                    <div class="upload-state-actions">
+                        <button class="upload-btn" id="retryBtn">
+                            <i class="fas fa-redo"></i> Retry
+                        </button>
+                    </div>
+                </div>
+                
+                <!-- Text Paste Option -->
+                <div class="text-paste-option">
+                    <button class="text-paste-btn" id="pasteBtn">
+                        <i class="fas fa-paste"></i> Or paste text instead
+                    </button>
                 </div>
             </div>
         </div>
@@ -404,6 +433,23 @@
 <script src="{{ url_for('static', filename='js/sustainability-copilot.js') }}"></script>
 <script>
 document.addEventListener('DOMContentLoaded', function() {
+    // Initialize the upload states - hide all states initially
+    function initializeUploadUI() {
+        const fileSelectedState = document.getElementById('fileSelectedState');
+        const uploadProgressState = document.getElementById('uploadProgressState');
+        const uploadSuccessState = document.getElementById('uploadSuccessState');
+        const uploadErrorState = document.getElementById('uploadErrorState');
+        
+        if (fileSelectedState && uploadProgressState && uploadSuccessState && uploadErrorState) {
+            fileSelectedState.style.display = 'none';
+            uploadProgressState.style.display = 'none';
+            uploadSuccessState.style.display = 'none';
+            uploadErrorState.style.display = 'none';
+        }
+    }
+    
+    // Run initialization after a brief timeout to ensure all elements are loaded
+    setTimeout(initializeUploadUI, 100);
     // Tab Navigation
     const tabs = document.querySelectorAll('.doc-hub-tab');
     const tabContents = document.querySelectorAll('.doc-hub-tab-content');
@@ -424,27 +470,56 @@ document.addEventListener('DOMContentLoaded', function() {
         });
     });
     
-    // Drag and Drop Upload
+    // Document Upload Elements
     const dropZone = document.getElementById('dropZone');
     const fileInput = document.getElementById('fileInput');
     const uploadBtn = document.getElementById('uploadBtn');
     const pasteBtn = document.getElementById('pasteBtn');
-    const fileInfo = document.getElementById('fileInfo');
-    const fileName = document.getElementById('fileName');
-    const fileDetail = document.getElementById('fileDetail');
-    const fileProgressBar = document.getElementById('fileProgressBar');
-    const analyzeBtn = document.getElementById('analyzeBtn');
     
-    // Upload button click
+    // Upload State Elements
+    const fileSelectedState = document.getElementById('fileSelectedState');
+    const uploadProgressState = document.getElementById('uploadProgressState');
+    const uploadSuccessState = document.getElementById('uploadSuccessState');
+    const uploadErrorState = document.getElementById('uploadErrorState');
+    
+    // Action Buttons
+    const confirmUploadBtn = document.getElementById('confirmUploadBtn');
+    const cancelUploadBtn = document.getElementById('cancelUploadBtn');
+    const analyzeBtn = document.getElementById('analyzeBtn');
+    const viewDocumentBtn = document.getElementById('viewDocumentBtn');
+    const retryBtn = document.getElementById('retryBtn');
+    
+    // Status Elements
+    const fileName = document.getElementById('fileName');
+    const uploadStatusText = document.getElementById('uploadStatusText');
+    const uploadPercentage = document.getElementById('uploadPercentage');
+    const fileProgressBar = document.getElementById('fileProgressBar');
+    const errorMessage = document.getElementById('errorMessage');
+    
+    // Hide all upload states initially
+    function hideAllStates() {
+        fileSelectedState.style.display = 'none';
+        uploadProgressState.style.display = 'none';
+        uploadSuccessState.style.display = 'none';
+        uploadErrorState.style.display = 'none';
+    }
+    
+    // Show a specific upload state
+    function showState(stateElement) {
+        hideAllStates();
+        stateElement.style.display = 'block';
+    }
+    
+    // Upload button click - open file picker
     uploadBtn.addEventListener('click', () => {
         fileInput.click();
     });
     
-    // File input change
+    // File input change - handle selected file
     fileInput.addEventListener('change', (e) => {
         if (e.target.files.length > 0) {
             const file = e.target.files[0];
-            handleFileUpload(file);
+            handleFileSelected(file);
         }
     });
     
@@ -464,34 +539,97 @@ document.addEventListener('DOMContentLoaded', function() {
         
         if (e.dataTransfer.files.length > 0) {
             const file = e.dataTransfer.files[0];
-            handleFileUpload(file);
+            handleFileSelected(file);
         }
     });
     
-    // Handle file upload
-    function handleFileUpload(file) {
-        // Display file info
+    // Handle file selected state
+    function handleFileSelected(file) {
+        // Update file name in the selected state
         fileName.textContent = file.name;
         
-        // Calculate file size and format it
-        const fileSizeInMB = (file.size / (1024 * 1024)).toFixed(2);
-        fileDetail.textContent = `${fileSizeInMB} MB • Analyzing...`;
+        // Show the file selected state
+        showState(fileSelectedState);
         
-        // Show file info section
-        fileInfo.classList.add('show');
+        // Store file in global scope for later use
+        window.selectedFile = file;
+    }
+    
+    // Confirm Upload Button - Start upload
+    confirmUploadBtn.addEventListener('click', () => {
+        if (window.selectedFile) {
+            beginFileUpload(window.selectedFile);
+        }
+    });
+    
+    // Cancel Upload Button - Reset
+    cancelUploadBtn.addEventListener('click', () => {
+        hideAllStates();
+        fileInput.value = ''; // Clear file input
+        window.selectedFile = null;
+    });
+    
+    // Begin file upload process
+    function beginFileUpload(file) {
+        // Show upload progress state
+        showState(uploadProgressState);
+        
+        // Reset progress bar
+        fileProgressBar.style.width = '0%';
         
         // Simulate upload progress
         let progress = 0;
         const progressInterval = setInterval(() => {
             progress += 5;
             fileProgressBar.style.width = `${progress}%`;
+            uploadPercentage.textContent = `${progress}%`;
             
             if (progress >= 100) {
                 clearInterval(progressInterval);
-                fileDetail.textContent = `${fileSizeInMB} MB • 32 pages • Ready for analysis`;
+                // Show upload success after a short delay
+                setTimeout(() => {
+                    if (Math.random() > 0.2) { // 80% chance of success for simulation
+                        uploadComplete(file);
+                    } else {
+                        uploadFailed('File upload failed. Network error occurred.');
+                    }
+                }, 500);
             }
-        }, 150);
+        }, 200);
     }
+    
+    // Handle successful upload
+    function uploadComplete(file) {
+        // Show success state
+        showState(uploadSuccessState);
+        
+        // Enable analyze button
+        analyzeBtn.disabled = false;
+    }
+    
+    // Handle failed upload
+    function uploadFailed(message) {
+        // Show error state
+        showState(uploadErrorState);
+        
+        // Update error message
+        errorMessage.textContent = message;
+    }
+    
+    // Retry button - Try upload again
+    retryBtn.addEventListener('click', () => {
+        if (window.selectedFile) {
+            beginFileUpload(window.selectedFile);
+        } else {
+            // If no file in memory, go back to file selected state
+            hideAllStates();
+        }
+    });
+    
+    // View Document button 
+    viewDocumentBtn.addEventListener('click', () => {
+        alert('Document viewer would open here in a production environment.');
+    });
     
     // Analyze button click
     analyzeBtn.addEventListener('click', () => {
@@ -511,21 +649,33 @@ document.addEventListener('DOMContentLoaded', function() {
             <div class="paste-text-content">
                 <div class="paste-text-header">
                     <h3>Paste Sustainability Document Text</h3>
-                    <button class="close-modal-btn"><i class="fas fa-times"></i></button>
+                    <button class="close-modal-btn" aria-label="Close modal"><i class="fas fa-times"></i></button>
                 </div>
                 <div class="paste-text-body">
-                    <textarea id="pasteTextArea" placeholder="Paste your document text here..."></textarea>
+                    <textarea id="pasteTextArea" placeholder="Paste your document text here..." aria-label="Document text content"></textarea>
                 </div>
                 <div class="paste-text-footer">
                     <button class="upload-btn" id="submitPastedTextBtn">Analyze Text</button>
+                    <button class="cancel-btn" id="cancelPasteBtn">Cancel</button>
                 </div>
             </div>
         `;
         document.body.appendChild(modal);
         
+        // Focus textarea
+        setTimeout(() => {
+            modal.querySelector('#pasteTextArea').focus();
+        }, 100);
+        
         // Close button functionality
         const closeBtn = modal.querySelector('.close-modal-btn');
         closeBtn.addEventListener('click', () => {
+            document.body.removeChild(modal);
+        });
+        
+        // Cancel button functionality
+        const cancelBtn = modal.querySelector('#cancelPasteBtn');
+        cancelBtn.addEventListener('click', () => {
             document.body.removeChild(modal);
         });
         
@@ -539,13 +689,22 @@ document.addEventListener('DOMContentLoaded', function() {
                 // Remove modal
                 document.body.removeChild(modal);
                 
-                // Show file info with text details
+                // Show success state with document details
                 fileName.textContent = "Pasted Text Document";
                 const textLength = text.length;
                 const wordCount = text.split(/\s+/).length;
-                fileDetail.textContent = `${wordCount} words • ${Math.round(textLength / 1000)}KB • Ready for analysis`;
-                fileInfo.classList.add('show');
-                fileProgressBar.style.width = '100%';
+                
+                // Create a virtual file object for consistency
+                window.selectedFile = {
+                    name: "Pasted Text Document",
+                    size: textLength,
+                    type: "text/plain",
+                    content: text,
+                    wordCount: wordCount
+                };
+                
+                // Show success state immediately for text paste
+                showState(uploadSuccessState);
             }
         });
     });

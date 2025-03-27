@@ -259,7 +259,7 @@
                     <a href="/regulatory-ai-refactored/dashboard"><i class="fas fa-chart-line me-2"></i> Dashboard</a>
                 </li>
                 <li class="{{ 'active' if active_nav == 'document-upload' else '' }}">
-                    <a href="/regulatory-ai-refactored/upload"><i class="fas fa-file-upload me-2"></i> Document Upload</a>
+                    <a href="/documents/document-upload"><i class="fas fa-file-upload me-2"></i> Document Upload</a>
                 </li>
                 <li class="{{ 'active' if active_nav == 'data-moat' else '' }}">
                     <a href="/data-moat/"><i class="fas fa-database me-2"></i> Data Moat</a>
@@ -287,7 +287,7 @@
                         <i class="fas fa-balance-scale-right me-2"></i> Regulatory AI V2
                     </a>
                     <ul class="collapse {{ 'show' if active_nav == 'regulatory-ai-refactored' else '' }} list-unstyled" id="regulatorySubmenu">
-                        <li><a href="/regulatory-ai-refactored/upload" class="ps-4">Upload Document</a></li>
+                        <li><a href="/documents/document-upload" class="ps-4">Upload Document</a></li>
                         <li><a href="/regulatory-ai-refactored/dashboard" class="ps-4">Dashboard</a></li>
                     </ul>
                 </li>
@@ -320,8 +320,8 @@
                     </div>
                     <div class="ms-auto">
                         <div class="btn-group">
-                            <a href="/regulatory-ai-refactored/upload" class="btn btn-outline-primary">
-                                <i class="fas fa-file-upload me-2"></i> Standard Upload
+                            <a href="/documents/document-upload" class="btn btn-outline-primary">
+                                <i class="fas fa-file-upload me-2"></i> Document Upload
                             </a>
                             <a href="/data-moat/upload" class="btn btn-primary">
                                 <i class="fas fa-database me-2"></i> Data Moat Upload

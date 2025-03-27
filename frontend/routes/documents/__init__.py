@@ -1,5 +1,5 @@
 """
-Document Processing and Storytelling Routes Package for SustainaTrend™ Platform
+Document routes package for SustainaTrend Intelligence Platform.
 """
 
-from .document_routes import register_routes as register_document_routes
+# This file is intentionally left empty to mark the directory as a Python package.
