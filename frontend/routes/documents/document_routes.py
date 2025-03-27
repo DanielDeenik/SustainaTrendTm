@@ -9,10 +9,13 @@ import os
 import traceback
 import uuid
 import logging
+import json
+import random
+import math
 from datetime import datetime
 from typing import Dict, List, Any, Optional, Tuple
 
-from flask import Blueprint, render_template, request, jsonify, session, url_for
+from flask import Blueprint, render_template, request, jsonify, session, url_for, send_file, current_app
 from werkzeug.utils import secure_filename
 
 # Import document processor
@@ -25,6 +28,41 @@ except ImportError as e:
     DOCUMENT_PROCESSOR_AVAILABLE = False
     document_processor = None
     logging.warning(f"Document processor not available: {str(e)}")
+
+# Import regulatory AI services if available
+try:
+    from frontend.services.regulatory_ai_service import (
+        get_supported_frameworks,
+        analyze_document_compliance,
+        generate_compliance_visualization_data,
+        handle_document_upload,
+        get_upload_folder as get_regulatory_upload_folder
+    )
+    from frontend.services.ai_connector import (
+        connect_to_ai_services,
+        is_pinecone_available,
+        generate_embedding,
+        semantic_search,
+        get_completion
+    )
+    # Initialize AI connector
+    connect_to_ai_services()
+    logger = logging.getLogger(__name__)
+    logger.info("AI connector module loaded successfully in document_routes")
+    # Log Pinecone availability
+    pinecone_status = "Connected" if is_pinecone_available() else "Not connected"
+    logger.info(f"Pinecone RAG system availability: {pinecone_status}")
+    REGULATORY_AI_AVAILABLE = True
+except ImportError as e:
+    logger = logging.getLogger(__name__)
+    logger.warning(f"Error importing regulatory AI service: {str(e)}")
+    # Create stub functions for development
+    def get_supported_frameworks(): return {"CSRD": "Corporate Sustainability Reporting Directive"}
+    def analyze_document_compliance(text, frameworks=None): return {"frameworks": {}}
+    def generate_compliance_visualization_data(results): return {"frameworks": []}
+    def handle_document_upload(file): return (False, "Service unavailable", None)
+    def get_regulatory_upload_folder(): return os.path.join(os.path.dirname(__file__), 'uploads')
+    REGULATORY_AI_AVAILABLE = False
 
 # For navigation
 try:
@@ -253,6 +291,342 @@ def document_analysis(document_id):
         logger.error(f"Error in document analysis route: {str(e)}")
         logger.error(traceback.format_exc())
         return render_template("error.html", error=str(e)), 500
+
+@document_bp.route('/api/regulatory-frameworks')
+def api_regulatory_frameworks():
+    """API endpoint for supported regulatory frameworks"""
+    try:
+        frameworks = get_supported_frameworks()
+        return jsonify({
+            'success': True,
+            'frameworks': frameworks
+        })
+    except Exception as e:
+        logger.error(f"Error in regulatory frameworks API: {str(e)}")
+        logger.error(traceback.format_exc())
+        return jsonify({
+            'success': False,
+            'error': str(e)
+        }), 500
+
+@document_bp.route('/api/regulatory-assessment', methods=['POST'])
+def api_regulatory_assessment():
+    """API endpoint for regulatory compliance assessment"""
+    try:
+        # Get request data
+        data = request.json
+        if not data:
+            return jsonify({
+                'success': False,
+                'error': 'No data provided'
+            }), 400
+            
+        # Get document text
+        text = data.get('text', '')
+        if not text:
+            return jsonify({
+                'success': False,
+                'error': 'No document text provided'
+            }), 400
+            
+        # Get frameworks to check against
+        frameworks = data.get('frameworks', None)
+        
+        # Perform assessment
+        if REGULATORY_AI_AVAILABLE:
+            results = analyze_document_compliance(text, frameworks)
+            return jsonify({
+                'success': True,
+                'assessment': results
+            })
+        else:
+            return jsonify({
+                'success': False,
+                'error': 'Regulatory AI service is not available'
+            }), 503
+    except Exception as e:
+        logger.error(f"Error in regulatory assessment API: {str(e)}")
+        logger.error(traceback.format_exc())
+        return jsonify({
+            'success': False,
+            'error': str(e)
+        }), 500
+
+@document_bp.route('/api/regulatory-gap-analysis', methods=['POST'])
+def api_regulatory_gap_analysis():
+    """API endpoint for regulatory gap analysis"""
+    try:
+        # Get request data
+        data = request.json
+        if not data:
+            return jsonify({
+                'success': False,
+                'error': 'No data provided'
+            }), 400
+            
+        # Get assessment data
+        assessment = data.get('assessment', {})
+        if not assessment:
+            return jsonify({
+                'success': False,
+                'error': 'No assessment data provided'
+            }), 400
+            
+        # Generate gap analysis
+        gap_analysis = generate_gap_analysis_data(assessment)
+        
+        return jsonify({
+            'success': True,
+            'gap_analysis': gap_analysis
+        })
+    except Exception as e:
+        logger.error(f"Error in regulatory gap analysis API: {str(e)}")
+        logger.error(traceback.format_exc())
+        return jsonify({
+            'success': False,
+            'error': str(e)
+        }), 500
+
+def get_compliance_level_for_score(score):
+    """
+    Get compliance level text based on score
+    
+    Args:
+        score: Numerical score (0-100)
+        
+    Returns:
+        str: Compliance level description
+    """
+    if score >= 90:
+        return "Excellent"
+    elif score >= 75:
+        return "Good"
+    elif score >= 60:
+        return "Adequate"
+    elif score >= 40:
+        return "Needs Improvement"
+    else:
+        return "Insufficient"
+
+def generate_gap_analysis_data(assessment):
+    """
+    Generate gap analysis data from assessment data
+    
+    Args:
+        assessment: Assessment data from UI
+        
+    Returns:
+        dict: Gap analysis data
+    """
+    gaps = []
+    recommendations = []
+    
+    # Extract gaps and recommendations from assessment
+    if 'categories' in assessment:
+        for category in assessment['categories']:
+            category_name = category.get('name', 'Unknown Category')
+            
+            # Add low-scoring criteria as gaps
+            for criterion in category.get('criteria', []):
+                score = criterion.get('score', 0)
+                if score < 60:  # Consider scores below 60% as gaps
+                    gaps.append({
+                        'category': category_name,
+                        'criterion': criterion.get('name', 'Unknown Criterion'),
+                        'score': score,
+                        'level': get_compliance_level_for_score(score),
+                        'description': criterion.get('description', '')
+                    })
+    
+    # Generate recommendations for gaps
+    for gap in gaps[:5]:  # Limit to top 5 gaps
+        recommendations.append({
+            'gap': gap['criterion'],
+            'recommendation': f"Improve disclosure on {gap['criterion']} in the {gap['category']} section.",
+            'priority': 'High' if gap['score'] < 40 else 'Medium'
+        })
+    
+    return {
+        'gaps': gaps,
+        'recommendations': recommendations,
+        'summary': f"Found {len(gaps)} areas needing improvement.",
+        'priority_areas': [gap['criterion'] for gap in gaps[:3]]  # Top 3 priority areas
+    }
+
+@document_bp.route('/api/generate-report/<document_id>')
+def api_generate_report(document_id):
+    """Generate a downloadable PDF compliance report"""
+    try:
+        # Check if document exists in session
+        document_analysis = session.get('document_analysis', {})
+        if not document_analysis or document_analysis.get('filename') != document_id:
+            logger.warning(f"Document {document_id} not found in session")
+            return jsonify({
+                'success': False,
+                'error': 'Document not found or session expired'
+            }), 404
+        
+        # Get document data
+        document_name = document_analysis.get('original_name', 'Unknown Document')
+        document_text = document_analysis.get('text', '')
+        frameworks = document_analysis.get('frameworks', {})
+        
+        # Determine primary framework (highest confidence)
+        primary_framework = None
+        max_confidence = 0
+        for framework, confidence in frameworks.items():
+            if confidence > max_confidence:
+                max_confidence = confidence
+                primary_framework = framework
+        
+        try:
+            # Import PDF generation library
+            from fpdf import FPDF
+            
+            # Create PDF document
+            pdf = FPDF()
+            pdf.add_page()
+            
+            # Add header
+            pdf.set_font('Arial', 'B', 16)
+            pdf.cell(0, 10, 'Sustainability Compliance Report', 0, 1, 'C')
+            pdf.ln(5)
+            
+            # Add document info
+            pdf.set_font('Arial', 'B', 12)
+            pdf.cell(0, 10, f'Document: {document_name}', 0, 1)
+            pdf.set_font('Arial', '', 10)
+            pdf.cell(0, 10, f'Generated: {datetime.now().strftime("%Y-%m-%d %H:%M:%S")}', 0, 1)
+            pdf.cell(0, 10, f'Document ID: {document_id}', 0, 1)
+            pdf.ln(5)
+            
+            # Add frameworks section
+            pdf.set_font('Arial', 'B', 12)
+            pdf.cell(0, 10, 'Detected Frameworks', 0, 1)
+            
+            if frameworks:
+                pdf.set_font('Arial', '', 10)
+                for framework, confidence in frameworks.items():
+                    confidence_pct = int(confidence * 100)
+                    is_primary = framework == primary_framework
+                    framework_text = f"{framework.upper()}: {confidence_pct}% confidence"
+                    if is_primary:
+                        framework_text += " (Primary Framework)"
+                    pdf.cell(0, 7, framework_text, 0, 1)
+            else:
+                pdf.set_font('Arial', 'I', 10)
+                pdf.cell(0, 10, 'No frameworks detected', 0, 1)
+            
+            pdf.ln(5)
+            
+            # Add metrics section if available
+            metrics = document_analysis.get('metrics', {})
+            if metrics:
+                pdf.set_font('Arial', 'B', 12)
+                pdf.cell(0, 10, 'Extracted Sustainability Metrics', 0, 1)
+                
+                for category, category_metrics in metrics.items():
+                    pdf.set_font('Arial', 'B', 11)
+                    pdf.cell(0, 7, category.title(), 0, 1)
+                    
+                    pdf.set_font('Arial', '', 10)
+                    for i, metric in enumerate(category_metrics[:5]):  # Limit to 5 metrics per category
+                        keyword = metric.get('keyword', 'Unknown')
+                        pdf.cell(0, 7, f"{i+1}. {keyword}", 0, 1)
+                    
+                    if len(category_metrics) > 5:
+                        pdf.set_font('Arial', 'I', 10)
+                        pdf.cell(0, 7, f"...and {len(category_metrics) - 5} more", 0, 1)
+                    
+                    pdf.ln(3)
+            
+            # Get compliance assessment
+            if primary_framework and REGULATORY_AI_AVAILABLE:
+                pdf.ln(5)
+                pdf.set_font('Arial', 'B', 12)
+                pdf.cell(0, 10, f'Compliance Assessment ({primary_framework.upper()})', 0, 1)
+                
+                try:
+                    assessment = analyze_document_compliance(document_text, [primary_framework])
+                    
+                    # Add overall assessment
+                    pdf.set_font('Arial', 'B', 11)
+                    pdf.cell(0, 7, "Overall Assessment", 0, 1)
+                    
+                    if 'overall_score' in assessment:
+                        score = assessment['overall_score']
+                        pdf.set_font('Arial', '', 10)
+                        pdf.cell(0, 7, f"Compliance Score: {score}%", 0, 1)
+                    
+                    # Add findings if available
+                    if 'overall_findings' in assessment and assessment['overall_findings']:
+                        pdf.set_font('Arial', 'B', 11)
+                        pdf.cell(0, 7, "Key Findings", 0, 1)
+                        
+                        pdf.set_font('Arial', '', 10)
+                        for i, finding in enumerate(assessment['overall_findings'][:5]):  # Limit to 5 findings
+                            pdf.multi_cell(0, 7, f"{i+1}. {finding}")
+                            
+                        if len(assessment['overall_findings']) > 5:
+                            pdf.set_font('Arial', 'I', 10)
+                            pdf.cell(0, 7, f"...and {len(assessment['overall_findings']) - 5} more findings", 0, 1)
+                    
+                    # Add gap analysis
+                    gap_analysis = generate_gap_analysis_data(assessment)
+                    if gap_analysis.get('gaps'):
+                        pdf.ln(5)
+                        pdf.set_font('Arial', 'B', 12)
+                        pdf.cell(0, 10, "Gap Analysis", 0, 1)
+                        
+                        pdf.set_font('Arial', 'B', 11)
+                        pdf.cell(0, 7, "Priority Areas for Improvement", 0, 1)
+                        
+                        pdf.set_font('Arial', '', 10)
+                        for i, gap in enumerate(gap_analysis['gaps'][:3]):  # Top 3 gaps
+                            level = get_compliance_level_for_score(gap['score'])
+                            pdf.multi_cell(0, 7, f"{i+1}. {gap['criterion']} ({level}: {gap['score']}%)")
+                except Exception as assessment_err:
+                    logger.error(f"Error performing compliance assessment for report: {str(assessment_err)}")
+                    pdf.set_font('Arial', 'I', 10)
+                    pdf.cell(0, 7, "Unable to perform compliance assessment for this document", 0, 1)
+            
+            # Add recommendations section
+            pdf.ln(5)
+            pdf.set_font('Arial', 'B', 12)
+            pdf.cell(0, 10, "Next Steps", 0, 1)
+            
+            pdf.set_font('Arial', '', 10)
+            pdf.multi_cell(0, 7, "1. Review the identified gaps in your sustainability reporting")
+            pdf.multi_cell(0, 7, "2. Enhance disclosures in low-scoring areas")
+            pdf.multi_cell(0, 7, "3. Consider conducting a more detailed assessment with SustainaTrend™ specialists")
+            
+            # Save the PDF to a temporary file
+            report_filename = f"sustainability_report_{document_id}.pdf"
+            report_path = os.path.join(UPLOAD_FOLDER, report_filename)
+            pdf.output(report_path)
+            
+            # Send the file
+            return send_file(
+                report_path,
+                as_attachment=True,
+                download_name=f"SustainaTrend_Compliance_Report_{document_name}.pdf",
+                mimetype='application/pdf'
+            )
+            
+        except ImportError as pdf_err:
+            logger.error(f"PDF generation library not available: {str(pdf_err)}")
+            return jsonify({
+                'success': False,
+                'error': 'PDF generation capability not available'
+            }), 500
+            
+    except Exception as e:
+        logger.error(f"Error generating compliance report: {str(e)}")
+        logger.error(traceback.format_exc())
+        return jsonify({
+            'success': False,
+            'error': str(e)
+        }), 500
 
 def register_routes(app):
     """

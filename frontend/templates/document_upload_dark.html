@@ -1112,7 +1112,7 @@
             downloadReportBtn.disabled = true;
             
             // Generate and download the report
-            window.location.href = `/data-moat/api/generate-report/${documentId}`;
+            window.location.href = `/documents/api/generate-report/${documentId}`;
             
             // Reset button after a delay (since we're redirecting)
             setTimeout(() => {

@@ -65,6 +65,13 @@ def register_blueprints(app):
         logger.info("Data Moat blueprint imported successfully")
     except ImportError as e:
         logger.warning(f"Data Moat blueprint import failed: {str(e)}")
+        
+    # Import document routes blueprint
+    try:
+        from .documents.document_routes import document_bp, register_routes as register_document_routes
+        logger.info("Document routes blueprint imported successfully")
+    except ImportError as e:
+        logger.warning(f"Document routes blueprint import failed: {str(e)}")
     
     # Register blueprints
     app.register_blueprint(analytics_bp)
@@ -109,6 +116,13 @@ def register_blueprints(app):
         logger.info("Data Moat blueprint registered successfully")
     except NameError:
         logger.warning("Data Moat blueprint not registered due to import failure")
+        
+    # Register document routes blueprint
+    try:
+        register_document_routes(app)
+        logger.info("Document routes blueprint registered successfully")
+    except NameError:
+        logger.warning("Document routes blueprint not registered due to import failure")
     
     # Register legacy routes blueprint for backward compatibility
     try:

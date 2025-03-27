@@ -124,6 +124,24 @@ def get_navigation_structure():
                 "title": "Tools",
                 "items": [
                     {
+                        "id": "document_hub",
+                        "title": "Document Hub",
+                        "url": "/document/hub",
+                        "icon": "fa-file-alt",
+                        "badge": "New",
+                        "badge_color": "primary",
+                        "description": "AI-powered document analysis and compliance"
+                    },
+                    {
+                        "id": "document_upload",
+                        "title": "Document Upload",
+                        "url": "/document/upload",
+                        "icon": "fa-file-upload",
+                        "badge": "New",
+                        "badge_color": "success",
+                        "description": "Sustainability document upload and compliance analysis"
+                    },
+                    {
                         "id": "documents",
                         "title": "Upload Reports",
                         "url": "/pdf-analyzer",
