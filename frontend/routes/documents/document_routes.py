@@ -111,10 +111,10 @@ def document_hub():
         # Try to get previously processed documents from session
         processed_documents = session.get('processed_documents', [])
         
-        # Use integrated document hub template
-        logger.info("Using integrated document hub template")
+        # Use redesigned document hub template
+        logger.info("Using redesigned document hub template")
         return render_template(
-            "integrated_document_hub.html",
+            "document_hub_redesign.html",
             page_title="Document & Regulatory Intelligence Hub",
             processing_status=processing_status,
             processed_documents=processed_documents,
@@ -126,7 +126,7 @@ def document_hub():
         
         # Fallback rendering with minimal dependencies
         return render_template(
-            "integrated_document_hub.html", 
+            "document_hub_redesign.html", 
             error=str(e)
         )
 
@@ -149,10 +149,10 @@ def document_upload():
         # Try to get previously processed documents from session
         processed_documents = session.get('processed_documents', [])
         
-        # Use integrated document hub template
-        logger.info("Using integrated document hub template")
+        # Use redesigned document hub template
+        logger.info("Using redesigned document hub template")
         return render_template(
-            "integrated_document_hub.html",
+            "document_hub_redesign.html",
             page_title="Document & Regulatory Intelligence Hub",
             processing_status=processing_status,
             processed_documents=processed_documents,
@@ -163,7 +163,7 @@ def document_upload():
         logger.error(traceback.format_exc())
         
         # Fallback rendering with minimal dependencies
-        return render_template("404.html", error=str(e)), 500
+        return render_template("document_hub_redesign.html", error=str(e)), 500
 
 @document_bp.route('/upload-sustainability-document', methods=['POST'])
 def upload_sustainability_document():

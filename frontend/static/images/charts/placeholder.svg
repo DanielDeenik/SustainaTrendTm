@@ -1,0 +1,6 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<svg width="600" height="300" viewBox="0 0 600 300" xmlns="http://www.w3.org/2000/svg">
+  <rect width="600" height="300" fill="#1e293b"/>
+  <text x="300" y="150" font-family="Arial" font-size="20" text-anchor="middle" fill="#64748b">Chart Visualization</text>
+  <text x="300" y="180" font-family="Arial" font-size="14" text-anchor="middle" fill="#64748b">Data will be displayed here</text>
+</svg>

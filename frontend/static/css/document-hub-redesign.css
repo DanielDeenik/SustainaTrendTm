@@ -1,0 +1,666 @@
+/* 
+ * Document-Hub-Redesign.css
+ * Modern, minimalist styling for the SustainaTrend™ Document Hub
+ */
+
+:root {
+    /* Color palette */
+    --teal: #008080;
+    --forest-green: #228B22;
+    --amber: #FFBF00;
+    --slate-dark: #1e293b;
+    --slate: #334155;
+    --slate-light: #64748b;
+    --success-green: #22c55e;
+    --warning-amber: #f59e0b;
+    --error-red: #ef4444;
+    
+    /* Typography */
+    --font-inter: 'Inter', system-ui, sans-serif;
+    --font-mono: 'Roboto Mono', monospace;
+}
+
+/* Layout styles */
+.document-hub-container {
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: 1.5rem;
+}
+
+@media (min-width: 1024px) {
+    .document-hub-container {
+        grid-template-columns: 1fr 350px;
+    }
+}
+
+/* Tab Navigation */
+.doc-hub-tabs {
+    display: flex;
+    border-bottom: 1px solid var(--slate-light);
+    margin-bottom: 1.5rem;
+}
+
+.doc-hub-tab {
+    padding: 0.75rem 1.25rem;
+    font-family: var(--font-inter);
+    font-weight: 500;
+    color: var(--slate-light);
+    background: transparent;
+    border: none;
+    border-bottom: 3px solid transparent;
+    cursor: pointer;
+    transition: all 0.3s ease;
+}
+
+.doc-hub-tab:hover {
+    color: white;
+}
+
+.doc-hub-tab.active {
+    color: white;
+    border-bottom: 3px solid var(--teal);
+}
+
+.doc-hub-tab-content {
+    display: none;
+}
+
+.doc-hub-tab-content.active {
+    display: block;
+    animation: fadeIn 0.3s ease;
+}
+
+/* 1. DOCUMENT UPLOAD SECTION */
+.upload-zone {
+    background: var(--slate-dark);
+    border: 2px dashed var(--slate-light);
+    border-radius: 12px;
+    padding: 3rem 2rem;
+    text-align: center;
+    position: relative;
+    transition: all 0.3s ease;
+}
+
+.upload-zone.drag-over {
+    border-color: var(--teal);
+    background: rgba(0, 128, 128, 0.1);
+}
+
+.upload-icon {
+    font-size: 3rem;
+    color: var(--teal);
+    margin-bottom: 1rem;
+}
+
+.upload-title {
+    font-family: var(--font-inter);
+    font-weight: 600;
+    font-size: 1.25rem;
+    margin-bottom: 0.75rem;
+    color: white;
+}
+
+.upload-description {
+    font-family: var(--font-inter);
+    color: var(--slate-light);
+    margin-bottom: 1.5rem;
+    max-width: 600px;
+    margin-left: auto;
+    margin-right: auto;
+}
+
+.upload-actions {
+    opacity: 0;
+    transition: opacity 0.3s ease;
+}
+
+.upload-zone:hover .upload-actions,
+.upload-zone.drag-over .upload-actions {
+    opacity: 1;
+}
+
+.upload-btn {
+    background: var(--teal);
+    color: white;
+    border: none;
+    padding: 0.75rem 1.25rem;
+    border-radius: 6px;
+    font-family: var(--font-inter);
+    font-weight: 500;
+    cursor: pointer;
+    transition: background 0.2s ease;
+    margin-right: 1rem;
+}
+
+.upload-btn:hover {
+    background: rgba(0, 128, 128, 0.8);
+}
+
+.paste-btn {
+    background: var(--forest-green);
+    color: white;
+    border: none;
+    padding: 0.75rem 1.25rem;
+    border-radius: 6px;
+    font-family: var(--font-inter);
+    font-weight: 500;
+    cursor: pointer;
+    transition: background 0.2s ease;
+}
+
+.paste-btn:hover {
+    background: rgba(34, 139, 34, 0.8);
+}
+
+.file-info {
+    background: var(--slate-dark);
+    border-radius: 10px;
+    padding: 1.25rem;
+    margin-top: 1.5rem;
+    border: 1px solid var(--slate);
+    display: none;
+}
+
+.file-info.show {
+    display: block;
+    animation: fadeIn 0.3s ease;
+}
+
+.file-name {
+    display: flex;
+    align-items: center;
+    font-family: var(--font-mono);
+    font-weight: 500;
+    margin-bottom: 0.5rem;
+    color: var(--amber);
+}
+
+.file-name i {
+    margin-right: 0.75rem;
+    font-size: 1.25rem;
+}
+
+.file-detail {
+    color: var(--slate-light);
+    font-family: var(--font-mono);
+    font-size: 0.875rem;
+    margin-bottom: 1rem;
+}
+
+.file-progress {
+    height: 6px;
+    background: var(--slate);
+    border-radius: 3px;
+    margin-bottom: 1rem;
+    overflow: hidden;
+}
+
+.file-progress-bar {
+    height: 100%;
+    background: var(--forest-green);
+    width: 0%;
+    transition: width 0.3s ease;
+}
+
+.file-actions {
+    display: flex;
+    justify-content: flex-end;
+    gap: 0.75rem;
+}
+
+/* 2. ANALYZE DOCUMENTS SECTION */
+.document-list {
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+}
+
+.document-card {
+    background: var(--slate-dark);
+    border-radius: 10px;
+    padding: 1.25rem;
+    border: 1px solid var(--slate);
+    transition: all 0.3s ease;
+    cursor: pointer;
+}
+
+.document-card:hover {
+    transform: scale(1.05);
+    border-color: var(--teal);
+}
+
+.document-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 0.75rem;
+}
+
+.document-title {
+    font-family: var(--font-inter);
+    font-weight: 600;
+    font-size: 1.1rem;
+    color: white;
+}
+
+.document-status {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+.status-icon {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.status-icon.inprogress svg {
+    color: var(--amber);
+    animation: spin 1.5s linear infinite;
+}
+
+.status-icon.completed svg {
+    color: var(--success-green);
+}
+
+.status-icon.error svg {
+    color: var(--error-red);
+}
+
+.document-summary {
+    font-family: var(--font-mono);
+    font-size: 0.875rem;
+    margin-top: 0.5rem;
+    color: var(--slate-light);
+}
+
+.document-card.completed .document-summary {
+    color: white;
+}
+
+/* 3. VIEW INSIGHTS SECTION */
+.story-cards {
+    display: flex;
+    flex-direction: column;
+    gap: 1.5rem;
+}
+
+.story-card {
+    background: var(--slate-dark);
+    border-radius: 12px;
+    padding: 1.5rem;
+    border: 1px solid var(--slate);
+    transition: all 0.3s ease;
+    cursor: pointer;
+    position: relative;
+    overflow: hidden;
+}
+
+.story-card:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
+}
+
+.story-headline {
+    font-family: var(--font-inter);
+    font-weight: 700;
+    font-size: 1.25rem;
+    color: var(--teal);
+    margin-bottom: 1rem;
+}
+
+.story-visualization {
+    width: 100%;
+    height: 180px;
+    background: var(--slate);
+    border-radius: 8px;
+    margin-bottom: 1rem;
+    overflow: hidden;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.story-narrative {
+    font-family: var(--font-inter);
+    line-height: 1.5;
+    margin-bottom: 1.5rem;
+    color: white;
+}
+
+.story-recommendation {
+    background: rgba(0, 128, 128, 0.1);
+    border-left: 3px solid var(--teal);
+    padding: 1rem;
+    margin-bottom: 1rem;
+}
+
+.story-recommendation h4 {
+    font-family: var(--font-inter);
+    font-weight: 600;
+    font-size: 1rem;
+    margin-bottom: 0.5rem;
+    color: white;
+}
+
+.story-recommendation p {
+    font-family: var(--font-inter);
+    font-size: 0.9rem;
+    color: var(--slate-light);
+}
+
+.story-metadata {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    font-family: var(--font-mono);
+    font-size: 0.75rem;
+    color: var(--slate-light);
+    padding-top: 1rem;
+    border-top: 1px solid var(--slate);
+}
+
+.story-expanded {
+    display: none;
+}
+
+.story-card.expanded .story-expanded {
+    display: block;
+    animation: slideDown 0.3s ease;
+}
+
+/* RIGHT SIDEBAR */
+.insights-sidebar {
+    background: var(--slate-dark);
+    border-radius: 12px;
+    padding: 1.5rem;
+    border: 1px solid var(--slate);
+    position: sticky;
+    top: 20px;
+}
+
+.sidebar-title {
+    font-family: var(--font-inter);
+    font-weight: 600;
+    font-size: 1.25rem;
+    margin-bottom: 1.5rem;
+    color: white;
+}
+
+.sidebar-section {
+    margin-bottom: 2rem;
+}
+
+.sidebar-section-title {
+    font-family: var(--font-inter);
+    font-weight: 600;
+    font-size: 1rem;
+    margin-bottom: 1rem;
+    color: white;
+}
+
+.metric-item {
+    display: flex;
+    justify-content: space-between;
+    margin-bottom: 0.75rem;
+}
+
+.metric-label {
+    font-family: var(--font-inter);
+    color: var(--slate-light);
+}
+
+.metric-value {
+    font-family: var(--font-mono);
+    font-weight: 500;
+    color: var(--amber);
+}
+
+.copilot-options {
+    display: flex;
+    flex-direction: column;
+    gap: 0.75rem;
+}
+
+.copilot-option {
+    padding: 0.75rem 1rem;
+    background: var(--slate);
+    border: 1px solid var(--slate-light);
+    border-radius: 6px;
+    font-family: var(--font-inter);
+    color: white;
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+
+.copilot-option:hover {
+    background: var(--teal);
+    border-color: var(--teal);
+}
+
+/* SUSTAINABILITY CO-PILOT */
+.sustainability-copilot-trigger {
+    position: fixed;
+    bottom: 2rem;
+    right: 2rem;
+    width: 60px;
+    height: 60px;
+    background: var(--teal);
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: white;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+    cursor: pointer;
+    z-index: 1000;
+    transition: all 0.3s ease;
+}
+
+.sustainability-copilot-trigger:hover {
+    transform: scale(1.1);
+}
+
+.sustainability-copilot-trigger::after {
+    content: '';
+    position: absolute;
+    width: 100%;
+    height: 100%;
+    border-radius: 50%;
+    background: var(--teal);
+    opacity: 0.5;
+    z-index: -1;
+    animation: pulse 2s infinite;
+}
+
+/* HORIZONTAL TIMELINE */
+.regulatory-timeline {
+    margin-top: 2rem;
+    position: relative;
+}
+
+.timeline-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 1rem;
+}
+
+.timeline-title {
+    font-family: var(--font-inter);
+    font-weight: 600;
+    font-size: 1.1rem;
+    color: white;
+}
+
+.timeline-toggle {
+    background: transparent;
+    border: none;
+    color: var(--teal);
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    font-family: var(--font-inter);
+    font-size: 0.875rem;
+}
+
+.horizontal-timeline {
+    position: relative;
+    display: flex;
+    overflow-x: auto;
+    padding: 2rem 0;
+    gap: 1.5rem;
+}
+
+.timeline-connector {
+    position: absolute;
+    top: 2.5rem;
+    left: 0;
+    right: 0;
+    height: 2px;
+    background: var(--slate);
+    z-index: 1;
+}
+
+.timeline-item {
+    position: relative;
+    min-width: 200px;
+    z-index: 2;
+}
+
+.timeline-point {
+    width: 12px;
+    height: 12px;
+    background: var(--teal);
+    border-radius: 50%;
+    border: 3px solid var(--slate-dark);
+    margin-bottom: 1rem;
+}
+
+.timeline-card {
+    background: var(--slate-dark);
+    border: 1px solid var(--slate);
+    border-radius: 8px;
+    padding: 1rem;
+}
+
+.timeline-card-title {
+    font-family: var(--font-inter);
+    font-weight: 600;
+    font-size: 0.9rem;
+    margin-bottom: 0.5rem;
+    color: white;
+}
+
+.timeline-card-date {
+    font-family: var(--font-mono);
+    font-size: 0.8rem;
+    color: var(--amber);
+}
+
+/* ANIMATIONS */
+@keyframes fadeIn {
+    from { opacity: 0; }
+    to { opacity: 1; }
+}
+
+@keyframes slideDown {
+    from { max-height: 0; opacity: 0; }
+    to { max-height: 1000px; opacity: 1; }
+}
+
+@keyframes spin {
+    to { transform: rotate(360deg); }
+}
+
+@keyframes pulse {
+    0% {
+        transform: scale(1);
+        opacity: 0.5;
+    }
+    70% {
+        transform: scale(1.5);
+        opacity: 0;
+    }
+    100% {
+        transform: scale(1);
+        opacity: 0;
+    }
+}
+
+/* UTILITY CLASSES */
+.hidden {
+    display: none;
+}
+
+.mb-1 {
+    margin-bottom: 0.25rem;
+}
+
+.mb-2 {
+    margin-bottom: 0.5rem;
+}
+
+.mb-3 {
+    margin-bottom: 0.75rem;
+}
+
+.mb-4 {
+    margin-bottom: 1rem;
+}
+
+.mt-4 {
+    margin-top: 1rem;
+}
+
+.mt-6 {
+    margin-top: 1.5rem;
+}
+
+.flex {
+    display: flex;
+}
+
+.items-center {
+    align-items: center;
+}
+
+.justify-between {
+    justify-content: space-between;
+}
+
+.gap-2 {
+    gap: 0.5rem;
+}
+
+/* RESPONSIVE DESIGN */
+@media (max-width: 768px) {
+    .doc-hub-tabs {
+        flex-direction: column;
+        border-bottom: none;
+    }
+    
+    .doc-hub-tab {
+        border-left: 3px solid transparent;
+        border-bottom: none;
+        text-align: left;
+        padding: 0.75rem 0;
+    }
+    
+    .doc-hub-tab.active {
+        border-left: 3px solid var(--teal);
+        border-bottom: none;
+    }
+    
+    .upload-actions {
+        display: flex;
+        flex-direction: column;
+        gap: 0.5rem;
+    }
+    
+    .upload-btn, .paste-btn {
+        margin-right: 0;
+    }
+}

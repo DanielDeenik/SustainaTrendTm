@@ -304,6 +304,182 @@
     .ai-copilot-pulse {
         animation: pulse 2s infinite;
     }
+    
+    /* Story Detail Overlay */
+    .story-detail-overlay {
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background: rgba(0, 0, 0, 0.5);
+        z-index: 1050;
+        display: none;
+    }
+    
+    /* Co-Pilot Dialog Styles */
+    .copilot-dialog {
+        position: absolute;
+        top: 50%;
+        left: 50%;
+        transform: translate(-50%, -50%);
+        width: 450px;
+        background: var(--card-bg);
+        border-radius: 10px;
+        box-shadow: 0 10px 25px rgba(0, 0, 0, 0.3);
+        overflow: hidden;
+        z-index: 1060;
+        display: none;
+    }
+    
+    .copilot-dialog-header {
+        background: linear-gradient(135deg, var(--bs-primary), var(--bs-primary-dark, #0056b3));
+        color: white;
+        padding: 15px 20px;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+    }
+    
+    .copilot-dialog-title {
+        font-weight: 600;
+        font-size: 1.1rem;
+        display: flex;
+        align-items: center;
+    }
+    
+    .copilot-dialog-title i {
+        margin-right: 10px;
+    }
+    
+    .copilot-dialog-close {
+        background: transparent;
+        border: none;
+        color: white;
+        cursor: pointer;
+        font-size: 1.1rem;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        padding: 5px;
+        border-radius: 4px;
+        transition: background-color 0.2s;
+    }
+    
+    .copilot-dialog-close:hover {
+        background-color: rgba(255, 255, 255, 0.1);
+    }
+    
+    .copilot-dialog-body {
+        padding: 20px;
+    }
+    
+    .copilot-chat-area {
+        background: rgba(20, 20, 30, 0.3);
+        border-radius: 8px;
+        padding: 15px;
+        max-height: 200px;
+        overflow-y: auto;
+        margin-bottom: 15px;
+    }
+    
+    .copilot-message {
+        margin-bottom: 15px;
+        display: flex;
+    }
+    
+    .copilot-message:last-child {
+        margin-bottom: 0;
+    }
+    
+    .copilot-avatar {
+        width: 36px;
+        height: 36px;
+        border-radius: 50%;
+        background: var(--bs-primary);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        margin-right: 12px;
+        flex-shrink: 0;
+    }
+    
+    .copilot-avatar i {
+        color: white;
+        font-size: 1rem;
+    }
+    
+    .copilot-bubble {
+        background: rgba(255, 255, 255, 0.05);
+        border-radius: 10px;
+        padding: 12px 15px;
+        color: rgba(255, 255, 255, 0.9);
+        font-size: 0.95rem;
+        max-width: 85%;
+        line-height: 1.5;
+    }
+    
+    .copilot-input-area {
+        display: flex;
+        gap: 10px;
+    }
+    
+    .copilot-input {
+        flex: 1;
+        background: rgba(255, 255, 255, 0.05);
+        border: 1px solid rgba(255, 255, 255, 0.1);
+        border-radius: 8px;
+        padding: 12px 15px;
+        color: white;
+        resize: none;
+        outline: none;
+        transition: border-color 0.2s;
+    }
+    
+    .copilot-input:focus {
+        border-color: var(--bs-primary);
+    }
+    
+    .copilot-send {
+        background: var(--bs-primary);
+        color: white;
+        border: none;
+        border-radius: 8px;
+        width: 50px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        cursor: pointer;
+        transition: background-color 0.2s;
+    }
+    
+    .copilot-send:hover {
+        background-color: var(--bs-primary-dark, #0056b3);
+    }
+    
+    .copilot-send i {
+        font-size: 1.1rem;
+    }
+    
+    .copilot-send:disabled {
+        background-color: rgba(var(--bs-primary-rgb), 0.5);
+        cursor: not-allowed;
+    }
+    
+    .copilot-loading {
+        display: inline-block;
+        width: 20px;
+        height: 20px;
+        border: 2px solid rgba(255, 255, 255, 0.3);
+        border-radius: 50%;
+        border-top-color: white;
+        animation: copilot-spin 1s linear infinite;
+    }
+    
+    @keyframes copilot-spin {
+        to { transform: rotate(360deg); }
+    }
 </style>
 {% endblock %}
 
@@ -525,6 +701,38 @@
             </div>
         </div>
     </div>
+    
+    <!-- New Enhanced Copilot Interface -->
+    <div class="story-detail-overlay" id="copilotOverlay"></div>
+    
+    <div class="copilot-dialog" id="copilotDialog">
+        <div class="copilot-dialog-header">
+            <div class="copilot-dialog-title">
+                <i class="fas fa-robot"></i> Sustainability Co-Pilot
+            </div>
+            <button class="copilot-dialog-close" id="closeCopilotDialog">
+                <i class="fas fa-times"></i>
+            </button>
+        </div>
+        <div class="copilot-dialog-body">
+            <div class="copilot-chat-area" id="copilotChatArea">
+                <div class="copilot-message">
+                    <div class="copilot-avatar">
+                        <i class="fas fa-robot"></i>
+                    </div>
+                    <div class="copilot-bubble">
+                        Hello! I'm your Sustainability Co-Pilot. How can I assist with your sustainability strategy today?
+                    </div>
+                </div>
+            </div>
+            <div class="copilot-input-area">
+                <textarea class="copilot-input" id="enhancedCopilotInput" placeholder="Type your question here..."></textarea>
+                <button class="copilot-send" id="enhancedCopilotSend">
+                    <i class="fas fa-paper-plane"></i>
+                </button>
+            </div>
+        </div>
+    </div>
 </div>
 {% endblock main_content %}
 
@@ -583,13 +791,42 @@ document.addEventListener('DOMContentLoaded', function() {
         });
     });
     
-    // Handle AI Co-Pilot trigger
+    // Handle AI Co-Pilot trigger for new enhanced dialog
     document.getElementById('ai-copilot-trigger').addEventListener('click', function() {
-        const copilotModal = new bootstrap.Modal(document.getElementById('aiCopilotModal'));
-        copilotModal.show();
+        // Show the new dialog instead of the modal
+        document.getElementById('copilotOverlay').style.display = 'block';
+        document.getElementById('copilotDialog').style.display = 'block';
+        
+        // Focus the input
+        document.getElementById('enhancedCopilotInput').focus();
     });
     
-    // Handle Ask Co-Pilot button
+    // Close dialog when clicking the close button
+    document.getElementById('closeCopilotDialog').addEventListener('click', function() {
+        document.getElementById('copilotOverlay').style.display = 'none';
+        document.getElementById('copilotDialog').style.display = 'none';
+    });
+    
+    // Close dialog when clicking outside
+    document.getElementById('copilotOverlay').addEventListener('click', function() {
+        document.getElementById('copilotOverlay').style.display = 'none';
+        document.getElementById('copilotDialog').style.display = 'none';
+    });
+    
+    // Enhanced Co-Pilot send functionality
+    document.getElementById('enhancedCopilotSend').addEventListener('click', function() {
+        sendCopilotMessage();
+    });
+    
+    // Handle Enter key in the input field
+    document.getElementById('enhancedCopilotInput').addEventListener('keypress', function(e) {
+        if (e.key === 'Enter' && !e.shiftKey) {
+            e.preventDefault(); // Prevent default behavior (new line)
+            sendCopilotMessage();
+        }
+    });
+    
+    // Legacy modal functionality (kept for backward compatibility)
     document.getElementById('askCopilotBtn').addEventListener('click', function() {
         const prompt = document.getElementById('copilotPrompt').value;
         if (prompt.trim() === '') {
@@ -839,6 +1076,101 @@ function sortStoryCards(sortBy) {
     storyCardsGrid.appendChild(templateCard);
 }
 
+function sendCopilotMessage() {
+    const inputElement = document.getElementById('enhancedCopilotInput');
+    const prompt = inputElement.value.trim();
+    
+    if (prompt === '') {
+        return;
+    }
+    
+    // Add user message to chat
+    const chatArea = document.getElementById('copilotChatArea');
+    const userMessage = document.createElement('div');
+    userMessage.className = 'copilot-message';
+    userMessage.style.justifyContent = 'flex-end';
+    userMessage.innerHTML = `
+        <div class="copilot-bubble" style="background: rgba(var(--bs-primary-rgb), 0.15);">
+            ${prompt}
+        </div>
+    `;
+    chatArea.appendChild(userMessage);
+    
+    // Clear input field
+    inputElement.value = '';
+    
+    // Scroll to bottom of chat area
+    chatArea.scrollTop = chatArea.scrollHeight;
+    
+    // Show loading indicator
+    const sendButton = document.getElementById('enhancedCopilotSend');
+    sendButton.disabled = true;
+    sendButton.innerHTML = `<div class="copilot-loading"></div>`;
+    
+    // Add AI thinking message
+    const loadingMessage = document.createElement('div');
+    loadingMessage.className = 'copilot-message';
+    loadingMessage.id = 'copilot-loading-message';
+    loadingMessage.innerHTML = `
+        <div class="copilot-avatar">
+            <i class="fas fa-robot"></i>
+        </div>
+        <div class="copilot-bubble">
+            <div class="d-flex align-items-center">
+                <span class="me-2">Thinking</span>
+                <div class="copilot-loading"></div>
+            </div>
+        </div>
+    `;
+    chatArea.appendChild(loadingMessage);
+    chatArea.scrollTop = chatArea.scrollHeight;
+    
+    // Simulate AI response (would be replaced with actual API call)
+    setTimeout(() => {
+        // Remove loading message
+        document.getElementById('copilot-loading-message').remove();
+        
+        // Add AI response
+        const aiMessage = document.createElement('div');
+        aiMessage.className = 'copilot-message';
+        aiMessage.innerHTML = `
+            <div class="copilot-avatar">
+                <i class="fas fa-robot"></i>
+            </div>
+            <div class="copilot-bubble">
+                ${generateCopilotResponse(prompt)}
+            </div>
+        `;
+        chatArea.appendChild(aiMessage);
+        
+        // Reset send button
+        sendButton.disabled = false;
+        sendButton.innerHTML = `<i class="fas fa-paper-plane"></i>`;
+        
+        // Add suggested follow-up questions if needed
+        if (!prompt.toLowerCase().includes('thank')) {
+            const suggestionsMessage = document.createElement('div');
+            suggestionsMessage.className = 'copilot-message';
+            suggestionsMessage.innerHTML = `
+                <div class="copilot-avatar">
+                    <i class="fas fa-robot"></i>
+                </div>
+                <div class="copilot-bubble">
+                    <p class="mt-2 mb-1">You might also want to know:</p>
+                    <div class="d-flex flex-wrap gap-2 mt-2">
+                        <button class="btn btn-sm btn-outline-primary" onclick="document.getElementById('enhancedCopilotInput').value = 'How can I track progress on these metrics?'; sendCopilotMessage();">How to track progress?</button>
+                        <button class="btn btn-sm btn-outline-primary" onclick="document.getElementById('enhancedCopilotInput').value = 'What technologies support this strategy?'; sendCopilotMessage();">Supporting technologies</button>
+                    </div>
+                </div>
+            `;
+            chatArea.appendChild(suggestionsMessage);
+        }
+        
+        // Scroll to bottom of chat area
+        chatArea.scrollTop = chatArea.scrollHeight;
+    }, 1500);
+}
+
 function generateCopilotResponse(prompt) {
     // This is a mock implementation that would be replaced with an actual AI response
     const lowercasePrompt = prompt.toLowerCase();
@@ -875,6 +1207,30 @@ function generateCopilotResponse(prompt) {
                 <li><strong>Community Impact</strong>: Investment and volunteer hours in local communities</li>
             </ul>
             <p>Consider the GRI Social Standards and UN SDGs as frameworks for reporting.</p>
+        `;
+    } else if (lowercasePrompt.includes('track') || lowercasePrompt.includes('progress')) {
+        return `
+            <p>To track sustainability progress effectively:</p>
+            <ul>
+                <li><strong>Establish a Baseline</strong>: Document current performance across all metrics</li>
+                <li><strong>Set SMART Goals</strong>: Specific, Measurable, Achievable, Relevant, Time-bound</li>
+                <li><strong>Implement Data Collection</strong>: Automated systems where possible</li>
+                <li><strong>Regular Reporting Cadence</strong>: Monthly or quarterly performance reviews</li>
+                <li><strong>Visualization Tools</strong>: Dashboards for tracking trends over time</li>
+            </ul>
+            <p>Consider using specialized ESG software or sustainability management platforms to centralize data collection and reporting.</p>
+        `;
+    } else if (lowercasePrompt.includes('technolog')) {
+        return `
+            <p>Technologies supporting sustainability strategies include:</p>
+            <ul>
+                <li><strong>IoT Sensors</strong>: Real-time monitoring of resource usage and emissions</li>
+                <li><strong>AI/ML</strong>: Predictive analytics for optimization and efficiency</li>
+                <li><strong>Blockchain</strong>: Supply chain transparency and verification</li>
+                <li><strong>Cloud Platforms</strong>: ESG data management and sustainability reporting</li>
+                <li><strong>Digital Twins</strong>: Modeling infrastructure for efficiency improvements</li>
+            </ul>
+            <p>Integration of these technologies can create a comprehensive sustainability intelligence ecosystem.</p>
         `;
     } else {
         return `

@@ -1,0 +1,537 @@
+{% extends "layouts/finchat_dark_layout.html" %}
+
+{% block title %}Documents Hub - SustainaTrend™ Intelligence Platform{% endblock %}
+
+{% block header_title %}Document & Regulatory Intelligence{% endblock %}
+
+{% block additional_head %}
+<link rel="stylesheet" href="{{ url_for('static', filename='css/document-hub-redesign.css') }}">
+<link rel="stylesheet" href="{{ url_for('static', filename='css/sustainability-copilot.css') }}">
+{% endblock %}
+
+{% block main_content %}
+<div class="document-hub-container">
+    <!-- Main Content Area -->
+    <div class="document-hub-main">
+        <!-- Tab Navigation -->
+        <div class="doc-hub-tabs">
+            <button class="doc-hub-tab active" id="uploadDocsTab">Upload Documents</button>
+            <button class="doc-hub-tab" id="analyzeDocsTab">Analyze Documents</button>
+            <button class="doc-hub-tab" id="viewInsightsTab">View Insights</button>
+        </div>
+        
+        <!-- Upload Documents Tab -->
+        <div id="uploadDocsContent" class="doc-hub-tab-content active">
+            <div class="upload-zone" id="dropZone">
+                <div class="upload-icon">
+                    <i class="fas fa-file-upload"></i>
+                </div>
+                <h3 class="upload-title">Upload Your Sustainability Documents</h3>
+                <p class="upload-description">
+                    Drop your sustainability reports, ESG disclosures, or regulatory compliance documents here. 
+                    We'll analyze them for insights and compliance tracking.
+                </p>
+                <div class="upload-actions">
+                    <button class="upload-btn" id="uploadBtn">
+                        <i class="fas fa-upload"></i> Upload File
+                    </button>
+                    <button class="paste-btn" id="pasteBtn">
+                        <i class="fas fa-paste"></i> Paste Text
+                    </button>
+                </div>
+                <input type="file" id="fileInput" class="hidden" accept=".pdf,.docx,.txt">
+                <div class="drag-message hidden">Drop your file here</div>
+            </div>
+            
+            <!-- File Info (appears after upload) -->
+            <div class="file-info" id="fileInfo">
+                <div class="file-name">
+                    <i class="fas fa-file-pdf"></i>
+                    <span id="fileName">Sustainability_Report_2024.pdf</span>
+                </div>
+                <div class="file-detail" id="fileDetail">4.2 MB • 32 pages</div>
+                <div class="file-progress">
+                    <div class="file-progress-bar" id="fileProgressBar" style="width: 0%"></div>
+                </div>
+                <div class="file-actions">
+                    <button class="upload-btn" id="analyzeBtn">
+                        <i class="fas fa-chart-line"></i> Analyze Document
+                    </button>
+                </div>
+            </div>
+            
+            <!-- Co-Pilot Suggestions -->
+            <div class="mt-6">
+                <div class="sidebar-section-title">Sustainability Co-Pilot Suggests</div>
+                <div class="copilot-options">
+                    <div class="copilot-option" data-suggestion="Upload your latest ESG report for CSRD insights">
+                        Upload your latest ESG report for CSRD insights
+                    </div>
+                    <div class="copilot-option" data-suggestion="Analyze TCFD compliance in your climate disclosures">
+                        Analyze TCFD compliance in your climate disclosures
+                    </div>
+                    <div class="copilot-option" data-suggestion="Check biodiversity reporting against ESRS E4">
+                        Check biodiversity reporting against ESRS E4
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Analyze Documents Tab -->
+        <div id="analyzeDocsContent" class="doc-hub-tab-content">
+            <h3 class="sidebar-title mb-4">Document Analysis Tracking</h3>
+            <div class="document-list">
+                <!-- In Progress Document -->
+                <div class="document-card">
+                    <div class="document-header">
+                        <div class="document-title">2024 Sustainability Report</div>
+                        <div class="document-status">
+                            <div class="status-icon inprogress">
+                                <i class="fas fa-sync-alt"></i>
+                            </div>
+                            <span>In Progress</span>
+                        </div>
+                    </div>
+                    <div class="document-summary">
+                        Analyzing CSRD compliance and biodiversity disclosures...
+                    </div>
+                    <div class="file-progress mt-4">
+                        <div class="file-progress-bar" style="width: 45%"></div>
+                    </div>
+                </div>
+                
+                <!-- Completed Document -->
+                <div class="document-card completed" data-id="doc123">
+                    <div class="document-header">
+                        <div class="document-title">Q1 2024 ESG Update</div>
+                        <div class="document-status">
+                            <div class="status-icon completed">
+                                <i class="fas fa-check-circle"></i>
+                            </div>
+                            <span>Completed</span>
+                        </div>
+                    </div>
+                    <div class="document-summary">
+                        78% CSRD compliance, biodiversity gaps detected
+                    </div>
+                </div>
+                
+                <!-- Error Document -->
+                <div class="document-card">
+                    <div class="document-header">
+                        <div class="document-title">TCFD Assessment Draft</div>
+                        <div class="document-status">
+                            <div class="status-icon error">
+                                <i class="fas fa-exclamation-circle"></i>
+                            </div>
+                            <span>Error</span>
+                        </div>
+                    </div>
+                    <div class="document-summary">
+                        Document format not supported. Please convert to PDF.
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- View Insights Tab -->
+        <div id="viewInsightsContent" class="doc-hub-tab-content">
+            <!-- Regulatory Timeline (Collapsible) -->
+            <div class="regulatory-timeline">
+                <div class="timeline-header">
+                    <div class="timeline-title">Regulatory Timeline</div>
+                    <button class="timeline-toggle" id="timelineToggle">
+                        <i class="fas fa-chevron-down"></i> Show Timeline
+                    </button>
+                </div>
+                
+                <div class="horizontal-timeline hidden" id="horizontalTimeline">
+                    <div class="timeline-connector"></div>
+                    
+                    <div class="timeline-item">
+                        <div class="timeline-point"></div>
+                        <div class="timeline-card">
+                            <div class="timeline-card-title">CSRD first reporting deadline</div>
+                            <div class="timeline-card-date">EU • January 2025</div>
+                        </div>
+                    </div>
+                    
+                    <div class="timeline-item">
+                        <div class="timeline-point"></div>
+                        <div class="timeline-card">
+                            <div class="timeline-card-title">UK SDR phase 2 requirements</div>
+                            <div class="timeline-card-date">UK • June 2025</div>
+                        </div>
+                    </div>
+                    
+                    <div class="timeline-item">
+                        <div class="timeline-point"></div>
+                        <div class="timeline-card">
+                            <div class="timeline-card-title">IFRS S1/S2 effective date</div>
+                            <div class="timeline-card-date">Global • January 2026</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Story Cards -->
+            <div class="story-cards">
+                <!-- Story Card 1 -->
+                <div class="story-card" id="story1">
+                    <h3 class="story-headline">Biodiversity Disclosure Gap</h3>
+                    <div class="story-visualization">
+                        <img src="{{ url_for('static', filename='images/charts/biodiversity_compliance.svg') }}" alt="Biodiversity Compliance Chart" onerror="this.onerror=null; this.src='{{ url_for('static', filename='images/charts/placeholder.svg') }}'">
+                    </div>
+                    <div class="story-narrative">
+                        Your sustainability report shows significant gaps in biodiversity disclosures required by ESRS E4. Only 23% of required biodiversity metrics are present, compared to the industry average of 68%.
+                    </div>
+                    <div class="story-recommendation">
+                        <h4>Recommendation</h4>
+                        <p>Add biodiversity impact assessments and species protection metrics to Section 3 of your report to align with ESRS E4 requirements.</p>
+                    </div>
+                    <div class="story-metadata">
+                        <span>Source: Q1 2024 ESG Update</span>
+                        <span>Reliability: High</span>
+                    </div>
+                    
+                    <!-- Expanded Content (hidden initially) -->
+                    <div class="story-expanded">
+                        <div class="mt-4">
+                            <h4 class="mb-2">Impact Analysis</h4>
+                            <p class="mb-4">Failing to address biodiversity disclosures could result in non-compliance with CSRD requirements starting January 2025. Industry peers in your sector have shown 45% improvement in biodiversity reporting over the past year.</p>
+                            
+                            <h4 class="mb-2">Action Steps</h4>
+                            <ol class="mb-4">
+                                <li>Conduct biodiversity impact assessment in key operational areas</li>
+                                <li>Integrate biodiversity risks into general risk management framework</li>
+                                <li>Develop metrics for species protection and ecosystem restoration</li>
+                            </ol>
+                            
+                            <button class="upload-btn">
+                                <i class="fas fa-file-export"></i> Generate Detailed Report
+                            </button>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Story Card 2 -->
+                <div class="story-card" id="story2">
+                    <h3 class="story-headline">Climate Transition Plan Strength</h3>
+                    <div class="story-visualization">
+                        <img src="{{ url_for('static', filename='images/charts/climate_transition.svg') }}" alt="Climate Transition Chart" onerror="this.onerror=null; this.src='{{ url_for('static', filename='images/charts/placeholder.svg') }}'">
+                    </div>
+                    <div class="story-narrative">
+                        Your climate transition plan scores in the top quartile for your industry, with strong targets and concrete actions. However, your governance mechanisms for climate risk lack clear accountability structures.
+                    </div>
+                    <div class="story-recommendation">
+                        <h4>Recommendation</h4>
+                        <p>Establish climate risk accountability at the board level with specific oversight responsibilities and performance metrics tied to compensation.</p>
+                    </div>
+                    <div class="story-metadata">
+                        <span>Source: Q1 2024 ESG Update</span>
+                        <span>Reliability: High</span>
+                    </div>
+                </div>
+                
+                <!-- Story Card 3 -->
+                <div class="story-card" id="story3">
+                    <h3 class="story-headline">Social Impact Reporting Opportunity</h3>
+                    <div class="story-visualization">
+                        <img src="{{ url_for('static', filename='images/charts/social_impact.svg') }}" alt="Social Impact Chart" onerror="this.onerror=null; this.src='{{ url_for('static', filename='images/charts/placeholder.svg') }}'">
+                    </div>
+                    <div class="story-narrative">
+                        While your report contains comprehensive environmental data, social impact metrics are limited. This creates an opportunity to differentiate your reporting through enhanced social disclosures.
+                    </div>
+                    <div class="story-recommendation">
+                        <h4>Recommendation</h4>
+                        <p>Expand social impact reporting to include detailed workforce diversity metrics, community engagement outcomes, and human rights due diligence processes.</p>
+                    </div>
+                    <div class="story-metadata">
+                        <span>Source: Q1 2024 ESG Update</span>
+                        <span>Reliability: Medium</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Right Sidebar -->
+    <div class="insights-sidebar">
+        <h3 class="sidebar-title">Document Analysis Insights</h3>
+        
+        <!-- Key Metrics -->
+        <div class="sidebar-section">
+            <h4 class="sidebar-section-title">Key Metrics</h4>
+            <div class="metric-item">
+                <div class="metric-label">ESRS Compliance</div>
+                <div class="metric-value">78%</div>
+            </div>
+            <div class="metric-item">
+                <div class="metric-label">Climate Disclosure</div>
+                <div class="metric-value">92%</div>
+            </div>
+            <div class="metric-item">
+                <div class="metric-label">Biodiversity Disclosure</div>
+                <div class="metric-value">23%</div>
+            </div>
+            <div class="metric-item">
+                <div class="metric-label">Social Disclosure</div>
+                <div class="metric-value">45%</div>
+            </div>
+        </div>
+        
+        <!-- Sustainability Co-Pilot Options -->
+        <div class="sidebar-section">
+            <h4 class="sidebar-section-title">Ask Sustainability Co-Pilot</h4>
+            <div class="copilot-options">
+                <div class="copilot-option" data-action="analyze-esg">
+                    Analyze ESG Metrics
+                </div>
+                <div class="copilot-option" data-action="csrd-overview">
+                    CSRD Overview
+                </div>
+                <div class="copilot-option" data-action="generate-narrative">
+                    Generate Narrative
+                </div>
+                <div class="copilot-option" data-action="custom-query">
+                    Custom Query
+                </div>
+            </div>
+        </div>
+        
+        <!-- Recent Activity -->
+        <div class="sidebar-section">
+            <h4 class="sidebar-section-title">Recent Activity</h4>
+            <div class="news-item">
+                <div class="company-icon">
+                    <i class="fas fa-file-alt"></i>
+                </div>
+                <div class="news-content">
+                    <div class="news-title">Q1 2024 ESG Update analyzed</div>
+                    <div class="news-meta">
+                        <span class="news-time">10 minutes ago</span>
+                    </div>
+                </div>
+            </div>
+            <div class="news-item">
+                <div class="company-icon">
+                    <i class="fas fa-robot"></i>
+                </div>
+                <div class="news-content">
+                    <div class="news-title">Co-Pilot generated biodiversity insights</div>
+                    <div class="news-meta">
+                        <span class="news-time">1 hour ago</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Sustainability Co-Pilot Trigger -->
+<div class="sustainability-copilot-trigger" id="copilotTrigger">
+    <i class="fas fa-robot"></i>
+</div>
+
+<!-- Sustainability Co-Pilot Dialog (imported from sustainability-copilot.html) -->
+<div id="sustainabilityCopilotDialog" class="sustainability-copilot-dialog hidden">
+    <!-- Content will be loaded via JavaScript -->
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script src="{{ url_for('static', filename='js/sustainability-copilot.js') }}"></script>
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // Tab Navigation
+    const tabs = document.querySelectorAll('.doc-hub-tab');
+    const tabContents = document.querySelectorAll('.doc-hub-tab-content');
+    
+    tabs.forEach(tab => {
+        tab.addEventListener('click', () => {
+            // Remove active class from all tabs and content
+            tabs.forEach(t => t.classList.remove('active'));
+            tabContents.forEach(content => content.classList.remove('active'));
+            
+            // Add active class to clicked tab
+            tab.classList.add('active');
+            
+            // Show corresponding content
+            const tabId = tab.id;
+            const contentId = tabId.replace('Tab', 'Content');
+            document.getElementById(contentId).classList.add('active');
+        });
+    });
+    
+    // Drag and Drop Upload
+    const dropZone = document.getElementById('dropZone');
+    const fileInput = document.getElementById('fileInput');
+    const uploadBtn = document.getElementById('uploadBtn');
+    const pasteBtn = document.getElementById('pasteBtn');
+    const fileInfo = document.getElementById('fileInfo');
+    const fileName = document.getElementById('fileName');
+    const fileDetail = document.getElementById('fileDetail');
+    const fileProgressBar = document.getElementById('fileProgressBar');
+    const analyzeBtn = document.getElementById('analyzeBtn');
+    
+    // Upload button click
+    uploadBtn.addEventListener('click', () => {
+        fileInput.click();
+    });
+    
+    // File input change
+    fileInput.addEventListener('change', (e) => {
+        if (e.target.files.length > 0) {
+            const file = e.target.files[0];
+            handleFileUpload(file);
+        }
+    });
+    
+    // Drag and drop events
+    dropZone.addEventListener('dragover', (e) => {
+        e.preventDefault();
+        dropZone.classList.add('drag-over');
+    });
+    
+    dropZone.addEventListener('dragleave', () => {
+        dropZone.classList.remove('drag-over');
+    });
+    
+    dropZone.addEventListener('drop', (e) => {
+        e.preventDefault();
+        dropZone.classList.remove('drag-over');
+        
+        if (e.dataTransfer.files.length > 0) {
+            const file = e.dataTransfer.files[0];
+            handleFileUpload(file);
+        }
+    });
+    
+    // Handle file upload
+    function handleFileUpload(file) {
+        // Display file info
+        fileName.textContent = file.name;
+        
+        // Calculate file size and format it
+        const fileSizeInMB = (file.size / (1024 * 1024)).toFixed(2);
+        fileDetail.textContent = `${fileSizeInMB} MB • Analyzing...`;
+        
+        // Show file info section
+        fileInfo.classList.add('show');
+        
+        // Simulate upload progress
+        let progress = 0;
+        const progressInterval = setInterval(() => {
+            progress += 5;
+            fileProgressBar.style.width = `${progress}%`;
+            
+            if (progress >= 100) {
+                clearInterval(progressInterval);
+                fileDetail.textContent = `${fileSizeInMB} MB • 32 pages • Ready for analysis`;
+            }
+        }, 150);
+    }
+    
+    // Analyze button click
+    analyzeBtn.addEventListener('click', () => {
+        // Switch to Analyze Documents tab
+        document.getElementById('analyzeDocsTab').click();
+    });
+    
+    // Paste text button
+    pasteBtn.addEventListener('click', () => {
+        // You could implement a textarea modal here
+        alert('Text pasting feature will open a text input modal');
+    });
+    
+    // Story card expansion
+    const storyCards = document.querySelectorAll('.story-card');
+    
+    storyCards.forEach(card => {
+        card.addEventListener('click', () => {
+            card.classList.toggle('expanded');
+        });
+    });
+    
+    // Timeline toggle
+    const timelineToggle = document.getElementById('timelineToggle');
+    const horizontalTimeline = document.getElementById('horizontalTimeline');
+    
+    timelineToggle.addEventListener('click', () => {
+        horizontalTimeline.classList.toggle('hidden');
+        
+        // Update toggle text and icon
+        if (horizontalTimeline.classList.contains('hidden')) {
+            timelineToggle.innerHTML = '<i class="fas fa-chevron-down"></i> Show Timeline';
+        } else {
+            timelineToggle.innerHTML = '<i class="fas fa-chevron-up"></i> Hide Timeline';
+        }
+    });
+    
+    // Copilot suggestions
+    const copilotOptions = document.querySelectorAll('.copilot-option');
+    
+    copilotOptions.forEach(option => {
+        option.addEventListener('click', () => {
+            // If the option has a suggestion, open the copilot with that suggestion
+            const suggestion = option.getAttribute('data-suggestion');
+            if (suggestion) {
+                // Open co-pilot with suggestion
+                openSustainabilityCopilot(suggestion);
+            }
+            
+            // If the option has an action, handle it
+            const action = option.getAttribute('data-action');
+            if (action) {
+                handleCopilotAction(action);
+            }
+        });
+    });
+    
+    // Handle copilot actions
+    function handleCopilotAction(action) {
+        let query = '';
+        
+        switch (action) {
+            case 'analyze-esg':
+                query = 'Analyze our ESG metrics and suggest improvements';
+                break;
+            case 'csrd-overview':
+                query = 'Explain CSRD requirements and our compliance status';
+                break;
+            case 'generate-narrative':
+                query = 'Generate a sustainability narrative based on our data';
+                break;
+            case 'custom-query':
+                query = prompt('Enter your sustainability question:');
+                if (!query) return; // Exit if canceled
+                break;
+            default:
+                return;
+        }
+        
+        openSustainabilityCopilot(query);
+    }
+    
+    // Initialize Sustainability Co-Pilot
+    initSustainabilityCopilot();
+    
+    // Co-Pilot trigger button
+    const copilotTrigger = document.getElementById('copilotTrigger');
+    
+    copilotTrigger.addEventListener('click', () => {
+        openSustainabilityCopilot();
+    });
+    
+    // Document Card Click in Analyze Documents Tab
+    const completedDocCards = document.querySelectorAll('.document-card.completed');
+    
+    completedDocCards.forEach(card => {
+        card.addEventListener('click', () => {
+            // Switch to View Insights tab
+            document.getElementById('viewInsightsTab').click();
+        });
+    });
+});
+</script>
+{% endblock %}
