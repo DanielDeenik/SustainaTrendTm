@@ -320,6 +320,14 @@
         margin-top: var(--fc-spacing-md);
     }
     
+    .compliance-actions {
+        display: flex;
+        justify-content: center;
+        margin-top: var(--fc-spacing-lg);
+        padding-top: var(--fc-spacing-md);
+        border-top: 1px solid var(--fc-border);
+    }
+    
     .compliance-card {
         background-color: var(--fc-bg-card);
         border: 1px solid var(--fc-border);
@@ -572,6 +580,12 @@
                     <div class="compliance-chart-fill" style="width: 72%;"></div>
                 </div>
             </div>
+        </div>
+        
+        <div class="compliance-actions">
+            <button id="downloadReportBtn" class="finchat-button finchat-button-primary">
+                <i class="fas fa-file-pdf"></i> Download Compliance Report
+            </button>
         </div>
     </div>
     
@@ -1080,6 +1094,44 @@
                 fileInfo.classList.add('show');
             });
         });
+        
+        // Download Report Button
+        const downloadReportBtn = document.getElementById('downloadReportBtn');
+        downloadReportBtn.addEventListener('click', function() {
+            // Check if we have a document ID in the session
+            const documentId = getActiveDocumentId();
+            
+            if (!documentId) {
+                alert('No document found. Please upload and analyze a document first.');
+                return;
+            }
+            
+            // Show loading state
+            const originalText = downloadReportBtn.innerHTML;
+            downloadReportBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Generating Report...';
+            downloadReportBtn.disabled = true;
+            
+            // Generate and download the report
+            window.location.href = `/data-moat/api/generate-report/${documentId}`;
+            
+            // Reset button after a delay (since we're redirecting)
+            setTimeout(() => {
+                downloadReportBtn.innerHTML = originalText;
+                downloadReportBtn.disabled = false;
+            }, 2000);
+        });
+        
+        // Helper function to get active document ID
+        function getActiveDocumentId() {
+            // Check URL parameters first
+            const urlParams = new URLSearchParams(window.location.search);
+            if (urlParams.has('document_id')) {
+                return urlParams.get('document_id');
+            }
+            
+            // If no ID in URL, check if we have an ID in sessionStorage
+            return sessionStorage.getItem('activeDocumentId') || null;
+        }
     });
 </script>
 {% endblock %}
