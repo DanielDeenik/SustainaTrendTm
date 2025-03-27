@@ -2438,36 +2438,70 @@ def api_document_upload():
         logger.info(f"File saved to {file_path}")
         
         # Process the document with RAG AI
-        # This would connect to document_processor and generate insights
         try:
-            # Import document processor if available
-            from document_processor import DocumentProcessor
-            processor = DocumentProcessor()
-            processing_result = processor.process_document(file_path)
+            # Try to use Data Moat enhanced processor first
+            try:
+                from frontend.data_moat.enhanced_processor import EnhancedDocumentProcessor
+                processor = EnhancedDocumentProcessor()
+                logger.info("Using EnhancedDocumentProcessor from Data Moat")
+                use_ocr = request.form.get('use_ocr', 'false').lower() == 'true'
+                auto_detect_framework = request.form.get('auto_detect_framework', 'true').lower() == 'true'
+                processing_result = processor.process_document(
+                    file_path=file_path,
+                    use_ocr=use_ocr,
+                    auto_detect_framework=auto_detect_framework
+                )
+                
+                # Log detailed information
+                logger.info(f"Document processed with EnhancedDocumentProcessor, result: {processing_result.get('success', False)}")
+                
+                # Check if processing was successful
+                if processing_result.get('success', False):
+                    insights = {
+                        "status": "success",
+                        "message": "Document processed successfully with enhanced processor",
+                        "document_id": document_id,
+                        "file_info": file_info,
+                        "processing_result": processing_result
+                    }
+                else:
+                    # Try fallback to basic processor
+                    raise ImportError(f"Enhanced processor failed: {processing_result.get('error', 'Unknown error')}")
+                    
+            except ImportError as e:
+                # Fallback to regular document processor
+                logger.warning(f"Enhanced processor not available, using regular DocumentProcessor: {str(e)}")
+                from document_processor import DocumentProcessor
+                processor = DocumentProcessor()
+                processing_result = processor.process_document(file_path)
+                
+                # Check for regulatory compliance
+                compliance_result = processor._assess_regulatory_compliance(processing_result.get("text", ""))
+                
+                # Extract metrics
+                metrics = processor._identify_sustainability_metrics(processing_result.get("text", ""))
+                
+                # Generate insights
+                insights = {
+                    "status": "success",
+                    "message": "Document processed successfully with standard processor",
+                    "document_id": document_id,
+                    "file_info": file_info,
+                    "compliance": compliance_result,
+                    "metrics": metrics,
+                    "frameworks_detected": processor._identify_frameworks(processing_result.get("text", "")),
+                    "summary": processor._generate_executive_summary(processing_result.get("text", ""))
+                }
+                
+        except Exception as e:
+            logger.warning(f"Document processor not available, using simplified analysis: {str(e)}")
+            import traceback
+            logger.error(traceback.format_exc())
             
-            # Check for regulatory compliance
-            compliance_result = processor._assess_regulatory_compliance(processing_result.get("text", ""))
-            
-            # Extract metrics
-            metrics = processor._identify_sustainability_metrics(processing_result.get("text", ""))
-            
-            # Generate insights
-            insights = {
-                "status": "success",
-                "message": "Document processed successfully",
-                "document_id": document_id,
-                "file_info": file_info,
-                "compliance": compliance_result,
-                "metrics": metrics,
-                "frameworks_detected": processor._identify_frameworks(processing_result.get("text", "")),
-                "summary": processor._generate_executive_summary(processing_result.get("text", ""))
-            }
-        except ImportError:
-            logger.warning("Document processor module not available, using simplified analysis")
             # Generate basic insights without the document processor
             insights = {
                 "status": "success",
-                "message": "Document processed with simplified analysis (Document processor not available)",
+                "message": "Document processed with simplified analysis (Document processors not available)",
                 "document_id": document_id,
                 "file_info": file_info,
                 "compliance": {

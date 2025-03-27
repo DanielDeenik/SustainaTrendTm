@@ -25,7 +25,7 @@ from werkzeug.utils import secure_filename
 logger = logging.getLogger(__name__)
 
 # Define constants
-UPLOAD_FOLDER = os.path.join('frontend', 'uploads')
+UPLOAD_FOLDER = os.path.join('frontend', 'static', 'uploads')
 ALLOWED_EXTENSIONS = {'pdf', 'docx', 'txt', 'csv', 'xlsx'}
 
 # Create blueprint
