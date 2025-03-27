@@ -80,9 +80,70 @@
         <!-- Analyze Documents Tab -->
         <div id="analyzeDocsContent" class="doc-hub-tab-content">
             <h3 class="sidebar-title mb-4">Document Analysis Tracking</h3>
+            
+            <!-- Regulatory AI Analysis Section -->
+            <div class="regulatory-ai-section">
+                <div class="regulatory-ai-header">
+                    <div class="regulatory-ai-icon">
+                        <i class="fas fa-robot"></i>
+                    </div>
+                    <div class="regulatory-ai-title">Regulatory AI Analysis</div>
+                    <div class="regulatory-ai-status" id="regulatoryAiStatus">Processing...</div>
+                </div>
+                
+                <div class="regulatory-ai-progress">
+                    <div class="regulatory-ai-progress-bar indeterminate" id="regulatoryAiProgressBar"></div>
+                </div>
+                
+                <div id="regulatoryAiStage" class="mb-2">
+                    <strong>Current Stage:</strong> 
+                    <span id="currentStage">Extracting document content</span>
+                </div>
+                
+                <div id="regulatoryAiMetrics" class="regulatory-ai-metrics hidden">
+                    <div class="regulatory-framework">
+                        <div class="framework-name">CSRD Overall</div>
+                        <div class="framework-score high" id="csrdScore">78%</div>
+                        <div class="framework-description">Corporate Sustainability Reporting Directive</div>
+                    </div>
+                    
+                    <div class="regulatory-framework">
+                        <div class="framework-name">ESRS E4</div>
+                        <div class="framework-score low" id="esrsE4Score">23%</div>
+                        <div class="framework-description">Biodiversity & Ecosystems</div>
+                    </div>
+                    
+                    <div class="regulatory-framework">
+                        <div class="framework-name">TCFD</div>
+                        <div class="framework-score medium" id="tcfdScore">65%</div>
+                        <div class="framework-description">Climate-related Financial Disclosures</div>
+                    </div>
+                    
+                    <div class="regulatory-framework">
+                        <div class="framework-name">SFDR</div>
+                        <div class="framework-score high" id="sfdrScore">86%</div>
+                        <div class="framework-description">Sustainable Finance Disclosure</div>
+                    </div>
+                </div>
+                
+                <div id="analysisSummary" class="summary-box hidden">
+                    <div class="summary-title">Analysis Summary</div>
+                    <div class="summary-content">
+                        Your sustainability report shows strong CSRD compliance overall (78%), with excellent coverage of social metrics (92%) and climate-related disclosures (65%). However, biodiversity reporting (23%) falls significantly below industry averages and regulatory requirements. Consider enhancing your biodiversity disclosures to meet ESRS E4 standards.
+                    </div>
+                </div>
+                
+                <div class="text-center mt-4">
+                    <button class="upload-btn" id="viewInsightsBtn">
+                        <i class="fas fa-chart-bar"></i> View Detailed Insights
+                    </button>
+                </div>
+            </div>
+            
+            <h3 class="sidebar-title mb-4 mt-6">Document Queue</h3>
             <div class="document-list">
                 <!-- In Progress Document -->
-                <div class="document-card">
+                <div class="document-card active-analysis">
                     <div class="document-header">
                         <div class="document-title">2024 Sustainability Report</div>
                         <div class="document-status">
@@ -264,19 +325,19 @@
             <h4 class="sidebar-section-title">Key Metrics</h4>
             <div class="metric-item">
                 <div class="metric-label">ESRS Compliance</div>
-                <div class="metric-value">78%</div>
+                <div class="metric-value medium">78%</div>
             </div>
             <div class="metric-item">
                 <div class="metric-label">Climate Disclosure</div>
-                <div class="metric-value">92%</div>
+                <div class="metric-value high">92%</div>
             </div>
             <div class="metric-item">
                 <div class="metric-label">Biodiversity Disclosure</div>
-                <div class="metric-value">23%</div>
+                <div class="metric-value low">23%</div>
             </div>
             <div class="metric-item">
                 <div class="metric-label">Social Disclosure</div>
-                <div class="metric-value">45%</div>
+                <div class="metric-value medium">45%</div>
             </div>
         </div>
         
@@ -436,13 +497,132 @@ document.addEventListener('DOMContentLoaded', function() {
     analyzeBtn.addEventListener('click', () => {
         // Switch to Analyze Documents tab
         document.getElementById('analyzeDocsTab').click();
+        
+        // Start simulated regulatory AI analysis
+        simulateRegulatoryAIAnalysis();
     });
     
     // Paste text button
     pasteBtn.addEventListener('click', () => {
-        // You could implement a textarea modal here
-        alert('Text pasting feature will open a text input modal');
+        // Create and show a text paste modal
+        const modal = document.createElement('div');
+        modal.className = 'paste-text-modal';
+        modal.innerHTML = `
+            <div class="paste-text-content">
+                <div class="paste-text-header">
+                    <h3>Paste Sustainability Document Text</h3>
+                    <button class="close-modal-btn"><i class="fas fa-times"></i></button>
+                </div>
+                <div class="paste-text-body">
+                    <textarea id="pasteTextArea" placeholder="Paste your document text here..."></textarea>
+                </div>
+                <div class="paste-text-footer">
+                    <button class="upload-btn" id="submitPastedTextBtn">Analyze Text</button>
+                </div>
+            </div>
+        `;
+        document.body.appendChild(modal);
+        
+        // Close button functionality
+        const closeBtn = modal.querySelector('.close-modal-btn');
+        closeBtn.addEventListener('click', () => {
+            document.body.removeChild(modal);
+        });
+        
+        // Submit button functionality
+        const submitBtn = modal.querySelector('#submitPastedTextBtn');
+        submitBtn.addEventListener('click', () => {
+            const textArea = modal.querySelector('#pasteTextArea');
+            const text = textArea.value.trim();
+            
+            if (text) {
+                // Remove modal
+                document.body.removeChild(modal);
+                
+                // Show file info with text details
+                fileName.textContent = "Pasted Text Document";
+                const textLength = text.length;
+                const wordCount = text.split(/\s+/).length;
+                fileDetail.textContent = `${wordCount} words • ${Math.round(textLength / 1000)}KB • Ready for analysis`;
+                fileInfo.classList.add('show');
+                fileProgressBar.style.width = '100%';
+            }
+        });
     });
+    
+    // Function to simulate Regulatory AI analysis process
+    function simulateRegulatoryAIAnalysis() {
+        // Get elements
+        const progressBar = document.getElementById('regulatoryAiProgressBar');
+        const statusEl = document.getElementById('regulatoryAiStatus');
+        const stageEl = document.getElementById('currentStage');
+        const metricsEl = document.getElementById('regulatoryAiMetrics');
+        const summaryEl = document.getElementById('analysisSummary');
+        const viewInsightsBtn = document.getElementById('viewInsightsBtn');
+        
+        // Remove indeterminate class and set width to 0
+        progressBar.classList.remove('indeterminate');
+        progressBar.style.width = '0%';
+        
+        // Initial status
+        statusEl.textContent = 'Starting analysis...';
+        stageEl.textContent = 'Initializing document processing';
+        
+        // Define analysis stages
+        const stages = [
+            { text: 'Extracting document content', progress: 10 },
+            { text: 'Parsing sustainability metrics', progress: 25 },
+            { text: 'Analyzing CSRD compliance', progress: 40 },
+            { text: 'Evaluating ESRS requirements', progress: 55 },
+            { text: 'Checking TCFD disclosures', progress: 70 },
+            { text: 'Assessing biodiversity reporting', progress: 85 },
+            { text: 'Generating compliance assessment', progress: 95 },
+            { text: 'Analysis complete', progress: 100 }
+        ];
+        
+        // Simulate progress through stages
+        let currentStage = 0;
+        
+        const analysisInterval = setInterval(() => {
+            if (currentStage < stages.length) {
+                // Update progress
+                const stage = stages[currentStage];
+                progressBar.style.width = `${stage.progress}%`;
+                stageEl.textContent = stage.text;
+                
+                if (stage.progress < 100) {
+                    statusEl.textContent = `Processing (${stage.progress}%)...`;
+                } else {
+                    statusEl.textContent = 'Complete';
+                }
+                
+                currentStage++;
+            } else {
+                // Analysis complete
+                clearInterval(analysisInterval);
+                
+                // Show metrics and summary
+                setTimeout(() => {
+                    metricsEl.classList.remove('hidden');
+                    metricsEl.style.animation = 'fadeInUp 0.5s ease forwards';
+                    
+                    // Show summary after a short delay
+                    setTimeout(() => {
+                        summaryEl.classList.remove('hidden');
+                        summaryEl.style.animation = 'fadeInUp 0.5s ease forwards';
+                        
+                        // Enable view insights button
+                        viewInsightsBtn.disabled = false;
+                    }, 800);
+                }, 500);
+            }
+        }, 1200); // Each step takes 1.2 seconds
+        
+        // Setup button to view insights
+        viewInsightsBtn.addEventListener('click', () => {
+            document.getElementById('viewInsightsTab').click();
+        });
+    }
     
     // Story card expansion
     const storyCards = document.querySelectorAll('.story-card');
