@@ -111,9 +111,11 @@ def document_hub():
         # Try to get previously processed documents from session
         processed_documents = session.get('processed_documents', [])
         
+        # Use integrated document hub template
+        logger.info("Using integrated document hub template")
         return render_template(
-            "document_hub.html", 
-            page_title="Document Hub",
+            "integrated_document_hub.html",
+            page_title="Document & Regulatory Intelligence Hub",
             processing_status=processing_status,
             processed_documents=processed_documents,
             **nav_context
@@ -124,7 +126,7 @@ def document_hub():
         
         # Fallback rendering with minimal dependencies
         return render_template(
-            "document_upload_dark.html", 
+            "integrated_document_hub.html", 
             error=str(e)
         )
 
@@ -137,11 +139,23 @@ def document_upload():
         # Include navigation for the template
         nav_context = get_context_for_template()
         
-        # Use dark themed template
-        logger.info("Using Finchat dark document upload template")
+        # Get document processing status
+        processing_status = {
+            "document_processor_available": DOCUMENT_PROCESSOR_AVAILABLE,
+            "upload_folder_exists": os.path.exists(UPLOAD_FOLDER),
+            "allowed_extensions": list(ALLOWED_EXTENSIONS)
+        }
+        
+        # Try to get previously processed documents from session
+        processed_documents = session.get('processed_documents', [])
+        
+        # Use integrated document hub template
+        logger.info("Using integrated document hub template")
         return render_template(
-            "document_upload_dark.html",
-            page_title="Upload Sustainability Document",
+            "integrated_document_hub.html",
+            page_title="Document & Regulatory Intelligence Hub",
+            processing_status=processing_status,
+            processed_documents=processed_documents,
             **nav_context
         )
     except Exception as e:

@@ -1,0 +1,192 @@
+{% extends "layouts/finchat_dark_layout.html" %}
+
+{% block title %}Performance Metrics | SustainaTrend™ Platform{% endblock %}
+
+{% block header_title %}Performance Metrics{% endblock %}
+
+{% block additional_styles %}
+<style>
+    .performance-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+        gap: var(--fc-spacing-lg);
+        margin-bottom: var(--fc-spacing-xl);
+    }
+    
+    .metric-card {
+        background-color: var(--fc-bg-card);
+        border-radius: var(--fc-radius);
+        padding: var(--fc-spacing-lg);
+        box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+    }
+    
+    .metric-header {
+        display: flex;
+        justify-content: space-between;
+        margin-bottom: var(--fc-spacing-md);
+    }
+    
+    .metric-title {
+        font-size: 1.1rem;
+        font-weight: 600;
+        color: var(--fc-text-primary);
+    }
+    
+    .metric-value {
+        font-size: 2rem;
+        font-weight: 700;
+        color: var(--fc-text-primary);
+        margin: var(--fc-spacing-md) 0;
+    }
+    
+    .metric-unit {
+        font-size: 0.9rem;
+        color: var(--fc-text-secondary);
+    }
+    
+    .metric-target {
+        font-size: 0.9rem;
+        color: var(--fc-text-secondary);
+        margin-bottom: var(--fc-spacing-md);
+    }
+    
+    .metric-progress {
+        width: 100%;
+        height: 8px;
+        background-color: var(--fc-bg-tertiary);
+        border-radius: 4px;
+        margin-bottom: var(--fc-spacing-md);
+        overflow: hidden;
+    }
+    
+    .metric-progress-bar {
+        height: 100%;
+        border-radius: 4px;
+    }
+    
+    .change-positive {
+        color: var(--fc-positive);
+    }
+    
+    .change-negative {
+        color: var(--fc-negative);
+    }
+    
+    .performance-filters {
+        display: flex;
+        gap: var(--fc-spacing-md);
+        margin-bottom: var(--fc-spacing-lg);
+        flex-wrap: wrap;
+    }
+    
+    .filter-dropdown {
+        min-width: 200px;
+    }
+    
+    @media (max-width: 768px) {
+        .performance-grid {
+            grid-template-columns: 1fr;
+        }
+    }
+</style>
+{% endblock %}
+
+{% block main_content %}
+<div class="finchat-content-wrapper">
+    <div class="finchat-content-header">
+        <h1>Performance Metrics</h1>
+        <p class="text-secondary">Track and analyze your sustainability metrics against targets</p>
+    </div>
+    
+    <div class="performance-filters">
+        <div class="filter-dropdown">
+            <select class="finchat-select">
+                <option value="all">All Categories</option>
+                <option value="emissions">Emissions</option>
+                <option value="energy">Energy</option>
+                <option value="water">Water</option>
+                <option value="waste">Waste</option>
+                <option value="social">Social</option>
+            </select>
+        </div>
+        
+        <div class="filter-dropdown">
+            <select class="finchat-select">
+                <option value="month">Last Month</option>
+                <option value="quarter">Last Quarter</option>
+                <option value="year" selected>Last Year</option>
+                <option value="custom">Custom Range</option>
+            </select>
+        </div>
+    </div>
+    
+    <div class="performance-grid" id="metricsContainer">
+        <!-- Metrics will be loaded here -->
+        <div class="finchat-loader">
+            <div class="finchat-spinner"></div>
+            <div>Loading metrics...</div>
+        </div>
+    </div>
+    
+    <div class="finchat-card">
+        <h2>Performance Insights</h2>
+        <div class="finchat-card-content">
+            <p>The system will analyze your performance metrics against targets and industry benchmarks to provide recommendations for improvement.</p>
+            
+            <div class="finchat-button-group" style="margin-top: var(--fc-spacing-md);">
+                <button class="finchat-button-primary">Generate Insights Report</button>
+                <button class="finchat-button">Export Data</button>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block additional_scripts %}
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        // Fetch performance metrics data
+        fetch('/performance/api/data')
+            .then(response => response.json())
+            .then(data => {
+                const container = document.getElementById('metricsContainer');
+                container.innerHTML = ''; // Clear loader
+                
+                // Create metric cards
+                data.forEach(metric => {
+                    const progress = (metric.value / metric.target) * 100;
+                    const progressColor = progress <= 100 ? 'var(--fc-positive)' : 'var(--fc-negative)';
+                    
+                    const changeClass = metric.change < 0 ? 'change-positive' : 'change-negative';
+                    const changeIcon = metric.change < 0 ? 'fa-arrow-down' : 'fa-arrow-up';
+                    const changeValue = Math.abs(metric.change);
+                    
+                    const card = document.createElement('div');
+                    card.className = 'metric-card';
+                    card.innerHTML = `
+                        <div class="metric-header">
+                            <div class="metric-title">${metric.name}</div>
+                            <div class="${changeClass}">
+                                <i class="fas ${changeIcon}"></i> ${changeValue}%
+                            </div>
+                        </div>
+                        <div class="metric-value">
+                            ${metric.value.toLocaleString()} <span class="metric-unit">${metric.unit}</span>
+                        </div>
+                        <div class="metric-target">Target: ${metric.target.toLocaleString()} ${metric.unit}</div>
+                        <div class="metric-progress">
+                            <div class="metric-progress-bar" style="width: ${Math.min(progress, 100)}%; background-color: ${progressColor};"></div>
+                        </div>
+                    `;
+                    
+                    container.appendChild(card);
+                });
+            })
+            .catch(error => {
+                console.error('Error fetching metrics:', error);
+                const container = document.getElementById('metricsContainer');
+                container.innerHTML = '<div class="finchat-alert finchat-alert-error">Failed to load metrics data. Please try again later.</div>';
+            });
+    });
+</script>
+{% endblock %}

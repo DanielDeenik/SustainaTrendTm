@@ -2289,37 +2289,17 @@ def api_strategy_recommendations():
 def document_upload():
     """
     Document upload page with RAG-powered AI analysis
-    This route provides a UI for uploading sustainability reports and documentation
-    which are then analyzed by the RAG AI system for compliance and strategy recommendations
+    This route redirects to the integrated document hub for unified access to
+    document upload, regulatory AI analysis, and document management
     """
     try:
-        logger.info("Document upload route accessed")
+        logger.info("Document upload route accessed - redirecting to document.document_upload")
         
-        # Get navigation context for template rendering
-        nav_context = get_context_for_template()
+        # Redirect to the consolidated document hub
+        return redirect(url_for('document.document_upload'))
         
-        # Prepare context data for the template
-        context = {
-            "page_title": "Document Analysis - SustainaTrend™",
-            "upload_enabled": True,
-            "upload_api_endpoint": url_for('enhanced_strategy.api_document_upload'),
-            "show_recent_documents": False,
-            "recent_documents": [],
-            "regulatory_frameworks": [
-                {"id": "csrd", "name": "EU CSRD", "description": "Corporate Sustainability Reporting Directive"},
-                {"id": "esrs", "name": "ESRS", "description": "European Sustainability Reporting Standards"},
-                {"id": "sfdr", "name": "SFDR", "description": "Sustainable Finance Disclosure Regulation"}
-            ],
-            **nav_context
-        }
-        
-        # Render the document upload template with context
-        return render_template(
-            "document_upload_dark.html",
-            **context
-        )
     except Exception as e:
-        logger.error(f"Error in document upload route: {str(e)}")
+        logger.error(f"Error in document upload route redirection: {str(e)}")
         logger.error(traceback.format_exc())
         
         # Return an error page

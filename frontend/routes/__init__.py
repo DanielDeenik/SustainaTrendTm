@@ -27,6 +27,20 @@ def register_blueprints(app):
         logger.error(f"Dashboard blueprint import failed: {str(e)}")
         logger.error("This is a critical error as the Dashboard is a core component of the 2025 refresh")
     
+    # Import performance metrics blueprint
+    try:
+        from .performance import performance_bp, register_blueprint as register_performance
+        logger.info("Performance metrics blueprint imported successfully")
+    except ImportError as e:
+        logger.error(f"Performance metrics blueprint import failed: {str(e)}")
+    
+    # Import overview blueprint
+    try:
+        from .overview import overview_bp, register_blueprint as register_overview
+        logger.info("Overview blueprint imported successfully")
+    except ImportError as e:
+        logger.error(f"Overview blueprint import failed: {str(e)}")
+    
     # Import enhanced strategy blueprint - centralized implementation with Finchat.io-style UI
     # This is now the only strategy blueprint as all others have been consolidated into it
     try:
@@ -93,6 +107,20 @@ def register_blueprints(app):
     except NameError:
         logger.error("Dashboard blueprint not registered due to import failure")
         logger.error("This is a critical error as the Dashboard is a core component of the 2025 refresh")
+        
+    # Register performance metrics blueprint
+    try:
+        register_performance(app)
+        logger.info("Performance metrics blueprint registered successfully")
+    except NameError:
+        logger.warning("Performance metrics blueprint not registered due to import failure")
+        
+    # Register overview blueprint
+    try:
+        register_overview(app)
+        logger.info("Overview blueprint registered successfully")
+    except NameError:
+        logger.warning("Overview blueprint not registered due to import failure")
     
     # Register enhanced strategy blueprint - now the only strategy-related blueprint
     try:

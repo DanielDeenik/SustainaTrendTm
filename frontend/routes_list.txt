@@ -1,45 +1,80 @@
-[2025-03-25 05:49:49,004] INFO in __init__: Registering blueprints
-[2025-03-25 05:49:49,341] WARNING in template_utils: Navigation config module not found, using fallback context
-[2025-03-25 05:49:49,342] INFO in strategy_ai_consultant: Strategy AI Consultant initialized
-[2025-03-25 05:49:49,342] INFO in strategy_ai_consultant: Global Strategy AI Consultant instance created
-[2025-03-25 05:49:49,342] INFO in strategy_ai_consultant: Strategy AI Consultant initialized
-[2025-03-25 05:49:49,342] INFO in enhanced_strategy: Strategy AI Consultant module loaded successfully in enhanced strategy
-[2025-03-25 05:49:49,343] INFO in enhanced_strategy: Trend Virality Benchmarking module loaded successfully
-[2025-03-25 05:49:49,781] INFO in ai_connector: Google Generative AI (Gemini) module loaded successfully
-[2025-03-25 05:49:50,253] INFO in ai_connector: OpenAI module loaded successfully
-[2025-03-25 05:49:50,295] WARNING in ai_connector: Pinecone not available
-[2025-03-25 05:49:50,295] INFO in ai_connector: Initializing AI services
-[2025-03-25 05:49:50,295] INFO in ai_connector: Gemini AI configured successfully
-[2025-03-25 05:49:50,329] INFO in ai_connector: Available Gemini models: 32
-[2025-03-25 05:49:51,123] WARNING in ethical_ai: AI libraries not available for ethical AI compliance. Using fallback mechanisms.
-[2025-03-25 05:49:51,123] INFO in document_processor: Compliance check functionality loaded successfully
-[2025-03-25 05:49:51,123] INFO in enhanced_strategy: Storytelling module imported successfully
-[2025-03-25 05:49:51,124] INFO in __init__: Enhanced Strategy Hub blueprint imported successfully
-[2025-03-25 05:49:51,124] INFO in strategy: Strategy blueprint initialized (redirect mode)
-[2025-03-25 05:49:51,124] INFO in __init__: Strategy redirect blueprint imported successfully
-[2025-03-25 05:49:51,125] INFO in __init__: Stories blueprint imported successfully
-[2025-03-25 05:49:51,126] INFO in __init__: Science-Based Targets blueprint imported successfully
-[2025-03-25 05:49:51,126] INFO in __init__: Regulatory AI Agent blueprint imported successfully
-[2025-03-25 05:49:51,142] INFO in enhanced_strategy: Enhanced Strategy Hub routes registered
-[2025-03-25 05:49:51,142] INFO in __init__: Enhanced Strategy Hub blueprint registered successfully
-[2025-03-25 05:49:51,146] INFO in stories: Stories blueprint registered successfully
-[2025-03-25 05:49:51,146] INFO in __init__: Stories blueprint registered successfully
-[2025-03-25 05:49:51,153] INFO in strategy: Strategy blueprint registered (redirect mode)
-[2025-03-25 05:49:51,154] INFO in __init__: Strategy redirect blueprint registered successfully
-[2025-03-25 05:49:51,155] INFO in __init__: Science-Based Targets blueprint registered successfully
-[2025-03-25 05:49:51,155] INFO in regulatory_ai_agent: Regulatory AI Agent blueprint registered successfully
-[2025-03-25 05:49:51,155] INFO in __init__: Regulatory AI Agent blueprint registered successfully
-[2025-03-25 05:49:51,160] INFO in legacy: Legacy routes blueprint registered successfully
-[2025-03-25 05:49:51,160] INFO in __init__: Legacy routes blueprint registered successfully
-[2025-03-25 05:49:51,162] INFO in __init__: All blueprints registered successfully
+[2025-03-27 12:54:04,294] INFO in __init__: Registering blueprints
+[2025-03-27 12:54:04,602] INFO in __init__: Dashboard blueprint imported successfully
+[2025-03-27 12:54:04,602] INFO in __init__: Performance metrics blueprint imported successfully
+[2025-03-27 12:54:04,603] INFO in __init__: Overview blueprint imported successfully
+[2025-03-27 12:54:04,605] INFO in strategy_ai_consultant: Strategy AI Consultant initialized
+[2025-03-27 12:54:04,605] INFO in strategy_ai_consultant: Global Strategy AI Consultant instance created
+[2025-03-27 12:54:04,605] INFO in strategy_ai_consultant: Strategy AI Consultant initialized
+[2025-03-27 12:54:04,606] INFO in enhanced_strategy: Strategy AI Consultant module loaded successfully in enhanced strategy
+[2025-03-27 12:54:04,607] INFO in enhanced_strategy: Trend Virality Benchmarking module loaded successfully
+[2025-03-27 12:54:05,105] INFO in ai_connector: Configured Google Generative AI with provided API key
+[2025-03-27 12:54:05,569] INFO in ai_connector: Configured OpenAI with provided API key
+[2025-03-27 12:54:07,753] INFO in ai_connector: Successfully connected to Pinecone with V3 API
+[2025-03-27 12:54:07,754] INFO in ai_connector: Available indexes: ['kycstreamline', 'regulatoryai']
+[2025-03-27 12:54:08,426] WARNING in ethical_ai: AI libraries not available for ethical AI compliance. Using fallback mechanisms.
+[2025-03-27 12:54:08,426] INFO in document_processor: Compliance check functionality loaded successfully
+[2025-03-27 12:54:08,427] INFO in enhanced_strategy: Storytelling module imported successfully
+[2025-03-27 12:54:08,427] INFO in __init__: Enhanced Strategy Hub blueprint imported successfully
+[2025-03-27 12:54:08,427] INFO in strategy: Strategy blueprint initialized (redirect mode)
+[2025-03-27 12:54:08,428] INFO in __init__: Strategy redirect blueprint imported successfully
+[2025-03-27 12:54:08,429] INFO in __init__: Stories blueprint imported successfully
+[2025-03-27 12:54:08,429] INFO in __init__: Science-Based Targets blueprint imported successfully
+[2025-03-27 12:54:08,430] INFO in __init__: Regulatory AI functionality has been consolidated into Data Moat blueprint
+[2025-03-27 12:54:08,431] INFO in ai_connector: OpenAI package is available
+[2025-03-27 12:54:08,431] INFO in ai_connector: Google Generative AI package is available
+[2025-03-27 12:54:08,431] INFO in ai_connector: Pinecone package is available
+[2025-03-27 12:54:08,432] INFO in regulatory_ai_service: AI connector module loaded successfully
+[2025-03-27 12:54:08,432] INFO in regulatory_ai_service: Pinecone RAG system availability: Not connected
+[2025-03-27 12:54:08,577] INFO in _client: HTTP Request: GET https://api.openai.com/v1/models "HTTP/1.1 401 Unauthorized"
+[2025-03-27 12:54:08,580] ERROR in ai_connector: Error connecting to OpenAI: Error code: 401 - {'error': {'message': 'Incorrect API key provided: sk-proj-********************************************************************************************************************************************************5FgA. You can find your API key at https://platform.openai.com/account/api-keys.', 'type': 'invalid_request_error', 'param': None, 'code': 'invalid_api_key'}}
+[2025-03-27 12:54:08,580] INFO in ai_connector: Configured Google Generative AI with provided API key
+[2025-03-27 12:54:08,655] INFO in ai_connector: Successfully connected to Pinecone with V3 API
+[2025-03-27 12:54:08,655] INFO in ai_connector: Available indexes: ['kycstreamline', 'regulatoryai']
+[2025-03-27 12:54:08,748] INFO in ai_connector: Successfully connected to Pinecone index 'regulatoryai' with V3 API
+[2025-03-27 12:54:08,750] INFO in data_moat_routes: AI connector module loaded successfully in data_moat_routes
+[2025-03-27 12:54:08,750] INFO in data_moat_routes: Pinecone RAG system availability: Connected
+[2025-03-27 12:54:08,750] INFO in __init__: Data Moat blueprint imported successfully
+[2025-03-27 12:54:08,752] INFO in document_processor: Compliance check functionality loaded successfully
+[2025-03-27 12:54:08,752] INFO in document_routes: Document processor loaded successfully
+[2025-03-27 12:54:08,752] INFO in ai_connector: Configured Google Generative AI with provided API key
+[2025-03-27 12:54:08,812] INFO in ai_connector: Successfully connected to Pinecone with V3 API
+[2025-03-27 12:54:08,812] INFO in ai_connector: Available indexes: ['kycstreamline', 'regulatoryai']
+[2025-03-27 12:54:08,812] INFO in ai_connector: Successfully connected to Pinecone index 'regulatoryai' with V3 API
+[2025-03-27 12:54:08,814] INFO in document_routes: AI connector module loaded successfully in document_routes
+[2025-03-27 12:54:08,814] INFO in document_routes: Pinecone RAG system availability: Connected
+[2025-03-27 12:54:08,815] INFO in __init__: Document routes blueprint imported successfully
+[2025-03-27 12:54:08,819] INFO in dashboard: Dashboard blueprint registered successfully
+[2025-03-27 12:54:08,819] INFO in __init__: Dashboard blueprint registered successfully
+[2025-03-27 12:54:08,820] INFO in performance: Performance metrics blueprint registered successfully
+[2025-03-27 12:54:08,820] INFO in __init__: Performance metrics blueprint registered successfully
+[2025-03-27 12:54:08,820] INFO in overview: Overview blueprint registered successfully
+[2025-03-27 12:54:08,821] INFO in __init__: Overview blueprint registered successfully
+[2025-03-27 12:54:08,831] INFO in enhanced_strategy: Enhanced Strategy Hub routes registered
+[2025-03-27 12:54:08,831] INFO in __init__: Enhanced Strategy Hub blueprint registered successfully
+[2025-03-27 12:54:08,835] INFO in stories: Stories blueprint registered successfully
+[2025-03-27 12:54:08,835] INFO in __init__: Stories blueprint registered successfully
+[2025-03-27 12:54:08,839] INFO in strategy: Strategy blueprint registered (redirect mode)
+[2025-03-27 12:54:08,840] INFO in __init__: Strategy redirect blueprint registered successfully
+[2025-03-27 12:54:08,840] INFO in __init__: Science-Based Targets blueprint registered successfully
+[2025-03-27 12:54:08,846] INFO in data_moat_routes: Enhanced Data Moat routes registered with Regulatory AI functionality
+[2025-03-27 12:54:08,846] INFO in __init__: Data Moat blueprint registered successfully
+[2025-03-27 12:54:08,853] INFO in document_routes: Document query API routes registered successfully
+[2025-03-27 12:54:08,853] INFO in __init__: Document routes blueprint registered successfully
+[2025-03-27 12:54:08,855] INFO in legacy: Legacy routes blueprint registered successfully
+[2025-03-27 12:54:08,856] INFO in __init__: Legacy routes blueprint registered successfully
+[2025-03-27 12:54:08,856] INFO in __init__: All blueprints registered successfully
 
 Registered Routes:
 -----------------
 Route: / | Endpoint: analytics.home | Methods: GET, OPTIONS, HEAD
+Route: / | Endpoint: home | Methods: GET, OPTIONS, HEAD
 Route: /ai-first-strategy-hub | Endpoint: enhanced_strategy.ai_first_strategy_hub_redirect | Methods: GET, OPTIONS, HEAD
 Route: /analytics | Endpoint: legacy.analytics_redirect | Methods: GET, OPTIONS, HEAD
 Route: /api-status | Endpoint: api_views.api_status | Methods: GET, OPTIONS, HEAD
 Route: /api/document-analysis | Endpoint: enhanced_strategy.api_document_analysis | Methods: OPTIONS, POST
+Route: /api/document-audit/<document_id> | Endpoint: document_audit | Methods: OPTIONS, POST
+Route: /api/document-data/<document_id>/<data_id> | Endpoint: document_query_api.get_document_data | Methods: GET, OPTIONS, HEAD
+Route: /api/document-query | Endpoint: document_query_api.query_document | Methods: OPTIONS, POST
 Route: /api/document-text-analysis | Endpoint: enhanced_strategy.api_document_text_analysis | Methods: OPTIONS, POST
 Route: /api/document-upload | Endpoint: enhanced_strategy.api_document_upload | Methods: OPTIONS, POST
 Route: /api/framework-recommendation | Endpoint: enhanced_strategy.api_framework_recommendation | Methods: OPTIONS, POST
@@ -65,14 +100,46 @@ Route: /api/strategy/select-framework | Endpoint: enhanced_strategy.api_select_f
 Route: /api/trend-virality-analysis | Endpoint: enhanced_strategy.api_trend_virality_analysis_redirect | Methods: OPTIONS, POST
 Route: /api/trends | Endpoint: api.api_trends | Methods: GET, OPTIONS, HEAD
 Route: /dashboard | Endpoint: analytics.dashboard | Methods: GET, OPTIONS, HEAD
+Route: /dashboard/ | Endpoint: dashboard.dashboard | Methods: GET, OPTIONS, HEAD
+Route: /dashboard/api/metrics | Endpoint: dashboard.get_metrics | Methods: GET, OPTIONS, HEAD
+Route: /data-moat/ | Endpoint: data_moat.index | Methods: GET, OPTIONS, HEAD
+Route: /data-moat/analysis/<document_id> | Endpoint: data_moat.document_analysis | Methods: GET, OPTIONS, HEAD
+Route: /data-moat/api/document-compliance/<document_id> | Endpoint: data_moat.api_document_compliance | Methods: GET, OPTIONS, HEAD
+Route: /data-moat/api/document/<document_id> | Endpoint: data_moat.api_document | Methods: GET, OPTIONS, HEAD
+Route: /data-moat/api/documents | Endpoint: data_moat.api_documents | Methods: GET, OPTIONS, HEAD
+Route: /data-moat/api/frameworks/<document_id> | Endpoint: data_moat.api_frameworks | Methods: GET, OPTIONS, HEAD
+Route: /data-moat/api/gap-analysis | Endpoint: data_moat.api_regulatory_gap_analysis | Methods: OPTIONS, POST
+Route: /data-moat/api/generate-report/<document_id> | Endpoint: data_moat.api_generate_report | Methods: GET, OPTIONS, HEAD
+Route: /data-moat/api/metrics/<document_id> | Endpoint: data_moat.api_metrics | Methods: GET, OPTIONS, HEAD
+Route: /data-moat/api/regulatory-assessment | Endpoint: data_moat.api_regulatory_assessment | Methods: OPTIONS, POST
+Route: /data-moat/api/regulatory-frameworks | Endpoint: data_moat.api_regulatory_frameworks | Methods: GET, OPTIONS, HEAD
+Route: /data-moat/download/<document_id> | Endpoint: data_moat.download_document | Methods: GET, OPTIONS, HEAD
+Route: /data-moat/regulatory-compliance | Endpoint: data_moat.regulatory_compliance_dashboard | Methods: GET, OPTIONS, HEAD
+Route: /data-moat/upload | Endpoint: data_moat.document_upload | Methods: GET, OPTIONS, HEAD, POST
+Route: /data-moat/view-analysis/<document_id> | Endpoint: data_moat.view_document_analysis | Methods: GET, OPTIONS, HEAD
 Route: /debug | Endpoint: api_views.debug_info | Methods: GET, OPTIONS, HEAD
 Route: /document-upload | Endpoint: enhanced_strategy.document_upload | Methods: GET, OPTIONS, HEAD
+Route: /document-upload-standalone | Endpoint: document_upload_standalone | Methods: GET, OPTIONS, HEAD
+Route: /documents/api/generate-report/<document_id> | Endpoint: document.api_generate_report | Methods: GET, OPTIONS, HEAD
+Route: /documents/api/regulatory-assessment | Endpoint: document.api_regulatory_assessment | Methods: OPTIONS, POST
+Route: /documents/api/regulatory-frameworks | Endpoint: document.api_regulatory_frameworks | Methods: GET, OPTIONS, HEAD
+Route: /documents/api/regulatory-gap-analysis | Endpoint: document.api_regulatory_gap_analysis | Methods: OPTIONS, POST
+Route: /documents/document-analysis/<document_id> | Endpoint: document.document_analysis | Methods: GET, OPTIONS, HEAD
+Route: /documents/document-hub | Endpoint: document.document_hub | Methods: GET, OPTIONS, HEAD
+Route: /documents/document-upload | Endpoint: document.document_upload | Methods: GET, OPTIONS, HEAD
+Route: /documents/download-report/<document_id> | Endpoint: document.download_report | Methods: GET, OPTIONS, HEAD
+Route: /documents/upload-sustainability-document | Endpoint: document.upload_sustainability_document | Methods: OPTIONS, POST
+Route: /documents/view-document/<document_id> | Endpoint: document.view_document | Methods: GET, OPTIONS, HEAD
 Route: /enhanced-strategy-hub | Endpoint: enhanced_strategy.enhanced_strategy_hub | Methods: GET, OPTIONS, HEAD
 Route: /framework-selection-guide | Endpoint: enhanced_strategy.framework_selection_guide | Methods: GET, OPTIONS, HEAD
 Route: /monetization-opportunities | Endpoint: enhanced_strategy.monetization_opportunities_redirect | Methods: GET, OPTIONS, HEAD
 Route: /monetization-opportunities | Endpoint: legacy.monetization_redirect | Methods: GET, OPTIONS, HEAD
 Route: /monetization-strategies | Endpoint: analytics.monetization_strategies_dashboard | Methods: GET, OPTIONS, HEAD
 Route: /monetization-strategies | Endpoint: enhanced_strategy.monetization_strategies_redirect | Methods: GET, OPTIONS, HEAD
+Route: /overview/ | Endpoint: overview.overview | Methods: GET, OPTIONS, HEAD
+Route: /overview/api/summary | Endpoint: overview.get_overview_data | Methods: GET, OPTIONS, HEAD
+Route: /performance/ | Endpoint: performance.performance | Methods: GET, OPTIONS, HEAD
+Route: /performance/api/data | Endpoint: performance.get_performance_data | Methods: GET, OPTIONS, HEAD
 Route: /realestate-trends | Endpoint: realestate.realestate_trends | Methods: GET, OPTIONS, HEAD
 Route: /realestate-unified-dashboard | Endpoint: realestate.realestate_dashboard | Methods: GET, OPTIONS, HEAD
 Route: /realestate/dashboard | Endpoint: realestate.realestate_dashboard | Methods: GET, OPTIONS, HEAD
@@ -125,18 +192,29 @@ Route: /unified-strategy-hub | Endpoint: enhanced_strategy.unified_strategy_hub_
 
 Regulatory AI Routes:
 --------------------
-No regulatory routes found!
+Route: /data-moat/api/gap-analysis | Endpoint: data_moat.api_regulatory_gap_analysis | Methods: OPTIONS, POST
+Route: /data-moat/api/regulatory-assessment | Endpoint: data_moat.api_regulatory_assessment | Methods: OPTIONS, POST
+Route: /data-moat/api/regulatory-frameworks | Endpoint: data_moat.api_regulatory_frameworks | Methods: GET, OPTIONS, HEAD
+Route: /data-moat/regulatory-compliance | Endpoint: data_moat.regulatory_compliance_dashboard | Methods: GET, OPTIONS, HEAD
+Route: /documents/api/regulatory-assessment | Endpoint: document.api_regulatory_assessment | Methods: OPTIONS, POST
+Route: /documents/api/regulatory-frameworks | Endpoint: document.api_regulatory_frameworks | Methods: GET, OPTIONS, HEAD
+Route: /documents/api/regulatory-gap-analysis | Endpoint: document.api_regulatory_gap_analysis | Methods: OPTIONS, POST
 
 Registered Blueprints:
 --------------------
 Blueprint: analytics | URL Prefix: None
 Blueprint: trend | URL Prefix: None
 Blueprint: realestate | URL Prefix: None
+Blueprint: dashboard | URL Prefix: /dashboard
+Blueprint: performance | URL Prefix: /performance
+Blueprint: overview | URL Prefix: /overview
 Blueprint: enhanced_strategy | URL Prefix: None
 Blueprint: stories | URL Prefix: /stories
 Blueprint: strategy | URL Prefix: /strategy
 Blueprint: sbti | URL Prefix: None
-Blueprint: regulatory_ai | URL Prefix: /regulatory-ai
+Blueprint: data_moat | URL Prefix: /data-moat
+Blueprint: document | URL Prefix: None
+Blueprint: document_query_api | URL Prefix: None
 Blueprint: legacy | URL Prefix: None
 Blueprint: api | URL Prefix: /api
 Blueprint: api_views | URL Prefix: None
