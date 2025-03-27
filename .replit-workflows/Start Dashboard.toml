@@ -6,7 +6,7 @@ persistent = true
 onBoot = "wait"
 wait_for_port = 5000
 timeout = 180000
-onPort = { action = "open", port = 5000, url_path = "/data-moat/" }
+onPort = { action = "open", port = 5000, url_path = "/" }
 environment = { 
   DEBUG = "true", 
   FLASK_ENV = "development", 

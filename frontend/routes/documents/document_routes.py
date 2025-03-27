@@ -15,7 +15,7 @@ import math
 from datetime import datetime
 from typing import Dict, List, Any, Optional, Tuple
 
-from flask import Blueprint, render_template, request, jsonify, session, url_for, send_file, current_app
+from flask import Blueprint, render_template, request, jsonify, session, url_for, send_file, current_app, redirect
 from werkzeug.utils import secure_filename
 
 # Import document processor
@@ -452,6 +452,62 @@ def generate_gap_analysis_data(assessment):
         'summary': f"Found {len(gaps)} areas needing improvement.",
         'priority_areas': [gap['criterion'] for gap in gaps[:3]]  # Top 3 priority areas
     }
+
+@document_bp.route('/view-document/<document_id>')
+def view_document(document_id):
+    """View detailed document analysis"""
+    try:
+        # Convert document_id to int (from URL) if it's a string
+        doc_id = int(document_id) if document_id.isdigit() else document_id
+        
+        # Try to get previously processed documents from session
+        processed_documents = session.get('processed_documents', [])
+        
+        # Check if document exists in the session
+        if 0 <= doc_id < len(processed_documents):
+            document = processed_documents[doc_id]
+        else:
+            logger.warning(f"Document {document_id} not found in session")
+            return render_template("error.html", error="Document not found or session expired"), 404
+        
+        # Include navigation for the template
+        nav_context = get_context_for_template()
+        
+        # Render document detail template
+        return render_template(
+            "document_analysis.html",
+            page_title=f"Document Analysis: {document.get('filename', 'Unknown')}",
+            document=document,
+            document_id=doc_id,
+            **nav_context
+        )
+    except Exception as e:
+        logger.error(f"Error viewing document: {str(e)}")
+        logger.error(traceback.format_exc())
+        return render_template("error.html", error=str(e)), 500
+
+@document_bp.route('/download-report/<document_id>')
+def download_report(document_id):
+    """Download document compliance report"""
+    try:
+        # Convert document_id to int (from URL) if it's a string
+        doc_id = int(document_id) if document_id.isdigit() else document_id
+        
+        # Try to get previously processed documents from session
+        processed_documents = session.get('processed_documents', [])
+        
+        # Check if document exists in the session
+        if 0 <= doc_id < len(processed_documents):
+            document = processed_documents[doc_id]
+            # Redirect to API endpoint that generates the report
+            return redirect(url_for('document_routes.api_generate_report', document_id=document.get('filename', doc_id)))
+        else:
+            logger.warning(f"Document {document_id} not found in session")
+            return render_template("error.html", error="Document not found or session expired"), 404
+    except Exception as e:
+        logger.error(f"Error downloading report: {str(e)}")
+        logger.error(traceback.format_exc())
+        return render_template("error.html", error=str(e)), 500
 
 @document_bp.route('/api/generate-report/<document_id>')
 def api_generate_report(document_id):
