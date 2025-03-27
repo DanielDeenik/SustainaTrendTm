@@ -23,17 +23,28 @@
         <!-- Upload Documents Tab -->
         <div id="uploadDocsContent" class="doc-hub-tab-content active">
             <div class="simplified-upload-container">
-                <div class="upload-zone" id="dropZone" aria-label="Document upload area. Drag and drop files here or click to upload.">
+                <div class="upload-zone modern" id="dropZone" aria-label="Document upload area. Drag and drop files here or click to upload.">
                     <div class="upload-icon">
-                        <i class="fas fa-file-upload"></i>
+                        <i class="fas fa-file-upload fa-bounce"></i>
                     </div>
-                    <h3 class="upload-title">Drag and drop your documents here or click to upload</h3>
+                    <h3 class="upload-title">Sustainability Document Analysis</h3>
                     <p class="upload-description">
-                        Upload sustainability reports, ESG disclosures, or regulatory compliance documents for analysis.
+                        Upload your sustainability reports, ESG disclosures, or regulatory documents for AI-powered analysis and compliance insights.
                     </p>
-                    <button class="upload-btn centered-btn" id="uploadBtn">
-                        <i class="fas fa-upload"></i> Upload Document
-                    </button>
+                    <div class="upload-actions">
+                        <button class="upload-btn centered-btn primary-action" id="uploadBtn">
+                            <i class="fas fa-upload"></i> Select Document
+                        </button>
+                        <span class="or-divider">or</span>
+                        <button class="text-paste-btn immediate" id="pasteBtn">
+                            <i class="fas fa-paste"></i> Paste Text
+                        </button>
+                    </div>
+                    <div class="upload-formats">
+                        <span class="format-badge"><i class="fas fa-file-pdf"></i> PDF</span>
+                        <span class="format-badge"><i class="fas fa-file-word"></i> DOCX</span>
+                        <span class="format-badge"><i class="fas fa-file-alt"></i> TXT</span>
+                    </div>
                     <input type="file" id="fileInput" class="hidden" accept=".pdf,.docx,.txt">
                     <div class="drag-message">Drop your file here</div>
                 </div>
@@ -95,13 +106,6 @@
                             <i class="fas fa-redo"></i> Retry
                         </button>
                     </div>
-                </div>
-                
-                <!-- Text Paste Option -->
-                <div class="text-paste-option">
-                    <button class="text-paste-btn" id="pasteBtn">
-                        <i class="fas fa-paste"></i> Or paste text instead
-                    </button>
                 </div>
             </div>
         </div>
@@ -427,6 +431,29 @@
 <div id="sustainabilityCopilotDialog" class="sustainability-copilot-dialog hidden">
     <!-- Content will be loaded via JavaScript -->
 </div>
+
+<!-- Text Paste Modal -->
+<div id="textPasteModal" class="paste-text-modal hidden">
+    <div class="paste-text-content">
+        <div class="paste-text-header">
+            <h3>Paste Sustainability Text for Analysis</h3>
+            <button id="closeModalBtn" class="close-modal-btn">
+                <i class="fas fa-times"></i>
+            </button>
+        </div>
+        <div class="paste-text-body">
+            <textarea id="pasteTextArea" placeholder="Paste your sustainability report text, ESG disclosures, or regulatory document text here..."></textarea>
+        </div>
+        <div class="paste-text-footer">
+            <button id="cancelPasteBtn" class="cancel-btn">
+                <i class="fas fa-times"></i> Cancel
+            </button>
+            <button id="processPasteBtn" class="upload-btn primary-action">
+                <i class="fas fa-check"></i> Process Text
+            </button>
+        </div>
+    </div>
+</div>
 {% endblock %}
 
 {% block scripts %}
@@ -640,73 +667,61 @@ document.addEventListener('DOMContentLoaded', function() {
         simulateRegulatoryAIAnalysis();
     });
     
-    // Paste text button
+    // Text Paste Modal Elements
+    const textPasteModal = document.getElementById('textPasteModal');
+    const pasteTextArea = document.getElementById('pasteTextArea');
+    const closeModalBtn = document.getElementById('closeModalBtn');
+    const cancelPasteBtn = document.getElementById('cancelPasteBtn');
+    const processPasteBtn = document.getElementById('processPasteBtn');
+    
+    // Paste text button - Show modal
     pasteBtn.addEventListener('click', () => {
-        // Create and show a text paste modal
-        const modal = document.createElement('div');
-        modal.className = 'paste-text-modal';
-        modal.innerHTML = `
-            <div class="paste-text-content">
-                <div class="paste-text-header">
-                    <h3>Paste Sustainability Document Text</h3>
-                    <button class="close-modal-btn" aria-label="Close modal"><i class="fas fa-times"></i></button>
-                </div>
-                <div class="paste-text-body">
-                    <textarea id="pasteTextArea" placeholder="Paste your document text here..." aria-label="Document text content"></textarea>
-                </div>
-                <div class="paste-text-footer">
-                    <button class="upload-btn" id="submitPastedTextBtn">Analyze Text</button>
-                    <button class="cancel-btn" id="cancelPasteBtn">Cancel</button>
-                </div>
-            </div>
-        `;
-        document.body.appendChild(modal);
+        // Show the modal
+        textPasteModal.classList.remove('hidden');
         
-        // Focus textarea
+        // Focus the textarea
         setTimeout(() => {
-            modal.querySelector('#pasteTextArea').focus();
+            pasteTextArea.focus();
         }, 100);
+    });
+    
+    // Close button functionality
+    closeModalBtn.addEventListener('click', () => {
+        textPasteModal.classList.add('hidden');
+        pasteTextArea.value = '';
+    });
+    
+    // Cancel button functionality
+    cancelPasteBtn.addEventListener('click', () => {
+        textPasteModal.classList.add('hidden');
+        pasteTextArea.value = '';
+    });
+    
+    // Process pasted text button
+    processPasteBtn.addEventListener('click', () => {
+        const text = pasteTextArea.value.trim();
         
-        // Close button functionality
-        const closeBtn = modal.querySelector('.close-modal-btn');
-        closeBtn.addEventListener('click', () => {
-            document.body.removeChild(modal);
-        });
-        
-        // Cancel button functionality
-        const cancelBtn = modal.querySelector('#cancelPasteBtn');
-        cancelBtn.addEventListener('click', () => {
-            document.body.removeChild(modal);
-        });
-        
-        // Submit button functionality
-        const submitBtn = modal.querySelector('#submitPastedTextBtn');
-        submitBtn.addEventListener('click', () => {
-            const textArea = modal.querySelector('#pasteTextArea');
-            const text = textArea.value.trim();
+        if (text) {
+            // Hide modal
+            textPasteModal.classList.add('hidden');
             
-            if (text) {
-                // Remove modal
-                document.body.removeChild(modal);
-                
-                // Show success state with document details
-                fileName.textContent = "Pasted Text Document";
-                const textLength = text.length;
-                const wordCount = text.split(/\s+/).length;
-                
-                // Create a virtual file object for consistency
-                window.selectedFile = {
-                    name: "Pasted Text Document",
-                    size: textLength,
-                    type: "text/plain",
-                    content: text,
-                    wordCount: wordCount
-                };
-                
-                // Show success state immediately for text paste
-                showState(uploadSuccessState);
-            }
-        });
+            // Show success state with document details
+            fileName.textContent = "Pasted Text Document";
+            const textLength = text.length;
+            const wordCount = text.split(/\s+/).length;
+            
+            // Create a virtual file object for consistency
+            window.selectedFile = {
+                name: "Pasted Text Document",
+                size: textLength,
+                type: "text/plain",
+                content: text,
+                wordCount: wordCount
+            };
+            
+            // Show success state immediately for text paste
+            showState(uploadSuccessState);
+        }
     });
     
     // Function to simulate Regulatory AI analysis process

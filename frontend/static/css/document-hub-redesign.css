@@ -3,18 +3,27 @@
  * Modern, minimalist styling for the SustainaTrend™ Document Hub
  */
 
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Roboto+Mono:wght@400;500&display=swap');
+
 :root {
     /* Color palette */
     --teal: #008080;
+    --teal-hover: #006666;
+    --teal-light: rgba(0, 128, 128, 0.1);
     --forest-green: #228B22;
+    --forest-green-light: rgba(34, 139, 34, 0.1);
     --amber: #FFBF00;
+    --amber-light: rgba(255, 191, 0, 0.1);
     --slate-dark: #212529;
     --slate: #343A40;
     --slate-light: #64748b;
+    --slate-lighter: #94a3b8;
+    --slate-extra-light: rgba(100, 116, 139, 0.1);
     --success-green: #22c55e;
     --warning-amber: #f59e0b;
     --error-red: #ef4444;
     --light-text: #F8F9FA;
+    --light-bg: #1e1e2e;
     
     /* Typography */
     --font-inter: 'Inter', system-ui, sans-serif;
@@ -24,18 +33,31 @@
     --high-compliance: #22c55e;
     --medium-compliance: #FFBF00;
     --low-compliance: #ef4444;
+    
+    /* Shadows */
+    --shadow-sm: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
+    --shadow-md: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+    --shadow-lg: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
+    
+    /* Animations */
+    --transition-normal: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    --transition-bounce: all 0.5s cubic-bezier(0.68, -0.55, 0.27, 1.55);
 }
 
 /* Layout styles */
 .document-hub-container {
     display: grid;
     grid-template-columns: 1fr;
-    gap: 1.5rem;
+    gap: 2rem;
+    padding: 1.5rem;
+    max-width: 1400px;
+    margin: 0 auto;
 }
 
 @media (min-width: 1024px) {
     .document-hub-container {
         grid-template-columns: 1fr 350px;
+        padding: 2rem;
     }
 }
 
@@ -43,19 +65,22 @@
 .doc-hub-tabs {
     display: flex;
     border-bottom: 1px solid var(--slate-light);
-    margin-bottom: 1.5rem;
+    margin-bottom: 2rem;
+    position: relative;
 }
 
 .doc-hub-tab {
-    padding: 0.75rem 1.25rem;
+    padding: 1rem 1.5rem;
     font-family: var(--font-inter);
-    font-weight: 500;
-    color: var(--slate-light);
+    font-weight: 600;
+    font-size: 1rem;
+    color: var(--slate-lighter);
     background: transparent;
     border: none;
     border-bottom: 3px solid transparent;
     cursor: pointer;
-    transition: all 0.3s ease;
+    transition: var(--transition-normal);
+    letter-spacing: 0.01em;
 }
 
 .doc-hub-tab:hover {
@@ -86,22 +111,99 @@
 .upload-zone {
     background: var(--slate-dark);
     border: 2px dashed var(--slate-light);
-    border-radius: 12px;
+    border-radius: 16px;
     padding: 3.5rem 2rem;
     text-align: center;
     position: relative;
-    transition: all 0.3s ease;
+    transition: var(--transition-normal);
     margin-bottom: 1.5rem;
+}
+
+.upload-zone.modern {
+    background: linear-gradient(to bottom, rgba(0, 128, 128, 0.05), rgba(33, 37, 41, 1));
+    border: 2px dashed rgba(100, 116, 139, 0.3);
+    box-shadow: var(--shadow-lg);
+    padding: 4rem 2rem;
 }
 
 .upload-zone:hover {
     border-color: var(--teal);
+    transform: translateY(-4px);
+    box-shadow: 0 15px 25px rgba(0, 0, 0, 0.2);
 }
 
 .upload-zone.drag-over {
     border-color: var(--teal);
-    background: rgba(0, 128, 128, 0.1);
+    background: linear-gradient(to bottom, rgba(0, 128, 128, 0.1), var(--slate-dark));
     transform: scale(1.01);
+}
+
+/* New upload zone elements */
+.upload-actions {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin-bottom: 2rem;
+    flex-wrap: wrap;
+    gap: 1rem;
+}
+
+.or-divider {
+    color: var(--slate-light);
+    font-size: 0.9rem;
+    margin: 0 0.5rem;
+}
+
+.upload-formats {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-wrap: wrap;
+    gap: 1rem;
+    margin-top: 1rem;
+}
+
+.format-badge {
+    background: rgba(100, 116, 139, 0.2);
+    color: var(--slate-lighter);
+    padding: 0.35rem 0.75rem;
+    border-radius: 4px;
+    font-size: 0.85rem;
+    font-family: var(--font-mono);
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+.text-paste-btn.immediate {
+    color: var(--light-text);
+    background: transparent;
+    border: 1px solid var(--slate-light);
+    padding: 0.75rem 1.5rem;
+    border-radius: 6px;
+    font-family: var(--font-inter);
+    font-weight: 500;
+    transition: all 0.2s ease;
+}
+
+.text-paste-btn.immediate:hover {
+    border-color: var(--teal);
+    background: rgba(0, 128, 128, 0.1);
+    transform: translateY(-2px);
+}
+
+.primary-action {
+    font-weight: 600;
+    padding: 0.9rem 1.75rem;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+    font-size: 1.05rem;
+    transform-origin: center;
+    transition: var(--transition-bounce);
+}
+
+.primary-action:hover {
+    transform: translateY(-4px) scale(1.05);
+    box-shadow: 0 8px 15px rgba(0, 0, 0, 0.2);
 }
 
 .upload-icon {
@@ -697,6 +799,54 @@
 @keyframes slideDown {
     0% { max-height: 0; opacity: 0; }
     100% { max-height: 1000px; opacity: 1; }
+}
+
+.hidden {
+    display: none !important;
+}
+
+/* Animation classes */
+.fadeInUp {
+    animation: fadeInUp 0.4s ease-out forwards;
+}
+
+@keyframes fadeInUp {
+    from {
+        opacity: 0;
+        transform: translateY(20px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+/* Keyboard accessibility */
+.upload-btn:focus,
+.text-paste-btn:focus,
+.success-btn:focus,
+.cancel-btn:focus {
+    outline: 2px solid var(--teal);
+    outline-offset: 2px;
+}
+
+/* Focus visible only when using keyboard */
+.upload-btn:focus:not(:focus-visible),
+.text-paste-btn:focus:not(:focus-visible),
+.success-btn:focus:not(:focus-visible),
+.cancel-btn:focus:not(:focus-visible) {
+    outline: none;
+}
+
+/* Additional hover effects */
+.upload-zone:hover .upload-icon {
+    transform: translateY(-10px);
+    transition: transform 0.3s ease;
+}
+
+.upload-zone:hover .upload-title {
+    color: var(--teal);
+    transition: color 0.3s ease;
 }
 
 /* 3. VIEW INSIGHTS SECTION */
