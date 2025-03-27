@@ -315,7 +315,7 @@ def document_upload():
 
 @data_moat_bp.route('/analysis/<document_id>')
 def document_analysis(document_id):
-    """Document analysis interface with extracted data"""
+    """Document analysis interface with extracted data - redirects to analytics dashboard"""
     # Check if document exists in memory
     if document_id not in documents:
         # If we don't have the document, check session
@@ -328,6 +328,31 @@ def document_analysis(document_id):
                 'data_moat/index.html',
                 error=f"Document with ID {document_id} not found"
             )
+    
+    # Get document data
+    document_data = documents[document_id]
+    
+    # Store document data in session for analytics dashboard
+    session['analytics_document_id'] = document_id
+    session['analytics_document_data'] = document_data
+    
+    # Redirect to analytics dashboard with document data
+    logger.info(f"Redirecting to analytics dashboard with document ID: {document_id}")
+    return redirect(url_for('analytics_dashboard', 
+                            document_id=document_id, 
+                            source='data_moat'))
+
+# Keep a version of the original analysis route for API access
+@data_moat_bp.route('/view-analysis/<document_id>')
+def view_document_analysis(document_id):
+    """Original document analysis interface with extracted data"""
+    # Check if document exists in memory
+    if document_id not in documents:
+        # Document not found
+        return render_template(
+            'data_moat/index.html',
+            error=f"Document with ID {document_id} not found"
+        )
     
     # Get document data
     document_data = documents[document_id]
@@ -913,6 +938,166 @@ def api_document_compliance(document_id):
         'document_id': document_id,
         'assessment': assessment
     })
+
+@data_moat_bp.route('/api/generate-report/<document_id>')
+def api_generate_report(document_id):
+    """Generate a downloadable PDF compliance report"""
+    # Check if document exists
+    if document_id not in documents:
+        return jsonify({
+            'success': False,
+            'error': 'Document not found'
+        }), 404
+    
+    # Get document data
+    document = documents[document_id]
+    document_name = document.get('original_filename', 'Unknown Document')
+    document_text = document.get('text_preview', '')
+    frameworks = document.get('frameworks', {})
+    primary_framework = document.get('primary_framework')
+    
+    try:
+        # Import PDF generation library
+        from fpdf import FPDF
+        
+        # Create PDF document
+        pdf = FPDF()
+        pdf.add_page()
+        
+        # Add header
+        pdf.set_font('Arial', 'B', 16)
+        pdf.cell(0, 10, 'Sustainability Compliance Report', 0, 1, 'C')
+        pdf.ln(5)
+        
+        # Add document info
+        pdf.set_font('Arial', 'B', 12)
+        pdf.cell(0, 10, f'Document: {document_name}', 0, 1)
+        pdf.set_font('Arial', '', 10)
+        pdf.cell(0, 10, f'Generated: {datetime.now().strftime("%Y-%m-%d %H:%M:%S")}', 0, 1)
+        pdf.cell(0, 10, f'Document ID: {document_id}', 0, 1)
+        pdf.ln(5)
+        
+        # Add frameworks section
+        pdf.set_font('Arial', 'B', 12)
+        pdf.cell(0, 10, 'Detected Frameworks', 0, 1)
+        
+        if frameworks:
+            pdf.set_font('Arial', '', 10)
+            for framework, confidence in frameworks.items():
+                confidence_pct = int(confidence * 100)
+                is_primary = framework == primary_framework
+                framework_text = f"{framework.upper()}: {confidence_pct}% confidence"
+                if is_primary:
+                    framework_text += " (Primary Framework)"
+                pdf.cell(0, 7, framework_text, 0, 1)
+        else:
+            pdf.set_font('Arial', 'I', 10)
+            pdf.cell(0, 10, 'No frameworks detected', 0, 1)
+        
+        pdf.ln(5)
+        
+        # Add metrics section if available
+        metrics = document.get('metrics', {})
+        if metrics:
+            pdf.set_font('Arial', 'B', 12)
+            pdf.cell(0, 10, 'Extracted Sustainability Metrics', 0, 1)
+            
+            for category, category_metrics in metrics.items():
+                pdf.set_font('Arial', 'B', 11)
+                pdf.cell(0, 7, category.title(), 0, 1)
+                
+                pdf.set_font('Arial', '', 10)
+                for i, metric in enumerate(category_metrics[:5]):  # Limit to 5 metrics per category
+                    keyword = metric.get('keyword', 'Unknown')
+                    pdf.cell(0, 7, f"{i+1}. {keyword}", 0, 1)
+                
+                if len(category_metrics) > 5:
+                    pdf.set_font('Arial', 'I', 10)
+                    pdf.cell(0, 7, f"...and {len(category_metrics) - 5} more", 0, 1)
+                
+                pdf.ln(3)
+        
+        # Get compliance assessment
+        if primary_framework:
+            pdf.ln(5)
+            pdf.set_font('Arial', 'B', 12)
+            pdf.cell(0, 10, f'Compliance Assessment ({primary_framework.upper()})', 0, 1)
+            
+            # Use existing compliance assessment function
+            if REGULATORY_AI_AVAILABLE:
+                pdf.set_font('Arial', '', 10)
+                pdf.multi_cell(0, 7, "Performing compliance assessment...")
+                
+                try:
+                    assessment = analyze_document_compliance(document_text, primary_framework)
+                    
+                    # Add overall assessment
+                    pdf.set_font('Arial', 'B', 11)
+                    pdf.cell(0, 7, "Overall Assessment", 0, 1)
+                    
+                    if 'overall_score' in assessment:
+                        score = assessment['overall_score']
+                        pdf.set_font('Arial', '', 10)
+                        pdf.cell(0, 7, f"Compliance Score: {score}%", 0, 1)
+                    
+                    # Add findings if available
+                    if 'overall_findings' in assessment and assessment['overall_findings']:
+                        pdf.set_font('Arial', 'B', 11)
+                        pdf.cell(0, 7, "Key Findings", 0, 1)
+                        
+                        pdf.set_font('Arial', '', 10)
+                        for i, finding in enumerate(assessment['overall_findings']):
+                            pdf.multi_cell(0, 7, f"{i+1}. {finding}")
+                    
+                    # Add recommendations if available
+                    if 'overall_recommendations' in assessment and assessment['overall_recommendations']:
+                        pdf.set_font('Arial', 'B', 11)
+                        pdf.cell(0, 7, "Recommendations", 0, 1)
+                        
+                        pdf.set_font('Arial', '', 10)
+                        for i, recommendation in enumerate(assessment['overall_recommendations']):
+                            pdf.multi_cell(0, 7, f"{i+1}. {recommendation}")
+                
+                except Exception as e:
+                    logger.error(f"Error getting compliance assessment: {str(e)}")
+                    pdf.set_font('Arial', 'I', 10)
+                    pdf.multi_cell(0, 7, f"Error generating compliance assessment: {str(e)}")
+            else:
+                pdf.set_font('Arial', 'I', 10)
+                pdf.multi_cell(0, 7, "Detailed compliance assessment requires Regulatory AI services. Basic assessment provided based on detected keywords.")
+        
+        # Add footer
+        pdf.ln(10)
+        pdf.set_font('Arial', 'I', 8)
+        pdf.cell(0, 10, f"Generated by SustainaTrend™ Data Moat - {datetime.now().strftime('%Y-%m-%d')}", 0, 0, 'C')
+        
+        # Generate report filename
+        report_filename = f"compliance_report_{document_id[:8]}.pdf"
+        
+        # Save the PDF to a temporary file
+        temp_path = os.path.join(UPLOAD_FOLDER, report_filename)
+        pdf.output(temp_path)
+        
+        # Send file as attachment
+        return send_file(
+            temp_path,
+            as_attachment=True,
+            download_name=report_filename,
+            mimetype='application/pdf'
+        )
+    
+    except ImportError:
+        return jsonify({
+            'success': False,
+            'error': 'PDF generation library not available'
+        }), 500
+    except Exception as e:
+        logger.error(f"Error generating report: {str(e)}")
+        traceback.print_exc()
+        return jsonify({
+            'success': False,
+            'error': f'Error generating report: {str(e)}'
+        }), 500
 
 def register_routes(app):
     """Register data moat routes with the Flask application"""

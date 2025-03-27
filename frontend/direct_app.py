@@ -2245,13 +2245,58 @@ def api_storytelling_generate():
 # Add a new route for the Analytics Dashboard
 @app.route('/analytics-dashboard')
 def analytics_dashboard():
-    """AI-powered sustainability analytics dashboard"""
+    """AI-powered sustainability analytics dashboard with document analysis capabilities"""
     try:
         logger.info("Analytics dashboard page requested")
         
+        # Check for document_id in the request parameters
+        document_id = request.args.get('document_id')
+        source = request.args.get('source', 'direct')
+        logger.info(f"Analytics dashboard requested with document_id: {document_id}, source: {source}")
+        
+        # Document analysis data
+        document_data = None
+        document_metrics = None
+        document_frameworks = None
+        template_type = "default"
+        
+        # Check if document_id is provided
+        if document_id:
+            # First check if the document is in the data_moat storage
+            if source == 'data_moat':
+                logger.info(f"Retrieving document data from Data Moat storage, id: {document_id}")
+                try:
+                    from frontend.routes.data_moat_routes import documents
+                    if document_id in documents:
+                        document_data = documents[document_id]
+                        document_metrics = document_data.get('metrics', {})
+                        document_frameworks = document_data.get('frameworks', {})
+                        logger.info(f"Found document in Data Moat storage: {document_data.get('original_filename')}")
+                        template_type = "documents"
+                    else:
+                        logger.warning(f"Document not found in Data Moat storage: {document_id}")
+                except ImportError as e:
+                    logger.error(f"Could not import documents from Data Moat: {str(e)}")
+            
+            # Check session for document data
+            if not document_data and 'analytics_document_data' in session:
+                logger.info(f"Retrieving document data from session")
+                document_data = session.get('analytics_document_data')
+                document_metrics = document_data.get('metrics', {})
+                document_frameworks = document_data.get('frameworks', {})
+                template_type = "documents"
+        
         # Always use dark theme for consistent UI
-        logger.info("Using Finchat dark analytics dashboard template")
-        return render_template("analytics_dashboard_dark.html")
+        logger.info(f"Using Finchat dark analytics dashboard template with template_type: {template_type}")
+        return render_template(
+            "analytics_dashboard_dark.html",
+            template_type=template_type,
+            document_id=document_id,
+            document=document_data,
+            document_metrics=document_metrics,
+            document_frameworks=document_frameworks,
+            source=source
+        )
     except Exception as e:
         logger.error(f"Error in analytics dashboard route: {str(e)}")
         traceback.print_exc()
