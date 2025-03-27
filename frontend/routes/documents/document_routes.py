@@ -19,6 +19,10 @@ from werkzeug.utils import secure_filename
 # Create blueprint
 document_bp = Blueprint('documents', __name__, url_prefix='/documents')
 
+# Create a root-level blueprint for direct document upload access
+# This handles the /document-upload route at the root level
+document_root_bp = Blueprint('document_root', __name__)
+
 # Import regulatory AI agent for document analysis
 try:
     from regulatory_ai_agent import RegulatoryAIAgent
@@ -137,6 +141,12 @@ def document_upload():
     """Alternative route for document upload page"""
     return render_template('document_hub_redesign.html')
     
+# Root-level document upload route
+@document_root_bp.route('/document-upload')
+def root_document_upload():
+    """Root-level route for document upload page"""
+    return render_template('document_hub_redesign.html')
+    
 @document_bp.route('/upload', methods=['GET'])
 def upload_page():
     """GET route for document upload page"""
@@ -205,4 +215,5 @@ def view_document(document_id):
 def register_routes(app):
     """Register document routes with the Flask application"""
     app.register_blueprint(document_bp)
-    logger.info("Document routes registered successfully")
+    app.register_blueprint(document_root_bp)
+    logger.info("Document routes registered successfully (including root-level routes)")
