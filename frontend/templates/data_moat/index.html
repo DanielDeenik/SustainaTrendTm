@@ -4,167 +4,358 @@
 
 {% block head %}
 <style>
-  .data-moat-header {
-    background: linear-gradient(135deg, #1e5f74 0%, #133b5c 100%);
-    color: white;
-    padding: 2rem;
-    border-radius: 8px;
-    margin-bottom: 2rem;
-    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
-  }
-  
-  .data-moat-card {
+  .data-moat-container {
     background-color: white;
     border-radius: 8px;
-    padding: 1.5rem;
-    margin-bottom: 1.5rem;
-    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
-    transition: transform 0.3s ease, box-shadow 0.3s ease;
+    padding: 2rem;
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+    margin-bottom: 2rem;
   }
   
-  .data-moat-card:hover {
+  .data-moat-header {
+    text-align: center;
+    margin-bottom: 3rem;
+  }
+  
+  .data-moat-title {
+    color: #133b5c;
+    margin-bottom: 1rem;
+  }
+  
+  .data-moat-subtitle {
+    color: #555;
+    font-size: 1.2rem;
+    max-width: 800px;
+    margin: 0 auto;
+  }
+  
+  .action-cards {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+    gap: 2rem;
+    margin-bottom: 3rem;
+  }
+  
+  .action-card {
+    background-color: #f5f9fc;
+    border-radius: 8px;
+    padding: 2rem;
+    text-align: center;
+    transition: all 0.3s ease;
+    border-bottom: 3px solid #1e5f74;
+  }
+  
+  .action-card:hover {
     transform: translateY(-5px);
-    box-shadow: 0 8px 15px rgba(0, 0, 0, 0.1);
+    box-shadow: 0 10px 20px rgba(0, 0, 0, 0.1);
+  }
+  
+  .action-icon {
+    font-size: 2.5rem;
+    color: #1e5f74;
+    margin-bottom: 1.5rem;
+  }
+  
+  .action-title {
+    font-size: 1.3rem;
+    font-weight: 600;
+    color: #1e5f74;
+    margin-bottom: 1rem;
+  }
+  
+  .action-description {
+    color: #555;
+    margin-bottom: 1.5rem;
+    line-height: 1.6;
+  }
+  
+  .action-button {
+    display: inline-block;
+    background-color: #1e5f74;
+    color: white;
+    padding: 0.5rem 1.5rem;
+    border-radius: 4px;
+    text-decoration: none;
+    font-weight: 500;
+    transition: background-color 0.3s ease;
+  }
+  
+  .action-button:hover {
+    background-color: #133b5c;
+    color: white;
+    text-decoration: none;
+  }
+  
+  .data-moat-features {
+    margin-bottom: 3rem;
+  }
+  
+  .feature-list {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+    gap: 1.5rem;
+  }
+  
+  .feature-item {
+    display: flex;
+    align-items: flex-start;
   }
   
   .feature-icon {
-    font-size: 2.5rem;
-    margin-bottom: 1rem;
+    background-color: #e3f2fd;
     color: #1e5f74;
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin-right: 1rem;
+    flex-shrink: 0;
   }
   
-  .statistics-card {
-    background-color: #f5f9fc;
-    border-left: 4px solid #1e5f74;
+  .feature-content h4 {
+    font-size: 1.1rem;
+    color: #1e5f74;
+    margin-bottom: 0.5rem;
   }
   
-  .cta-button {
-    background-color: #1e5f74;
-    color: white;
-    padding: 0.75rem 1.5rem;
-    border-radius: 4px;
-    text-decoration: none;
-    font-weight: bold;
-    transition: background-color 0.3s ease;
-    display: inline-block;
+  .feature-content p {
+    color: #555;
+    font-size: 0.95rem;
+    line-height: 1.5;
+  }
+  
+  .recent-documents {
+    margin-bottom: 3rem;
+  }
+  
+  .document-list {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+    gap: 1.5rem;
+  }
+  
+  .document-card {
+    border: 1px solid #eee;
+    border-radius: 8px;
+    padding: 1.25rem;
+    transition: all 0.2s ease;
+  }
+  
+  .document-card:hover {
+    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.05);
+    border-color: #ddd;
+  }
+  
+  .document-title {
+    font-weight: 600;
+    color: #333;
+    margin-bottom: 0.5rem;
+    display: flex;
+    align-items: center;
+  }
+  
+  .document-title i {
+    color: #1e5f74;
+    margin-right: 0.5rem;
+  }
+  
+  .document-meta {
+    color: #666;
+    font-size: 0.85rem;
+    margin-bottom: 1rem;
+  }
+  
+  .document-tags {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.5rem;
     margin-top: 1rem;
   }
   
-  .cta-button:hover {
-    background-color: #133b5c;
-    color: white;
+  .document-tag {
+    background-color: #e3f2fd;
+    color: #1e5f74;
+    font-size: 0.75rem;
+    padding: 0.2rem 0.5rem;
+    border-radius: 4px;
+  }
+  
+  .empty-state {
+    text-align: center;
+    padding: 3rem;
+    background-color: #f9f9f9;
+    border-radius: 8px;
+  }
+  
+  .empty-icon {
+    font-size: 3rem;
+    color: #ccc;
+    margin-bottom: 1rem;
+  }
+  
+  .empty-message {
+    color: #777;
+    margin-bottom: 1.5rem;
   }
 </style>
 {% endblock %}
 
 {% block content %}
 <div class="container my-5">
-  <div class="data-moat-header">
-    <div class="row align-items-center">
-      <div class="col-md-8">
-        <h1 class="mb-3">Data Moat Intelligence Platform</h1>
-        <p class="lead mb-4">Transform sustainability reports into actionable intelligence with AI-powered document analysis.</p>
-        <a href="{{ url_for('data_moat.document_upload') }}" class="cta-button">
-          <i class="fas fa-upload mr-2"></i> Upload Document
-        </a>
-      </div>
-      <div class="col-md-4 text-center">
-        <i class="fas fa-shield-alt" style="font-size: 6rem; opacity: 0.8;"></i>
-      </div>
-    </div>
-  </div>
-  
   <div class="row">
-    <div class="col-md-6">
-      <div class="data-moat-card">
-        <div class="feature-icon">
-          <i class="fas fa-robot"></i>
-        </div>
-        <h3>AI-Powered Document Analysis</h3>
-        <p>Our advanced AI automatically extracts sustainability metrics, identifies frameworks, and assesses regulatory compliance.</p>
-      </div>
-    </div>
-    
-    <div class="col-md-6">
-      <div class="data-moat-card">
-        <div class="feature-icon">
-          <i class="fas fa-chart-line"></i>
-        </div>
-        <h3>Standardized Metrics</h3>
-        <p>Extract and normalize sustainability metrics for accurate benchmarking against industry peers and regulatory standards.</p>
-      </div>
-    </div>
-    
-    <div class="col-md-6">
-      <div class="data-moat-card">
-        <div class="feature-icon">
-          <i class="fas fa-balance-scale"></i>
-        </div>
-        <h3>Regulatory Compliance</h3>
-        <p>Automatically assess compliance with ESRS, CSRD, GRI, TCFD, and other sustainability reporting frameworks.</p>
-      </div>
-    </div>
-    
-    <div class="col-md-6">
-      <div class="data-moat-card">
-        <div class="feature-icon">
-          <i class="fas fa-database"></i>
-        </div>
-        <h3>Defensible Data Moat</h3>
-        <p>Each document enriches our collective intelligence, creating a defensible data advantage that grows over time.</p>
-      </div>
-    </div>
-  </div>
-  
-  <div class="row mt-4">
     <div class="col-12">
-      <div class="data-moat-card statistics-card">
-        <h3 class="mb-4">Platform Intelligence</h3>
-        <div class="row">
-          <div class="col-md-3 col-6 text-center mb-3">
-            <h2 class="text-primary">145+</h2>
-            <p class="text-muted">Metrics Tracked</p>
+      <div class="data-moat-container">
+        <div class="data-moat-header">
+          <h1 class="data-moat-title">SustainaTrend™ Data Moat</h1>
+          <p class="data-moat-subtitle">Transform sustainability reports and ESG disclosures into enriched, structured data assets that create ongoing value throughout your organization.</p>
+        </div>
+        
+        <div class="action-cards">
+          <div class="action-card">
+            <div class="action-icon">
+              <i class="fas fa-file-upload"></i>
+            </div>
+            <h3 class="action-title">Upload Document</h3>
+            <p class="action-description">Upload sustainability reports, ESG disclosures, or related documents for analysis and enrichment.</p>
+            <a href="{{ url_for('data_moat.document_upload') }}" class="action-button">Upload Now</a>
           </div>
-          <div class="col-md-3 col-6 text-center mb-3">
-            <h2 class="text-primary">7</h2>
-            <p class="text-muted">Regulatory Frameworks</p>
+          
+          <div class="action-card">
+            <div class="action-icon">
+              <i class="fas fa-clipboard-check"></i>
+            </div>
+            <h3 class="action-title">Regulatory Compliance</h3>
+            <p class="action-description">Assess document compliance with frameworks like ESRS, CSRD, GRI, TCFD, and more.</p>
+            <a href="{{ url_for('data_moat.regulatory_compliance_dashboard') }}" class="action-button">Compliance Assessment</a>
           </div>
-          <div class="col-md-3 col-6 text-center mb-3">
-            <h2 class="text-primary">94%</h2>
-            <p class="text-muted">Extraction Accuracy</p>
+          
+          <div class="action-card">
+            <div class="action-icon">
+              <i class="fas fa-chart-line"></i>
+            </div>
+            <h3 class="action-title">View Analytics</h3>
+            <p class="action-description">Explore insights, trends, and metrics extracted from your processed documents.</p>
+            <a href="#document-list" class="action-button">View Documents</a>
           </div>
-          <div class="col-md-3 col-6 text-center mb-3">
-            <h2 class="text-primary">22+</h2>
-            <p class="text-muted">Industries Covered</p>
+          
+          <div class="action-card">
+            <div class="action-icon">
+              <i class="fas fa-tasks"></i>
+            </div>
+            <h3 class="action-title">Manage Documents</h3>
+            <p class="action-description">Access, update, and manage your processed sustainability documents.</p>
+            <a href="#" class="action-button">Manage Documents</a>
           </div>
+        </div>
+        
+        <div class="data-moat-features">
+          <h2 class="mb-4">Key Features</h2>
+          
+          <div class="feature-list">
+            <div class="feature-item">
+              <div class="feature-icon">
+                <i class="fas fa-robot"></i>
+              </div>
+              <div class="feature-content">
+                <h4>AI-Powered Analysis</h4>
+                <p>Advanced AI algorithms analyze documents to extract actionable sustainability metrics and insights.</p>
+              </div>
+            </div>
+            
+            <div class="feature-item">
+              <div class="feature-icon">
+                <i class="fas fa-clipboard-check"></i>
+              </div>
+              <div class="feature-content">
+                <h4>Framework Mapping</h4>
+                <p>Automatically map documents to sustainability frameworks like ESRS, CSRD, GRI, and TCFD.</p>
+              </div>
+            </div>
+            
+            <div class="feature-item">
+              <div class="feature-icon">
+                <i class="fas fa-chart-bar"></i>
+              </div>
+              <div class="feature-content">
+                <h4>Standardized Metrics</h4>
+                <p>Extract and normalize sustainability metrics across categories for consistent reporting.</p>
+              </div>
+            </div>
+            
+            <div class="feature-item">
+              <div class="feature-icon">
+                <i class="fas fa-database"></i>
+              </div>
+              <div class="feature-content">
+                <h4>Defensible Data Moat</h4>
+                <p>Create a proprietary database of enriched sustainability data that grows in value over time.</p>
+              </div>
+            </div>
+            
+            <div class="feature-item">
+              <div class="feature-icon">
+                <i class="fas fa-search"></i>
+              </div>
+              <div class="feature-content">
+                <h4>Advanced Search</h4>
+                <p>Quickly find specific sustainability metrics and insights across all your documents.</p>
+              </div>
+            </div>
+            
+            <div class="feature-item">
+              <div class="feature-icon">
+                <i class="fas fa-file-export"></i>
+              </div>
+              <div class="feature-content">
+                <h4>Export Options</h4>
+                <p>Export extracted metrics and insights in various formats for reporting and analysis.</p>
+              </div>
+            </div>
+          </div>
+        </div>
+        
+        <div class="recent-documents">
+          <h2 class="mb-4">Recent Documents</h2>
+          
+          {% if documents and documents|length > 0 %}
+            <div class="document-list">
+              {% for doc in documents %}
+                <div class="document-card">
+                  <div class="document-title">
+                    <i class="fas fa-file-alt"></i>
+                    <span>{{ doc.filename }}</span>
+                  </div>
+                  <div class="document-meta">
+                    Uploaded: {{ doc.timestamp }}
+                  </div>
+                  <div>
+                    Metrics found: {{ doc.metrics_count }}
+                  </div>
+                  <div class="document-tags">
+                    {% for framework_id, confidence in doc.frameworks.items() %}
+                      <span class="document-tag">{{ framework_id|upper }}</span>
+                    {% endfor %}
+                  </div>
+                  <div class="mt-3">
+                    <a href="{{ url_for('data_moat.document_analysis', document_id=doc.id) }}" class="btn btn-sm btn-outline-primary">View Analysis</a>
+                  </div>
+                </div>
+              {% endfor %}
+            </div>
+          {% else %}
+            <div class="empty-state">
+              <div class="empty-icon">
+                <i class="fas fa-folder-open"></i>
+              </div>
+              <div class="empty-message">No documents have been processed yet.</div>
+              <a href="{{ url_for('data_moat.document_upload') }}" class="btn btn-primary">Upload Your First Document</a>
+            </div>
+          {% endif %}
         </div>
       </div>
     </div>
-  </div>
-  
-  <div class="text-center mt-5">
-    <a href="{{ url_for('data_moat.document_upload') }}" class="cta-button">
-      <i class="fas fa-upload mr-2"></i> Start Analyzing Documents
-    </a>
   </div>
 </div>
-{% endblock %}
-
-{% block scripts %}
-<script>
-  $(document).ready(function() {
-    // Animation for statistics
-    $('.statistics-card h2').each(function() {
-      $(this).prop('Counter', 0).animate({
-        Counter: $(this).text()
-      }, {
-        duration: 2000,
-        easing: 'swing',
-        step: function(now) {
-          $(this).text(Math.ceil(now));
-        }
-      });
-    });
-  });
-</script>
 {% endblock %}

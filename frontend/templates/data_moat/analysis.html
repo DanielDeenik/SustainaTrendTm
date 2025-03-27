@@ -4,1074 +4,453 @@
 
 {% block head %}
 <style>
-  .analysis-header {
-    background: linear-gradient(135deg, #1e5f74 0%, #133b5c 100%);
-    color: white;
-    padding: 1.5rem;
-    border-radius: 8px;
-    margin-bottom: 2rem;
-    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
-  }
-  
   .analysis-container {
     background-color: white;
     border-radius: 8px;
-    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+    padding: 2rem;
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
     margin-bottom: 2rem;
   }
   
-  .analysis-nav {
-    padding: 0;
-    border-bottom: 1px solid #e0e0e0;
+  .document-info {
+    display: flex;
+    align-items: center;
+    margin-bottom: 1.5rem;
   }
   
-  .analysis-nav .nav-link {
-    padding: 1rem 1.5rem;
-    border-radius: 0;
-    color: #424242;
-    position: relative;
-  }
-  
-  .analysis-nav .nav-link.active {
+  .document-icon {
+    font-size: 2.5rem;
     color: #1e5f74;
+    margin-right: 1.5rem;
+  }
+  
+  .document-details h3 {
+    margin-bottom: 0.5rem;
+    color: #133b5c;
+  }
+  
+  .document-meta {
+    color: #666;
+    font-size: 0.9rem;
+  }
+  
+  .meta-item {
+    display: inline-block;
+    margin-right: 1.5rem;
+  }
+  
+  .meta-label {
     font-weight: 600;
-    background-color: transparent;
-    border-bottom: 3px solid #1e5f74;
+    margin-right: 0.25rem;
   }
   
-  .analysis-nav .nav-link:hover {
-    background-color: #f5f5f5;
+  .section-header {
+    border-bottom: 1px solid #eee;
+    padding-bottom: 0.75rem;
+    margin-bottom: 1.5rem;
+    margin-top: 2rem;
+    color: #1e5f74;
   }
   
-  .analysis-content {
-    padding: 2rem;
+  .framework-badges {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.5rem;
+    margin-bottom: 1.5rem;
+  }
+  
+  .framework-badge {
+    display: inline-block;
+    padding: 0.25rem 0.75rem;
+    background-color: #e3f2fd;
+    color: #1e5f74;
+    border-radius: 16px;
+    font-size: 0.85rem;
+  }
+  
+  .framework-badge.primary {
+    background-color: #1e5f74;
+    color: white;
+  }
+  
+  .metrics-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+    gap: 1.5rem;
+    margin-bottom: 1.5rem;
   }
   
   .metric-card {
+    border: 1px solid #eee;
+    border-radius: 8px;
+    padding: 1.25rem;
+    transition: all 0.2s ease;
+  }
+  
+  .metric-card:hover {
+    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.05);
+    border-color: #ddd;
+  }
+  
+  .category-indicator {
+    display: inline-block;
+    width: 12px;
+    height: 12px;
+    border-radius: 50%;
+    margin-right: 0.5rem;
+  }
+  
+  .category-emissions {
+    background-color: #ef5350;
+  }
+  
+  .category-energy {
+    background-color: #42a5f5;
+  }
+  
+  .category-water {
+    background-color: #26c6da;
+  }
+  
+  .category-waste {
+    background-color: #66bb6a;
+  }
+  
+  .category-social {
+    background-color: #ab47bc;
+  }
+  
+  .category-governance {
+    background-color: #ffa726;
+  }
+  
+  .metric-category {
+    font-size: 0.8rem;
+    font-weight: 600;
+    text-transform: uppercase;
+    margin-bottom: 0.75rem;
+    color: #555;
+  }
+  
+  .metric-keyword {
+    font-weight: 600;
+    color: #333;
+    margin-bottom: 0.5rem;
+  }
+  
+  .metric-context {
+    font-size: 0.9rem;
+    color: #555;
+    line-height: 1.5;
+    margin-bottom: 0.5rem;
+    max-height: 4.5rem;
+    overflow: hidden;
+    position: relative;
+  }
+  
+  .metric-context.expanded {
+    max-height: none;
+  }
+  
+  .metric-context::after {
+    content: "";
+    position: absolute;
+    bottom: 0;
+    right: 0;
+    left: 0;
+    height: 1.5rem;
+    background: linear-gradient(to bottom, rgba(255, 255, 255, 0), rgba(255, 255, 255, 1));
+    pointer-events: none;
+  }
+  
+  .metric-context.expanded::after {
+    display: none;
+  }
+  
+  .metric-expand {
+    font-size: 0.8rem;
+    color: #1e5f74;
+    cursor: pointer;
+    display: inline-block;
+  }
+  
+  .confidence-score {
+    font-size: 0.8rem;
+    color: #666;
+    margin-top: 0.5rem;
+  }
+  
+  .text-preview {
     background-color: #f9f9f9;
     border-radius: 8px;
     padding: 1.5rem;
     margin-bottom: 1.5rem;
-    transition: transform 0.2s ease, box-shadow 0.2s ease;
+    max-height: 300px;
+    overflow-y: auto;
+    font-size: 0.9rem;
+    line-height: 1.6;
+    white-space: pre-wrap;
   }
   
-  .metric-card:hover {
-    transform: translateY(-3px);
-    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+  .document-actions {
+    display: flex;
+    gap: 1rem;
+    margin-bottom: 2rem;
   }
   
-  .metric-icon {
-    font-size: 2rem;
-    margin-bottom: 1rem;
+  .btn-action {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 0.5rem 1rem;
+    background-color: #f5f5f5;
+    border: none;
+    border-radius: 4px;
+    color: #333;
+    font-weight: 500;
+    cursor: pointer;
+    transition: all 0.2s ease;
+  }
+  
+  .btn-action:hover {
+    background-color: #e0e0e0;
+  }
+  
+  .btn-action i {
+    font-size: 1.1rem;
     color: #1e5f74;
   }
   
-  .framework-card {
-    background-color: white;
-    border-radius: 8px;
-    border: 1px solid #e0e0e0;
+  .btn-primary {
+    background-color: #1e5f74;
+    color: white;
+  }
+  
+  .btn-primary:hover {
+    background-color: #133b5c;
+  }
+  
+  .btn-primary i {
+    color: white;
+  }
+  
+  .no-metrics {
+    text-align: center;
+    padding: 2rem;
+    color: #666;
+  }
+  
+  .nav-tabs {
     margin-bottom: 1.5rem;
-    transition: transform 0.2s ease, box-shadow 0.2s ease;
   }
   
-  .framework-card:hover {
-    transform: translateY(-3px);
-    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
-  }
-  
-  .framework-header {
-    padding: 1.5rem;
-    background-color: #f5f9fc;
-    border-bottom: 1px solid #e0e0e0;
-    border-radius: 8px 8px 0 0;
-  }
-  
-  .framework-content {
-    padding: 1.5rem;
-  }
-  
-  .compliance-indicator {
-    height: 8px;
-    border-radius: 4px;
-    background-color: #eeeeee;
-    margin-top: 1rem;
-    overflow: hidden;
-  }
-  
-  .compliance-bar {
-    height: 100%;
-    background-color: #4CAF50;
-    width: 0%;
-    transition: width 1s ease;
-  }
-  
-  .evidence-item {
-    background-color: #f5f9fc;
-    border-radius: 4px;
-    padding: 0.75rem;
-    margin-bottom: 0.5rem;
-    border-left: 3px solid #1e5f74;
-  }
-  
-  .evidence-item.strength {
-    border-left-color: #4CAF50;
-  }
-  
-  .evidence-item.gap {
-    border-left-color: #FFC107;
-  }
-  
-  .table-container {
-    overflow-x: auto;
-  }
-  
-  .category-badge {
-    display: inline-block;
-    padding: 0.25rem 0.75rem;
-    border-radius: 0.5rem;
-    font-size: 0.85rem;
-    margin-right: 0.5rem;
+  .nav-tabs .nav-link {
+    color: #555;
     font-weight: 500;
   }
   
-  .category-badge.emissions {
-    background-color: #e8f5e9;
-    color: #2e7d32;
-  }
-  
-  .category-badge.energy {
-    background-color: #fff8e1;
-    color: #ff8f00;
-  }
-  
-  .category-badge.water {
-    background-color: #e3f2fd;
-    color: #0277bd;
-  }
-  
-  .category-badge.waste {
-    background-color: #f3e5f5;
-    color: #6a1b9a;
-  }
-  
-  .category-badge.social {
-    background-color: #e8eaf6;
-    color: #303f9f;
-  }
-  
-  .category-badge.governance {
-    background-color: #fce4ec;
-    color: #c2185b;
-  }
-  
-  .confidence-pill {
-    padding: 0.25rem 0.75rem;
-    border-radius: 1rem;
-    font-size: 0.85rem;
-    font-weight: 500;
-  }
-  
-  .confidence-high {
-    background-color: #e8f5e9;
-    color: #2e7d32;
-  }
-  
-  .confidence-medium {
-    background-color: #fff8e1;
-    color: #ff8f00;
-  }
-  
-  .confidence-low {
-    background-color: #ffebee;
-    color: #c62828;
-  }
-  
-  .page-reference {
-    display: inline-block;
-    padding: 0.15rem 0.5rem;
-    font-size: 0.8rem;
-    background-color: #f5f5f5;
-    border-radius: 0.25rem;
-    margin-left: 0.5rem;
-    color: #616161;
+  .nav-tabs .nav-link.active {
+    color: #1e5f74;
+    font-weight: 600;
   }
 </style>
 {% endblock %}
 
 {% block content %}
 <div class="container my-5">
-  <div class="analysis-header">
-    <div class="row align-items-center">
-      <div class="col-md-9">
-        <h2 class="mb-3">Document Analysis</h2>
-        <p class="lead mb-0">{{ document_data.get('original_name', 'Document') }}</p>
-        <div class="d-flex align-items-center mt-2">
-          <span class="badge badge-light mr-3">
-            <i class="far fa-file-alt mr-1"></i> {{ document_data.get('document_id', '') }}
-          </span>
-          <span class="badge badge-light mr-3">
-            <i class="far fa-calendar-alt mr-1"></i> {{ document_data.get('timestamp', '').split('-')[0] + '-' + document_data.get('timestamp', '').split('-')[1] + '-' + document_data.get('timestamp', '').split('-')[2] if document_data.get('timestamp') else '' }}
-          </span>
-          <span class="badge badge-light">
-            <i class="fas fa-tag mr-1"></i> {{ document_data.get('primary_framework', 'Unknown').upper() }}
-          </span>
-        </div>
-      </div>
-      <div class="col-md-3 text-md-right mt-3 mt-md-0">
-        <a href="{{ url_for('data_moat.document_upload') }}" class="btn btn-outline-light">
-          <i class="fas fa-upload mr-2"></i> Upload New Document
-        </a>
-      </div>
-    </div>
-  </div>
-  
-  <div class="analysis-container">
-    <ul class="nav nav-tabs analysis-nav" id="analysisTab" role="tablist">
-      <li class="nav-item">
-        <a class="nav-link active" id="summary-tab" data-toggle="tab" href="#summary" role="tab">
-          <i class="fas fa-chart-pie mr-2"></i> Summary
-        </a>
-      </li>
-      <li class="nav-item">
-        <a class="nav-link" id="metrics-tab" data-toggle="tab" href="#metrics" role="tab">
-          <i class="fas fa-chart-bar mr-2"></i> Metrics
-        </a>
-      </li>
-      <li class="nav-item">
-        <a class="nav-link" id="frameworks-tab" data-toggle="tab" href="#frameworks" role="tab">
-          <i class="fas fa-sitemap mr-2"></i> Frameworks
-        </a>
-      </li>
-      <li class="nav-item">
-        <a class="nav-link" id="tables-tab" data-toggle="tab" href="#tables" role="tab">
-          <i class="fas fa-table mr-2"></i> Tables
-        </a>
-      </li>
-      <li class="nav-item">
-        <a class="nav-link" id="insights-tab" data-toggle="tab" href="#insights" role="tab">
-          <i class="fas fa-lightbulb mr-2"></i> Insights
-        </a>
-      </li>
-    </ul>
-    
-    <div class="tab-content analysis-content" id="analysisTabContent">
-      <!-- Summary Tab -->
-      <div class="tab-pane fade show active" id="summary" role="tabpanel">
-        <h4 class="mb-4">Document Overview</h4>
-        
-        <div class="row">
-          <div class="col-md-4">
-            <div class="metric-card">
-              <div class="metric-icon">
-                <i class="fas fa-chart-line"></i>
+  <div class="row">
+    <div class="col-12">
+      {% if document %}
+      <div class="analysis-container">
+        <div class="document-info">
+          <div class="document-icon">
+            <i class="fas fa-file-alt"></i>
+          </div>
+          <div class="document-details">
+            <h3>{{ document.original_filename }}</h3>
+            <div class="document-meta">
+              <div class="meta-item">
+                <span class="meta-label">Uploaded:</span>
+                <span>{{ document.timestamp }}</span>
               </div>
-              <h5>Metrics Extracted</h5>
-              <h3 id="metrics-count">{{ document_data.get('metrics_count', 0) }}</h3>
-              <p class="text-muted">Standardized sustainability metrics</p>
+              <div class="meta-item">
+                <span class="meta-label">Size:</span>
+                <span>{{ document.text_length|default(0) }} characters</span>
+              </div>
+              <div class="meta-item">
+                <span class="meta-label">Metrics Found:</span>
+                <span>{{ document.metrics_count|default(0) }}</span>
+              </div>
             </div>
+          </div>
+        </div>
+        
+        <div class="document-actions">
+          <a href="/data-moat/download/{{ document_id }}" class="btn-action">
+            <i class="fas fa-download"></i> Download Original
+          </a>
+          <button class="btn-action" onclick="exportMetrics()">
+            <i class="fas fa-file-export"></i> Export Metrics
+          </button>
+          <button class="btn-action btn-primary" onclick="generateReport()">
+            <i class="fas fa-chart-bar"></i> Generate Report
+          </button>
+        </div>
+        
+        <!-- Nav tabs -->
+        <ul class="nav nav-tabs" id="analysisTabs" role="tablist">
+          <li class="nav-item" role="presentation">
+            <button class="nav-link active" id="frameworks-tab" data-bs-toggle="tab" data-bs-target="#frameworks" type="button" role="tab" aria-controls="frameworks" aria-selected="true">Frameworks</button>
+          </li>
+          <li class="nav-item" role="presentation">
+            <button class="nav-link" id="metrics-tab" data-bs-toggle="tab" data-bs-target="#metrics" type="button" role="tab" aria-controls="metrics" aria-selected="false">Metrics</button>
+          </li>
+          <li class="nav-item" role="presentation">
+            <button class="nav-link" id="preview-tab" data-bs-toggle="tab" data-bs-target="#preview" type="button" role="tab" aria-controls="preview" aria-selected="false">Text Preview</button>
+          </li>
+        </ul>
+        
+        <!-- Tab panes -->
+        <div class="tab-content">
+          <!-- Frameworks Tab -->
+          <div class="tab-pane fade show active" id="frameworks" role="tabpanel" aria-labelledby="frameworks-tab">
+            <h4 class="section-header">Detected Frameworks</h4>
+            
+            {% if document.frameworks and document.frameworks|length > 0 %}
+              <div class="framework-badges">
+                {% for framework_id, confidence in document.frameworks.items() %}
+                  <div class="framework-badge {% if framework_id == document.primary_framework %}primary{% endif %}">
+                    {% set framework_name = framework_id|upper %}
+                    {% for fw in frameworks|default([]) %}
+                      {% if fw.id == framework_id %}
+                        {% set framework_name = fw.name %}
+                      {% endif %}
+                    {% endfor %}
+                    {{ framework_name }} <span class="small">({{ (confidence * 100)|round }}%)</span>
+                  </div>
+                {% endfor %}
+              </div>
+              
+              <div class="alert alert-info">
+                <i class="fas fa-info-circle me-2"></i>
+                <strong>Primary Framework:</strong> {{ document.primary_framework|upper if document.primary_framework else 'None detected' }}
+                <p class="mb-0 mt-2 small">The document appears to primarily follow this sustainability framework based on keyword analysis.</p>
+              </div>
+            {% else %}
+              <div class="alert alert-warning">
+                <i class="fas fa-exclamation-triangle me-2"></i>
+                No frameworks were detected in this document. Consider using a different document or enabling OCR if the document contains scanned text.
+              </div>
+            {% endif %}
           </div>
           
-          <div class="col-md-4">
-            <div class="metric-card">
-              <div class="metric-icon">
-                <i class="fas fa-balance-scale"></i>
+          <!-- Metrics Tab -->
+          <div class="tab-pane fade" id="metrics" role="tabpanel" aria-labelledby="metrics-tab">
+            <h4 class="section-header">Extracted Metrics</h4>
+            
+            {% if document.metrics and document.metrics|length > 0 %}
+              {% set has_metrics = false %}
+              {% for category, metrics in document.metrics.items() %}
+                {% if metrics|length > 0 %}
+                  {% set has_metrics = true %}
+                {% endif %}
+              {% endfor %}
+              
+              {% if has_metrics %}
+                {% for category, metrics in document.metrics.items() %}
+                  {% if metrics|length > 0 %}
+                    <h5 class="mt-4 mb-3">{{ category|title }}</h5>
+                    <div class="metrics-grid">
+                      {% for metric in metrics %}
+                        <div class="metric-card">
+                          <div class="metric-category">
+                            <span class="category-indicator category-{{ category }}"></span>
+                            {{ category|title }}
+                          </div>
+                          <div class="metric-keyword">{{ metric.keyword|title }}</div>
+                          <div class="metric-context" id="context-{{ loop.index }}-{{ category }}">
+                            {{ metric.context }}
+                          </div>
+                          <span class="metric-expand" onclick="expandContext('context-{{ loop.index }}-{{ category }}')">Read more</span>
+                          <div class="confidence-score">Confidence: {{ (metric.confidence * 100)|round }}%</div>
+                        </div>
+                      {% endfor %}
+                    </div>
+                  {% endif %}
+                {% endfor %}
+              {% else %}
+                <div class="no-metrics">
+                  <i class="fas fa-search fa-3x mb-3 text-muted"></i>
+                  <p>No metrics were extracted from this document.</p>
+                </div>
+              {% endif %}
+            {% else %}
+              <div class="no-metrics">
+                <i class="fas fa-search fa-3x mb-3 text-muted"></i>
+                <p>No metrics were extracted from this document.</p>
               </div>
-              <h5>Frameworks Detected</h5>
-              <h3 id="frameworks-count">{{ document_data.get('frameworks_detected', {})|length }}</h3>
-              <p class="text-muted">Regulatory frameworks identified</p>
-            </div>
+            {% endif %}
           </div>
           
-          <div class="col-md-4">
-            <div class="metric-card">
-              <div class="metric-icon">
-                <i class="fas fa-check-circle"></i>
+          <!-- Text Preview Tab -->
+          <div class="tab-pane fade" id="preview" role="tabpanel" aria-labelledby="preview-tab">
+            <h4 class="section-header">Document Text Preview</h4>
+            
+            {% if document.text_preview %}
+              <div class="text-preview">{{ document.text_preview }}</div>
+            {% else %}
+              <div class="alert alert-warning">
+                <i class="fas fa-exclamation-triangle me-2"></i>
+                Text preview is not available for this document.
               </div>
-              <h5>Confidence Score</h5>
-              <h3 id="confidence-score">{{ (document_data.get('confidence_score', 0) * 100)|int }}%</h3>
-              <p class="text-muted">Overall extraction confidence</p>
-            </div>
-          </div>
-        </div>
-        
-        <div class="mt-5">
-          <h4 class="mb-4">Framework Compliance</h4>
-          
-          <div id="framework-summary-container">
-            <!-- This will be populated by AJAX -->
-            <div class="text-center py-5">
-              <div class="spinner-border text-primary" role="status">
-                <span class="sr-only">Loading...</span>
-              </div>
-              <p class="mt-3 text-muted">Loading framework compliance data...</p>
-            </div>
-          </div>
-        </div>
-        
-        <div class="mt-5">
-          <h4 class="mb-4">Key Metrics by Category</h4>
-          
-          <div id="metrics-summary-container">
-            <!-- This will be populated by AJAX -->
-            <div class="text-center py-5">
-              <div class="spinner-border text-primary" role="status">
-                <span class="sr-only">Loading...</span>
-              </div>
-              <p class="mt-3 text-muted">Loading metrics data...</p>
-            </div>
+            {% endif %}
           </div>
         </div>
       </div>
-      
-      <!-- Metrics Tab -->
-      <div class="tab-pane fade" id="metrics" role="tabpanel">
-        <h4 class="mb-4">Extracted Sustainability Metrics</h4>
-        
-        <div id="metrics-container">
-          <!-- This will be populated by AJAX -->
-          <div class="text-center py-5">
-            <div class="spinner-border text-primary" role="status">
-              <span class="sr-only">Loading...</span>
-            </div>
-            <p class="mt-3 text-muted">Loading metrics data...</p>
-          </div>
-        </div>
+      {% else %}
+      <div class="alert alert-danger">
+        <i class="fas fa-exclamation-circle me-2"></i>
+        Document not found. This document may no longer exist or you may not have permission to access it.
+        <p class="mt-2 mb-0">
+          <a href="/data-moat/upload" class="alert-link">Go back to upload page</a>
+        </p>
       </div>
-      
-      <!-- Frameworks Tab -->
-      <div class="tab-pane fade" id="frameworks" role="tabpanel">
-        <h4 class="mb-4">Regulatory Framework Analysis</h4>
-        
-        <div id="frameworks-container">
-          <!-- This will be populated by AJAX -->
-          <div class="text-center py-5">
-            <div class="spinner-border text-primary" role="status">
-              <span class="sr-only">Loading...</span>
-            </div>
-            <p class="mt-3 text-muted">Loading framework data...</p>
-          </div>
-        </div>
-      </div>
-      
-      <!-- Tables Tab -->
-      <div class="tab-pane fade" id="tables" role="tabpanel">
-        <h4 class="mb-4">Extracted Tables</h4>
-        
-        <div id="tables-container">
-          <!-- This will be populated by AJAX -->
-          <div class="text-center py-5">
-            <div class="spinner-border text-primary" role="status">
-              <span class="sr-only">Loading...</span>
-            </div>
-            <p class="mt-3 text-muted">Loading table data...</p>
-          </div>
-        </div>
-      </div>
-      
-      <!-- Insights Tab -->
-      <div class="tab-pane fade" id="insights" role="tabpanel">
-        <h4 class="mb-4">AI-Generated Insights</h4>
-        
-        <div id="insights-container">
-          <!-- This will be populated by AJAX -->
-          <div class="text-center py-5">
-            <div class="spinner-border text-primary" role="status">
-              <span class="sr-only">Loading...</span>
-            </div>
-            <p class="mt-3 text-muted">Generating insights...</p>
-          </div>
-        </div>
-      </div>
+      {% endif %}
     </div>
   </div>
 </div>
-{% endblock %}
 
-{% block scripts %}
 <script>
-  $(document).ready(function() {
-    const documentId = '{{ document_data.get("document_id", "") }}';
+  function expandContext(id) {
+    const context = document.getElementById(id);
+    context.classList.toggle('expanded');
     
-    // Load all data when page loads
-    loadMetrics(documentId);
-    loadCompliance(documentId);
-    loadDocument(documentId);
-    
-    // Set tab change behavior
-    $('#analysisTab a').on('click', function (e) {
-      e.preventDefault();
-      $(this).tab('show');
-    });
-    
-    function loadMetrics(documentId) {
-      // Make AJAX request to get metrics
-      $.ajax({
-        url: '{{ url_for("data_moat.api_metrics", document_id="PLACEHOLDER") }}'.replace('PLACEHOLDER', documentId),
-        type: 'GET',
-        success: function(response) {
-          if (response.success) {
-            populateMetricsTab(response.metrics);
-            populateMetricsSummary(response.metrics);
-          } else {
-            showError('#metrics-container', 'Failed to load metrics: ' + response.error);
-            showError('#metrics-summary-container', 'Failed to load metrics: ' + response.error);
-          }
-        },
-        error: function(xhr, status, error) {
-          showError('#metrics-container', 'Failed to load metrics: ' + error);
-          showError('#metrics-summary-container', 'Failed to load metrics: ' + error);
-        }
-      });
+    const expandBtn = context.nextElementSibling;
+    if (context.classList.contains('expanded')) {
+      expandBtn.textContent = 'Show less';
+    } else {
+      expandBtn.textContent = 'Read more';
     }
-    
-    function loadCompliance(documentId) {
-      // Make AJAX request to get compliance assessment
-      $.ajax({
-        url: '{{ url_for("data_moat.api_compliance", document_id="PLACEHOLDER") }}'.replace('PLACEHOLDER', documentId),
-        type: 'GET',
-        success: function(response) {
-          if (response.success) {
-            populateFrameworksTab(response.compliance);
-            populateFrameworkSummary(response.compliance);
-          } else {
-            showError('#frameworks-container', 'Failed to load compliance data: ' + response.error);
-            showError('#framework-summary-container', 'Failed to load compliance data: ' + response.error);
-          }
-        },
-        error: function(xhr, status, error) {
-          showError('#frameworks-container', 'Failed to load compliance data: ' + error);
-          showError('#framework-summary-container', 'Failed to load compliance data: ' + error);
-        }
+  }
+  
+  function exportMetrics() {
+    // In a real implementation, this would download a CSV or JSON file
+    alert('This feature would export all extracted metrics to a CSV or JSON file.\n\nImplementation is simplified for this demo.');
+  }
+  
+  function generateReport() {
+    // In a real implementation, this would generate a comprehensive report
+    alert('This feature would generate a comprehensive sustainability report based on the extracted metrics.\n\nImplementation is simplified for this demo.');
+  }
+  
+  // Initialize tooltips
+  document.addEventListener('DOMContentLoaded', function() {
+    // Initialize Bootstrap tabs if they exist
+    if (typeof bootstrap !== 'undefined') {
+      const triggerTabList = [].slice.call(document.querySelectorAll('#analysisTabs button'));
+      triggerTabList.forEach(function(triggerEl) {
+        new bootstrap.Tab(triggerEl);
       });
-    }
-    
-    function loadDocument(documentId) {
-      // Make AJAX request to get document data
-      $.ajax({
-        url: '{{ url_for("data_moat.api_document", document_id="PLACEHOLDER") }}'.replace('PLACEHOLDER', documentId),
-        type: 'GET',
-        success: function(response) {
-          if (response.success) {
-            populateTablesTab(response.document);
-            populateInsightsTab(response.document);
-          } else {
-            showError('#tables-container', 'Failed to load document data: ' + response.error);
-            showError('#insights-container', 'Failed to load document data: ' + response.error);
-          }
-        },
-        error: function(xhr, status, error) {
-          showError('#tables-container', 'Failed to load document data: ' + error);
-          showError('#insights-container', 'Failed to load document data: ' + error);
-        }
-      });
-    }
-    
-    function populateMetricsTab(metrics) {
-      if (!metrics || metrics.length === 0) {
-        $('#metrics-container').html('<div class="alert alert-warning">No metrics found for this document.</div>');
-        return;
-      }
-      
-      // Group metrics by category
-      const groupedMetrics = {};
-      metrics.forEach(metric => {
-        if (!groupedMetrics[metric.category]) {
-          groupedMetrics[metric.category] = [];
-        }
-        groupedMetrics[metric.category].push(metric);
-      });
-      
-      // Build metrics HTML
-      let html = '';
-      
-      for (const [category, categoryMetrics] of Object.entries(groupedMetrics)) {
-        html += `
-          <div class="mb-5">
-            <h5 class="mb-3">
-              <span class="category-badge ${category.toLowerCase()}">${category}</span>
-            </h5>
-            <div class="table-container">
-              <table class="table table-striped">
-                <thead>
-                  <tr>
-                    <th>Metric</th>
-                    <th>Value</th>
-                    <th>Unit</th>
-                    <th>Confidence</th>
-                    <th>Page</th>
-                  </tr>
-                </thead>
-                <tbody>
-        `;
-        
-        categoryMetrics.forEach(metric => {
-          const confidenceClass = metric.confidence >= 0.7 ? 'confidence-high' : (metric.confidence >= 0.4 ? 'confidence-medium' : 'confidence-low');
-          
-          html += `
-            <tr>
-              <td>${metric.name}</td>
-              <td>${metric.value || 'N/A'}</td>
-              <td>${metric.unit || 'N/A'}</td>
-              <td><span class="confidence-pill ${confidenceClass}">${Math.round(metric.confidence * 100)}%</span></td>
-              <td>${metric.page ? `<span class="page-reference">p.${metric.page}</span>` : 'N/A'}</td>
-            </tr>
-          `;
-        });
-        
-        html += `
-                </tbody>
-              </table>
-            </div>
-          </div>
-        `;
-      }
-      
-      $('#metrics-container').html(html);
-    }
-    
-    function populateFrameworksTab(compliance) {
-      if (!compliance || compliance.length === 0) {
-        $('#frameworks-container').html('<div class="alert alert-warning">No compliance assessments found for this document.</div>');
-        return;
-      }
-      
-      // Build frameworks HTML
-      let html = '';
-      
-      compliance.forEach(assessment => {
-        const framework = assessment.framework_id.toUpperCase();
-        const score = assessment.overall_score;
-        const scoreClass = score >= 0.7 ? 'bg-success' : (score >= 0.4 ? 'bg-warning' : 'bg-danger');
-        
-        html += `
-          <div class="framework-card mb-4">
-            <div class="framework-header">
-              <div class="d-flex justify-content-between align-items-center">
-                <h5 class="mb-0">${framework}</h5>
-                <span class="badge badge-pill badge-${score >= 0.7 ? 'success' : (score >= 0.4 ? 'warning' : 'danger')}">${Math.round(score * 100)}% Compliance</span>
-              </div>
-              <div class="compliance-indicator mt-3">
-                <div class="compliance-bar ${scoreClass}" style="width: ${Math.round(score * 100)}%"></div>
-              </div>
-            </div>
-            <div class="framework-content">
-              <div class="row">
-                <div class="col-md-6">
-                  <h6><i class="fas fa-check-circle text-success mr-2"></i> Strengths</h6>
-                  <div class="mt-3">
-        `;
-        
-        if (assessment.findings && assessment.findings.strengths && assessment.findings.strengths.length > 0) {
-          assessment.findings.strengths.forEach(strength => {
-            const evidenceLink = assessment.evidence_links && assessment.evidence_links[strength];
-            const pageRef = evidenceLink ? evidenceLink.page : null;
-            
-            html += `
-              <div class="evidence-item strength mb-3">
-                <p class="mb-1">${strength}</p>
-                ${pageRef ? `<small class="text-muted">Page ${pageRef}</small>` : ''}
-              </div>
-            `;
-          });
-        } else {
-          html += '<p class="text-muted">No specific strengths identified.</p>';
-        }
-        
-        html += `
-                  </div>
-                </div>
-                <div class="col-md-6">
-                  <h6><i class="fas fa-exclamation-triangle text-warning mr-2"></i> Gaps</h6>
-                  <div class="mt-3">
-        `;
-        
-        if (assessment.findings && assessment.findings.gaps && assessment.findings.gaps.length > 0) {
-          assessment.findings.gaps.forEach(gap => {
-            const evidenceLink = assessment.evidence_links && assessment.evidence_links[gap];
-            const pageRef = evidenceLink ? evidenceLink.page : null;
-            
-            html += `
-              <div class="evidence-item gap mb-3">
-                <p class="mb-1">${gap}</p>
-                ${pageRef ? `<small class="text-muted">Page ${pageRef}</small>` : ''}
-              </div>
-            `;
-          });
-        } else {
-          html += '<p class="text-muted">No specific gaps identified.</p>';
-        }
-        
-        html += `
-                  </div>
-                </div>
-              </div>
-              
-              <div class="mt-4">
-                <h6><i class="fas fa-lightbulb text-primary mr-2"></i> Recommendations</h6>
-                <div class="mt-3">
-        `;
-        
-        if (assessment.recommendations && Object.keys(assessment.recommendations).length > 0) {
-          Object.entries(assessment.recommendations).forEach(([key, value]) => {
-            html += `
-              <div class="evidence-item mb-3" style="border-left-color: #2196F3;">
-                <p class="mb-1"><strong>${key}:</strong> ${value}</p>
-              </div>
-            `;
-          });
-        } else {
-          html += '<p class="text-muted">No specific recommendations available.</p>';
-        }
-        
-        html += `
-                </div>
-              </div>
-            </div>
-          </div>
-        `;
-      });
-      
-      $('#frameworks-container').html(html);
-    }
-    
-    function populateTablesTab(document) {
-      // Check if document has tables
-      if (!document.document_structure || !document.document_structure.tables || document.document_structure.tables.length === 0) {
-        $('#tables-container').html('<div class="alert alert-warning">No tables found in this document.</div>');
-        return;
-      }
-      
-      const tables = document.document_structure.tables;
-      
-      // Build tables HTML
-      let html = '';
-      
-      tables.forEach((table, index) => {
-        const topic = table.topic ? `<span class="category-badge ${table.topic.toLowerCase()}">${table.topic}</span>` : '';
-        
-        html += `
-          <div class="card mb-4">
-            <div class="card-header">
-              <div class="d-flex justify-content-between align-items-center">
-                <h5 class="mb-0">Table ${index + 1} ${topic}</h5>
-                <span class="badge badge-light">Page ${table.page}</span>
-              </div>
-            </div>
-            <div class="card-body">
-              <div class="table-container">
-                <table class="table table-bordered">
-        `;
-        
-        // Add headers if available
-        if (table.headers && table.headers.length > 0) {
-          html += '<thead><tr>';
-          table.headers.forEach(header => {
-            html += `<th>${header}</th>`;
-          });
-          html += '</tr></thead>';
-        }
-        
-        // Add rows
-        if (table.rows && table.rows.length > 0) {
-          html += '<tbody>';
-          table.rows.forEach(row => {
-            html += '<tr>';
-            row.forEach(cell => {
-              html += `<td>${cell}</td>`;
-            });
-            html += '</tr>';
-          });
-          html += '</tbody>';
-        }
-        
-        html += `
-                </table>
-              </div>
-            </div>
-          </div>
-        `;
-      });
-      
-      $('#tables-container').html(html);
-    }
-    
-    function populateInsightsTab(document) {
-      // Check if document has AI insights
-      if (!document.ai_insights) {
-        $('#insights-container').html(`
-          <div class="text-center py-4">
-            <div class="alert alert-info">
-              <i class="fas fa-robot mr-2"></i> AI-powered insights for this document are being generated.
-            </div>
-            <button id="generate-insights-btn" class="btn btn-primary mt-3">
-              <i class="fas fa-sync mr-2"></i> Generate Insights Now
-            </button>
-          </div>
-        `);
-        
-        // Add click handler for generate button
-        $('#generate-insights-btn').on('click', function() {
-          $(this).prop('disabled', true).html('<i class="fas fa-spinner fa-spin mr-2"></i> Generating...');
-          
-          // Simulated insights generation
-          setTimeout(function() {
-            const simulatedInsights = {
-              summary: "This sustainability report demonstrates a strong commitment to environmental initiatives but lacks detail in social impact metrics. The company has made significant progress in reducing carbon emissions but has opportunities for improvement in water management and waste reduction strategies.",
-              key_strengths: [
-                "Comprehensive carbon emission reporting with detailed breakdowns",
-                "Strong governance structure for sustainability initiatives",
-                "Clear renewable energy transition plan with specific targets"
-              ],
-              areas_for_improvement: [
-                "Limited social impact metrics and indicators",
-                "Incomplete water management data across operations",
-                "Lack of detailed waste reduction strategies and metrics"
-              ],
-              competitive_positioning: {
-                ahead: ["Carbon emissions reporting", "Renewable energy transition"],
-                average: ["Diversity and inclusion metrics", "Supply chain transparency"],
-                behind: ["Water management reporting", "Circular economy initiatives"]
-              },
-              recommended_actions: [
-                "Enhance social impact reporting with quantifiable metrics",
-                "Develop comprehensive water management strategy across all operations",
-                "Implement and report on circular economy initiatives"
-              ],
-              metric_trends: [
-                { metric: "Carbon Emissions", trend: "decreasing", confidence: 0.85 },
-                { metric: "Renewable Energy Usage", trend: "increasing", confidence: 0.9 },
-                { metric: "Water Consumption", trend: "unknown", confidence: 0.4 },
-                { metric: "Waste Diversion", trend: "unknown", confidence: 0.35 }
-              ]
-            };
-            
-            displayInsights(simulatedInsights);
-          }, 3000);
-        });
-        
-        return;
-      }
-      
-      displayInsights(document.ai_insights);
-    }
-    
-    function displayInsights(insights) {
-      let html = `
-        <div class="card mb-4">
-          <div class="card-body">
-            <h5 class="card-title"><i class="fas fa-lightbulb text-warning mr-2"></i> Executive Summary</h5>
-            <p class="card-text">${insights.summary}</p>
-          </div>
-        </div>
-        
-        <div class="row">
-          <div class="col-md-6">
-            <div class="card mb-4">
-              <div class="card-body">
-                <h5 class="card-title"><i class="fas fa-check-circle text-success mr-2"></i> Key Strengths</h5>
-                <ul class="list-group list-group-flush mt-3">
-      `;
-      
-      insights.key_strengths.forEach(strength => {
-        html += `<li class="list-group-item"><i class="fas fa-plus-circle text-success mr-2"></i> ${strength}</li>`;
-      });
-      
-      html += `
-                </ul>
-              </div>
-            </div>
-          </div>
-          
-          <div class="col-md-6">
-            <div class="card mb-4">
-              <div class="card-body">
-                <h5 class="card-title"><i class="fas fa-exclamation-triangle text-warning mr-2"></i> Areas for Improvement</h5>
-                <ul class="list-group list-group-flush mt-3">
-      `;
-      
-      insights.areas_for_improvement.forEach(area => {
-        html += `<li class="list-group-item"><i class="fas fa-minus-circle text-warning mr-2"></i> ${area}</li>`;
-      });
-      
-      html += `
-                </ul>
-              </div>
-            </div>
-          </div>
-        </div>
-        
-        <div class="card mb-4">
-          <div class="card-body">
-            <h5 class="card-title"><i class="fas fa-chart-line text-primary mr-2"></i> Competitive Positioning</h5>
-            <div class="row mt-3">
-              <div class="col-md-4">
-                <div class="card bg-success text-white">
-                  <div class="card-body">
-                    <h6 class="card-title">Ahead of Industry</h6>
-                    <ul class="list-unstyled">
-      `;
-      
-      insights.competitive_positioning.ahead.forEach(item => {
-        html += `<li><i class="fas fa-arrow-up mr-2"></i> ${item}</li>`;
-      });
-      
-      html += `
-                    </ul>
-                  </div>
-                </div>
-              </div>
-              
-              <div class="col-md-4">
-                <div class="card bg-info text-white">
-                  <div class="card-body">
-                    <h6 class="card-title">Industry Average</h6>
-                    <ul class="list-unstyled">
-      `;
-      
-      insights.competitive_positioning.average.forEach(item => {
-        html += `<li><i class="fas fa-equals mr-2"></i> ${item}</li>`;
-      });
-      
-      html += `
-                    </ul>
-                  </div>
-                </div>
-              </div>
-              
-              <div class="col-md-4">
-                <div class="card bg-warning text-white">
-                  <div class="card-body">
-                    <h6 class="card-title">Behind Industry</h6>
-                    <ul class="list-unstyled">
-      `;
-      
-      insights.competitive_positioning.behind.forEach(item => {
-        html += `<li><i class="fas fa-arrow-down mr-2"></i> ${item}</li>`;
-      });
-      
-      html += `
-                    </ul>
-                  </div>
-                </div>
-              </div>
-            </div>
-          </div>
-        </div>
-        
-        <div class="card mb-4">
-          <div class="card-body">
-            <h5 class="card-title"><i class="fas fa-tasks text-primary mr-2"></i> Recommended Actions</h5>
-            <div class="list-group mt-3">
-      `;
-      
-      insights.recommended_actions.forEach((action, index) => {
-        html += `
-          <div class="list-group-item">
-            <div class="d-flex justify-content-between align-items-center">
-              <div>
-                <span class="badge badge-primary badge-pill mr-3">${index + 1}</span>
-                ${action}
-              </div>
-              <button class="btn btn-sm btn-outline-primary">Add to Plan</button>
-            </div>
-          </div>
-        `;
-      });
-      
-      html += `
-            </div>
-          </div>
-        </div>
-        
-        <div class="card">
-          <div class="card-body">
-            <h5 class="card-title"><i class="fas fa-chart-line text-primary mr-2"></i> Metric Trends</h5>
-            <div class="table-container mt-3">
-              <table class="table">
-                <thead>
-                  <tr>
-                    <th>Metric</th>
-                    <th>Trend</th>
-                    <th>Confidence</th>
-                  </tr>
-                </thead>
-                <tbody>
-      `;
-      
-      insights.metric_trends.forEach(trend => {
-        const trendIcon = trend.trend === 'increasing' ? 
-                          '<i class="fas fa-arrow-up text-success"></i>' : 
-                          (trend.trend === 'decreasing' ? 
-                           '<i class="fas fa-arrow-down text-danger"></i>' : 
-                           '<i class="fas fa-minus text-warning"></i>');
-        
-        const confidenceClass = trend.confidence >= 0.7 ? 'confidence-high' : (trend.confidence >= 0.4 ? 'confidence-medium' : 'confidence-low');
-        
-        html += `
-          <tr>
-            <td>${trend.metric}</td>
-            <td>${trendIcon} ${trend.trend.charAt(0).toUpperCase() + trend.trend.slice(1)}</td>
-            <td><span class="confidence-pill ${confidenceClass}">${Math.round(trend.confidence * 100)}%</span></td>
-          </tr>
-        `;
-      });
-      
-      html += `
-                </tbody>
-              </table>
-            </div>
-          </div>
-        </div>
-      `;
-      
-      $('#insights-container').html(html);
-    }
-    
-    function populateMetricsSummary(metrics) {
-      if (!metrics || metrics.length === 0) {
-        $('#metrics-summary-container').html('<div class="alert alert-warning">No metrics found for this document.</div>');
-        return;
-      }
-      
-      // Group metrics by category
-      const groupedMetrics = {};
-      metrics.forEach(metric => {
-        if (!groupedMetrics[metric.category]) {
-          groupedMetrics[metric.category] = [];
-        }
-        groupedMetrics[metric.category].push(metric);
-      });
-      
-      // Build metrics summary HTML
-      let html = '<div class="row">';
-      
-      for (const [category, categoryMetrics] of Object.entries(groupedMetrics)) {
-        // Sort by confidence
-        categoryMetrics.sort((a, b) => b.confidence - a.confidence);
-        
-        // Take top 3
-        const topMetrics = categoryMetrics.slice(0, 3);
-        
-        html += `
-          <div class="col-md-6">
-            <div class="card mb-4">
-              <div class="card-header">
-                <span class="category-badge ${category.toLowerCase()}">${category}</span>
-                <span class="badge badge-pill badge-light float-right">${categoryMetrics.length} total</span>
-              </div>
-              <div class="card-body">
-                <ul class="list-group list-group-flush">
-        `;
-        
-        topMetrics.forEach(metric => {
-          html += `
-            <li class="list-group-item d-flex justify-content-between align-items-center">
-              <div>
-                ${metric.name}
-                ${metric.page ? `<span class="page-reference">p.${metric.page}</span>` : ''}
-              </div>
-              <div>
-                <strong>${metric.value || 'N/A'}</strong>
-                <small class="text-muted">${metric.unit || ''}</small>
-              </div>
-            </li>
-          `;
-        });
-        
-        html += `
-                </ul>
-                ${categoryMetrics.length > 3 ? `<div class="text-center mt-3"><a href="#" class="btn btn-sm btn-outline-primary" onclick="$('#metrics-tab').tab('show')">View all ${categoryMetrics.length} metrics</a></div>` : ''}
-              </div>
-            </div>
-          </div>
-        `;
-      }
-      
-      html += '</div>';
-      $('#metrics-summary-container').html(html);
-    }
-    
-    function populateFrameworkSummary(compliance) {
-      if (!compliance || compliance.length === 0) {
-        $('#framework-summary-container').html('<div class="alert alert-warning">No compliance assessments found for this document.</div>');
-        return;
-      }
-      
-      // Sort by score
-      compliance.sort((a, b) => b.overall_score - a.overall_score);
-      
-      // Build framework summary HTML
-      let html = '<div class="row">';
-      
-      compliance.forEach(assessment => {
-        const framework = assessment.framework_id.toUpperCase();
-        const score = assessment.overall_score;
-        const scoreClass = score >= 0.7 ? 'bg-success' : (score >= 0.4 ? 'bg-warning' : 'bg-danger');
-        
-        html += `
-          <div class="col-md-6">
-            <div class="card mb-4">
-              <div class="card-header">
-                <h5 class="mb-0">${framework}</h5>
-              </div>
-              <div class="card-body">
-                <div class="d-flex justify-content-between align-items-center mb-3">
-                  <span>Compliance Score</span>
-                  <span class="badge badge-pill badge-${score >= 0.7 ? 'success' : (score >= 0.4 ? 'warning' : 'danger')}">${Math.round(score * 100)}%</span>
-                </div>
-                <div class="compliance-indicator mb-3">
-                  <div class="compliance-bar ${scoreClass}" style="width: ${Math.round(score * 100)}%"></div>
-                </div>
-        `;
-        
-        // Add key findings if available
-        if (assessment.findings) {
-          const strengths = assessment.findings.strengths || [];
-          const gaps = assessment.findings.gaps || [];
-          
-          if (strengths.length > 0 || gaps.length > 0) {
-            html += '<div class="mt-3">';
-            
-            if (strengths.length > 0) {
-              html += `
-                <div class="evidence-item strength mb-2">
-                  <strong>Key Strength:</strong> ${strengths[0]}
-                </div>
-              `;
-            }
-            
-            if (gaps.length > 0) {
-              html += `
-                <div class="evidence-item gap">
-                  <strong>Key Gap:</strong> ${gaps[0]}
-                </div>
-              `;
-            }
-            
-            html += '</div>';
-          }
-        }
-        
-        html += `
-                <div class="text-center mt-3">
-                  <a href="#" class="btn btn-sm btn-outline-primary" onclick="$('#frameworks-tab').tab('show')">View Details</a>
-                </div>
-              </div>
-            </div>
-          </div>
-        `;
-      });
-      
-      html += '</div>';
-      $('#framework-summary-container').html(html);
-    }
-    
-    function showError(containerId, errorMessage) {
-      $(containerId).html(`
-        <div class="alert alert-danger">
-          <i class="fas fa-exclamation-circle mr-2"></i> ${errorMessage}
-        </div>
-      `);
     }
   });
 </script>

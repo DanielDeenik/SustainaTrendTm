@@ -55,19 +55,9 @@ def register_blueprints(app):
     except ImportError as e:
         logger.warning(f"Science-Based Targets blueprint import failed: {str(e)}")
         
-    # Import regulatory AI agent blueprint
-    try:
-        from .regulatory_ai_agent import regulatory_ai_bp, register_blueprint as register_regulatory_ai
-        logger.info("Regulatory AI Agent blueprint imported successfully")
-    except ImportError as e:
-        logger.warning(f"Regulatory AI Agent blueprint import failed: {str(e)}")
-        
-    # Import refactored regulatory AI agent blueprint
-    try:
-        from .regulatory_ai_agent_refactored import regulatory_ai_bp as regulatory_ai_bp_refactored, register_blueprint as register_regulatory_ai_refactored
-        logger.info("Refactored Regulatory AI Agent blueprint imported successfully")
-    except ImportError as e:
-        logger.warning(f"Refactored Regulatory AI Agent blueprint import failed: {str(e)}")
+    # Regulatory AI functionality has been consolidated into the Data Moat blueprint
+    # No separate regulatory AI blueprints are needed anymore
+    logger.info("Regulatory AI functionality has been consolidated into Data Moat blueprint")
     
     # Import data moat blueprint
     try:
@@ -110,19 +100,8 @@ def register_blueprints(app):
     except NameError:
         logger.warning("Science-Based Targets blueprint not registered due to import failure")
     
-    # Register regulatory AI agent blueprint
-    try:
-        register_regulatory_ai(app)
-        logger.info("Regulatory AI Agent blueprint registered successfully")
-    except NameError:
-        logger.warning("Regulatory AI Agent blueprint not registered due to import failure")
-        
-    # Register refactored regulatory AI agent blueprint
-    try:
-        register_regulatory_ai_refactored(app)
-        logger.info("Refactored Regulatory AI Agent blueprint registered successfully")
-    except NameError:
-        logger.warning("Refactored Regulatory AI Agent blueprint not registered due to import failure")
+    # Regulatory AI functionality has been consolidated into Data Moat
+    # No separate registration is needed
     
     # Register data moat blueprint
     try:
