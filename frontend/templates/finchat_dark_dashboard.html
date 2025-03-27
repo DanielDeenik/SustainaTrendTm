@@ -982,66 +982,133 @@
 
 {% endif %}
 
+
 {% if template_type == "home" %}
 <!-- Home Page Dashboard -->
 <div class="finchat-section">
     <div class="finchat-section-title">
-        <i class="fas fa-home"></i> Sustainability Intelligence Hub
+        <i class="fas fa-tachometer-alt"></i> SustainaTrend™ Intelligence Platform
     </div>
     
+    <!-- KPI Summary Dashboard -->
     <div class="finchat-card">
         <div class="finchat-card-header">
-            <h3 class="finchat-card-title">Welcome to SustainaTrend™</h3>
+            <h3 class="finchat-card-title">Sustainability Performance Overview</h3>
+            <span class="finchat-badge finchat-badge-primary">Real-time</span>
         </div>
         <div class="finchat-card-body">
-            <p>Transforming complex environmental data into actionable, visually engaging insights for your organization.</p>
+            <!-- Metrics Summary -->
+            <div class="metric-summary">
+                <div class="metric-card">
+                    <div class="metric-header">
+                        <div class="metric-title">Carbon Emissions</div>
+                        <i class="fas fa-smog"></i>
+                    </div>
+                    <div class="metric-value">12.4t</div>
+                    <div class="metric-change finchat-value-positive">
+                        <i class="fas fa-arrow-down"></i> -3.7%
+                    </div>
+                </div>
+                
+                <div class="metric-card">
+                    <div class="metric-header">
+                        <div class="metric-title">ESG Score</div>
+                        <i class="fas fa-chart-bar"></i>
+                    </div>
+                    <div class="metric-value">73.8</div>
+                    <div class="metric-change finchat-value-positive">
+                        <i class="fas fa-arrow-up"></i> +2.5%
+                    </div>
+                </div>
+                
+                <div class="metric-card">
+                    <div class="metric-header">
+                        <div class="metric-title">Renewable Energy</div>
+                        <i class="fas fa-solar-panel"></i>
+                    </div>
+                    <div class="metric-value">38%</div>
+                    <div class="metric-change finchat-value-positive">
+                        <i class="fas fa-arrow-up"></i> +8%
+                    </div>
+                </div>
+                
+                <div class="metric-card">
+                    <div class="metric-header">
+                        <div class="metric-title">Water Intensity</div>
+                        <i class="fas fa-tint"></i>
+                    </div>
+                    <div class="metric-value">2.3</div>
+                    <div class="metric-change finchat-value-positive">
+                        <i class="fas fa-arrow-down"></i> -12.2%
+                    </div>
+                </div>
+            </div>
             
-            <div class="finchat-grid" style="margin-top: var(--fc-spacing-md);">
-                <div class="finchat-grid-item">
-                    <div class="finchat-card">
-                        <div class="finchat-card-body" style="text-align: center;">
-                            <i class="fas fa-chart-line" style="font-size: 2rem; color: var(--fc-primary); margin-bottom: var(--fc-spacing-sm);"></i>
-                            <h3 style="margin-bottom: var(--fc-spacing-xs);">Trend Analysis</h3>
-                            <p style="margin-bottom: var(--fc-spacing-sm);">Discover emerging sustainability trends and patterns</p>
-                            <a href="/trend-analysis" class="finchat-button">Explore Trends</a>
-                        </div>
+            <!-- Main Chart -->
+            <div class="market-chart">
+                <div class="market-chart-header">
+                    <div class="market-chart-title">Sustainability Performance Trend</div>
+                    <div class="chart-controls">
+                        <div class="chart-period" data-period="1w">1W</div>
+                        <div class="chart-period active" data-period="1m">1M</div>
+                        <div class="chart-period" data-period="3m">3M</div>
+                        <div class="chart-period" data-period="1y">1Y</div>
                     </div>
                 </div>
-                <div class="finchat-grid-item">
-                    <div class="finchat-card">
-                        <div class="finchat-card-body" style="text-align: center;">
-                            <i class="fas fa-building" style="font-size: 2rem; color: var(--fc-primary); margin-bottom: var(--fc-spacing-sm);"></i>
-                            <h3 style="margin-bottom: var(--fc-spacing-xs);">Real Estate</h3>
-                            <p style="margin-bottom: var(--fc-spacing-sm);">Specialized insights for real estate sustainability</p>
-                            <a href="/real-estate-sustainability" class="finchat-button">View Insights</a>
-                        </div>
-                    </div>
+                <div class="chart-container" id="performanceChart"></div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Key Sections Grid -->
+    <div class="finchat-section-title" style="margin-top: var(--fc-spacing-lg);">
+        <i class="fas fa-sitemap"></i> Platform Features
+    </div>
+    <div class="finchat-grid" style="margin-top: var(--fc-spacing-md);">
+        <div class="finchat-grid-item">
+            <div class="finchat-card">
+                <div class="finchat-card-body" style="text-align: center;">
+                    <i class="fas fa-chart-line" style="font-size: 2rem; color: var(--fc-primary); margin-bottom: var(--fc-spacing-sm);"></i>
+                    <h3 style="margin-bottom: var(--fc-spacing-xs);">Trend Analysis</h3>
+                    <p style="margin-bottom: var(--fc-spacing-sm);">Live data with AI insights and dynamic KPI dashboards</p>
+                    <a href="/trend-analysis" class="finchat-button">Explore Trends</a>
                 </div>
-                <div class="finchat-grid-item">
-                    <div class="finchat-card">
-                        <div class="finchat-card-body" style="text-align: center;">
-                            <i class="fas fa-chart-pie" style="font-size: 2rem; color: var(--fc-primary); margin-bottom: var(--fc-spacing-sm);"></i>
-                            <h3 style="margin-bottom: var(--fc-spacing-xs);">Dashboard</h3>
-                            <p style="margin-bottom: var(--fc-spacing-sm);">Comprehensive sustainability metrics dashboard</p>
-                            <a href="/dashboard" class="finchat-button">Open Dashboard</a>
-                        </div>
-                    </div>
+            </div>
+        </div>
+        <div class="finchat-grid-item">
+            <div class="finchat-card">
+                <div class="finchat-card-body" style="text-align: center;">
+                    <i class="fas fa-lightbulb" style="font-size: 2rem; color: var(--fc-primary); margin-bottom: var(--fc-spacing-sm);"></i>
+                    <h3 style="margin-bottom: var(--fc-spacing-xs);">Strategy Hub</h3>
+                    <p style="margin-bottom: var(--fc-spacing-sm);">AI-powered strategic storytelling and frameworks</p>
+                    <a href="/strategy-hub" class="finchat-button">View Strategies</a>
                 </div>
-                <div class="finchat-grid-item">
-                    <div class="finchat-card">
-                        <div class="finchat-card-body" style="text-align: center;">
-                            <i class="fas fa-book" style="font-size: 2rem; color: var(--fc-primary); margin-bottom: var(--fc-spacing-sm);"></i>
-                            <h3 style="margin-bottom: var(--fc-spacing-xs);">Story Cards</h3>
-                            <p style="margin-bottom: var(--fc-spacing-sm);">Data-driven sustainability storytelling</p>
-                            <a href="/story-cards" class="finchat-button">View Stories</a>
-                        </div>
-                    </div>
+            </div>
+        </div>
+        <div class="finchat-grid-item">
+            <div class="finchat-card">
+                <div class="finchat-card-body" style="text-align: center;">
+                    <i class="fas fa-file-alt" style="font-size: 2rem; color: var(--fc-primary); margin-bottom: var(--fc-spacing-sm);"></i>
+                    <h3 style="margin-bottom: var(--fc-spacing-xs);">Documents</h3>
+                    <p style="margin-bottom: var(--fc-spacing-sm);">Regulatory AI document analysis and compliance</p>
+                    <a href="/documents/document-hub" class="finchat-button">Go to Documents</a>
+                </div>
+            </div>
+        </div>
+        <div class="finchat-grid-item">
+            <div class="finchat-card">
+                <div class="finchat-card-body" style="text-align: center;">
+                    <i class="fas fa-search" style="font-size: 2rem; color: var(--fc-primary); margin-bottom: var(--fc-spacing-sm);"></i>
+                    <h3 style="margin-bottom: var(--fc-spacing-xs);">Search</h3>
+                    <p style="margin-bottom: var(--fc-spacing-sm);">Semantic ESG intelligence engine</p>
+                    <a href="/search" class="finchat-button">Start Searching</a>
                 </div>
             </div>
         </div>
     </div>
     
-    <div class="finchat-card" style="margin-top: var(--fc-spacing-md);">
+    <!-- System Status -->
+    <div class="finchat-card" style="margin-top: var(--fc-spacing-lg);">
         <div class="finchat-card-header">
             <h3 class="finchat-card-title">System Status</h3>
         </div>
@@ -1050,8 +1117,12 @@
                 {% for service, status in api_status.items() %}
                 <div class="debug-info-item">
                     <div class="debug-info-label">{{ service }}</div>
-                    <div class="debug-info-value">
-                        <span class="status-badge {{ status.status }}">{{ status.status }}</span>
+                    <div class="debug-info-value {% if status %}status-ok{% else %}status-error{% endif %}">
+                        {% if status %}
+                        <i class="fas fa-check-circle"></i> Online
+                        {% else %}
+                        <i class="fas fa-exclamation-triangle"></i> Offline
+                        {% endif %}
                     </div>
                 </div>
                 {% endfor %}
@@ -1059,10 +1130,7 @@
         </div>
     </div>
 </div>
-
-{% endif %}
-
-{% if template_type == "dashboard" %}
+{% endif %}{% if template_type == "dashboard" %}
 <!-- Main Dashboard -->
 <div class="finchat-section">
     <div class="finchat-section-title">

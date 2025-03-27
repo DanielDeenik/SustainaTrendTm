@@ -19,6 +19,14 @@ def register_blueprints(app):
     from .trend import trend_bp
     from .realestate import realestate_bp
     
+    # Import dashboard blueprint for 2025 refresh
+    try:
+        from .dashboard import dashboard_bp, register_blueprint as register_dashboard
+        logger.info("Dashboard blueprint imported successfully")
+    except ImportError as e:
+        logger.error(f"Dashboard blueprint import failed: {str(e)}")
+        logger.error("This is a critical error as the Dashboard is a core component of the 2025 refresh")
+    
     # Import enhanced strategy blueprint - centralized implementation with Finchat.io-style UI
     # This is now the only strategy blueprint as all others have been consolidated into it
     try:
@@ -77,6 +85,14 @@ def register_blueprints(app):
     app.register_blueprint(analytics_bp)
     app.register_blueprint(trend_bp)
     app.register_blueprint(realestate_bp)
+    
+    # Register dashboard blueprint for 2025 refresh
+    try:
+        register_dashboard(app)
+        logger.info("Dashboard blueprint registered successfully")
+    except NameError:
+        logger.error("Dashboard blueprint not registered due to import failure")
+        logger.error("This is a critical error as the Dashboard is a core component of the 2025 refresh")
     
     # Register enhanced strategy blueprint - now the only strategy-related blueprint
     try:

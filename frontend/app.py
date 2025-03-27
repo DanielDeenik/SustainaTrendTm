@@ -117,6 +117,14 @@ def create_app(test_config=None):
     # Commenting out direct registration to avoid conflicts
     app.logger.info("Regulatory AI blueprints are registered through routes/__init__.py")
     
+    # Add home route that redirects to dashboard (2025 refresh)
+    @app.route('/')
+    def home():
+        """Redirect to dashboard as the primary landing page for 2025 refresh"""
+        from flask import redirect
+        app.logger.info("Home route redirecting to dashboard")
+        return redirect('/dashboard/')
+    
     # Register direct document upload shortcut
     @app.route('/document-upload-standalone')
     def document_upload_standalone():

@@ -681,59 +681,45 @@
         
         <nav class="finchat-nav">
             <div class="finchat-nav-section">
-                <div class="finchat-nav-header">Overview</div>
+                <div class="finchat-nav-header">Platform</div>
                 
-                <a href="/" class="finchat-nav-item {% if active_nav == 'home' %}active{% endif %}">
-                    <div class="finchat-nav-icon"><i class="fas fa-chart-line"></i></div>
+                <a href="/dashboard" class="finchat-nav-item {% if active_nav == 'dashboard' %}active{% endif %}">
+                    <div class="finchat-nav-icon"><i class="fas fa-tachometer-alt"></i></div>
                     <div class="finchat-nav-text">Dashboard</div>
                 </a>
                 
-                <a href="/trend-analysis" class="finchat-nav-item {% if active_nav == 'trends' %}active{% endif %}">
+                <a href="/performance" class="finchat-nav-item {% if active_nav == 'performance' %}active{% endif %}">
                     <div class="finchat-nav-icon"><i class="fas fa-chart-bar"></i></div>
-                    <div class="finchat-nav-text">Trend Analysis</div>
+                    <div class="finchat-nav-text">Performance</div>
                 </a>
                 
-                <a href="/analytics-dashboard" class="finchat-nav-item {% if active_nav == 'analytics' %}active{% endif %}">
-                    <div class="finchat-nav-icon"><i class="fas fa-chart-pie"></i></div>
-                    <div class="finchat-nav-text">Analytics</div>
+                <a href="/overview" class="finchat-nav-item {% if active_nav == 'overview' %}active{% endif %}">
+                    <div class="finchat-nav-icon"><i class="fas fa-compass"></i></div>
+                    <div class="finchat-nav-text">Overview</div>
                 </a>
             </div>
             
             <div class="finchat-nav-section">
                 <div class="finchat-nav-header">Intelligence</div>
                 
-                <a href="/sustainability-stories" class="finchat-nav-item {% if active_nav == 'stories' %}active{% endif %}">
-                    <div class="finchat-nav-icon"><i class="fas fa-file-alt"></i></div>
-                    <div class="finchat-nav-text">Stories</div>
+                <a href="/trend-analysis" class="finchat-nav-item {% if active_nav == 'trends' %}active{% endif %}">
+                    <div class="finchat-nav-icon"><i class="fas fa-chart-line"></i></div>
+                    <div class="finchat-nav-text">Trend Analysis</div>
                 </a>
                 
-                <a href="/document-upload" class="finchat-nav-item {% if active_nav == 'documents' %}active{% endif %}">
-                    <div class="finchat-nav-icon"><i class="fas fa-file-upload"></i></div>
+                <a href="/strategy-hub" class="finchat-nav-item {% if active_nav == 'strategy' %}active{% endif %}">
+                    <div class="finchat-nav-icon"><i class="fas fa-lightbulb"></i></div>
+                    <div class="finchat-nav-text">Strategy Hub</div>
+                </a>
+                
+                <a href="/documents/document-hub" class="finchat-nav-item {% if active_nav == 'documents' %}active{% endif %}">
+                    <div class="finchat-nav-icon"><i class="fas fa-file-alt"></i></div>
                     <div class="finchat-nav-text">Documents</div>
                 </a>
                 
                 <a href="/search" class="finchat-nav-item {% if active_nav == 'search' %}active{% endif %}">
                     <div class="finchat-nav-icon"><i class="fas fa-search"></i></div>
                     <div class="finchat-nav-text">Search</div>
-                </a>
-            </div>
-            
-            <div class="finchat-nav-section">
-                <div class="finchat-nav-header">Insights</div>
-                
-                <a href="/unified-strategy-hub" class="finchat-nav-item {% if active_nav == 'strategy' %}active{% endif %}">
-                    <div class="finchat-nav-icon"><i class="fas fa-lightbulb"></i></div>
-                    <div class="finchat-nav-text">Strategy Hub</div>
-                </a>
-                
-                <a href="/realestate-trends" class="finchat-nav-item {% if active_nav == 'realestate' %}active{% endif %}">
-                    <div class="finchat-nav-icon"><i class="fas fa-home"></i></div>
-                    <div class="finchat-nav-text">Real Estate</div>
-                </a>
-                
-                <a href="/regulatory-ai" class="finchat-nav-item {% if active_nav == 'regulatory' %}active{% endif %}">
-                    <div class="finchat-nav-icon"><i class="fas fa-clipboard-check"></i></div>
-                    <div class="finchat-nav-text">Regulatory AI Agent</div>
                 </a>
             </div>
             
