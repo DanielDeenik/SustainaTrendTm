@@ -7,10 +7,11 @@ the enhanced_strategy.py module.
 """
 
 import logging
-from flask import Blueprint, redirect, url_for
+from flask import Blueprint, redirect, url_for, Flask
 
 # Create blueprint
 strategy_bp = Blueprint('strategy', __name__, url_prefix='/strategy')
+strategy_hub_bp = Blueprint('strategy_hub', __name__, url_prefix='/strategy-hub')
 logger = logging.getLogger(__name__)
 
 logger.info("Strategy blueprint initialized (redirect mode)")
@@ -87,8 +88,23 @@ def test_redirect():
     logger.info("Testing strategy redirect functionality")
     return redirect(url_for('enhanced_strategy.strategy_hub'))
 
+# Strategy Hub redirect routes
+@strategy_hub_bp.route('/')
+def redirect_strategy_hub_root():
+    """Redirect /strategy-hub to enhanced strategy hub"""
+    logger.info("Redirecting /strategy-hub to enhanced strategy hub")
+    return redirect(url_for('enhanced_strategy.strategy_hub'))
+
+@strategy_hub_bp.route('/<path:subpath>')
+def redirect_strategy_hub_subpath(subpath):
+    """Redirect all /strategy-hub/* routes to enhanced strategy hub"""
+    logger.info(f"Redirecting /strategy-hub/{subpath} to enhanced strategy hub")
+    return redirect(url_for('enhanced_strategy.strategy_hub'))
+
 # Register the blueprint with the app
 def register_blueprint(app):
     """Register the strategy blueprint with Flask app"""
     app.register_blueprint(strategy_bp)
+    app.register_blueprint(strategy_hub_bp)
     logger.info("Strategy blueprint registered (redirect mode)")
+    logger.info("Strategy-hub redirect blueprint registered")
