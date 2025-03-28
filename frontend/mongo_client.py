@@ -18,12 +18,19 @@ logger = logging.getLogger(__name__)
 # Compatibility for bson.SON which may not be available in some installations
 # SON is an OrderedDict subclass used by MongoDB
 # Use a compatibility class regardless of import status to avoid issues with different bson versions
-class SON(OrderedDict):
-    """
-    SON compatibility class using OrderedDict
-    Used for MongoDB when the original bson.SON is not available or has compatibility issues
-    """
-    pass
+try:
+    # First try to import from bson library
+    from bson import SON
+    logger.info("Using native bson.SON implementation")
+except ImportError:
+    # If import fails, use our compatibility class
+    class SON(OrderedDict):
+        """
+        SON compatibility class using OrderedDict
+        Used for MongoDB when the original bson.SON is not available or has compatibility issues
+        """
+        pass
+    logger.info("Using custom SON compatibility class")
 
 # Default connection settings
 DEFAULT_MONGO_URI = "mongodb://localhost:27017/"

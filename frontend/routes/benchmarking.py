@@ -154,7 +154,67 @@ COMPANY_SIZES = [
     "Startup (1-50)", "Small (51-250)", "Medium (251-1000)", "Large (1001-5000)", "Enterprise (5000+)"
 ]
 
-# Create benchmarking collection function
+# Import benchmark MongoDB connector
+try:
+    from benchmark_db import (
+        initialize_benchmarking_collection,
+        save_benchmark_data,
+        get_benchmark_data,
+        get_peer_companies as db_get_peer_companies,
+        get_framework_benchmarks,
+        save_benchmark_assessment
+    )
+    logger.info("Benchmark MongoDB connector imported successfully")
+    db_available = True
+except ImportError:
+    try:
+        from frontend.benchmark_db import (
+            initialize_benchmarking_collection,
+            save_benchmark_data,
+            get_benchmark_data,
+            get_peer_companies as db_get_peer_companies,
+            get_framework_benchmarks,
+            save_benchmark_assessment
+        )
+        logger.info("Benchmark MongoDB connector imported successfully from frontend")
+        db_available = True
+    except ImportError:
+        logger.warning("Benchmark MongoDB connector not found, using fallback functions")
+        db_available = False
+        
+        # Define fallback functions if MongoDB module not available
+        def initialize_benchmarking_collection():
+            logger.warning("MongoDB not available, benchmarking collection not initialized")
+            return False
+            
+        def save_benchmark_data(data):
+            logger.warning("MongoDB not available, benchmark data not saved")
+            return None
+            
+        def get_benchmark_data(company_id=None, framework=None, limit=100):
+            logger.warning("MongoDB not available, returning empty benchmark data")
+            return []
+            
+        def db_get_peer_companies(sector, region, size=None, limit=5):
+            logger.warning("MongoDB not available, returning empty peer companies list")
+            return []
+            
+        def get_framework_benchmarks(framework_id, sector=None, limit=50):
+            logger.warning("MongoDB not available, returning empty framework benchmarks")
+            return []
+            
+        def save_benchmark_assessment(company_id, assessment_data):
+            logger.warning("MongoDB not available, assessment data not saved")
+            return None
+
+# Initialize benchmarking collection
+try:
+    if db_available:
+        initialize_benchmarking_collection()
+except Exception as e:
+    logger.error(f"Error initializing benchmarking collection: {str(e)}")
+
+# Create benchmarking collection function (for backward compatibility)
 def benchmarking_collection():
     """
     Get the benchmarking collection from MongoDB
@@ -677,16 +737,53 @@ def api_benchmark_data():
     
     framework_id = data.get('framework', 'CSRD')
     
-    # Generate benchmark data
+    # Check if we should generate data or use existing data
+    use_existing = data.get('use_existing', False)
+    company_id = data.get('company_id', None)
+    
+    # Try to get existing benchmark data from MongoDB
+    if use_existing and company_id:
+        existing_data = get_benchmark_data(company_id=company_id, framework=framework_id, limit=1)
+        if existing_data and len(existing_data) > 0:
+            logger.info(f"Using existing benchmark data for company ID {company_id}")
+            benchmark_data = existing_data[0]
+            # Generate insights from existing data
+            insights = generate_benchmark_insights(benchmark_data)
+            return jsonify({
+                "company": company_data,
+                "benchmark_data": benchmark_data,
+                "insights": insights,
+                "source": "database"
+            })
+    
+    # Generate new benchmark data
     benchmark_data = generate_sample_benchmark_data(company_data, framework_id)
     
     # Generate insights
     insights = generate_benchmark_insights(benchmark_data)
     
+    # Save benchmark data to MongoDB
+    if db_available:
+        # Prepare document for storage
+        storage_doc = {
+            "company_id": data.get('company_id', str(uuid.uuid4())),
+            "company_profile": company_data,
+            "framework": framework_id,
+            "benchmark_data": benchmark_data,
+            "insights": insights
+        }
+        
+        # Save to MongoDB
+        doc_id = save_benchmark_data(storage_doc)
+        if doc_id:
+            logger.info(f"Benchmark data saved to MongoDB with ID: {doc_id}")
+            benchmark_data["id"] = doc_id
+    
     return jsonify({
         "company": company_data,
         "benchmark_data": benchmark_data,
-        "insights": insights
+        "insights": insights,
+        "source": "generated"
     })
 
 @benchmarking_bp.route('/api/framework-data-needs', methods=['GET'])
