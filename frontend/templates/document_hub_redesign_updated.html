@@ -364,9 +364,150 @@
         margin-left: var(--fc-sidebar-collapsed-width);
     }
     
+    /* Right sidebar / insights panel styles */
+    .finchat-insights {
+        grid-area: insights;
+        background-color: var(--fc-bg-secondary);
+        border-left: 1px solid var(--fc-border);
+        padding: var(--fc-spacing-lg);
+        overflow-y: auto;
+        width: 320px;
+        position: fixed;
+        right: 0;
+        top: 60px;
+        bottom: 0;
+        z-index: 10;
+    }
+    
+    .insights-section {
+        margin-bottom: var(--fc-spacing-lg);
+    }
+    
+    .insights-section-header {
+        margin-bottom: var(--fc-spacing-md);
+        border-bottom: 1px solid var(--fc-border);
+        padding-bottom: var(--fc-spacing-sm);
+    }
+    
+    .insights-section-title {
+        font-size: 1.1rem;
+        font-weight: 600;
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+        margin-bottom: 0.25rem;
+    }
+    
+    .insights-section-title i {
+        color: var(--fc-primary);
+    }
+    
+    .insights-section-description {
+        font-size: 0.8rem;
+        color: var(--fc-text-secondary);
+    }
+    
+    /* Regulatory timeline specific styles for right sidebar */
+    .timeline-container-right {
+        display: flex;
+        flex-direction: column;
+        gap: 1rem;
+    }
+    
+    .timeline-event-right {
+        background-color: var(--fc-bg-tertiary);
+        border-radius: var(--fc-radius);
+        padding: 1rem;
+        position: relative;
+        border-left: 4px solid var(--fc-primary);
+    }
+    
+    .timeline-event-right.high-impact {
+        border-left-color: var(--fc-negative);
+    }
+    
+    .timeline-event-right.medium-impact {
+        border-left-color: var(--fc-warning);
+    }
+    
+    .timeline-event-right.low-impact {
+        border-left-color: var(--fc-info);
+    }
+    
+    .timeline-date-right {
+        font-size: 0.8rem;
+        font-weight: 700;
+        margin-bottom: 0.25rem;
+        color: var(--fc-primary);
+    }
+    
+    .timeline-event-right.high-impact .timeline-date-right {
+        color: var(--fc-negative);
+    }
+    
+    .timeline-event-right.medium-impact .timeline-date-right {
+        color: var(--fc-warning);
+    }
+    
+    .timeline-event-right.low-impact .timeline-date-right {
+        color: var(--fc-info);
+    }
+    
+    .timeline-event-right h6 {
+        font-size: 0.9rem;
+        font-weight: 600;
+        margin-bottom: 0.25rem;
+    }
+    
+    .timeline-event-right p {
+        font-size: 0.8rem;
+        color: var(--fc-text-secondary);
+        margin: 0;
+    }
+    
+    /* Document statistics in right sidebar */
+    .insights-stats {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 0.75rem;
+    }
+    
+    .insights-stat-item {
+        background-color: var(--fc-bg-tertiary);
+        border-radius: var(--fc-radius);
+        padding: 0.75rem;
+        text-align: center;
+    }
+    
+    .stat-label {
+        font-size: 0.7rem;
+        font-weight: 500;
+        color: var(--fc-text-secondary);
+        margin-bottom: 0.25rem;
+    }
+    
+    .stat-value {
+        font-size: 1rem;
+        font-weight: 700;
+        color: var(--fc-text-primary);
+    }
+    
+    /* Main content with right sidebar */
+    .document-hub-content.insights-open {
+        margin-right: 320px;
+    }
+    
     @media (max-width: 768px) {
         .document-hub-main {
             margin-left: 0;
+        }
+        
+        .finchat-insights {
+            display: none;
+        }
+        
+        .document-hub-content.insights-open {
+            margin-right: 0;
         }
     }
 </style>
@@ -461,30 +602,6 @@
     </header>
     
     <div class="document-hub-main">
-  <!-- Regulatory Timeline Section -->
-  <div class="regulatory-timeline-section">
-    <div class="section-header">
-      <h3>Regulatory Timeline</h3>
-      <p class="section-description">Stay informed about upcoming regulatory deadlines and important sustainability reporting dates</p>
-    </div>
-    <div class="timeline-container">
-      <div class="timeline-event high-impact">
-        <div class="timeline-date">Jan 1, 2025</div>
-        <h6 class="mb-1">CSRD</h6>
-        <p class="mb-0">First reporting period begins for large public-interest companies</p>
-      </div>
-      <div class="timeline-event medium-impact">
-        <div class="timeline-date">Jun 30, 2025</div>
-        <h6 class="mb-1">SASB</h6>
-        <p class="mb-0">Updated industry standards released for enhanced sustainability reporting</p>
-      </div>
-      <div class="timeline-event low-impact">
-        <div class="timeline-date">Dec 31, 2025</div>
-        <h6 class="mb-1">TCFD</h6>
-        <p class="mb-0">Deadline for financial disclosures aligned with climate change risks</p>
-      </div>
-    </div>
-  </div>
 
   <!-- Navigation tabs -->
   <div class="document-hub-tabs">
@@ -497,30 +614,6 @@
   <div class="document-hub-content">
     <!-- Upload tab content -->
     <div class="tab-content active" id="upload-tab">
-      <!-- Regulatory Timeline Section -->
-      <div class="regulatory-timeline-section">
-        <div class="section-header">
-          <h3>Regulatory Timeline</h3>
-          <p class="section-description">Key regulatory sustainability events and important compliance deadlines</p>
-        </div>
-        <div class="timeline-container">
-          <div class="timeline-event high-impact">
-            <span class="timeline-date">Apr 30, 2025</span>
-            <h6>CSRD First Reporting Deadline</h6>
-            <p>Large companies must submit their first CSRD-compliant sustainability reports for the 2024 financial year.</p>
-          </div>
-          <div class="timeline-event medium-impact">
-            <span class="timeline-date">Jun 15, 2025</span>
-            <h6>SASB Standards Update</h6>
-            <p>The Value Reporting Foundation is releasing updated industry-specific SASB standards with expanded climate metrics.</p>
-          </div>
-          <div class="timeline-event low-impact">
-            <span class="timeline-date">Oct 10, 2025</span>
-            <h6>TCFD Guidance Revision</h6>
-            <p>Updated guidance on climate scenario analysis methodologies and enhanced transition risk disclosures.</p>
-          </div>
-        </div>
-      </div>
       
       <div class="upload-container">
         <div class="upload-header">
@@ -1032,6 +1125,60 @@
       </div>
     </div>
   </div>
+  
+  <!-- Right Sidebar / Insights Panel -->
+  <div class="finchat-insights">
+    <!-- Regulatory Timeline Section -->
+    <div class="insights-section">
+      <div class="insights-section-header">
+        <h3 class="insights-section-title"><i class="fas fa-calendar-alt"></i> Regulatory Timeline</h3>
+        <p class="insights-section-description">Stay informed about upcoming regulatory deadlines</p>
+      </div>
+      <div class="timeline-container-right">
+        <div class="timeline-event-right high-impact">
+          <div class="timeline-date-right">Apr 30, 2025</div>
+          <h6>CSRD First Reporting Deadline</h6>
+          <p>Large companies must submit their first CSRD-compliant sustainability reports for the 2024 financial year.</p>
+        </div>
+        <div class="timeline-event-right medium-impact">
+          <div class="timeline-date-right">Jun 15, 2025</div>
+          <h6>SASB Standards Update</h6>
+          <p>The Value Reporting Foundation is releasing updated industry-specific SASB standards with expanded climate metrics.</p>
+        </div>
+        <div class="timeline-event-right low-impact">
+          <div class="timeline-date-right">Oct 10, 2025</div>
+          <h6>TCFD Guidance Revision</h6>
+          <p>Updated guidance on climate scenario analysis methodologies and enhanced transition risk disclosures.</p>
+        </div>
+      </div>
+    </div>
+    
+    <!-- Document Statistics Section -->
+    <div class="insights-section">
+      <div class="insights-section-header">
+        <h3 class="insights-section-title"><i class="fas fa-chart-pie"></i> Document Statistics</h3>
+        <p class="insights-section-description">Key metrics about your document</p>
+      </div>
+      <div class="insights-stats">
+        <div class="insights-stat-item">
+          <div class="stat-label">Page Count</div>
+          <div class="stat-value" id="insight-page-count">45</div>
+        </div>
+        <div class="insights-stat-item">
+          <div class="stat-label">Word Count</div>
+          <div class="stat-value" id="insight-word-count">32,450</div>
+        </div>
+        <div class="insights-stat-item">
+          <div class="stat-label">Frameworks Referenced</div>
+          <div class="stat-value" id="insight-frameworks">5</div>
+        </div>
+        <div class="insights-stat-item">
+          <div class="stat-label">Last Updated</div>
+          <div class="stat-value" id="insight-last-updated">March 25, 2025</div>
+        </div>
+      </div>
+    </div>
+  </div>
 </div>
 
 <!-- Text Paste Modal -->
@@ -1078,8 +1225,10 @@
         
         // Toggle insights panel
         const toggleInsightsBtn = document.getElementById('toggleInsights');
+        const documentContent = document.querySelector('.document-hub-content');
         toggleInsightsBtn.addEventListener('click', function() {
             document.body.classList.toggle('insights-open');
+            documentContent.classList.toggle('insights-open');
             toggleInsightsBtn.classList.toggle('active');
         });
     });
