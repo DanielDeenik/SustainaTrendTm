@@ -97,6 +97,27 @@ def create_app(test_config=None):
         """Inject theme preference into all templates"""
         return {"theme": g.get('theme', 'dark')}
     
+    # Add custom template filters
+    @app.template_filter('date')
+    def date_filter(value, format='%Y-%m-%d'):
+        """Format a date according to the given format"""
+        if value is None:
+            return ""
+        if isinstance(value, str):
+            # Try to parse the string to a datetime if needed
+            from datetime import datetime
+            try:
+                value = datetime.fromisoformat(value.replace('Z', '+00:00'))
+            except (ValueError, AttributeError):
+                try:
+                    value = datetime.strptime(value, '%Y-%m-%dT%H:%M:%S')
+                except (ValueError, AttributeError):
+                    return value
+        try:
+            return value.strftime(format)
+        except (AttributeError, ValueError):
+            return str(value)
+    
     # Register blueprints
     from routes import register_blueprints
     register_blueprints(app)
