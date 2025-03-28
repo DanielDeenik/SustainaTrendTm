@@ -193,6 +193,7 @@ Suggest narrative structures, key message points, and suitable data visualizatio
         
         suggestedPrompts: [
             "How can we tell our carbon reduction story to investors?",
+            "Suggest metrics for my carbon reduction story...",
             "What's the most impactful way to communicate our water conservation progress?",
             "Can you suggest a storytelling approach for our supply chain transparency?",
             "How should we frame our renewable energy transition for customers?",
