@@ -868,6 +868,46 @@
     background-color: var(--card-highlight);
   }
   
+  .story-card-actions {
+    display: flex;
+    justify-content: flex-end;
+    gap: 10px;
+    padding: 10px;
+    border-top: 1px solid rgba(255, 255, 255, 0.05);
+  }
+  
+  .story-card-action {
+    width: 32px;
+    height: 32px;
+    border-radius: 50%;
+    background-color: rgba(255, 255, 255, 0.1);
+    color: var(--light-text);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    transition: all 0.2s ease;
+  }
+  
+  .story-card-action:hover {
+    background-color: var(--primary-color);
+    color: white;
+    transform: translateY(-2px);
+    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2);
+  }
+  
+  .story-card-action[data-action="edit"]:hover {
+    background-color: var(--primary-color);
+  }
+  
+  .story-card-action[data-action="share"]:hover {
+    background-color: var(--secondary-color);
+  }
+  
+  .story-card-action[data-action="download"]:hover {
+    background-color: var(--accent-color);
+  }
+  
   .story-header {
     display: flex;
     justify-content: space-between;
@@ -2630,89 +2670,111 @@
         <div class="card-grid-2">
           <!-- Create Story Card -->
           <div class="insight-card">
-            <div class="insight-header">
-              <i class="fas fa-plus-circle"></i> Create New Story
+            <div class="insight-title">
+              <i class="fas fa-plus-circle me-2"></i> Create New Story
             </div>
             <div class="insight-body">
-              Create a new sustainability story using AI assistance. Choose from various templates or start with a custom narrative.
+              Create a new sustainability story using AI assistance. Choose from various templates or start with a custom narrative tailored to different stakeholder needs.
             </div>
-            <div class="insight-footer">
-              <a href="/stories/create" class="action-btn">Create Story</a>
+            <div class="mt-3">
+              <a href="{{ url_for('stories.create_story') }}" class="btn btn-primary">Create Story</a>
             </div>
           </div>
           
-          <!-- Story Library Card -->
+          <!-- Storytelling Hub Card -->
           <div class="insight-card">
-            <div class="insight-header">
-              <i class="fas fa-book"></i> Story Library
+            <div class="insight-title">
+              <i class="fas fa-newspaper me-2"></i> Storytelling Hub
             </div>
             <div class="insight-body">
-              Browse and manage your existing sustainability stories, filter by audience, category, or date.
+              Access our enhanced storytelling hub with templates for different stakeholders, story management tools, and AI-driven narrative generation capabilities.
             </div>
-            <div class="insight-footer">
-              <a href="/stories" class="action-btn">View Library</a>
+            <div class="mt-3">
+              <a href="{{ url_for('stories.storytelling_hub') }}" class="btn btn-primary">Go to Storytelling Hub</a>
             </div>
           </div>
         </div>
       </div>
       
-      <!-- Recent Stories -->
+      <!-- Featured Templates -->
       <div class="hub-card">
-        <div class="hub-card-title"><i class="fas fa-history"></i> Recent Stories</div>
-        <p class="card-description">Your recently created sustainability stories.</p>
-        
-        <div class="story-list" id="recent-stories">
-          <div class="loading-spinner">
-            <i class="fas fa-spinner fa-spin"></i> Loading recent stories...
-          </div>
-        </div>
-      </div>
-      
-      <!-- Story Templates -->
-      <div class="hub-card">
-        <div class="hub-card-title"><i class="fas fa-file-alt"></i> Story Templates</div>
-        <p class="card-description">Choose from pre-designed templates to accelerate your storytelling process.</p>
+        <div class="hub-card-title"><i class="fas fa-magic"></i> Featured Storytelling Templates</div>
+        <p class="card-description">Use these templates as starting points for your sustainability storytelling process</p>
         
         <div class="template-grid">
-          <!-- Template 1 -->
-          <div class="template-card" data-template="climate-action">
-            <div class="template-icon"><i class="fas fa-leaf"></i></div>
-            <div class="template-title">Climate Action Narrative</div>
-            <div class="template-desc">Tell your climate action story, highlighting emissions reductions and progress toward targets.</div>
+          <!-- Board Template -->
+          <div class="template-card" onclick="window.location.href='{{ url_for('stories.create_story') }}?template=board'">
+            <div class="template-icon"><i class="fas fa-briefcase"></i></div>
+            <div class="template-title">Board-Level Strategic Narratives</div>
+            <div class="template-desc">High-level risk assessment, opportunity identification, and strategic roadmaps for board presentations.</div>
             <div class="template-footer">
-              <a href="/stories/create?template=climate-action" class="small-action-btn">Use Template</a>
+              <button class="btn btn-sm" style="background: #36b37e; color: #fff;">Use Template</button>
             </div>
           </div>
           
-          <!-- Template 2 -->
-          <div class="template-card" data-template="esg-report">
+          <!-- Investor Template -->
+          <div class="template-card" onclick="window.location.href='{{ url_for('stories.create_story') }}?template=investors'">
             <div class="template-icon"><i class="fas fa-chart-line"></i></div>
-            <div class="template-title">ESG Performance Summary</div>
-            <div class="template-desc">Summarize your environmental, social, and governance performance with key metrics.</div>
+            <div class="template-title">Investor-Focused Value Narratives</div>
+            <div class="template-desc">Financial impact analysis, peer benchmarking, compliance status, and ROI metrics for investors.</div>
             <div class="template-footer">
-              <a href="/stories/create?template=esg-report" class="small-action-btn">Use Template</a>
+              <button class="btn btn-sm" style="background: #6554c0; color: #fff;">Use Template</button>
             </div>
           </div>
           
-          <!-- Template 3 -->
-          <div class="template-card" data-template="regulatory">
-            <div class="template-icon"><i class="fas fa-clipboard-check"></i></div>
-            <div class="template-title">Regulatory Compliance Story</div>
-            <div class="template-desc">Showcase your compliance with sustainability regulations like CSRD or ISSB standards.</div>
+          <!-- Regulatory Template -->
+          <div class="template-card" onclick="window.location.href='{{ url_for('stories.create_story') }}?template=regulatory'">
+            <div class="template-icon"><i class="fas fa-balance-scale"></i></div>
+            <div class="template-title">Regulatory Compliance Narratives</div>
+            <div class="template-desc">Detailed compliance status, gap analysis, and implementation roadmaps for regulatory frameworks.</div>
             <div class="template-footer">
-              <a href="/stories/create?template=regulatory" class="small-action-btn">Use Template</a>
+              <button class="btn btn-sm" style="background: #0052cc; color: #fff;">Use Template</button>
             </div>
           </div>
           
-          <!-- Template 4 -->
-          <div class="template-card" data-template="stakeholder">
+          <!-- Customer Template -->
+          <div class="template-card" onclick="window.location.href='{{ url_for('stories.create_story') }}?template=customers'">
             <div class="template-icon"><i class="fas fa-users"></i></div>
-            <div class="template-title">Stakeholder Engagement</div>
-            <div class="template-desc">Craft a narrative focusing on how you engage with various stakeholders on sustainability.</div>
+            <div class="template-title">Customer Value Propositions</div>
+            <div class="template-desc">Sustainability value propositions, product stewardship, and lifecycle benefits for customer communication.</div>
             <div class="template-footer">
-              <a href="/stories/create?template=stakeholder" class="small-action-btn">Use Template</a>
+              <button class="btn btn-sm" style="background: #ff8b00; color: #fff;">Use Template</button>
             </div>
           </div>
+        </div>
+      </div>
+      
+      <!-- AI Storytelling Features -->
+      <div class="hub-card">
+        <div class="hub-card-title"><i class="fas fa-robot"></i> AI Storytelling Features</div>
+        <p class="card-description">Explore our advanced AI-powered storytelling capabilities</p>
+        
+        <div class="card-grid-2">
+          <div class="insight-card">
+            <div class="insight-title">
+              <i class="fas fa-chart-bar me-2"></i> Data Visualization
+            </div>
+            <div class="insight-body">
+              AI-powered chart recommendation and generation based on your sustainability data. Create compelling visual narratives that highlight key trends and insights.
+            </div>
+          </div>
+          
+          <div class="insight-card">
+            <div class="insight-title">
+              <i class="fas fa-sitemap me-2"></i> Framework Mapping
+            </div>
+            <div class="insight-body">
+              Automatically map your sustainability stories to relevant frameworks like CSRD, ESRS, TCFD, and more. Ensure alignment with regulatory requirements.
+            </div>
+          </div>
+        </div>
+        
+        <!-- CTA for Full Storytelling Hub -->
+        <div class="mt-4 text-center">
+          <a href="{{ url_for('stories.storytelling_hub') }}" class="btn btn-lg btn-primary">
+            <i class="fas fa-external-link-alt me-2"></i> Open Full Storytelling Hub
+          </a>
+          <p class="mt-2 text-muted small">Access all storytelling features, templates, and your story library</p>
         </div>
       </div>
     </div>
@@ -4206,11 +4268,25 @@
                     <div class="story-actions">
                       <a href="/stories/view/${story.id}" class="small-action-btn">View Story</a>
                     </div>
+                    <div class="story-card-actions">
+                      <div class="story-card-action" data-action="edit" data-story-id="${story.id}">
+                        <i class="fas fa-edit"></i>
+                      </div>
+                      <div class="story-card-action" data-action="share" data-story-id="${story.id}">
+                        <i class="fas fa-share-alt"></i>
+                      </div>
+                      <div class="story-card-action" data-action="download" data-story-id="${story.id}">
+                        <i class="fas fa-download"></i>
+                      </div>
+                    </div>
                   </div>
                 `;
               });
               
               storiesList.innerHTML = storiesHTML;
+              
+              // Setup action handlers for newly added story cards
+              setupStoryCardActions();
             } else {
               // No stories or error
               storiesList.innerHTML = `
@@ -4246,5 +4322,205 @@
       }
     }
   });
+  
+  // Setup Story Card Actions
+  document.addEventListener('DOMContentLoaded', function() {
+    setupStoryCardActions();
+  });
+  
+  function setupStoryCardActions() {
+    // Get all story action elements
+    const storyActions = document.querySelectorAll('.story-card-action');
+    
+    // Add click event listener to each action button
+    storyActions.forEach(action => {
+      action.addEventListener('click', function(e) {
+        e.preventDefault();
+        e.stopPropagation(); // Prevent event from bubbling up to parent elements
+        
+        // Get action type and story ID from data attributes
+        const actionType = this.dataset.action;
+        const storyId = this.dataset.storyId;
+        
+        // Call the appropriate action handler
+        handleStoryAction(actionType, storyId);
+      });
+    });
+    
+    // Optional: Add click event to entire story card to view details
+    const storyCards = document.querySelectorAll('.story-card');
+    storyCards.forEach(card => {
+      card.addEventListener('click', function() {
+        const storyId = this.querySelector('.story-card-action[data-action="edit"]')?.dataset.storyId;
+        if (storyId) {
+          window.location.href = `/stories/view/${storyId}`;
+        }
+      });
+    });
+  }
+  
+  function handleStoryAction(action, storyId) {
+    console.log(`Story action: ${action} for story ID: ${storyId}`);
+    
+    switch(action) {
+      case 'edit':
+        // Navigate to the story edit page
+        window.location.href = `/stories/edit/${storyId}`;
+        break;
+        
+      case 'share':
+        // Show sharing options modal or overlay
+        showShareOptions(storyId);
+        break;
+        
+      case 'download':
+        // Download story as PDF or other format
+        downloadStory(storyId);
+        break;
+        
+      default:
+        console.log(`Unknown action: ${action}`);
+    }
+  }
+  
+  function showShareOptions(storyId) {
+    // Create a simple modal for share options
+    const modal = document.createElement('div');
+    modal.className = 'share-modal';
+    modal.innerHTML = `
+      <div class="share-modal-content">
+        <div class="share-modal-header">
+          <h4>Share Story</h4>
+          <button class="close-modal-btn"><i class="fas fa-times"></i></button>
+        </div>
+        <div class="share-modal-body">
+          <p>Share options for story #${storyId}</p>
+          <div class="share-options">
+            <button class="share-option" data-platform="email"><i class="fas fa-envelope"></i> Email</button>
+            <button class="share-option" data-platform="slack"><i class="fab fa-slack"></i> Slack</button>
+            <button class="share-option" data-platform="teams"><i class="fas fa-users"></i> Teams</button>
+            <button class="share-option" data-platform="link"><i class="fas fa-link"></i> Copy Link</button>
+          </div>
+        </div>
+      </div>
+    `;
+    
+    // Add styles for the modal
+    const style = document.createElement('style');
+    style.textContent = `
+      .share-modal {
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background: rgba(0, 0, 0, 0.5);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        z-index: 1000;
+      }
+      .share-modal-content {
+        background: var(--card-bg);
+        border-radius: 8px;
+        width: 100%;
+        max-width: 400px;
+        box-shadow: 0 10px 25px rgba(0, 0, 0, 0.3);
+      }
+      .share-modal-header {
+        padding: 15px 20px;
+        border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+      }
+      .share-modal-header h4 {
+        margin: 0;
+        color: var(--light-text);
+      }
+      .close-modal-btn {
+        background: none;
+        border: none;
+        color: var(--light-text);
+        cursor: pointer;
+        font-size: 1.2rem;
+      }
+      .share-modal-body {
+        padding: 20px;
+      }
+      .share-options {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 10px;
+        margin-top: 15px;
+      }
+      .share-option {
+        padding: 10px;
+        background: rgba(255, 255, 255, 0.1);
+        border: 1px solid rgba(255, 255, 255, 0.2);
+        border-radius: 4px;
+        color: var(--light-text);
+        cursor: pointer;
+        transition: all 0.2s ease;
+      }
+      .share-option:hover {
+        background: rgba(255, 255, 255, 0.15);
+        transform: translateY(-2px);
+      }
+    `;
+    
+    document.body.appendChild(style);
+    document.body.appendChild(modal);
+    
+    // Close modal when clicking the close button
+    const closeBtn = modal.querySelector('.close-modal-btn');
+    closeBtn.addEventListener('click', () => {
+      document.body.removeChild(modal);
+      document.body.removeChild(style);
+    });
+    
+    // Close modal when clicking outside the content
+    modal.addEventListener('click', (e) => {
+      if (e.target === modal) {
+        document.body.removeChild(modal);
+        document.body.removeChild(style);
+      }
+    });
+    
+    // Handle share option clicks
+    const shareOptions = modal.querySelectorAll('.share-option');
+    shareOptions.forEach(option => {
+      option.addEventListener('click', () => {
+        const platform = option.dataset.platform;
+        console.log(`Sharing story #${storyId} via ${platform}`);
+        
+        // Handle copy link option
+        if (platform === 'link') {
+          const storyUrl = `${window.location.origin}/stories/view/${storyId}`;
+          navigator.clipboard.writeText(storyUrl)
+            .then(() => {
+              alert('Link copied to clipboard!');
+            })
+            .catch(err => {
+              console.error('Failed to copy link: ', err);
+            });
+        } else {
+          alert(`Sharing via ${platform} is coming soon!`);
+        }
+        
+        // Close the modal
+        document.body.removeChild(modal);
+        document.body.removeChild(style);
+      });
+    });
+  }
+  
+  function downloadStory(storyId) {
+    alert(`Downloading story #${storyId} as PDF is coming soon!`);
+    
+    // In a real implementation, you might fetch the story data and generate a PDF
+    // or redirect to a download endpoint
+    // window.location.href = `/stories/download/${storyId}`;
+  }
 </script>
 {% endblock %}

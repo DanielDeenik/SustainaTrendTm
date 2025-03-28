@@ -23,8 +23,16 @@ from flask import Blueprint, render_template, request, jsonify, redirect, url_fo
 from flask import session, g
 
 # Import sustainability storytelling utilities
-from frontend.sustainability_storytelling import get_enhanced_stories, get_lcm_story, get_data_driven_stories
-from frontend.navigation_config import get_context_for_template
+import sys
+from pathlib import Path
+
+# Add the parent directory to sys.path to ensure modules can be imported
+parent_dir = str(Path(__file__).parent.parent)
+if parent_dir not in sys.path:
+    sys.path.append(parent_dir)
+
+from sustainability_storytelling import get_enhanced_stories, get_lcm_story, get_data_driven_stories
+from navigation_config import get_context_for_template
 
 # Create blueprint
 stories_bp = Blueprint('stories', __name__, url_prefix='/stories')
@@ -105,6 +113,110 @@ def view_story(story_id):
     })
     
     return render_template('strategy/story_detail.html', **template_context)
+
+@stories_bp.route('/edit/<story_id>')
+def edit_story(story_id):
+    """Edit a specific sustainability story"""
+    # Set up template context with navigation
+    template_context = get_context_for_template()
+    
+    # Try to retrieve the story from session history first
+    stories_history = session.get('stories_history', [])
+    story = next((s for s in stories_history if s.get('id') == story_id), None)
+    
+    # If not found in history, get it from API or database
+    if not story:
+        try:
+            # Generate or retrieve the story
+            story = get_lcm_story(story_id=story_id)
+            logger.info(f"Retrieved story with ID {story_id} for editing")
+        except Exception as e:
+            logger.error(f"Error retrieving story {story_id}: {str(e)}")
+            # Return to stories home with error
+            return redirect(url_for('stories.stories_home'))
+    
+    # Add story to template context
+    template_context.update({
+        'story': story,
+        'page_title': f"Edit: {story.get('title', 'Sustainability Story')}",
+        'active_section': 'stories'
+    })
+    
+    return render_template('strategy/story_edit.html', **template_context)
+
+@stories_bp.route('/api/update/<story_id>', methods=['POST'])
+def api_update_story(story_id):
+    """API endpoint for updating an existing story"""
+    if not request.is_json:
+        return jsonify({"success": False, "error": "Request must be JSON"}), 400
+    
+    data = request.get_json()
+    
+    # Get required parameters
+    title = data.get('title')
+    audience = data.get('audience')
+    category = data.get('category')
+    content = data.get('content')
+    recommendations = data.get('recommendations', [])
+    
+    if not all([title, audience, category, content]):
+        return jsonify({"success": False, "error": "Missing required fields"}), 400
+    
+    try:
+        # Get existing stories from session
+        stories_history = session.get('stories_history', [])
+        
+        # Find the story to update
+        story_index = next((i for i, s in enumerate(stories_history) if s.get('id') == story_id), None)
+        
+        if story_index is not None:
+            # Update the existing story
+            stories_history[story_index].update({
+                'title': title,
+                'audience': audience,
+                'category': category,
+                'content': content,
+                'recommendations': recommendations,
+                'updated_at': datetime.now().isoformat()
+            })
+            
+            # Save updated stories to session
+            session['stories_history'] = stories_history
+            
+            logger.info(f"Updated story with ID {story_id}")
+            
+            return jsonify({
+                "success": True,
+                "message": "Story updated successfully",
+                "story_id": story_id
+            })
+        else:
+            # If story not found in session, create a new one with the provided ID
+            new_story = {
+                'id': story_id,
+                'title': title,
+                'audience': audience,
+                'category': category,
+                'content': content,
+                'recommendations': recommendations,
+                'created_at': datetime.now().isoformat(),
+                'updated_at': datetime.now().isoformat()
+            }
+            
+            stories_history.append(new_story)
+            session['stories_history'] = stories_history
+            
+            logger.info(f"Created new story with ID {story_id} via update API")
+            
+            return jsonify({
+                "success": True,
+                "message": "Story created successfully",
+                "story_id": story_id
+            })
+            
+    except Exception as e:
+        logger.error(f"Error updating story {story_id}: {str(e)}")
+        return jsonify({"success": False, "error": str(e)}), 500
 
 @stories_bp.route('/api/generate', methods=['POST'])
 def api_generate_story():
@@ -342,7 +454,8 @@ def generate_story_chart(story_id: str, chart_type: str = 'line') -> Dict[str, A
     
     # Import chart generation function if available
     try:
-        from frontend.sustainability_storytelling import generate_chart_data
+        # Use direct import since we've added parent_dir to sys.path
+        from sustainability_storytelling import generate_chart_data
         return generate_chart_data(category, 'quarterly', chart_type)
     except ImportError:
         # Fallback to default chart data

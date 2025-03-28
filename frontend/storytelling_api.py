@@ -202,22 +202,57 @@ def register_routes(app):
         logger.info("API storytelling templates endpoint accessed")
         
         try:
-            # Get templates based on audience
+            # Get enhanced templates based on audience with updated styling and content
             templates = {
                 "board": {
-                    "title": "Board-Level Narratives",
-                    "description": "High-level risk, opportunity, strategic next steps",
-                    "prompt_example": "Generate a board-level CSRD story from our current data, focusing on top 3 risks and recommendations."
+                    "title": "Board-Level Strategic Narratives",
+                    "description": "High-level risk assessment, opportunity identification, and strategic roadmaps",
+                    "prompt_example": "Generate a board-level CSRD story from our current data, focusing on top 3 risks and recommendations.",
+                    "icon": "fa-briefcase",
+                    "color": "#36b37e",
+                    "topics": ["Governance", "Risk Management", "Strategic Direction", "Competitive Positioning"],
+                    "frameworks": ["CSRD", "SFDR", "TCFD"],
+                    "metrics_focus": ["Long-term Value Creation", "Risk Exposure Reduction", "Market Positioning"]
                 },
                 "sustainability_team": {
-                    "title": "Sustainability Team Insights",
-                    "description": "Root causes, detailed action plans, implementation metrics",
-                    "prompt_example": "Create a sustainability team analysis of our current emissions trend, focusing on root cause and tactical improvements."
+                    "title": "Sustainability Implementation Insights",
+                    "description": "Root cause analysis, detailed action plans, implementation metrics, and tactical roadmaps",
+                    "prompt_example": "Create a sustainability team analysis of our current emissions trend, focusing on root cause and tactical improvements.",
+                    "icon": "fa-leaf",
+                    "color": "#00b8d9",
+                    "topics": ["Implementation Planning", "Performance Monitoring", "Gap Analysis", "Continuous Improvement"],
+                    "frameworks": ["GRI", "ESRS", "Science-Based Targets"],
+                    "metrics_focus": ["Operational Efficiency", "Resource Optimization", "Progress Tracking"]
                 },
                 "investors": {
-                    "title": "Investor-Focused Storytelling",
-                    "description": "Risk analysis, peer comparison, compliance status, ROI metrics",
-                    "prompt_example": "Present our water conservation initiatives as an investor narrative highlighting competitive advantage and risk mitigation."
+                    "title": "Investor-Focused Value Narratives",
+                    "description": "Financial impact analysis, peer benchmarking, compliance status, and ROI metrics",
+                    "prompt_example": "Present our water conservation initiatives as an investor narrative highlighting competitive advantage and risk mitigation.",
+                    "icon": "fa-chart-line",
+                    "color": "#6554c0",
+                    "topics": ["Financial Impact", "Market Differentiation", "Risk Mitigation", "Long-term Value"],
+                    "frameworks": ["SASB", "TCFD", "CDP"],
+                    "metrics_focus": ["ROI", "Cost Avoidance", "Market Valuation Impact", "Competitive Advantage"]
+                },
+                "customers": {
+                    "title": "Customer Value Propositions",
+                    "description": "Sustainability value propositions, product stewardship, and lifecycle benefits",
+                    "prompt_example": "Create a customer-focused story about our carbon-neutral product line highlighting tangible benefits and differentiators.",
+                    "icon": "fa-users",
+                    "color": "#ff8b00",
+                    "topics": ["Product Benefits", "Value Chain Impacts", "Certifications", "Health & Wellbeing"],
+                    "frameworks": ["Cradle-to-Cradle", "ESG Product Labels", "B Corp"],
+                    "metrics_focus": ["Lifecycle Impact", "Customer Value", "Health Benefits", "Resource Efficiency"]
+                },
+                "regulatory": {
+                    "title": "Regulatory Compliance Narratives",
+                    "description": "Detailed compliance status, gap analysis, and implementation roadmaps",
+                    "prompt_example": "Generate a comprehensive CSRD compliance narrative highlighting our current status, gaps, and implementation timeline.",
+                    "icon": "fa-balance-scale",
+                    "color": "#0052cc",
+                    "topics": ["Compliance Status", "Gap Assessment", "Implementation Timelines", "Risk Management"],
+                    "frameworks": ["CSRD", "ESRS", "SFDR", "EU Taxonomy"],
+                    "metrics_focus": ["Compliance Percentage", "Implementation Progress", "Risk Exposure", "Documentation Status"]
                 }
             }
             

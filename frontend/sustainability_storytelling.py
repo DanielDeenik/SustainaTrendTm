@@ -20,10 +20,26 @@ from datetime import datetime, timedelta
 from typing import Dict, List, Any, Optional, Union
 
 # Import AI connector for storytelling
-from frontend.utils.ai_connector import get_generative_ai
+try:
+    from frontend.utils.ai_connector import get_generative_ai
+except ImportError:
+    # Define a fallback function when AI connector is not available
+    def get_generative_ai(*args, **kwargs):
+        return None
 
 # Import document processing capabilities
-from frontend.document_processor import DocumentProcessor
+try:
+    from frontend.document_processor import DocumentProcessor
+except ImportError:
+    # Define a fallback DocumentProcessor when not available
+    class DocumentProcessor:
+        @staticmethod
+        def extract_text(*args, **kwargs):
+            return "Document text extraction unavailable"
+        
+        @staticmethod
+        def analyze_document(*args, **kwargs):
+            return {"error": "Document processing unavailable"}
 
 # Configure logging
 logger = logging.getLogger(__name__)
