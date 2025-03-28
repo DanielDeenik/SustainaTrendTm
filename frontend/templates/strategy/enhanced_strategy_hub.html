@@ -1681,6 +1681,34 @@
 
 {% block main_content %}
 <div class="strategy-hub-container">
+  <!-- Sustainability Co-Pilot Panel -->
+  <div class="finchat-section" id="story-details">
+    <div class="mb-3 d-flex justify-content-between align-items-center">
+      <h3 class="m-0"><i class="fas fa-book me-2"></i> Story Details</h3>
+      <div>
+        <button class="btn btn-sm btn-outline-secondary" id="close-story-btn">Close</button>
+        <button class="btn btn-sm btn-outline-primary ms-2" id="edit-story-btn">Edit Story</button>
+      </div>
+    </div>
+    <div class="finchat-card p-3">
+      <div class="d-flex mb-3 align-items-center">
+        <div class="me-3 text-center">
+          <i class="fas fa-robot fs-1 text-primary"></i>
+        </div>
+        <div class="flex-grow-1">
+          <h4 class="m-0 mb-1">Sustainability Co-Pilot</h4>
+          <p class="text-muted m-0">How can I help with your sustainability strategy?</p>
+        </div>
+      </div>
+      <div class="copilot-input-wrapper mt-3">
+        <textarea class="form-control" id="copilot-prompt" rows="2" placeholder="e.g., Suggest metrics for my carbon reduction story..."></textarea>
+        <div class="d-flex justify-content-end mt-2">
+          <button class="btn btn-primary btn-sm" id="ask-copilot-btn">Ask Co-Pilot</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
   <!-- Header Section - Dashboard-inspired Header with Metrics -->
   <div class="finchat-section">
     <div class="strategy-header">
@@ -2775,6 +2803,28 @@
             <i class="fas fa-external-link-alt me-2"></i> Open Full Storytelling Hub
           </a>
           <p class="mt-2 text-muted small">Access all storytelling features, templates, and your story library</p>
+        </div>
+      </div>
+      
+      <!-- Recent Stories Section -->
+      <div class="hub-card">
+        <div class="hub-card-title"><i class="fas fa-history"></i> Recent Stories</div>
+        <p class="card-description">Your recently created sustainability stories</p>
+        
+        <!-- Stories List Container -->
+        <div id="recent-stories" class="mt-3">
+          <!-- Will be populated by loadRecentStories() -->
+          <div class="loading-spinner"><i class="fas fa-spinner fa-spin"></i> Loading recent stories...</div>
+        </div>
+        
+        <!-- Empty State (will be hidden when stories load) -->
+        <div id="no-stories" class="text-center py-4" style="display: none;">
+          <div class="empty-state-icon"><i class="fas fa-book"></i></div>
+          <h4>No Stories Yet</h4>
+          <p class="text-muted">Create your first sustainability story to see it here</p>
+          <a href="{{ url_for('stories.create_story') }}" class="btn btn-primary mt-2">
+            <i class="fas fa-plus-circle me-2"></i> Create Your First Story
+          </a>
         </div>
       </div>
     </div>
@@ -4522,5 +4572,181 @@
     // or redirect to a download endpoint
     // window.location.href = `/stories/download/${storyId}`;
   }
+  
+  // Sustainability Co-Pilot Functionality
+  document.addEventListener('DOMContentLoaded', function() {
+    // Initially hide the story details panel
+    const storyDetails = document.getElementById('story-details');
+    if (storyDetails) {
+      storyDetails.style.display = 'none';
+    }
+    
+    // Setup Co-Pilot functionality
+    const askCopilotBtn = document.getElementById('ask-copilot-btn');
+    const copilotPrompt = document.getElementById('copilot-prompt');
+    const closeStoryBtn = document.getElementById('close-story-btn');
+    const editStoryBtn = document.getElementById('edit-story-btn');
+    
+    if (askCopilotBtn && copilotPrompt) {
+      askCopilotBtn.addEventListener('click', function() {
+        const prompt = copilotPrompt.value.trim();
+        if (prompt) {
+          processCopilotPrompt(prompt);
+        }
+      });
+      
+      // Allow Enter key to submit the prompt
+      copilotPrompt.addEventListener('keydown', function(event) {
+        if (event.key === 'Enter' && !event.shiftKey) {
+          event.preventDefault();
+          const prompt = copilotPrompt.value.trim();
+          if (prompt) {
+            processCopilotPrompt(prompt);
+          }
+        }
+      });
+    }
+    
+    if (closeStoryBtn) {
+      closeStoryBtn.addEventListener('click', function() {
+        if (storyDetails) {
+          storyDetails.style.display = 'none';
+        }
+      });
+    }
+    
+    if (editStoryBtn) {
+      editStoryBtn.addEventListener('click', function() {
+        // Redirect to the story edit page or open an editor modal
+        // This will be implemented when the story edit functionality is complete
+        alert('Edit story functionality coming soon!');
+      });
+    }
+    
+    // Function to process the co-pilot prompt
+    function processCopilotPrompt(prompt) {
+      // Show the story details panel
+      if (storyDetails) {
+        storyDetails.style.display = 'block';
+      }
+      
+      // Clear the input field
+      copilotPrompt.value = '';
+      
+      // Add a loading indicator inside the story details
+      const storyCard = storyDetails.querySelector('.finchat-card');
+      if (storyCard) {
+        const loadingDiv = document.createElement('div');
+        loadingDiv.className = 'mt-3 text-center';
+        loadingDiv.innerHTML = '<div class="spinner-border text-primary" role="status"><span class="visually-hidden">Loading...</span></div><p class="mt-2">Processing your request...</p>';
+        storyCard.appendChild(loadingDiv);
+        
+        // Simulate AI processing (this would be replaced with an actual API call)
+        setTimeout(() => {
+          // Remove loading indicator
+          storyCard.removeChild(loadingDiv);
+          
+          // Add the response
+          const responseDiv = document.createElement('div');
+          responseDiv.className = 'mt-3 p-3 border-top';
+          
+          // Get template response based on prompt keywords
+          const response = getCopilotResponse(prompt);
+          responseDiv.innerHTML = response;
+          
+          storyCard.appendChild(responseDiv);
+        }, 1500);
+      }
+    }
+    
+    // Function to generate a response based on prompt keywords
+    function getCopilotResponse(prompt) {
+      prompt = prompt.toLowerCase();
+      
+      if (prompt.includes('carbon') || prompt.includes('emission')) {
+        return `
+          <h5>Carbon Reduction Strategy Insights</h5>
+          <p>Based on your industry data, I recommend focusing on these key metrics for your carbon reduction story:</p>
+          <ul>
+            <li><strong>Scope 1 & 2 Emissions</strong>: Track direct and indirect emissions</li>
+            <li><strong>Carbon Intensity</strong>: Emissions per unit of revenue</li>
+            <li><strong>Renewable Energy Percentage</strong>: Proportion of energy from renewable sources</li>
+          </ul>
+          <p>Would you like me to create a sustainability story focused on these metrics?</p>
+          <div class="d-flex justify-content-end mt-3">
+            <button class="btn btn-outline-secondary me-2">No, refine metrics</button>
+            <button class="btn btn-primary" onclick="activateStorytelling()">Yes, create story</button>
+          </div>
+        `;
+      } else if (prompt.includes('water') || prompt.includes('resource')) {
+        return `
+          <h5>Water Management Strategy</h5>
+          <p>For water resource management, these metrics would create the most compelling story:</p>
+          <ul>
+            <li><strong>Water Withdrawal Intensity</strong>: Volume per revenue unit</li>
+            <li><strong>Water Recycling Rate</strong>: Percentage of water recycled</li>
+            <li><strong>Wastewater Quality</strong>: Contaminant reduction metrics</li>
+          </ul>
+          <p>Would you like me to create a sustainability story around water stewardship?</p>
+          <div class="d-flex justify-content-end mt-3">
+            <button class="btn btn-outline-secondary me-2">No, refine metrics</button>
+            <button class="btn btn-primary" onclick="activateStorytelling()">Yes, create story</button>
+          </div>
+        `;
+      } else if (prompt.includes('social') || prompt.includes('diversity')) {
+        return `
+          <h5>Social Impact & Diversity Metrics</h5>
+          <p>For a compelling social sustainability story, focus on:</p>
+          <ul>
+            <li><strong>Workforce Diversity</strong>: Gender and ethnic representation</li>
+            <li><strong>Pay Equity Ratio</strong>: Comparison across demographics</li>
+            <li><strong>Community Investment</strong>: Financial and volunteer metrics</li>
+          </ul>
+          <p>Would you like me to create a sustainability story highlighting social impact?</p>
+          <div class="d-flex justify-content-end mt-3">
+            <button class="btn btn-outline-secondary me-2">No, refine metrics</button>
+            <button class="btn btn-primary" onclick="activateStorytelling()">Yes, create story</button>
+          </div>
+        `;
+      } else {
+        return `
+          <h5>Sustainability Strategy Recommendations</h5>
+          <p>Based on your request, I suggest focusing on these key sustainability dimensions:</p>
+          <ul>
+            <li><strong>Environmental Impact</strong>: Carbon footprint, resource efficiency</li>
+            <li><strong>Governance Structure</strong>: Sustainability oversight and policies</li>
+            <li><strong>Stakeholder Engagement</strong>: Communication and feedback channels</li>
+          </ul>
+          <p>Would you like me to help you create a comprehensive sustainability story?</p>
+          <div class="d-flex justify-content-end mt-3">
+            <button class="btn btn-outline-secondary me-2">No, refine focus</button>
+            <button class="btn btn-primary" onclick="activateStorytelling()">Yes, create story</button>
+          </div>
+        `;
+      }
+    }
+    
+    // Function to activate the storytelling tab
+    window.activateStorytelling = function() {
+      // Switch to the storytelling tab
+      const storytellingTab = document.querySelector('.hub-tab[data-tab="storytelling"]');
+      if (storytellingTab) {
+        storytellingTab.click();
+        
+        // Hide the story details after switching tabs
+        if (storyDetails) {
+          storyDetails.style.display = 'none';
+        }
+        
+        // Scroll to the story creation form
+        setTimeout(() => {
+          const storyForm = document.getElementById('story-creation-form');
+          if (storyForm) {
+            storyForm.scrollIntoView({ behavior: 'smooth' });
+          }
+        }, 300);
+      }
+    };
+  });
 </script>
 {% endblock %}
