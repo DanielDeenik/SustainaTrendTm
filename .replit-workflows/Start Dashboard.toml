@@ -17,3 +17,9 @@ environment = {
   ENABLE_REPLIT_AUTH = "false",
   WERKZEUG_RUN_MAIN = "true"
 }
+
+[nix]
+channel = "stable-22_11"
+
+[deployment]
+deploymentTarget = "cloudrun"
