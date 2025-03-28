@@ -4760,7 +4760,7 @@
     }
     
     // Function to activate the storytelling tab
-    window.activateStorytelling = function() {
+    window.activateStorytelling = function(category) {
       // Switch to the storytelling tab
       const storytellingTab = document.querySelector('.hub-tab[data-tab="storytelling"]');
       if (storytellingTab) {
@@ -4771,13 +4771,175 @@
           storyDetails.style.display = 'none';
         }
         
-        // Scroll to the story creation form
+        // Scroll to the story creation form and set the category if provided
         setTimeout(() => {
           const storyForm = document.getElementById('story-creation-form');
           if (storyForm) {
             storyForm.scrollIntoView({ behavior: 'smooth' });
+            
+            // If a category was provided from the Co-Pilot, set it in the form
+            if (category) {
+              // Set the category in the dropdown
+              const categorySelect = document.getElementById('category');
+              if (categorySelect) {
+                categorySelect.value = category;
+                
+                // Trigger the change event to load the appropriate metrics
+                const event = new Event('change');
+                categorySelect.dispatchEvent(event);
+              }
+            }
           }
         }, 300);
+      }
+    };
+    
+    // Function to create a story from the selected type in the Co-Pilot
+    window.createStoryFromSelection = function() {
+      const selectedType = document.querySelector('input[name="storyType"]:checked');
+      if (selectedType) {
+        activateStorytelling(selectedType.value);
+      } else {
+        activateStorytelling();
+      }
+    };
+    
+    // Function to handle "No, refine metrics" for carbon metrics
+    window.refineCarbonMetrics = function() {
+      const responseDiv = document.querySelector('#storyDetails .border-top');
+      if (responseDiv) {
+        responseDiv.innerHTML = `
+          <h5>Refine Carbon Metrics</h5>
+          <p>Select the specific carbon metrics you'd like to include in your story:</p>
+          <div class="form-check mb-2">
+            <input class="form-check-input" type="checkbox" id="metric1" checked>
+            <label class="form-check-label" for="metric1">
+              Scope 1 Emissions (3,245 tCO2e)
+            </label>
+          </div>
+          <div class="form-check mb-2">
+            <input class="form-check-input" type="checkbox" id="metric2" checked>
+            <label class="form-check-label" for="metric2">
+              Scope 2 Emissions (5,680 tCO2e)
+            </label>
+          </div>
+          <div class="form-check mb-2">
+            <input class="form-check-input" type="checkbox" id="metric3" checked>
+            <label class="form-check-label" for="metric3">
+              Renewable Energy (45%)
+            </label>
+          </div>
+          <div class="form-check mb-2">
+            <input class="form-check-input" type="checkbox" id="metric4">
+            <label class="form-check-label" for="metric4">
+              Carbon Intensity (0.28 tCO2e/million revenue)
+            </label>
+          </div>
+          <div class="form-check mb-2">
+            <input class="form-check-input" type="checkbox" id="metric5">
+            <label class="form-check-label" for="metric5">
+              Emissions Reduction Target (30% by 2030)
+            </label>
+          </div>
+          <div class="d-flex justify-content-end mt-3">
+            <button class="btn btn-primary" onclick="activateStorytelling('emissions')">Create story with selected metrics</button>
+          </div>
+        `;
+      }
+    };
+    
+    // Function to handle "No, refine metrics" for water metrics
+    window.refineWaterMetrics = function() {
+      const responseDiv = document.querySelector('#storyDetails .border-top');
+      if (responseDiv) {
+        responseDiv.innerHTML = `
+          <h5>Refine Water Management Metrics</h5>
+          <p>Select the specific water metrics you'd like to include in your story:</p>
+          <div class="form-check mb-2">
+            <input class="form-check-input" type="checkbox" id="wmetric1" checked>
+            <label class="form-check-label" for="wmetric1">
+              Water Withdrawal (1,250.5 ML)
+            </label>
+          </div>
+          <div class="form-check mb-2">
+            <input class="form-check-input" type="checkbox" id="wmetric2" checked>
+            <label class="form-check-label" for="wmetric2">
+              Water Recycled (32%)
+            </label>
+          </div>
+          <div class="form-check mb-2">
+            <input class="form-check-input" type="checkbox" id="wmetric3" checked>
+            <label class="form-check-label" for="wmetric3">
+              Water Intensity (2.8 m³/unit)
+            </label>
+          </div>
+          <div class="form-check mb-2">
+            <input class="form-check-input" type="checkbox" id="wmetric4">
+            <label class="form-check-label" for="wmetric4">
+              Water Risk Assessment Score (Medium)
+            </label>
+          </div>
+          <div class="form-check mb-2">
+            <input class="form-check-input" type="checkbox" id="wmetric5">
+            <label class="form-check-label" for="wmetric5">
+              Water Reduction Target (15% by 2028)
+            </label>
+          </div>
+          <div class="d-flex justify-content-end mt-3">
+            <button class="btn btn-primary" onclick="activateStorytelling('water')">Create story with selected metrics</button>
+          </div>
+        `;
+      }
+    };
+    
+    // Function to handle "No, refine metrics" for social metrics
+    window.refineSocialMetrics = function() {
+      const responseDiv = document.querySelector('#storyDetails .border-top');
+      if (responseDiv) {
+        responseDiv.innerHTML = `
+          <h5>Refine Social Impact Metrics</h5>
+          <p>Select the specific social metrics you'd like to include in your story:</p>
+          <div class="form-check mb-2">
+            <input class="form-check-input" type="checkbox" id="smetric1" checked>
+            <label class="form-check-label" for="smetric1">
+              Gender Diversity (43% women)
+            </label>
+          </div>
+          <div class="form-check mb-2">
+            <input class="form-check-input" type="checkbox" id="smetric2" checked>
+            <label class="form-check-label" for="smetric2">
+              Community Investment ($2.8 million)
+            </label>
+          </div>
+          <div class="form-check mb-2">
+            <input class="form-check-input" type="checkbox" id="smetric3" checked>
+            <label class="form-check-label" for="smetric3">
+              Employee Satisfaction (85%)
+            </label>
+          </div>
+          <div class="form-check mb-2">
+            <input class="form-check-input" type="checkbox" id="smetric4">
+            <label class="form-check-label" for="smetric4">
+              Training Hours (24 hours/employee/year)
+            </label>
+          </div>
+          <div class="form-check mb-2">
+            <input class="form-check-input" type="checkbox" id="smetric5">
+            <label class="form-check-label" for="smetric5">
+              Health & Safety Incidents (2.1 per 100 employees)
+            </label>
+          </div>
+          <div class="d-flex justify-content-end mt-3">
+            <button class="btn btn-primary" onclick="activateStorytelling('social')">Create story with selected metrics</button>
+          </div>
+        `;
+      }
+    };
+    
+    // Function to close the story details panel
+    window.closeStoryDetails = function() {
+      if (storyDetails) {
+        storyDetails.style.display = 'none';
       }
     };
   });
