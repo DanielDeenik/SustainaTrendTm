@@ -1,0 +1,644 @@
+{% extends "layouts/finchat_dark_layout.html" %}
+
+{% block title %}SustainaTrend™ - Benchmarking Engine{% endblock %}
+
+{% block styles %}
+<style>
+  .benchmark-card {
+    transition: transform 0.3s ease, box-shadow 0.3s ease;
+    border-radius: 8px;
+    overflow: hidden;
+    height: 100%;
+  }
+  
+  .benchmark-card:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 10px 20px rgba(0, 0, 0, 0.2);
+  }
+  
+  .benchmark-icon {
+    font-size: 2.5rem;
+    margin-bottom: 1rem;
+  }
+  
+  .feature-card {
+    border-radius: 12px;
+    overflow: hidden;
+    transition: all 0.3s ease;
+    height: 100%;
+    border-left: 5px solid var(--bs-primary);
+  }
+  
+  .feature-card:hover {
+    transform: translateY(-5px);
+  }
+  
+  .conversation-card {
+    border-radius: 12px;
+    background-color: rgba(35, 45, 60, 0.5);
+    margin-bottom: 20px;
+  }
+  
+  .ai-message {
+    background-color: rgba(25, 135, 84, 0.15);
+    border-radius: 12px;
+    padding: 15px;
+    margin-bottom: 10px;
+  }
+  
+  .user-message {
+    background-color: rgba(13, 110, 253, 0.15);
+    border-radius: 12px;
+    padding: 15px;
+    margin-bottom: 10px;
+    text-align: right;
+  }
+  
+  .ai-bubble, .user-bubble {
+    display: inline-block;
+    max-width: 80%;
+    padding: 10px 15px;
+    border-radius: 15px;
+    margin-bottom: 10px;
+  }
+  
+  .ai-bubble {
+    background-color: rgba(25, 135, 84, 0.2);
+    border-top-left-radius: 3px;
+    text-align: left;
+  }
+  
+  .user-bubble {
+    background-color: rgba(13, 110, 253, 0.2);
+    border-top-right-radius: 3px;
+    text-align: left;
+  }
+  
+  .benchmark-chart-container {
+    height: 350px;
+    width: 100%;
+  }
+  
+  .benchmark-selector {
+    border-radius: 8px;
+    padding: 20px;
+    background: linear-gradient(145deg, rgba(35, 45, 60, 0.8), rgba(25, 35, 50, 0.8));
+    box-shadow: 0 8px 16px rgba(0, 0, 0, 0.2);
+  }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="container-fluid px-4 py-4">
+  <div class="row mb-4">
+    <div class="col-12">
+      <div class="d-flex justify-content-between align-items-center mb-4">
+        <h1 class="h3 mb-0">Benchmarking Engine</h1>
+        <div>
+          <a href="{{ url_for('benchmarking.framework_selector') }}" class="btn btn-primary me-2">
+            <i class="fas fa-random me-2"></i>AI Framework Selector
+          </a>
+          <a href="{{ url_for('benchmarking.document_upload') }}" class="btn btn-outline-primary">
+            <i class="fas fa-file-upload me-2"></i>Upload Documents
+          </a>
+        </div>
+      </div>
+      <p class="text-muted">
+        SustainaTrend™ Benchmarking Engine provides AI-powered benchmarking tools to compare your sustainability 
+        performance against industry peers using the most relevant frameworks.
+      </p>
+    </div>
+  </div>
+  
+  <!-- AI Benchmark Selector Demo -->
+  <div class="row mb-4">
+    <div class="col-12">
+      <div class="card shadow-sm">
+        <div class="card-body p-4">
+          <h4 class="card-title mb-3">
+            <i class="fas fa-brain text-primary me-2"></i>
+            AI Benchmark Selector
+          </h4>
+          <p class="card-text text-muted mb-4">
+            Our smart RAG agent helps you identify the most relevant benchmarking framework based on your 
+            company profile, sector, region, and available data.
+          </p>
+          
+          <div class="row">
+            <div class="col-lg-6">
+              <div class="conversation-card p-4 mb-4 mb-lg-0">
+                <h5><i class="fas fa-comment-dots me-2"></i>Sample Conversation</h5>
+                
+                <div class="ai-bubble mb-3">
+                  <div class="d-flex align-items-center mb-2">
+                    <i class="fas fa-robot me-2 text-success"></i>
+                    <strong>SustainaTrend™ AI</strong>
+                  </div>
+                  What kind of company are you benchmarking?
+                </div>
+                
+                <div class="user-bubble mb-3 ms-auto">
+                  <div class="d-flex align-items-center mb-2">
+                    <i class="fas fa-user me-2 text-primary"></i>
+                    <strong>You</strong>
+                  </div>
+                  A Dutch cleantech startup focused on hydrogen innovation
+                </div>
+                
+                <div class="ai-bubble mb-3">
+                  <div class="d-flex align-items-center mb-2">
+                    <i class="fas fa-robot me-2 text-success"></i>
+                    <strong>SustainaTrend™ AI</strong>
+                  </div>
+                  Great! What's the approximate size of your company?
+                </div>
+                
+                <div class="user-bubble mb-3 ms-auto">
+                  <div class="d-flex align-items-center mb-2">
+                    <i class="fas fa-user me-2 text-primary"></i>
+                    <strong>You</strong>
+                  </div>
+                  About 45 employees, €4.2M annual revenue
+                </div>
+                
+                <div class="ai-bubble">
+                  <div class="d-flex align-items-center mb-2">
+                    <i class="fas fa-robot me-2 text-success"></i>
+                    <strong>SustainaTrend™ AI</strong>
+                  </div>
+                  Based on your company profile, the most relevant frameworks are:
+                  <ul class="mt-2">
+                    <li><strong>VC Sustainability Metrics</strong> (92% relevant) - Designed for startups like yours</li>
+                    <li><strong>CSRD Lightweight</strong> (78% relevant) - EU-based companies should prepare for CSRD</li>
+                    <li><strong>SDG Alignment</strong> (65% relevant) - For global impact measurement</li>
+                  </ul>
+                </div>
+              </div>
+            </div>
+            
+            <div class="col-lg-6">
+              <div class="benchmark-selector">
+                <h5 class="mb-4">Define Your Company</h5>
+                <form id="companyProfileForm">
+                  <div class="mb-3">
+                    <label for="companyName" class="form-label">Company Name</label>
+                    <input type="text" class="form-control" id="companyName" placeholder="Your Company">
+                  </div>
+                  
+                  <div class="mb-3">
+                    <label for="sector" class="form-label">Industry Sector</label>
+                    <select class="form-select" id="sector">
+                      <option value="" disabled selected>Select your sector</option>
+                      {% for sector in industry_sectors %}
+                      <option value="{{ sector }}">{{ sector }}</option>
+                      {% endfor %}
+                    </select>
+                  </div>
+                  
+                  <div class="row">
+                    <div class="col-md-6">
+                      <div class="mb-3">
+                        <label for="region" class="form-label">Region</label>
+                        <select class="form-select" id="region">
+                          <option value="" disabled selected>Select region</option>
+                          {% for region in regions %}
+                          <option value="{{ region }}">{{ region }}</option>
+                          {% endfor %}
+                        </select>
+                      </div>
+                    </div>
+                    <div class="col-md-6">
+                      <div class="mb-3">
+                        <label for="size" class="form-label">Company Size</label>
+                        <select class="form-select" id="size">
+                          <option value="" disabled selected>Select size</option>
+                          {% for size in company_sizes %}
+                          <option value="{{ size }}">{{ size }}</option>
+                          {% endfor %}
+                        </select>
+                      </div>
+                    </div>
+                  </div>
+                  
+                  <button type="submit" class="btn btn-primary w-100 mt-3">
+                    <i class="fas fa-magic me-2"></i>Recommend Framework
+                  </button>
+                </form>
+                
+                <div id="frameworkRecommendation" class="mt-4 d-none">
+                  <h5 class="border-bottom pb-2 mb-3">Recommended Frameworks</h5>
+                  <div id="recommendationResults"></div>
+                  
+                  <div class="d-flex justify-content-between mt-4">
+                    <a href="#" class="btn btn-outline-secondary">Start Over</a>
+                    <a href="#" class="btn btn-success" id="continueToComparison">
+                      <i class="fas fa-chart-bar me-2"></i>Continue to Benchmarking
+                    </a>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+  
+  <!-- Core Capabilities -->
+  <div class="row mb-4">
+    <div class="col-12">
+      <h4 class="mb-3">Core Capabilities</h4>
+    </div>
+    
+    <div class="col-md-4 mb-4">
+      <div class="card feature-card h-100 shadow-sm">
+        <div class="card-body p-4">
+          <div class="text-primary mb-3">
+            <i class="fas fa-brain fa-2x"></i>
+          </div>
+          <h5 class="card-title">AI Benchmark Selector</h5>
+          <p class="card-text text-muted">
+            Uses LangChain memory and Gemini RAG to help select the most appropriate benchmarking framework based on 
+            your company profile, region, and available sustainability data.
+          </p>
+          <div class="mt-3">
+            <span class="badge bg-primary me-2">LangChain</span>
+            <span class="badge bg-success me-2">Gemini AI</span>
+            <span class="badge bg-secondary">RAG</span>
+          </div>
+        </div>
+      </div>
+    </div>
+    
+    <div class="col-md-4 mb-4">
+      <div class="card feature-card h-100 shadow-sm">
+        <div class="card-body p-4">
+          <div class="text-primary mb-3">
+            <i class="fas fa-database fa-2x"></i>
+          </div>
+          <h5 class="card-title">Data Source Discovery</h5>
+          <p class="card-text text-muted">
+            Intelligent engine combining public and private data sources, including document parsing for uploaded PDFs, 
+            financial disclosures, and integrations with open databases.
+          </p>
+          <div class="mt-3">
+            <span class="badge bg-primary me-2">OCR</span>
+            <span class="badge bg-success me-2">Document Analysis</span>
+            <span class="badge bg-secondary">API Pipeline</span>
+          </div>
+        </div>
+      </div>
+    </div>
+    
+    <div class="col-md-4 mb-4">
+      <div class="card feature-card h-100 shadow-sm">
+        <div class="card-body p-4">
+          <div class="text-primary mb-3">
+            <i class="fas fa-chart-line fa-2x"></i>
+          </div>
+          <h5 class="card-title">Benchmarking Dashboard</h5>
+          <p class="card-text text-muted">
+            Interactive visualizations comparing your performance against industry peers across key sustainability metrics,
+            with AI-generated insights and improvement recommendations.
+          </p>
+          <div class="mt-3">
+            <span class="badge bg-primary me-2">Plotly.js</span>
+            <span class="badge bg-success me-2">ECharts</span>
+            <span class="badge bg-secondary">Interactive Reports</span>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+  
+  <!-- Available Frameworks -->
+  <div class="row mb-5">
+    <div class="col-12">
+      <h4 class="mb-3">Available Benchmarking Frameworks</h4>
+    </div>
+    
+    {% for framework_id, framework in regulatory_frameworks.items() %}
+    <div class="col-lg-3 col-md-6 mb-4">
+      <div class="card benchmark-card shadow-sm">
+        <div class="card-body p-4 text-center">
+          <div class="benchmark-icon text-primary">
+            {% if framework_id == "CSRD" %}
+            <i class="fas fa-building"></i>
+            {% elif framework_id == "TCFD" %}
+            <i class="fas fa-temperature-high"></i>
+            {% elif framework_id == "SDG" %}
+            <i class="fas fa-globe-americas"></i>
+            {% elif framework_id == "VC_METRICS" %}
+            <i class="fas fa-chart-pie"></i>
+            {% else %}
+            <i class="fas fa-clipboard-check"></i>
+            {% endif %}
+          </div>
+          <h5 class="card-title">{{ framework.name }}</h5>
+          <p class="card-text text-muted small">{{ framework.description }}</p>
+          <div class="d-flex justify-content-between align-items-center mt-3">
+            <span class="badge bg-secondary">{{ framework.region }}</span>
+            <a href="{{ url_for('benchmarking.data_needs', framework=framework_id) }}" class="btn btn-sm btn-outline-primary">View Details</a>
+          </div>
+        </div>
+      </div>
+    </div>
+    {% endfor %}
+  </div>
+  
+  <!-- Sample Charts -->
+  <div class="row mb-4">
+    <div class="col-12">
+      <h4 class="mb-3">Sample Benchmarking Visualizations</h4>
+    </div>
+    
+    <div class="col-lg-6 mb-4">
+      <div class="card shadow-sm">
+        <div class="card-body">
+          <h5 class="card-title">Emissions Performance vs. Peers</h5>
+          <div class="benchmark-chart-container" id="emissionsChart"></div>
+        </div>
+      </div>
+    </div>
+    
+    <div class="col-lg-6 mb-4">
+      <div class="card shadow-sm">
+        <div class="card-body">
+          <h5 class="card-title">ESG Score Quadrant Analysis</h5>
+          <div class="benchmark-chart-container" id="esgQuadrantChart"></div>
+        </div>
+      </div>
+    </div>
+  </div>
+  
+  <!-- VC-Lens Integration -->
+  <div class="row">
+    <div class="col-12">
+      <div class="card shadow-sm bg-gradient" style="background: linear-gradient(145deg, rgba(35, 45, 60, 0.95), rgba(35, 45, 60, 0.8));">
+        <div class="card-body p-4">
+          <div class="row align-items-center">
+            <div class="col-lg-8">
+              <h4 class="card-title">
+                <i class="fas fa-rocket text-primary me-2"></i>
+                VC-Lens™ Benchmark Match
+              </h4>
+              <p class="card-text">
+                With a single click, match your company's sustainability profile to VC expectations
+                from major firms like Mentha Capital and IK Partners. Get an instant assessment of
+                how well your sustainability metrics align with investor requirements.
+              </p>
+              <div class="mt-3">
+                <span class="badge bg-primary me-2">Auto-Scoring</span>
+                <span class="badge bg-success me-2">CSRD-Readiness</span>
+                <span class="badge bg-secondary">Investor Alignment</span>
+              </div>
+            </div>
+            <div class="col-lg-4 text-center text-lg-end mt-3 mt-lg-0">
+              <a href="{{ url_for('vc_lens.index') }}" class="btn btn-primary btn-lg">
+                <i class="fas fa-external-link-alt me-2"></i>Explore VC-Lens™
+              </a>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/echarts@5.4.2/dist/echarts.min.js"></script>
+
+<script>
+  document.addEventListener('DOMContentLoaded', function() {
+    // Initialize the Emissions Chart
+    const emissionsCtx = document.getElementById('emissionsChart');
+    
+    if (emissionsCtx) {
+      const emissionsChart = echarts.init(emissionsCtx);
+      
+      const option = {
+        tooltip: {
+          trigger: 'axis',
+          axisPointer: {
+            type: 'shadow'
+          }
+        },
+        legend: {
+          data: ['Your Company', 'Industry Median', 'Top Quartile'],
+          textStyle: {
+            color: '#cccccc'
+          }
+        },
+        grid: {
+          left: '3%',
+          right: '4%',
+          bottom: '3%',
+          containLabel: true
+        },
+        xAxis: {
+          type: 'category',
+          data: ['Scope 1', 'Scope 2', 'Scope 3', 'Energy Intensity', 'Carbon per €'],
+          axisLabel: {
+            color: '#cccccc'
+          }
+        },
+        yAxis: {
+          type: 'value',
+          axisLabel: {
+            color: '#cccccc'
+          }
+        },
+        series: [
+          {
+            name: 'Your Company',
+            type: 'bar',
+            data: [30, 45, 80, 60, 35],
+            color: '#0d6efd'
+          },
+          {
+            name: 'Industry Median',
+            type: 'bar',
+            data: [50, 60, 70, 50, 55],
+            color: '#6c757d'
+          },
+          {
+            name: 'Top Quartile',
+            type: 'bar',
+            data: [20, 25, 40, 30, 25],
+            color: '#198754'
+          }
+        ]
+      };
+      
+      emissionsChart.setOption(option);
+      
+      window.addEventListener('resize', function() {
+        emissionsChart.resize();
+      });
+    }
+    
+    // Initialize the ESG Quadrant Chart
+    const esgCtx = document.getElementById('esgQuadrantChart');
+    
+    if (esgCtx) {
+      const esgChart = echarts.init(esgCtx);
+      
+      const esgOption = {
+        tooltip: {
+          formatter: function(params) {
+            return params.data[2] + '<br/>Environmental: ' + params.data[0] + 
+                  '<br/>Social & Governance: ' + params.data[1];
+          }
+        },
+        xAxis: {
+          name: 'Environmental Score',
+          nameLocation: 'middle',
+          nameGap: 30,
+          min: 0,
+          max: 100,
+          axisLabel: {
+            color: '#cccccc'
+          },
+          splitLine: {
+            show: true,
+            lineStyle: {
+              type: 'dashed',
+              color: 'rgba(255, 255, 255, 0.1)'
+            }
+          }
+        },
+        yAxis: {
+          name: 'Social & Governance Score',
+          nameLocation: 'middle',
+          nameGap: 30,
+          min: 0, 
+          max: 100,
+          axisLabel: {
+            color: '#cccccc'
+          },
+          splitLine: {
+            show: true,
+            lineStyle: {
+              type: 'dashed',
+              color: 'rgba(255, 255, 255, 0.1)'
+            }
+          }
+        },
+        series: [{
+          symbolSize: 20,
+          data: [
+            [85, 78, 'Your Company'],
+            [55, 60, 'Industry Average'],
+            [92, 84, 'Leader 1'],
+            [64, 52, 'Competitor A'],
+            [72, 68, 'Competitor B'],
+            [48, 75, 'Competitor C'],
+            [58, 42, 'Competitor D']
+          ],
+          type: 'scatter',
+          color: function(params) {
+            if (params.data[2] === 'Your Company') {
+              return '#0d6efd';
+            } else if (params.data[2] === 'Industry Average') {
+              return '#6c757d';
+            } else if (params.data[2] === 'Leader 1') {
+              return '#198754';
+            } else {
+              return '#ffc107';
+            }
+          }
+        }],
+        markLine: {
+          data: [
+            {xAxis: 50},
+            {yAxis: 50}
+          ]
+        }
+      };
+      
+      esgChart.setOption(esgOption);
+      
+      window.addEventListener('resize', function() {
+        esgChart.resize();
+      });
+    }
+    
+    // Handle form submission
+    const companyProfileForm = document.getElementById('companyProfileForm');
+    const frameworkRecommendation = document.getElementById('frameworkRecommendation');
+    const recommendationResults = document.getElementById('recommendationResults');
+    
+    if (companyProfileForm) {
+      companyProfileForm.addEventListener('submit', function(e) {
+        e.preventDefault();
+        
+        const companyName = document.getElementById('companyName').value || 'Your Company';
+        const sector = document.getElementById('sector').value;
+        const region = document.getElementById('region').value;
+        const size = document.getElementById('size').value;
+        
+        // Check if all required fields are filled
+        if (!sector || !region || !size) {
+          alert('Please fill in all required fields');
+          return;
+        }
+        
+        // Show loading state
+        recommendationResults.innerHTML = '<div class="text-center py-4"><div class="spinner-border text-primary" role="status"></div><p class="mt-2">Analyzing your company profile...</p></div>';
+        frameworkRecommendation.classList.remove('d-none');
+        
+        // Call API endpoint (simulated)
+        setTimeout(() => {
+          const frameworks = [
+            { 
+              id: 'VC_METRICS', 
+              name: 'VC Sustainability Metrics',
+              relevance: 92,
+              reason: 'Best suited for startups and growth companies'
+            },
+            { 
+              id: 'CSRD', 
+              name: 'Corporate Sustainability Reporting Directive',
+              relevance: 78,
+              reason: 'EU-based companies should prepare for CSRD requirements'
+            },
+            { 
+              id: 'SDG', 
+              name: 'Sustainable Development Goals',
+              relevance: 65,
+              reason: 'Global framework applicable to all organizations'
+            }
+          ];
+          
+          let html = '';
+          
+          frameworks.forEach(framework => {
+            html += `
+              <div class="mb-3">
+                <div class="d-flex justify-content-between align-items-center mb-1">
+                  <strong>${framework.name}</strong>
+                  <span class="badge ${framework.relevance > 80 ? 'bg-success' : framework.relevance > 60 ? 'bg-primary' : 'bg-secondary'}">${framework.relevance}% Relevant</span>
+                </div>
+                <div class="progress" style="height: 8px;">
+                  <div class="progress-bar ${framework.relevance > 80 ? 'bg-success' : framework.relevance > 60 ? 'bg-primary' : 'bg-secondary'}" role="progressbar" style="width: ${framework.relevance}%" aria-valuenow="${framework.relevance}" aria-valuemin="0" aria-valuemax="100"></div>
+                </div>
+                <p class="text-muted small mt-1">${framework.reason}</p>
+              </div>
+            `;
+          });
+          
+          recommendationResults.innerHTML = html;
+          
+          // Update continue button
+          const continueButton = document.getElementById('continueToComparison');
+          if (continueButton) {
+            continueButton.href = `/benchmarking/peer-comparison?framework=${frameworks[0].id}`;
+          }
+        }, 1500);
+      });
+    }
+  });
+</script>
+{% endblock %}

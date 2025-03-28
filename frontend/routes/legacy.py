@@ -107,7 +107,57 @@ def trend_virality_redirect():
     logger.info("Legacy trend virality dashboard route accessed - redirecting to enhanced strategy hub with virality tab")
     return redirect(url_for('enhanced_strategy.enhanced_strategy_hub') + '#virality-trends')
 
+# Route for legacy VC-Insights URL
+@legacy_bp.route('/vc-insights')
+def vc_insights_redirect():
+    """
+    Redirects from the legacy /vc-insights route
+    to the new VC-Lens module
+    """
+    logger.info("Legacy VC-Insights route accessed - redirecting to new VC-Lens module")
+    return redirect(url_for('vc_lens.index'))
+
+# Route for legacy VC-Insights subpages
+@legacy_bp.route('/vc-insights/<path:subpath>')
+def vc_insights_subpath_redirect(subpath):
+    """
+    Redirects from the legacy /vc-insights/subpath routes
+    to the corresponding new VC-Lens module URLs
+    """
+    logger.info(f"Legacy VC-Insights subpath route accessed: {subpath} - redirecting to new VC-Lens module")
+    return redirect(f"/vc-lens/{subpath}")
+
 # Function to register blueprint
+@legacy_bp.route('/benchmarking', methods=['GET'])
+def benchmarking_redirect():
+    """
+    Redirects from any legacy benchmarking route
+    to the new Benchmarking Engine
+    """
+    logger.info("Legacy benchmarking route accessed - redirecting to new Benchmarking Engine")
+    return redirect(url_for('benchmarking.index'))
+
+
+@legacy_bp.route('/benchmark-analysis', methods=['GET'])
+def benchmark_analysis_redirect():
+    """
+    Redirects from the legacy /benchmark-analysis route
+    to the new peer comparison page
+    """
+    logger.info("Legacy benchmark analysis route accessed - redirecting to peer comparison")
+    return redirect(url_for('benchmarking.peer_comparison'))
+
+
+@legacy_bp.route('/api/benchmarking', methods=['POST'])
+def api_benchmarking_redirect():
+    """
+    Redirects from the legacy /api/benchmarking route
+    to the new API endpoint
+    """
+    logger.info("Legacy benchmarking API endpoint accessed - redirecting to new endpoint")
+    return redirect(url_for('benchmarking.api_benchmark_data'))
+
+
 def register_blueprint(app):
     """
     Register legacy routes with the application

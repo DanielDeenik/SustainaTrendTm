@@ -943,11 +943,7 @@ def api_follow_up_question():
             "error": str(e)
         }), 500
 
-@regulatory_ai_bp.route('/test', methods=['GET'])
-def test_page():
-    """Test page to verify the refactored blueprint is working"""
-    logger.info("Refactored Regulatory AI Agent test page accessed")
-    return render_template('regulatory/test_refactored.html')
+# Removed unused test route
 
 @regulatory_ai_bp.route('/upload', methods=['GET'])
 def upload_page():

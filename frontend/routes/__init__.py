@@ -65,12 +65,8 @@ def register_blueprints(app):
     except ImportError as e:
         logger.warning(f"Strategy redirect blueprint import failed: {str(e)}")
     
-    # Import storytelling blueprint - new modular implementation
-    try:
-        from .stories import stories_bp, register_blueprint as register_stories
-        logger.info("Stories blueprint imported successfully")
-    except ImportError as e:
-        logger.warning(f"Stories blueprint import failed: {str(e)}. Will rely on enhanced strategy hub")
+    # Stories blueprint has been removed and replaced by Strategy Hub
+    logger.info("Stories blueprint has been removed and replaced by Strategy Hub")
     
     # Import science-based targets blueprint
     try:
@@ -138,12 +134,20 @@ def register_blueprints(app):
         logger.error("Enhanced Strategy Hub blueprint not registered due to import failure")
         logger.error("This is a critical error as the Enhanced Strategy Hub is now the main strategy interface")
     
-    # Register stories blueprint - modular implementation with UUID-based identification
+    # Stories blueprint is now only redirecting to Strategy Hub
     try:
-        register_stories(app)
-        logger.info("Stories blueprint registered successfully")
-    except NameError:
-        logger.warning("Stories blueprint not registered due to import failure")
+        from .stories import stories_bp, register_blueprint as register_stories
+        app.register_blueprint(stories_bp)
+        logger.info("Stories redirect blueprint registered successfully")
+    except ImportError as e:
+        logger.warning(f"Stories redirect blueprint import failed: {str(e)}")
+        
+        # Define a dummy function to prevent NameError in case of import failure
+        def register_stories(app):
+            logger.info("Stories functionality has been migrated to Strategy Hub")
+            pass
+    
+    logger.info("Stories blueprint now redirects to Strategy Hub")
     
     # Register strategy redirect blueprint - for backward compatibility
     try:
@@ -183,6 +187,15 @@ def register_blueprints(app):
         logger.info("Document routes blueprint registered successfully")
     except NameError:
         logger.warning("Document routes blueprint not registered due to import failure")
+    
+    # Register benchmarking engine blueprint
+    try:
+        from .benchmarking import benchmarking_bp, register_blueprint as register_benchmarking
+        register_benchmarking(app)
+        logger.info("Benchmarking Engine blueprint registered successfully")
+    except ImportError as e:
+        logger.error(f"Benchmarking Engine blueprint import failed: {str(e)}")
+        logger.error("This is a critical error as the Benchmarking Engine is a core component of the VC-focused UI update")
     
     # Register legacy routes blueprint for backward compatibility
     try:

@@ -91,7 +91,7 @@ except ImportError:
                     pass
 
 # Create blueprint
-vc_lens_bp = Blueprint('vc_lens', __name__, url_prefix='/vc-insights')
+vc_lens_bp = Blueprint('vc_lens', __name__, url_prefix='/vc-lens')
 
 # Initialize Gemini controller if available
 gemini_controller = None

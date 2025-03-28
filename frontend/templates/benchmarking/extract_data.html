@@ -1,0 +1,624 @@
+{% extends "layouts/finchat_dark_layout.html" %}
+
+{% block title %}SustainaTrend™ - Data Extraction{% endblock %}
+
+{% block styles %}
+<style>
+  .data-card {
+    border-radius: 8px;
+    transition: transform 0.3s ease, box-shadow 0.3s ease;
+    height: 100%;
+  }
+  
+  .data-card:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 8px 16px rgba(0, 0, 0, 0.2);
+  }
+  
+  .document-preview {
+    border-radius: 8px;
+    padding: 20px;
+    background-color: rgba(35, 45, 60, 0.5);
+    max-height: 500px;
+    overflow-y: auto;
+  }
+  
+  .extraction-panel {
+    border-radius: 8px;
+    background-color: rgba(35, 45, 60, 0.5);
+    padding: 20px;
+  }
+  
+  .highlight-area {
+    position: relative;
+    display: inline-block;
+    background-color: rgba(13, 110, 253, 0.2);
+    border-radius: 3px;
+    cursor: pointer;
+  }
+  
+  .extracted-item {
+    border-radius: 8px;
+    background-color: rgba(35, 45, 60, 0.7);
+    padding: 15px;
+    margin-bottom: 15px;
+    border-left: 5px solid;
+  }
+  
+  .extracted-item.high {
+    border-left-color: #198754;
+  }
+  
+  .extracted-item.medium {
+    border-left-color: #0d6efd;
+  }
+  
+  .extracted-item.low {
+    border-left-color: #ffc107;
+  }
+  
+  .confidence-indicator {
+    height: 6px;
+    border-radius: 3px;
+    background-color: #e9ecef;
+    overflow: hidden;
+    margin-top: 5px;
+  }
+  
+  .confidence-bar {
+    height: 100%;
+    border-radius: 3px;
+  }
+  
+  .confidence-bar.high {
+    background-color: #198754;
+  }
+  
+  .confidence-bar.medium {
+    background-color: #0d6efd;
+  }
+  
+  .confidence-bar.low {
+    background-color: #ffc107;
+  }
+  
+  .table-of-contents {
+    border-radius: 8px;
+    background-color: rgba(35, 45, 60, 0.5);
+    padding: 15px;
+  }
+  
+  .toc-item {
+    padding: 8px 12px;
+    border-radius: 4px;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    margin-bottom: 5px;
+  }
+  
+  .toc-item:hover {
+    background-color: rgba(13, 110, 253, 0.1);
+  }
+  
+  .toc-item.active {
+    background-color: rgba(13, 110, 253, 0.2);
+    font-weight: bold;
+  }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="container-fluid px-4 py-4">
+  <div class="row mb-4">
+    <div class="col-12">
+      <div class="d-flex justify-content-between align-items-center mb-4">
+        <h1 class="h3 mb-0">Data Extraction</h1>
+        <div>
+          <a href="{{ url_for('benchmarking.document_upload') }}" class="btn btn-outline-primary me-2">
+            <i class="fas fa-file-upload me-2"></i>Upload More
+          </a>
+          <a href="{{ url_for('benchmarking.peer_comparison') }}" class="btn btn-primary">
+            <i class="fas fa-chart-bar me-2"></i>Continue to Benchmarking
+          </a>
+        </div>
+      </div>
+      <p class="text-muted">
+        Review data extracted from your uploaded document. You can verify accuracy, make corrections, and confirm the extracted metrics before proceeding to benchmarking.
+      </p>
+    </div>
+  </div>
+  
+  <div class="row">
+    <!-- Document Preview & Extraction Panel -->
+    <div class="col-lg-8">
+      <div class="card shadow-sm mb-4">
+        <div class="card-body p-4">
+          <div class="d-flex justify-content-between align-items-center mb-3">
+            <h4 class="card-title mb-0">Document Analysis</h4>
+            <span class="badge bg-primary">{{ benchmark_file.filename }}</span>
+          </div>
+          
+          <div class="row">
+            <div class="col-md-4 mb-4 mb-md-0">
+              <!-- Table of Contents / Document Structure -->
+              <div class="table-of-contents">
+                <h5 class="mb-3">Document Structure</h5>
+                <div id="documentStructure">
+                  <div class="toc-item active" data-page="1">
+                    <i class="fas fa-file-alt me-2"></i>Cover Page
+                  </div>
+                  <div class="toc-item" data-page="2">
+                    <i class="fas fa-list-alt me-2"></i>Table of Contents
+                  </div>
+                  <div class="toc-item" data-page="3">
+                    <i class="fas fa-info-circle me-2"></i>Executive Summary
+                  </div>
+                  <div class="toc-item" data-page="4">
+                    <i class="fas fa-chart-line me-2"></i>Environmental Performance
+                    <div class="ms-3 mt-1">
+                      <div class="toc-item" data-page="4">
+                        <i class="fas fa-cloud me-2"></i>Emissions Data
+                      </div>
+                      <div class="toc-item" data-page="5">
+                        <i class="fas fa-bolt me-2"></i>Energy Consumption
+                      </div>
+                    </div>
+                  </div>
+                  <div class="toc-item" data-page="6">
+                    <i class="fas fa-users me-2"></i>Social Performance
+                  </div>
+                  <div class="toc-item" data-page="8">
+                    <i class="fas fa-balance-scale me-2"></i>Governance
+                  </div>
+                </div>
+              </div>
+            </div>
+            
+            <div class="col-md-8">
+              <!-- Document Preview with Highlights -->
+              <div class="document-preview">
+                <div class="d-flex justify-content-between align-items-center mb-3">
+                  <h5>Environmental Performance</h5>
+                  <span class="badge bg-secondary">Page 4</span>
+                </div>
+                
+                <p>Our company is committed to reducing its environmental impact and addressing climate change. In 2024, we have made significant progress in measuring and managing our greenhouse gas emissions.</p>
+                
+                <h6>Greenhouse Gas Emissions</h6>
+                
+                <p>Our total GHG emissions for the fiscal year 2024 are outlined below:</p>
+                
+                <div class="table-responsive mb-3">
+                  <table class="table table-sm table-bordered">
+                    <thead class="table-light">
+                      <tr>
+                        <th>Emissions Category</th>
+                        <th>2024</th>
+                        <th>2023</th>
+                        <th>Change</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      <tr>
+                        <td>Scope 1 (direct emissions)</td>
+                        <td class="highlight-area" data-metric="scope1_emissions" data-value="3450">3,450 tCO2e</td>
+                        <td>3,780 tCO2e</td>
+                        <td>-8.7%</td>
+                      </tr>
+                      <tr>
+                        <td>Scope 2 (indirect emissions)</td>
+                        <td class="highlight-area" data-metric="scope2_emissions" data-value="7820">7,820 tCO2e</td>
+                        <td>8,340 tCO2e</td>
+                        <td>-6.2%</td>
+                      </tr>
+                      <tr>
+                        <td>Total Scope 1 & 2</td>
+                        <td>11,270 tCO2e</td>
+                        <td>12,120 tCO2e</td>
+                        <td>-7.0%</td>
+                      </tr>
+                    </tbody>
+                  </table>
+                </div>
+                
+                <h6>Energy Consumption</h6>
+                
+                <p>Our energy consumption has been optimized through efficiency measures and increased use of renewable sources:</p>
+                
+                <ul>
+                  <li>Total energy consumption: <span class="highlight-area" data-metric="energy_consumption" data-value="4250">4,250 MWh</span>, down 5% from previous year</li>
+                  <li>Renewable energy sources account for <span class="highlight-area" data-metric="renewable_energy" data-value="34">34%</span> of our total energy consumption, up from 28% last year</li>
+                  <li>Energy intensity per revenue: 0.12 MWh per €1000 revenue</li>
+                </ul>
+                
+                <h6>Water Management</h6>
+                
+                <p>Water conservation remains a priority across our operations:</p>
+                
+                <ul>
+                  <li>Total water withdrawal: 28,500 m³</li>
+                  <li>Water recycled/reused: 12%</li>
+                  <li>Water intensity: 0.8 m³ per €1000 revenue</li>
+                </ul>
+                
+                <div class="text-center text-muted my-4">
+                  <i class="fas fa-arrow-down"></i>
+                  <span class="ms-2">Page continues with more details</span>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+      
+      <!-- Data Quality & Verification -->
+      <div class="card shadow-sm">
+        <div class="card-body p-4">
+          <h4 class="card-title mb-3">Data Verification</h4>
+          
+          <div class="alert alert-info" role="alert">
+            <div class="d-flex">
+              <div class="me-3">
+                <i class="fas fa-info-circle fa-2x"></i>
+              </div>
+              <div>
+                <h6 class="alert-heading">AI-Assisted Verification</h6>
+                <p class="mb-0">Our system has analyzed your document and identified the key sustainability metrics shown above. Please review the extracted data for accuracy before proceeding.</p>
+              </div>
+            </div>
+          </div>
+          
+          <div class="row">
+            <div class="col-md-6 mb-3">
+              <div class="card bg-light text-dark">
+                <div class="card-body">
+                  <h6 class="card-title">Detected Metrics</h6>
+                  <p class="small mb-1">6 metrics extracted from document</p>
+                  <div class="progress" style="height: 8px;">
+                    <div class="progress-bar bg-success" role="progressbar" style="width: 75%" aria-valuenow="75" aria-valuemin="0" aria-valuemax="100"></div>
+                  </div>
+                </div>
+              </div>
+            </div>
+            
+            <div class="col-md-6 mb-3">
+              <div class="card bg-light text-dark">
+                <div class="card-body">
+                  <h6 class="card-title">Missing Critical Metrics</h6>
+                  <p class="small mb-1">2 required metrics not found</p>
+                  <div class="progress" style="height: 8px;">
+                    <div class="progress-bar bg-danger" role="progressbar" style="width: 25%" aria-valuenow="25" aria-valuemin="0" aria-valuemax="100"></div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+          
+          <div class="text-center mt-3">
+            <button class="btn btn-outline-primary me-2" id="scanMorePagesBtn">
+              <i class="fas fa-search me-2"></i>Scan More Pages
+            </button>
+            <button class="btn btn-outline-primary" id="addManuallyBtn">
+              <i class="fas fa-plus-circle me-2"></i>Add Missing Metrics
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+    
+    <!-- Extracted Data & Actions -->
+    <div class="col-lg-4">
+      <div class="card shadow-sm mb-4">
+        <div class="card-body p-4">
+          <h4 class="card-title mb-3">Extracted Data</h4>
+          <p class="text-muted">
+            Review and confirm the data extracted from your document.
+          </p>
+          
+          <div id="extractedItems">
+            {% for metric_id, value in extracted_data.items() %}
+            <div class="extracted-item {% if loop.index <= 2 %}high{% elif loop.index <= 4 %}medium{% else %}low{% endif %}">
+              <div class="d-flex justify-content-between align-items-center mb-2">
+                <h6 class="mb-0">{{ metric_id|replace('_', ' ')|title }}</h6>
+                <div>
+                  <button class="btn btn-sm btn-outline-secondary">
+                    <i class="fas fa-edit"></i>
+                  </button>
+                </div>
+              </div>
+              
+              <div class="d-flex align-items-center mb-2">
+                <div class="flex-grow-1">
+                  <div class="input-group">
+                    <input type="text" class="form-control" value="{{ value }}">
+                    <span class="input-group-text">
+                      {% if 'emissions' in metric_id %}tCO2e
+                      {% elif 'energy' in metric_id and 'consumption' in metric_id %}MWh
+                      {% elif 'energy' in metric_id or 'diversity' in metric_id %}%
+                      {% else %}units{% endif %}
+                    </span>
+                  </div>
+                </div>
+              </div>
+              
+              <div class="d-flex justify-content-between align-items-center">
+                <small class="text-muted">Confidence: 
+                  {% if loop.index <= 2 %}High
+                  {% elif loop.index <= 4 %}Medium
+                  {% else %}Low{% endif %}
+                </small>
+                <small class="text-muted">Page: 4</small>
+              </div>
+              
+              <div class="confidence-indicator">
+                <div class="confidence-bar {% if loop.index <= 2 %}high{% elif loop.index <= 4 %}medium{% else %}low{% endif %}" style="width: 
+                  {% if loop.index <= 2 %}92%
+                  {% elif loop.index <= 4 %}78%
+                  {% else %}64%{% endif %}">
+                </div>
+              </div>
+            </div>
+            {% endfor %}
+          </div>
+          
+          <div class="alert alert-warning mt-3" role="alert">
+            <i class="fas fa-exclamation-triangle me-2"></i>
+            <span>Missing critical metrics: <strong>Scope 3 Emissions, Board Diversity</strong></span>
+          </div>
+          
+          <div class="mt-4">
+            <a href="{{ url_for('benchmarking.peer_comparison') }}" class="btn btn-success w-100">
+              <i class="fas fa-check-circle me-2"></i>Confirm & Continue to Benchmarking
+            </a>
+          </div>
+        </div>
+      </div>
+      
+      <!-- Benchmark Preview -->
+      <div class="card shadow-sm">
+        <div class="card-body p-4">
+          <h4 class="card-title mb-3">Benchmark Preview</h4>
+          
+          <p class="text-muted mb-3">
+            Based on your extracted data, here's a preview of how you compare to peers:
+          </p>
+          
+          <div class="mb-3">
+            <h6>Scope 1 Emissions</h6>
+            <div class="d-flex align-items-center mt-2">
+              <span class="small me-2">You</span>
+              <div class="progress flex-grow-1" style="height: 8px;">
+                <div class="progress-bar bg-primary" role="progressbar" style="width: 60%" aria-valuenow="60" aria-valuemin="0" aria-valuemax="100"></div>
+              </div>
+              <span class="small ms-2">3,450</span>
+            </div>
+            <div class="d-flex align-items-center mt-2">
+              <span class="small me-2">Peers</span>
+              <div class="progress flex-grow-1" style="height: 8px;">
+                <div class="progress-bar bg-secondary" role="progressbar" style="width: 80%" aria-valuenow="80" aria-valuemin="0" aria-valuemax="100"></div>
+              </div>
+              <span class="small ms-2">4,600</span>
+            </div>
+          </div>
+          
+          <div class="mb-3">
+            <h6>Renewable Energy</h6>
+            <div class="d-flex align-items-center mt-2">
+              <span class="small me-2">You</span>
+              <div class="progress flex-grow-1" style="height: 8px;">
+                <div class="progress-bar bg-primary" role="progressbar" style="width: 34%" aria-valuenow="34" aria-valuemin="0" aria-valuemax="100"></div>
+              </div>
+              <span class="small ms-2">34%</span>
+            </div>
+            <div class="d-flex align-items-center mt-2">
+              <span class="small me-2">Peers</span>
+              <div class="progress flex-grow-1" style="height: 8px;">
+                <div class="progress-bar bg-secondary" role="progressbar" style="width: 42%" aria-valuenow="42" aria-valuemin="0" aria-valuemax="100"></div>
+              </div>
+              <span class="small ms-2">42%</span>
+            </div>
+          </div>
+          
+          <div class="text-center mt-4">
+            <a href="{{ url_for('benchmarking.peer_comparison') }}" class="btn btn-outline-primary">
+              <i class="fas fa-eye me-2"></i>View Full Benchmark
+            </a>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Add Missing Metrics Modal -->
+<div class="modal fade" id="addMetricsModal" tabindex="-1" aria-labelledby="addMetricsModalLabel" aria-hidden="true">
+  <div class="modal-dialog">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title" id="addMetricsModalLabel">Add Missing Metrics</h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+      </div>
+      <div class="modal-body">
+        <form>
+          <div class="mb-3">
+            <label for="metricSelector" class="form-label">Select Metric</label>
+            <select class="form-select" id="metricSelector">
+              <option value="" selected disabled>Choose a metric to add</option>
+              <option value="scope3_emissions">Scope 3 Emissions</option>
+              <option value="board_diversity">Board Diversity</option>
+              <option value="water_consumption">Water Consumption</option>
+              <option value="waste_generated">Waste Generated</option>
+              <option value="ethics_violations">Ethics Violations</option>
+            </select>
+          </div>
+          
+          <div class="mb-3">
+            <label for="metricValue" class="form-label">Value</label>
+            <div class="input-group">
+              <input type="text" class="form-control" id="metricValue" placeholder="Enter value">
+              <span class="input-group-text" id="metricUnit">units</span>
+            </div>
+          </div>
+          
+          <div class="mb-3">
+            <label for="metricSource" class="form-label">Source</label>
+            <select class="form-select" id="metricSource">
+              <option value="document">Current Document (Page 8)</option>
+              <option value="manual">Manual Entry</option>
+              <option value="other">Other Document</option>
+            </select>
+          </div>
+          
+          <div class="mb-3">
+            <label for="metricNotes" class="form-label">Notes</label>
+            <textarea class="form-control" id="metricNotes" rows="2" placeholder="Optional: Add notes about this metric"></textarea>
+          </div>
+        </form>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+        <button type="button" class="btn btn-primary" id="saveMetricBtn">Add Metric</button>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+  document.addEventListener('DOMContentLoaded', function() {
+    // Document structure navigation
+    document.querySelectorAll('.toc-item').forEach(item => {
+      item.addEventListener('click', function() {
+        // Remove active class from all items
+        document.querySelectorAll('.toc-item').forEach(i => i.classList.remove('active'));
+        
+        // Add active class to clicked item
+        this.classList.add('active');
+        
+        // In a real implementation, this would navigate to the selected page
+        // For demo purposes, we'll just show a message
+        console.log('Navigating to page: ' + this.dataset.page);
+      });
+    });
+    
+    // Highlight area tooltip/popover
+    document.querySelectorAll('.highlight-area').forEach(area => {
+      area.addEventListener('click', function() {
+        // In a real implementation, this would show details or allow editing
+        // For demo purposes, we'll just show a message
+        const metric = this.dataset.metric;
+        const value = this.dataset.value;
+        alert(`Metric: ${metric}\nValue: ${value}\n\nClick OK to add this metric to extracted data.`);
+      });
+    });
+    
+    // Add manually button
+    const addManuallyBtn = document.getElementById('addManuallyBtn');
+    if (addManuallyBtn) {
+      addManuallyBtn.addEventListener('click', function() {
+        // Show the modal
+        const addMetricsModal = new bootstrap.Modal(document.getElementById('addMetricsModal'));
+        addMetricsModal.show();
+      });
+    }
+    
+    // Scan more pages button
+    const scanMorePagesBtn = document.getElementById('scanMorePagesBtn');
+    if (scanMorePagesBtn) {
+      scanMorePagesBtn.addEventListener('click', function() {
+        // In a real implementation, this would scan more pages
+        // For demo purposes, we'll just show a message
+        alert('Scanning additional pages for sustainability metrics...');
+      });
+    }
+    
+    // Metric selector change event
+    const metricSelector = document.getElementById('metricSelector');
+    const metricUnit = document.getElementById('metricUnit');
+    if (metricSelector && metricUnit) {
+      metricSelector.addEventListener('change', function() {
+        // Update the unit based on the selected metric
+        const selectedMetric = this.value;
+        
+        if (selectedMetric.includes('emissions')) {
+          metricUnit.textContent = 'tCO2e';
+        } else if (selectedMetric.includes('water')) {
+          metricUnit.textContent = 'm³';
+        } else if (selectedMetric.includes('diversity')) {
+          metricUnit.textContent = '%';
+        } else if (selectedMetric.includes('waste')) {
+          metricUnit.textContent = 'tonnes';
+        } else if (selectedMetric.includes('violations')) {
+          metricUnit.textContent = 'count';
+        } else {
+          metricUnit.textContent = 'units';
+        }
+      });
+    }
+    
+    // Save metric button
+    const saveMetricBtn = document.getElementById('saveMetricBtn');
+    if (saveMetricBtn) {
+      saveMetricBtn.addEventListener('click', function() {
+        // Get the form values
+        const metric = document.getElementById('metricSelector').value;
+        const value = document.getElementById('metricValue').value;
+        const unit = document.getElementById('metricUnit').textContent;
+        const source = document.getElementById('metricSource').value;
+        
+        // Validate required fields
+        if (!metric || !value) {
+          alert('Please fill in all required fields');
+          return;
+        }
+        
+        // In a real implementation, this would save the metric to the database
+        // For demo purposes, we'll just show a message
+        alert(`Metric added: ${metric}\nValue: ${value} ${unit}\nSource: ${source}`);
+        
+        // Close the modal
+        const modal = bootstrap.Modal.getInstance(document.getElementById('addMetricsModal'));
+        modal.hide();
+        
+        // Add the metric to the extracted items list
+        const metricName = document.getElementById('metricSelector').options[document.getElementById('metricSelector').selectedIndex].text;
+        
+        const extractedItems = document.getElementById('extractedItems');
+        const newItem = document.createElement('div');
+        newItem.className = 'extracted-item medium';
+        newItem.innerHTML = `
+          <div class="d-flex justify-content-between align-items-center mb-2">
+            <h6 class="mb-0">${metricName}</h6>
+            <div>
+              <button class="btn btn-sm btn-outline-secondary">
+                <i class="fas fa-edit"></i>
+              </button>
+            </div>
+          </div>
+          
+          <div class="d-flex align-items-center mb-2">
+            <div class="flex-grow-1">
+              <div class="input-group">
+                <input type="text" class="form-control" value="${value}">
+                <span class="input-group-text">${unit}</span>
+              </div>
+            </div>
+          </div>
+          
+          <div class="d-flex justify-content-between align-items-center">
+            <small class="text-muted">Confidence: Manual Entry</small>
+            <small class="text-muted">Source: ${source}</small>
+          </div>
+          
+          <div class="confidence-indicator">
+            <div class="confidence-bar medium" style="width: 100%"></div>
+          </div>
+        `;
+        
+        extractedItems.appendChild(newItem);
+      });
+    }
+  });
+</script>
+{% endblock %}

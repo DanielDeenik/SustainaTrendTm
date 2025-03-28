@@ -42,107 +42,31 @@ logger = logging.getLogger(__name__)
 
 @stories_bp.route('/')
 def stories_home():
-    """Main stories dashboard with AI-powered storytelling features"""
-    # Get query parameters
-    audience = request.args.get('audience', 'all')
-    category = request.args.get('category', 'all')
-    
-    # Set up template context with navigation
-    template_context = get_context_for_template()
-    
-    # Generate stories for initial display
-    try:
-        stories = get_enhanced_stories(audience, category)
-        logger.info(f"Generated {len(stories)} enhanced stories for Stories dashboard")
-    except Exception as e:
-        logger.error(f"Error generating stories: {str(e)}")
-        stories = []
-    
-    # Add stories to template context
-    template_context.update({
-        'stories': stories,
-        'audience': audience,
-        'category': category,
-        'page_title': 'Sustainability Stories',
-        'active_section': 'stories'
-    })
-    
-    return render_template('strategy/storytelling.html', **template_context)
+    """Redirect to strategy hub (storytelling.html has been removed)"""
+    from flask import redirect
+    logger.info("Stories route redirecting to strategy hub")
+    return redirect('/strategy-hub/')
 
 @stories_bp.route('/create')
 def create_story():
-    """Create a new sustainability story with AI assistance"""
-    # Set up template context with navigation
-    template_context = get_context_for_template()
-    
-    # Add required context
-    template_context.update({
-        'page_title': 'Create Story',
-        'active_section': 'stories',
-        'templates': get_story_templates()
-    })
-    
-    return render_template('strategy/storytelling_create.html', **template_context)
+    """Redirect to strategy hub (storytelling_create.html has been removed)"""
+    from flask import redirect
+    logger.info("Create story route redirecting to strategy hub")
+    return redirect('/strategy-hub/')
 
 @stories_bp.route('/view/<story_id>')
 def view_story(story_id):
-    """View a specific sustainability story"""
-    # Set up template context with navigation
-    template_context = get_context_for_template()
-    
-    # Try to retrieve the story from session history first
-    stories_history = session.get('stories_history', [])
-    story = next((s for s in stories_history if s.get('id') == story_id), None)
-    
-    # If not found in history, generate a new story
-    if not story:
-        try:
-            # Generate a new story
-            story = get_lcm_story(story_id=story_id)
-            logger.info(f"Generated new story with ID {story_id}")
-        except Exception as e:
-            logger.error(f"Error retrieving story {story_id}: {str(e)}")
-            # Return to stories home with error
-            return redirect(url_for('stories.stories_home'))
-    
-    # Add story to template context
-    template_context.update({
-        'story': story,
-        'page_title': story.get('title', 'Sustainability Story'),
-        'active_section': 'stories'
-    })
-    
-    return render_template('strategy/story_detail.html', **template_context)
+    """Redirect to strategy hub (story_detail.html has been removed)"""
+    from flask import redirect
+    logger.info(f"View story route redirecting to strategy hub, story ID was: {story_id}")
+    return redirect('/strategy-hub/')
 
 @stories_bp.route('/edit/<story_id>')
 def edit_story(story_id):
-    """Edit a specific sustainability story"""
-    # Set up template context with navigation
-    template_context = get_context_for_template()
-    
-    # Try to retrieve the story from session history first
-    stories_history = session.get('stories_history', [])
-    story = next((s for s in stories_history if s.get('id') == story_id), None)
-    
-    # If not found in history, get it from API or database
-    if not story:
-        try:
-            # Generate or retrieve the story
-            story = get_lcm_story(story_id=story_id)
-            logger.info(f"Retrieved story with ID {story_id} for editing")
-        except Exception as e:
-            logger.error(f"Error retrieving story {story_id}: {str(e)}")
-            # Return to stories home with error
-            return redirect(url_for('stories.stories_home'))
-    
-    # Add story to template context
-    template_context.update({
-        'story': story,
-        'page_title': f"Edit: {story.get('title', 'Sustainability Story')}",
-        'active_section': 'stories'
-    })
-    
-    return render_template('strategy/story_edit.html', **template_context)
+    """Redirect to strategy hub (story_edit.html has been removed)"""
+    from flask import redirect
+    logger.info(f"Edit story route redirecting to strategy hub, story ID was: {story_id}")
+    return redirect('/strategy-hub/')
 
 @stories_bp.route('/api/update/<story_id>', methods=['POST'])
 def api_update_story(story_id):
@@ -443,19 +367,7 @@ def api_get_story(story_id):
             'error': str(e)
         }), 500
 
-@stories_bp.route('/test-redirects')
-def test_redirects():
-    """Test page for storytelling redirects"""
-    # Set up template context with navigation
-    template_context = get_context_for_template()
-    
-    # Add page context
-    template_context.update({
-        'page_title': 'Test Storytelling Redirects',
-        'active_section': 'stories'
-    })
-    
-    return render_template('test_storytelling_redirect.html', **template_context)
+# Removed unused test_redirects route
 
 @stories_bp.route('/api/templates')
 def api_get_templates():

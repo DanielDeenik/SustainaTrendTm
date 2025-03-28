@@ -17,16 +17,13 @@ logger = logging.getLogger(__name__)
 
 # Compatibility for bson.SON which may not be available in some installations
 # SON is an OrderedDict subclass used by MongoDB
-try:
-    from bson import SON
-except ImportError:
-    # Create a compatible SON implementation using OrderedDict
-    class SON(OrderedDict):
-        """
-        SON compatibility class using OrderedDict
-        Used for MongoDB when the original bson.SON is not available
-        """
-        pass
+# Use a compatibility class regardless of import status to avoid issues with different bson versions
+class SON(OrderedDict):
+    """
+    SON compatibility class using OrderedDict
+    Used for MongoDB when the original bson.SON is not available or has compatibility issues
+    """
+    pass
 
 # Default connection settings
 DEFAULT_MONGO_URI = "mongodb://localhost:27017/"
@@ -262,3 +259,25 @@ async def async_stories_collection():
     """
     db = get_async_database()
     return db.stories
+
+
+def benchmarking_collection():
+    """
+    Get the benchmarking collection
+    
+    Returns:
+        Collection: MongoDB collection for benchmarking data
+    """
+    db = get_database()
+    return db.benchmarking
+
+
+async def async_benchmarking_collection():
+    """
+    Get the async benchmarking collection
+    
+    Returns:
+        AsyncIOMotorCollection: Async MongoDB collection for benchmarking data
+    """
+    db = get_async_database()
+    return db.benchmarking

@@ -11,13 +11,10 @@ performance_bp = Blueprint('performance', __name__, url_prefix='/performance')
 
 @performance_bp.route('/')
 def performance():
-    """Render the performance metrics page"""
-    logger.info("Performance metrics route called")
-    return render_template(
-        'performance.html',
-        active_nav='performance',
-        page_title='Performance Metrics'
-    )
+    """Redirect to dashboard (performance.html has been removed)"""
+    from flask import redirect
+    logger.info("Performance metrics route redirecting to dashboard")
+    return redirect('/dashboard/')
 
 @performance_bp.route('/api/data')
 def get_performance_data():
