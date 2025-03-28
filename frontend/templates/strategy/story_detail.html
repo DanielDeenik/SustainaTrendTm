@@ -167,6 +167,36 @@
             {% endif %}
         </div>
         
+        {% if story.metrics and story.metrics|length > 0 %}
+        <div class="story-metrics mb-4">
+            <h4 class="mb-3"><i class="fas fa-chart-line me-2"></i> Key Metrics</h4>
+            
+            <div class="row g-3">
+                {% for metric in story.metrics %}
+                <div class="col-md-4">
+                    <div class="card bg-dark border-0 h-100">
+                        <div class="card-body">
+                            <h5 class="mb-1">{{ metric.name }}</h5>
+                            <div class="d-flex align-items-center">
+                                <span class="display-6 me-2">{{ metric.value }}</span>
+                                <span class="text-muted">{{ metric.unit }}</span>
+                            </div>
+                            {% if metric.change %}
+                            <div class="mt-2">
+                                <span class="badge {{ 'bg-success' if metric.change > 0 else 'bg-danger' }}">
+                                    <i class="fas {{ 'fa-arrow-up' if metric.change > 0 else 'fa-arrow-down' }}"></i>
+                                    {{ metric.change|abs|round(1) }}%
+                                </span>
+                            </div>
+                            {% endif %}
+                        </div>
+                    </div>
+                </div>
+                {% endfor %}
+            </div>
+        </div>
+        {% endif %}
+        
         {% if story.recommendations and story.recommendations|length > 0 %}
         <div class="story-recommendations">
             <h4 class="mb-3"><i class="fas fa-lightbulb me-2"></i> Recommendations</h4>

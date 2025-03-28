@@ -1676,6 +1676,39 @@
       grid-template-columns: 1fr;
     }
   }
+  
+  /* Sustainability Co-Pilot Styles */
+  #story-details {
+    margin-bottom: 1.5rem;
+    border-radius: 0.5rem;
+    overflow: hidden;
+  }
+  
+  .copilot-input-wrapper {
+    position: relative;
+  }
+  
+  #copilot-prompt {
+    border: 1px solid rgba(255, 255, 255, 0.15);
+    background-color: rgba(0, 0, 0, 0.1);
+    color: var(--fc-text-primary);
+    resize: none;
+  }
+  
+  #copilot-prompt:focus {
+    border-color: var(--fc-primary);
+    box-shadow: 0 0 0 0.2rem rgba(var(--primary-rgb), 0.25);
+  }
+  
+  #ask-copilot-btn {
+    background-color: var(--primary-color);
+    color: #000;
+    border: none;
+  }
+  
+  #ask-copilot-btn:hover {
+    background-color: var(--primary-light);
+  }
 </style>
 {% endblock %}
 

@@ -218,6 +218,69 @@ def api_update_story(story_id):
         logger.error(f"Error updating story {story_id}: {str(e)}")
         return jsonify({"success": False, "error": str(e)}), 500
 
+@stories_bp.route('/api/storytelling/metrics')
+def api_get_story_metrics():
+    """API endpoint for retrieving metrics for storytelling"""
+    # Get requested category from query parameters
+    category = request.args.get('category', None)
+    
+    try:
+        # Generate category-specific metrics
+        if category == 'emissions':
+            metrics = [
+                {"name": "Scope 1 Emissions", "value": 3245, "unit": "tCO2e", "change": -8.5},
+                {"name": "Scope 2 Emissions", "value": 5680, "unit": "tCO2e", "change": -5.2},
+                {"name": "Renewable Energy", "value": 45, "unit": "%", "change": 12.8}
+            ]
+        elif category == 'water':
+            metrics = [
+                {"name": "Water Withdrawal", "value": 1250.5, "unit": "ML", "change": -6.3},
+                {"name": "Water Recycled", "value": 32, "unit": "%", "change": 4.5},
+                {"name": "Water Intensity", "value": 2.8, "unit": "m³/unit", "change": -7.9}
+            ]
+        elif category == 'waste':
+            metrics = [
+                {"name": "Waste Generated", "value": 1850, "unit": "tonnes", "change": -8.2},
+                {"name": "Recycling Rate", "value": 58, "unit": "%", "change": 7.5},
+                {"name": "Landfill Diversion", "value": 72, "unit": "%", "change": 6.8}
+            ]
+        elif category == 'biodiversity':
+            metrics = [
+                {"name": "Land Restored", "value": 42, "unit": "hectares", "change": 15.3},
+                {"name": "Species Protected", "value": 12, "unit": "count", "change": 3.0},
+                {"name": "Natural Capital Value", "value": 4, "unit": "$ million", "change": 8.7}
+            ]
+        elif category == 'social':
+            metrics = [
+                {"name": "Gender Diversity", "value": 43, "unit": "% women", "change": 5.6},
+                {"name": "Community Investment", "value": 2.8, "unit": "$ million", "change": 12.4},
+                {"name": "Employee Satisfaction", "value": 85, "unit": "%", "change": 3.2}
+            ]
+        elif category == 'governance':
+            metrics = [
+                {"name": "Board Diversity", "value": 42, "unit": "%", "change": 10.5},
+                {"name": "ESG Training", "value": 92, "unit": "% completed", "change": 5.3},
+                {"name": "Supplier Code Compliance", "value": 94, "unit": "%", "change": 4.2}
+            ]
+        else:
+            # Default metrics for any other category
+            metrics = [
+                {"name": "Sustainability Score", "value": 82, "unit": "/100", "change": 6.5},
+                {"name": "ESG Rating", "value": "AA", "unit": "", "change": 1},
+                {"name": "Sustainability ROI", "value": 18, "unit": "%", "change": 4.3}
+            ]
+        
+        return jsonify({
+            "success": True,
+            "metrics": metrics
+        })
+    except Exception as e:
+        logger.error(f"Error retrieving metrics for storytelling: {str(e)}")
+        return jsonify({
+            "success": False,
+            "error": str(e)
+        }), 500
+
 @stories_bp.route('/api/generate', methods=['POST'])
 def api_generate_story():
     """API endpoint for story generation"""
@@ -232,16 +295,72 @@ def api_generate_story():
     category = data.get('category', 'all') 
     custom_prompt = data.get('prompt')
     
+    # Get selected metrics (new)
+    selected_metrics = data.get('metrics', [])
+    
     # Generate story ID if not provided
     story_id = data.get('story_id', str(uuid.uuid4()))
     
     try:
+        # Get specific metrics if any are selected
+        metrics_data = []
+        if selected_metrics:
+            # Get metrics matching the category and selected metrics
+            if category == 'emissions':
+                all_metrics = [
+                    {"name": "Scope 1 Emissions", "value": 3245, "unit": "tCO2e", "change": -8.5},
+                    {"name": "Scope 2 Emissions", "value": 5680, "unit": "tCO2e", "change": -5.2},
+                    {"name": "Renewable Energy", "value": 45, "unit": "%", "change": 12.8}
+                ]
+            elif category == 'water':
+                all_metrics = [
+                    {"name": "Water Withdrawal", "value": 1250.5, "unit": "ML", "change": -6.3},
+                    {"name": "Water Recycled", "value": 32, "unit": "%", "change": 4.5},
+                    {"name": "Water Intensity", "value": 2.8, "unit": "m³/unit", "change": -7.9}
+                ]
+            elif category == 'waste':
+                all_metrics = [
+                    {"name": "Waste Generated", "value": 1850, "unit": "tonnes", "change": -8.2},
+                    {"name": "Recycling Rate", "value": 58, "unit": "%", "change": 7.5},
+                    {"name": "Landfill Diversion", "value": 72, "unit": "%", "change": 6.8}
+                ]
+            elif category == 'biodiversity':
+                all_metrics = [
+                    {"name": "Land Restored", "value": 42, "unit": "hectares", "change": 15.3},
+                    {"name": "Species Protected", "value": 12, "unit": "count", "change": 3.0},
+                    {"name": "Natural Capital Value", "value": 4, "unit": "$ million", "change": 8.7}
+                ]
+            elif category == 'social':
+                all_metrics = [
+                    {"name": "Gender Diversity", "value": 43, "unit": "% women", "change": 5.6},
+                    {"name": "Community Investment", "value": 2.8, "unit": "$ million", "change": 12.4},
+                    {"name": "Employee Satisfaction", "value": 85, "unit": "%", "change": 3.2}
+                ]
+            elif category == 'governance':
+                all_metrics = [
+                    {"name": "Board Diversity", "value": 42, "unit": "%", "change": 10.5},
+                    {"name": "ESG Training", "value": 92, "unit": "% completed", "change": 5.3},
+                    {"name": "Supplier Code Compliance", "value": 94, "unit": "%", "change": 4.2}
+                ]
+            else:
+                # Default metrics for any other category
+                all_metrics = [
+                    {"name": "Sustainability Score", "value": 82, "unit": "/100", "change": 6.5},
+                    {"name": "ESG Rating", "value": "AA", "unit": "", "change": 1},
+                    {"name": "Sustainability ROI", "value": 18, "unit": "%", "change": 4.3}
+                ]
+            
+            # Filter metrics based on what was selected
+            metrics_data = [metric for metric in all_metrics if metric.get('name') in selected_metrics]
+            logger.info(f"Including {len(metrics_data)} selected metrics in story generation")
+        
         # Generate story using LCM
         story = get_lcm_story(
             audience=audience,
             category=category,
             prompt=custom_prompt,
-            document_data=data.get('document_data')
+            document_data=data.get('document_data'),
+            metrics=metrics_data  # Pass the specific metrics to the story generator
         )
         
         # Add story to session history

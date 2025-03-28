@@ -80,7 +80,7 @@
             <h5 class="mb-0"><i class="fas fa-edit me-2"></i> Create New Story</h5>
         </div>
         <div class="card-body">
-            <form id="storyGenerationForm" method="POST" action="{{ url_for('stories.api_generate_story') }}">
+            <form id="storyGenerationForm" method="POST" action="/stories/api/generate">
                 <div class="mb-3">
                     <label for="audience" class="form-label">Target Audience</label>
                     <select class="form-select" id="audience" name="audience" required>
@@ -117,6 +117,17 @@
                         <option value="all">All Categories</option>
                     </select>
                     <div class="form-text">Select the sustainability category for this story.</div>
+                </div>
+                
+                <div class="mb-4">
+                    <label for="metrics" class="form-label">Select Metrics (Optional)</label>
+                    <select class="form-select" id="metrics" name="metrics" multiple>
+                        <!-- Metrics will be loaded dynamically based on category selection -->
+                    </select>
+                    <div class="form-text">
+                        Select specific metrics to include in your sustainability story. The available metrics will update based on your 
+                        selected category.
+                    </div>
                 </div>
                 
                 <div class="mb-4">
@@ -187,6 +198,47 @@ document.addEventListener('DOMContentLoaded', function() {
     const form = document.getElementById('storyGenerationForm');
     const spinner = document.getElementById('generationSpinner');
     const errorElement = document.getElementById('storyGenerationError');
+    const categorySelect = document.getElementById('category');
+    const metricsSelect = document.getElementById('metrics');
+    
+    // Load metrics when category changes
+    categorySelect.addEventListener('change', function() {
+        loadMetricsForCategory(this.value);
+    });
+    
+    // Initial metrics load
+    if (categorySelect.value && categorySelect.value !== '') {
+        loadMetricsForCategory(categorySelect.value);
+    }
+    
+    // Function to load metrics for a selected category
+    function loadMetricsForCategory(category) {
+        // Clear existing options
+        metricsSelect.innerHTML = '<option value="" disabled>Loading metrics...</option>';
+        
+        // Fetch metrics for the selected category
+        fetch(`/stories/api/storytelling/metrics?category=${encodeURIComponent(category)}`)
+            .then(response => response.json())
+            .then(data => {
+                metricsSelect.innerHTML = '';
+                
+                if (data && data.metrics && data.metrics.length > 0) {
+                    // Add metrics as options
+                    data.metrics.forEach(metric => {
+                        const option = document.createElement('option');
+                        option.value = metric.name;
+                        option.textContent = `${metric.name} (${metric.value} ${metric.unit})`;
+                        metricsSelect.appendChild(option);
+                    });
+                } else {
+                    metricsSelect.innerHTML = '<option value="" disabled>No metrics available for this category</option>';
+                }
+            })
+            .catch(error => {
+                console.error('Error loading metrics:', error);
+                metricsSelect.innerHTML = '<option value="" disabled>Failed to load metrics</option>';
+            });
+    }
     
     form.addEventListener('submit', function(e) {
         e.preventDefault(); // Prevent default form submission
@@ -200,10 +252,14 @@ document.addEventListener('DOMContentLoaded', function() {
         // Disable submit button to prevent double submission
         document.getElementById('generateStoryBtn').disabled = true;
         
+        // Get selected metrics
+        const selectedMetrics = Array.from(metricsSelect.selectedOptions).map(option => option.value);
+        
         // Get form data
         const formData = {
             audience: document.getElementById('audience').value,
             category: document.getElementById('category').value,
+            metrics: selectedMetrics,
             prompt: document.getElementById('prompt').value
         };
         

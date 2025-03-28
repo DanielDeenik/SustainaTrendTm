@@ -86,6 +86,7 @@ def get_lcm_story(
     category: str = 'all',
     prompt: Optional[str] = None,
     document_data: Optional[Dict[str, Any]] = None,
+    metrics: Optional[List[Dict[str, Any]]] = None,
     story_id: Optional[str] = None
 ) -> Dict[str, Any]:
     """
@@ -96,6 +97,7 @@ def get_lcm_story(
         category: Story category (emissions, water, diversity, etc.)
         prompt: Custom prompt or specific story requirements
         document_data: Additional data from uploaded document
+        metrics: Optional list of specific metrics to include in the story
         story_id: Optional story ID for retrieving/regenerating a specific story
         
     Returns:
@@ -163,6 +165,13 @@ def get_lcm_story(
                 doc_summary += "- Frameworks mentioned: " + ", ".join(document_data['frameworks']) + "\n"
             user_message += f"\n\n{doc_summary}"
         
+        # Add selected metrics if provided
+        if metrics and len(metrics) > 0:
+            metrics_summary = "Selected metrics to include in the story:\n"
+            for metric in metrics:
+                metrics_summary += f"- {metric['name']}: {metric['value']} {metric.get('unit', '')}\n"
+            user_message += f"\n\n{metrics_summary}\nPlease feature these specific metrics prominently in the sustainability story."
+        
         # Get response from AI
         ai = get_generative_ai()
         response = ai.generate_content(prompt=user_message, system_prompt=system_message, max_tokens=1500)
@@ -186,6 +195,9 @@ def get_lcm_story(
             title = generate_story_title(category, audience)
             content = story_content
         
+        # Use provided metrics if available, otherwise generate example metrics
+        story_metrics = metrics if metrics and len(metrics) > 0 else get_story_metrics(category)
+        
         # Create and return the story object
         return {
             "id": story_id,
@@ -194,7 +206,7 @@ def get_lcm_story(
             "audience": audience,
             "category": category,
             "created_at": created_at,
-            "metrics": get_story_metrics(category),
+            "metrics": story_metrics,
             "tags": generate_story_tags(category, audience)
         }
     except Exception as e:
