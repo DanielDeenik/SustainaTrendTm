@@ -7,7 +7,7 @@
 {% endblock %}
 
 {% block header_actions %}
-<a href="{{ url_for('enhanced_strategy.enhanced_strategy_hub') }}" class="btn btn-sm btn-outline-secondary">Back to Strategy Hub</a>
+<a href="{{ url_for('enhanced_strategy.strategy_hub') }}" class="btn btn-sm btn-outline-secondary">Back to Strategy Hub</a>
 <a href="{{ url_for('stories.create_story') }}" class="btn btn-primary">
     <i class="fas fa-plus me-2"></i> Create New Story
 </a>
@@ -224,13 +224,11 @@
             <a href="{{ url_for('stories.stories_home', category='all') }}" class="quick-action-btn">
                 <i class="fas fa-list"></i> All Stories
             </a>
-            <a href="{{ url_for('stories.generate_chart') }}" class="quick-action-btn">
+            <a href="{{ url_for('stories.api_generate_chart') }}" class="quick-action-btn">
                 <i class="fas fa-chart-line"></i> Generate Chart
             </a>
-            <a href="{{ url_for('stories.batch_generate') }}" class="quick-action-btn">
-                <i class="fas fa-cogs"></i> Batch Generate
-            </a>
-            <a href="{{ url_for('enhanced_strategy.enhanced_strategy_hub') }}" class="quick-action-btn">
+
+            <a href="{{ url_for('enhanced_strategy.strategy_hub') }}" class="quick-action-btn">
                 <i class="fas fa-arrow-left"></i> Back to Strategy Hub
             </a>
         </div>

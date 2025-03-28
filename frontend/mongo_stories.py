@@ -8,7 +8,7 @@ from datetime import datetime
 from typing import List, Dict, Any, Optional
 from bson import ObjectId
 
-from frontend.mongo_client import (
+from mongo_client import (
     stories_collection, serialize_document,
     async_stories_collection
 )

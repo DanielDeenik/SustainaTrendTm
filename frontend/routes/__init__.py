@@ -50,6 +50,14 @@ def register_blueprints(app):
         logger.error(f"Enhanced Strategy Hub blueprint import failed: {str(e)}")
         logger.error("This is a critical error as the Enhanced Strategy Hub is now the main strategy interface")
     
+    # Import VC-Lens blueprint - new module for VC-specific sustainability insights
+    try:
+        from .vc_lens import vc_lens_bp
+        logger.info("VC-Lens blueprint imported successfully")
+    except ImportError as e:
+        logger.error(f"VC-Lens blueprint import failed: {str(e)}")
+        logger.error("This is a critical error as VC-Lens is a core component of the VC-focused UI update")
+    
     # Import strategy redirect blueprint for backward compatibility
     try:
         from .strategy import strategy_bp, register_blueprint as register_strategy_redirect
@@ -150,6 +158,14 @@ def register_blueprints(app):
         logger.info("Science-Based Targets blueprint registered successfully")
     except NameError:
         logger.warning("Science-Based Targets blueprint not registered due to import failure")
+    
+    # Register VC-Lens blueprint
+    try:
+        app.register_blueprint(vc_lens_bp)
+        logger.info("VC-Lens blueprint registered successfully")
+    except NameError:
+        logger.error("VC-Lens blueprint not registered due to import failure")
+        logger.error("This is a critical error as VC-Lens is a core component of the VC-focused UI update")
     
     # Regulatory AI functionality has been consolidated into Data Moat
     # No separate registration is needed

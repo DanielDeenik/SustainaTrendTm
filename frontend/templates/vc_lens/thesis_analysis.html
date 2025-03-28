@@ -1,0 +1,902 @@
+{% extends "layouts/finchat_dark_layout.html" %}
+
+{% block title %}Thesis Analysis - VC-Lens™{% endblock %}
+
+{% block content %}
+<div class="container-fluid px-4 py-5">
+    <!-- Header Section -->
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <div>
+            <h1 class="h2 mb-1">Investment Thesis Analysis</h1>
+            <p class="text-muted">Sustainability mapping and alignment analysis</p>
+        </div>
+        <div>
+            <a href="/vc-insights/upload-thesis" class="btn btn-outline-secondary me-2">
+                <i class="fas fa-upload me-2"></i>Upload New Thesis
+            </a>
+            <a href="/vc-insights" class="btn btn-outline-primary">
+                <i class="fas fa-arrow-left me-2"></i>Back to VC-Lens™
+            </a>
+        </div>
+    </div>
+
+    <!-- Document Info -->
+    <div class="row mb-4">
+        <div class="col-12">
+            <div class="card shadow-sm">
+                <div class="card-body">
+                    <div class="d-flex align-items-center">
+                        <div class="file-icon me-4">
+                            <i class="fas fa-file-alt text-primary" style="font-size: 3rem;"></i>
+                        </div>
+                        <div>
+                            <h4 class="mb-1">{{ thesis_file.filename }}</h4>
+                            <p class="text-muted mb-0">Uploaded {{ thesis_file.uploaded_at|date('F j, Y, g:i a') }}</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Analysis Tabs -->
+    <ul class="nav nav-tabs mb-4" id="analysisTabs" role="tablist">
+        <li class="nav-item" role="presentation">
+            <button class="nav-link active" id="themes-tab" data-bs-toggle="tab" data-bs-target="#themes" type="button" role="tab" aria-controls="themes" aria-selected="true">
+                <i class="fas fa-tags me-2"></i>Thesis Themes
+            </button>
+        </li>
+        <li class="nav-item" role="presentation">
+            <button class="nav-link" id="esg-tab" data-bs-toggle="tab" data-bs-target="#esg" type="button" role="tab" aria-controls="esg" aria-selected="false">
+                <i class="fas fa-leaf me-2"></i>ESG Alignment
+            </button>
+        </li>
+        <li class="nav-item" role="presentation">
+            <button class="nav-link" id="regulatory-tab" data-bs-toggle="tab" data-bs-target="#regulatory" type="button" role="tab" aria-controls="regulatory" aria-selected="false">
+                <i class="fas fa-balance-scale me-2"></i>Regulatory Relevance
+            </button>
+        </li>
+    </ul>
+
+    <!-- Tab Content -->
+    <div class="tab-content" id="analysisTabsContent">
+        <!-- Thesis Themes Tab -->
+        <div class="tab-pane fade show active" id="themes" role="tabpanel" aria-labelledby="themes-tab">
+            <div class="row">
+                {% for theme in mapping.thesis_themes %}
+                <div class="col-lg-4 mb-4">
+                    <div class="card shadow-sm h-100">
+                        <div class="card-header bg-transparent">
+                            <div class="d-flex justify-content-between align-items-center">
+                                <h5 class="card-title mb-0">{{ theme.theme }}</h5>
+                                <span class="badge rounded-pill bg-primary">{{ theme.match_score }}% Match</span>
+                            </div>
+                        </div>
+                        <div class="card-body">
+                            <h6 class="text-muted small text-uppercase mb-3">Key Keywords</h6>
+                            <div class="mb-4">
+                                {% for keyword in theme.keywords %}
+                                <span class="badge rounded-pill bg-light text-dark me-2 mb-2">{{ keyword }}</span>
+                                {% endfor %}
+                            </div>
+                            
+                            <h6 class="text-muted small text-uppercase mb-3">Matching Companies</h6>
+                            <ul class="list-group list-group-flush mb-3">
+                                {% for company in theme.matching_companies %}
+                                <li class="list-group-item bg-transparent px-0">
+                                    <div class="d-flex align-items-center">
+                                        <span class="me-2"><i class="fas fa-building text-primary"></i></span>
+                                        <span>{{ company }}</span>
+                                    </div>
+                                </li>
+                                {% endfor %}
+                            </ul>
+                        </div>
+                        <div class="card-footer bg-transparent">
+                            <button class="btn btn-sm btn-outline-primary" data-bs-toggle="modal" data-bs-target="#companyFinderModal" data-theme="{{ theme.theme }}">
+                                <i class="fas fa-search me-2"></i>Find More Companies
+                            </button>
+                        </div>
+                    </div>
+                </div>
+                {% endfor %}
+            </div>
+        </div>
+        
+        <!-- ESG Alignment Tab -->
+        <div class="tab-pane fade" id="esg" role="tabpanel" aria-labelledby="esg-tab">
+            <div class="row mb-4">
+                <div class="col-lg-4">
+                    <div class="card shadow-sm h-100">
+                        <div class="card-header bg-transparent">
+                            <div class="d-flex justify-content-between align-items-center">
+                                <h5 class="card-title mb-0">Environmental</h5>
+                                <span class="badge rounded-pill bg-success">{{ mapping.esg_alignment.environmental.score }}% Aligned</span>
+                            </div>
+                        </div>
+                        <div class="card-body">
+                            <div class="progress mb-4" style="height: 8px;">
+                                <div class="progress-bar bg-success" role="progressbar" style="width: {{ mapping.esg_alignment.environmental.score }}%;" 
+                                    aria-valuenow="{{ mapping.esg_alignment.environmental.score }}" aria-valuemin="0" aria-valuemax="100"></div>
+                            </div>
+                            
+                            <h6 class="text-muted small text-uppercase mb-3">Target Metrics</h6>
+                            <ul class="list-group list-group-flush">
+                                {% for metric in mapping.esg_alignment.environmental.target_metrics %}
+                                <li class="list-group-item bg-transparent px-0">
+                                    <div class="d-flex align-items-center">
+                                        <span class="me-2"><i class="fas fa-check-circle text-success"></i></span>
+                                        <span>{{ metric }}</span>
+                                    </div>
+                                </li>
+                                {% endfor %}
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="col-lg-4">
+                    <div class="card shadow-sm h-100">
+                        <div class="card-header bg-transparent">
+                            <div class="d-flex justify-content-between align-items-center">
+                                <h5 class="card-title mb-0">Social</h5>
+                                <span class="badge rounded-pill bg-info">{{ mapping.esg_alignment.social.score }}% Aligned</span>
+                            </div>
+                        </div>
+                        <div class="card-body">
+                            <div class="progress mb-4" style="height: 8px;">
+                                <div class="progress-bar bg-info" role="progressbar" style="width: {{ mapping.esg_alignment.social.score }}%;" 
+                                    aria-valuenow="{{ mapping.esg_alignment.social.score }}" aria-valuemin="0" aria-valuemax="100"></div>
+                            </div>
+                            
+                            <h6 class="text-muted small text-uppercase mb-3">Target Metrics</h6>
+                            <ul class="list-group list-group-flush">
+                                {% for metric in mapping.esg_alignment.social.target_metrics %}
+                                <li class="list-group-item bg-transparent px-0">
+                                    <div class="d-flex align-items-center">
+                                        <span class="me-2"><i class="fas fa-check-circle text-info"></i></span>
+                                        <span>{{ metric }}</span>
+                                    </div>
+                                </li>
+                                {% endfor %}
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="col-lg-4">
+                    <div class="card shadow-sm h-100">
+                        <div class="card-header bg-transparent">
+                            <div class="d-flex justify-content-between align-items-center">
+                                <h5 class="card-title mb-0">Governance</h5>
+                                <span class="badge rounded-pill bg-primary">{{ mapping.esg_alignment.governance.score }}% Aligned</span>
+                            </div>
+                        </div>
+                        <div class="card-body">
+                            <div class="progress mb-4" style="height: 8px;">
+                                <div class="progress-bar bg-primary" role="progressbar" style="width: {{ mapping.esg_alignment.governance.score }}%;" 
+                                    aria-valuenow="{{ mapping.esg_alignment.governance.score }}" aria-valuemin="0" aria-valuemax="100"></div>
+                            </div>
+                            
+                            <h6 class="text-muted small text-uppercase mb-3">Target Metrics</h6>
+                            <ul class="list-group list-group-flush">
+                                {% for metric in mapping.esg_alignment.governance.target_metrics %}
+                                <li class="list-group-item bg-transparent px-0">
+                                    <div class="d-flex align-items-center">
+                                        <span class="me-2"><i class="fas fa-check-circle text-primary"></i></span>
+                                        <span>{{ metric }}</span>
+                                    </div>
+                                </li>
+                                {% endfor %}
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="row">
+                <div class="col-12">
+                    <div class="card shadow-sm">
+                        <div class="card-header bg-transparent">
+                            <h5 class="card-title mb-0">Improvement Recommendations</h5>
+                        </div>
+                        <div class="card-body">
+                            <div class="row">
+                                <div class="col-md-6">
+                                    <div class="d-flex mb-4">
+                                        <div class="me-3">
+                                            <span class="icon-circle bg-primary text-white">
+                                                <i class="fas fa-chart-line"></i>
+                                            </span>
+                                        </div>
+                                        <div>
+                                            <h5>Define Clear ESG KPIs</h5>
+                                            <p class="text-muted">Establish specific, measurable KPIs for each ESG dimension to track portfolio company progress over time.</p>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="col-md-6">
+                                    <div class="d-flex mb-4">
+                                        <div class="me-3">
+                                            <span class="icon-circle bg-success text-white">
+                                                <i class="fas fa-tasks"></i>
+                                            </span>
+                                        </div>
+                                        <div>
+                                            <h5>Formalize ESG Due Diligence</h5>
+                                            <p class="text-muted">Implement structured ESG due diligence process with clear scoring methodology.</p>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="col-md-6">
+                                    <div class="d-flex mb-4">
+                                        <div class="me-3">
+                                            <span class="icon-circle bg-info text-white">
+                                                <i class="fas fa-clipboard-list"></i>
+                                            </span>
+                                        </div>
+                                        <div>
+                                            <h5>Enhance Climate Risk Assessment</h5>
+                                            <p class="text-muted">Incorporate TCFD-aligned climate risk assessment in portfolio company evaluation.</p>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="col-md-6">
+                                    <div class="d-flex mb-4">
+                                        <div class="me-3">
+                                            <span class="icon-circle bg-warning text-white">
+                                                <i class="fas fa-bullhorn"></i>
+                                            </span>
+                                        </div>
+                                        <div>
+                                            <h5>Strengthen Impact Reporting</h5>
+                                            <p class="text-muted">Develop comprehensive impact reporting framework aligned with international standards.</p>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Regulatory Relevance Tab -->
+        <div class="tab-pane fade" id="regulatory" role="tabpanel" aria-labelledby="regulatory-tab">
+            <div class="row">
+                {% for framework in mapping.regulatory_relevance %}
+                <div class="col-lg-4 mb-4">
+                    <div class="card shadow-sm h-100">
+                        <div class="card-header bg-transparent">
+                            <div class="d-flex justify-content-between align-items-center">
+                                <h5 class="card-title mb-0">{{ framework.framework }}</h5>
+                                {% if framework.relevance == 'High' %}
+                                    <span class="badge rounded-pill bg-success">{{ framework.relevance }}</span>
+                                {% elif framework.relevance == 'Medium-High' %}
+                                    <span class="badge rounded-pill bg-primary">{{ framework.relevance }}</span>
+                                {% else %}
+                                    <span class="badge rounded-pill bg-info">{{ framework.relevance }}</span>
+                                {% endif %}
+                            </div>
+                        </div>
+                        <div class="card-body">
+                            <p>{{ framework.description }}</p>
+                            
+                            <div class="d-grid">
+                                <button class="btn btn-outline-primary btn-sm" type="button" data-bs-toggle="modal" data-bs-target="#frameworkDetailModal" data-framework="{{ framework.framework }}">
+                                    <i class="fas fa-info-circle me-2"></i>Framework Details
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                {% endfor %}
+            </div>
+            
+            <div class="row mt-3">
+                <div class="col-12">
+                    <div class="card shadow-sm">
+                        <div class="card-header bg-transparent">
+                            <h5 class="card-title mb-0">Regulatory Impact Assessment</h5>
+                        </div>
+                        <div class="card-body">
+                            <p class="mb-4">Based on your investment thesis, the following regulatory aspects have significant relevance to your portfolio strategy:</p>
+                            
+                            <div class="table-responsive">
+                                <table class="table">
+                                    <thead>
+                                        <tr>
+                                            <th>Requirement</th>
+                                            <th>Impact</th>
+                                            <th>Timeline</th>
+                                            <th>Key Actions</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        <tr>
+                                            <td>SFDR Article 8 Disclosure</td>
+                                            <td><span class="badge bg-warning">Medium</span></td>
+                                            <td>2025 Q1</td>
+                                            <td>Enhanced ESG integration documentation</td>
+                                        </tr>
+                                        <tr>
+                                            <td>CSRD Portfolio Company Reporting</td>
+                                            <td><span class="badge bg-danger">High</span></td>
+                                            <td>2026</td>
+                                            <td>Portfolio readiness assessment and transition planning</td>
+                                        </tr>
+                                        <tr>
+                                            <td>EU Taxonomy Alignment</td>
+                                            <td><span class="badge bg-warning">Medium</span></td>
+                                            <td>Ongoing</td>
+                                            <td>Technical screening criteria assessment for target sectors</td>
+                                        </tr>
+                                        <tr>
+                                            <td>Climate Transition Planning</td>
+                                            <td><span class="badge bg-success">Low</span></td>
+                                            <td>2027</td>
+                                            <td>Portfolio-wide emissions tracking and reduction targets</td>
+                                        </tr>
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Company Finder Modal -->
+<div class="modal fade" id="companyFinderModal" tabindex="-1" aria-labelledby="companyFinderModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="companyFinderModalLabel">Find Companies by Theme</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <div class="mb-4">
+                    <div class="input-group">
+                        <input type="text" class="form-control" placeholder="Search companies..." id="company-search">
+                        <button class="btn btn-primary" type="button" id="search-btn">
+                            <i class="fas fa-search me-2"></i>Search
+                        </button>
+                    </div>
+                </div>
+                
+                <div class="mb-4">
+                    <h6>Filters</h6>
+                    <div class="row">
+                        <div class="col-md-6">
+                            <div class="mb-3">
+                                <label for="stage-filter" class="form-label">Company Stage</label>
+                                <select class="form-select form-select-sm" id="stage-filter">
+                                    <option value="">All Stages</option>
+                                    <option value="seed">Seed</option>
+                                    <option value="series_a">Series A</option>
+                                    <option value="series_b">Series B</option>
+                                    <option value="series_c">Series C+</option>
+                                    <option value="growth">Growth</option>
+                                </select>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="mb-3">
+                                <label for="region-filter" class="form-label">Region</label>
+                                <select class="form-select form-select-sm" id="region-filter">
+                                    <option value="">All Regions</option>
+                                    <option value="europe">Europe</option>
+                                    <option value="north_america">North America</option>
+                                    <option value="asia">Asia</option>
+                                    <option value="other">Other</option>
+                                </select>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <div id="company-results">
+                    <div class="d-flex justify-content-center align-items-center py-5" id="search-prompt">
+                        <div class="text-center">
+                            <i class="fas fa-search fa-3x text-muted mb-3"></i>
+                            <h5>Search for companies</h5>
+                            <p class="text-muted">Use the search bar above to find companies that match your theme.</p>
+                        </div>
+                    </div>
+                    
+                    <div class="company-list d-none" id="results-container">
+                        <!-- Company results will be dynamically populated here -->
+                    </div>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+                <button type="button" class="btn btn-primary" id="export-results">
+                    <i class="fas fa-file-export me-2"></i>Export Results
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Framework Detail Modal -->
+<div class="modal fade" id="frameworkDetailModal" tabindex="-1" aria-labelledby="frameworkDetailModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="frameworkDetailModalLabel">Framework Details</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <div id="csrd-content" class="framework-content">
+                    <h4>Corporate Sustainability Reporting Directive (CSRD)</h4>
+                    <p class="lead">A European Union directive that expands sustainability reporting requirements.</p>
+                    
+                    <div class="mb-4">
+                        <h5>Key Requirements</h5>
+                        <ul class="list-group list-group-flush mb-3">
+                            <li class="list-group-item bg-transparent">Double materiality assessment</li>
+                            <li class="list-group-item bg-transparent">Disclosure of sustainability risks and opportunities</li>
+                            <li class="list-group-item bg-transparent">Forward-looking targets and transition plans</li>
+                            <li class="list-group-item bg-transparent">Value chain sustainability impacts</li>
+                            <li class="list-group-item bg-transparent">Mandatory third-party assurance</li>
+                        </ul>
+                    </div>
+                    
+                    <div class="mb-4">
+                        <h5>Timeline</h5>
+                        <div class="table-responsive">
+                            <table class="table table-bordered">
+                                <thead class="table-light">
+                                    <tr>
+                                        <th>Company Type</th>
+                                        <th>First Reporting Year</th>
+                                        <th>Report Publication</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    <tr>
+                                        <td>Large PIEs (>500 employees)</td>
+                                        <td>FY 2024</td>
+                                        <td>2025</td>
+                                    </tr>
+                                    <tr>
+                                        <td>Other large companies</td>
+                                        <td>FY 2025</td>
+                                        <td>2026</td>
+                                    </tr>
+                                    <tr>
+                                        <td>Listed SMEs</td>
+                                        <td>FY 2026</td>
+                                        <td>2027</td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                    
+                    <div class="mb-4">
+                        <h5>Implications for Investors</h5>
+                        <div class="card bg-light">
+                            <div class="card-body">
+                                <ul class="mb-0">
+                                    <li>Enhanced data availability for portfolio company ESG assessment</li>
+                                    <li>Increased transparency on sustainability risks and opportunities</li>
+                                    <li>Standardized disclosure facilitating portfolio-wide sustainability analysis</li>
+                                    <li>Potential compliance support need for portfolio companies</li>
+                                </ul>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <div id="eu-taxonomy-content" class="framework-content d-none">
+                    <h4>EU Taxonomy</h4>
+                    <p class="lead">A classification system establishing a list of environmentally sustainable economic activities.</p>
+                    
+                    <div class="mb-4">
+                        <h5>Environmental Objectives</h5>
+                        <div class="row">
+                            <div class="col-md-6">
+                                <div class="card mb-3">
+                                    <div class="card-body">
+                                        <h6><i class="fas fa-cloud text-primary me-2"></i>Climate Change Mitigation</h6>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="card mb-3">
+                                    <div class="card-body">
+                                        <h6><i class="fas fa-shield-alt text-primary me-2"></i>Climate Change Adaptation</h6>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="card mb-3">
+                                    <div class="card-body">
+                                        <h6><i class="fas fa-water text-primary me-2"></i>Sustainable Use of Water</h6>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="card mb-3">
+                                    <div class="card-body">
+                                        <h6><i class="fas fa-recycle text-primary me-2"></i>Circular Economy</h6>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="card mb-3">
+                                    <div class="card-body">
+                                        <h6><i class="fas fa-smog text-primary me-2"></i>Pollution Prevention</h6>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="card mb-3">
+                                    <div class="card-body">
+                                        <h6><i class="fas fa-tree text-primary me-2"></i>Biodiversity & Ecosystems</h6>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="mb-4">
+                        <h5>Alignment Criteria</h5>
+                        <ol>
+                            <li><strong>Substantial Contribution</strong> to at least one environmental objective</li>
+                            <li><strong>Do No Significant Harm</strong> to any other environmental objective</li>
+                            <li>Comply with <strong>Minimum Safeguards</strong> (social and governance)</li>
+                            <li>Comply with <strong>Technical Screening Criteria</strong></li>
+                        </ol>
+                    </div>
+                    
+                    <div class="mb-4">
+                        <h5>Implications for Investors</h5>
+                        <div class="card bg-light">
+                            <div class="card-body">
+                                <ul class="mb-0">
+                                    <li>Framework for assessing portfolio companies' environmental sustainability</li>
+                                    <li>Standardized approach to identifying "green" investments</li>
+                                    <li>Disclosure requirements for Article 8 and 9 funds under SFDR</li>
+                                    <li>Potential competitive advantage for taxonomy-aligned portfolio companies</li>
+                                </ul>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <div id="sfdr-content" class="framework-content d-none">
+                    <h4>Sustainable Finance Disclosure Regulation (SFDR)</h4>
+                    <p class="lead">A European regulation aimed at improving transparency in sustainable investment products.</p>
+                    
+                    <div class="mb-4">
+                        <h5>Fund Classifications</h5>
+                        <div class="table-responsive">
+                            <table class="table">
+                                <thead class="table-light">
+                                    <tr>
+                                        <th>Article</th>
+                                        <th>Classification</th>
+                                        <th>Description</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    <tr>
+                                        <td>Article 6</td>
+                                        <td>Mainstream</td>
+                                        <td>No sustainability focus, but must disclose sustainability risks</td>
+                                    </tr>
+                                    <tr>
+                                        <td>Article 8</td>
+                                        <td>Light Green</td>
+                                        <td>Promotes environmental or social characteristics</td>
+                                    </tr>
+                                    <tr>
+                                        <td>Article 9</td>
+                                        <td>Dark Green</td>
+                                        <td>Has sustainable investment as its objective</td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                    
+                    <div class="mb-4">
+                        <h5>Key Requirements</h5>
+                        <ul class="list-group list-group-flush mb-3">
+                            <li class="list-group-item bg-transparent">Sustainability risk integration in investment decisions</li>
+                            <li class="list-group-item bg-transparent">Principal Adverse Impact (PAI) considerations</li>
+                            <li class="list-group-item bg-transparent">Pre-contractual and periodic disclosures</li>
+                            <li class="list-group-item bg-transparent">Website disclosures on sustainability characteristics</li>
+                            <li class="list-group-item bg-transparent">Taxonomy alignment disclosure for Article 8 and 9 funds</li>
+                        </ul>
+                    </div>
+                    
+                    <div class="mb-4">
+                        <h5>Implications for Investors</h5>
+                        <div class="card bg-light">
+                            <div class="card-body">
+                                <ul class="mb-0">
+                                    <li>Increased transparency and standardization of sustainability claims</li>
+                                    <li>More robust ESG data collection requirements from portfolio companies</li>
+                                    <li>Need for enhanced sustainability due diligence processes</li>
+                                    <li>Direct regulatory compliance obligations for fund managers</li>
+                                </ul>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+                <a href="#" class="btn btn-primary" target="_blank" id="learn-more-link">
+                    <i class="fas fa-external-link-alt me-2"></i>Learn More
+                </a>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // Company Finder Modal
+    const companyFinderModal = document.getElementById('companyFinderModal');
+    const searchBtn = document.getElementById('search-btn');
+    const searchPrompt = document.getElementById('search-prompt');
+    const resultsContainer = document.getElementById('results-container');
+    const exportResultsBtn = document.getElementById('export-results');
+    
+    if (companyFinderModal) {
+        companyFinderModal.addEventListener('show.bs.modal', function(event) {
+            const button = event.relatedTarget;
+            const theme = button.getAttribute('data-theme');
+            
+            const modalTitle = companyFinderModal.querySelector('.modal-title');
+            modalTitle.textContent = `Find Companies - ${theme}`;
+            
+            // Reset search
+            searchPrompt.classList.remove('d-none');
+            resultsContainer.classList.add('d-none');
+            resultsContainer.innerHTML = '';
+            
+            // Set theme as search term
+            const searchInput = document.getElementById('company-search');
+            searchInput.value = theme;
+        });
+    }
+    
+    if (searchBtn) {
+        searchBtn.addEventListener('click', function() {
+            const searchTerm = document.getElementById('company-search').value;
+            const stageFilter = document.getElementById('stage-filter').value;
+            const regionFilter = document.getElementById('region-filter').value;
+            
+            if (!searchTerm) {
+                alert('Please enter a search term');
+                return;
+            }
+            
+            // Show loading state
+            searchBtn.innerHTML = '<span class="spinner-border spinner-border-sm me-2"></span>Searching...';
+            searchBtn.disabled = true;
+            
+            // Simulate API call with timeout (in a real implementation, this would be an actual API call)
+            setTimeout(function() {
+                // Generate sample results
+                const results = generateSampleCompanies(searchTerm, stageFilter, regionFilter);
+                
+                // Update UI
+                searchPrompt.classList.add('d-none');
+                resultsContainer.classList.remove('d-none');
+                resultsContainer.innerHTML = ''; // Clear previous results
+                
+                if (results.length === 0) {
+                    resultsContainer.innerHTML = `
+                        <div class="text-center py-4">
+                            <i class="fas fa-search fa-2x text-muted mb-3"></i>
+                            <h5>No results found</h5>
+                            <p class="text-muted">Try adjusting your search terms or filters.</p>
+                        </div>
+                    `;
+                } else {
+                    // Add results count
+                    const resultCount = document.createElement('div');
+                    resultCount.className = 'mb-3';
+                    resultCount.innerHTML = `<p>Found <strong>${results.length}</strong> companies matching your criteria</p>`;
+                    resultsContainer.appendChild(resultCount);
+                    
+                    // Add results
+                    results.forEach(company => {
+                        const companyCard = document.createElement('div');
+                        companyCard.className = 'card mb-3';
+                        companyCard.innerHTML = `
+                            <div class="card-body">
+                                <div class="d-flex justify-content-between align-items-start">
+                                    <div>
+                                        <h5 class="card-title">${company.name}</h5>
+                                        <p class="card-text text-muted">${company.description}</p>
+                                        <div class="mb-2">
+                                            <span class="badge bg-primary me-2">${company.stage}</span>
+                                            <span class="badge bg-secondary me-2">${company.region}</span>
+                                            <span class="badge bg-light text-dark">${company.foundedYear}</span>
+                                        </div>
+                                        <div>
+                                            <span class="me-3"><i class="fas fa-users me-1"></i>${company.employees}</span>
+                                            <span><i class="fas fa-dollar-sign me-1"></i>${company.funding}</span>
+                                        </div>
+                                    </div>
+                                    <div>
+                                        <button type="button" class="btn btn-sm btn-outline-primary">
+                                            <i class="fas fa-plus me-1"></i>Add to Watchlist
+                                        </button>
+                                    </div>
+                                </div>
+                            </div>
+                        `;
+                        
+                        resultsContainer.appendChild(companyCard);
+                    });
+                }
+                
+                // Reset button state
+                searchBtn.innerHTML = '<i class="fas fa-search me-2"></i>Search';
+                searchBtn.disabled = false;
+            }, 1500);
+        });
+    }
+    
+    // Export Results
+    if (exportResultsBtn) {
+        exportResultsBtn.addEventListener('click', function() {
+            alert('Export functionality will be available in the next release.');
+        });
+    }
+    
+    // Framework Detail Modal
+    const frameworkDetailModal = document.getElementById('frameworkDetailModal');
+    const learnMoreLink = document.getElementById('learn-more-link');
+    const frameworkContents = document.querySelectorAll('.framework-content');
+    
+    if (frameworkDetailModal) {
+        frameworkDetailModal.addEventListener('show.bs.modal', function(event) {
+            const button = event.relatedTarget;
+            const framework = button.getAttribute('data-framework');
+            
+            const modalTitle = frameworkDetailModal.querySelector('.modal-title');
+            modalTitle.textContent = framework;
+            
+            // Hide all framework contents
+            frameworkContents.forEach(content => {
+                content.classList.add('d-none');
+            });
+            
+            // Show the appropriate content
+            let contentId = '';
+            let learnMoreUrl = '';
+            
+            if (framework === 'CSRD') {
+                contentId = 'csrd-content';
+                learnMoreUrl = 'https://finance.ec.europa.eu/capital-markets-union-and-financial-markets/company-reporting-and-auditing/company-reporting/corporate-sustainability-reporting_en';
+            } else if (framework === 'EU Taxonomy') {
+                contentId = 'eu-taxonomy-content';
+                learnMoreUrl = 'https://finance.ec.europa.eu/sustainable-finance/tools-and-standards/eu-taxonomy-sustainable-activities_en';
+            } else if (framework === 'SFDR') {
+                contentId = 'sfdr-content';
+                learnMoreUrl = 'https://www.esma.europa.eu/policy-activities/sustainable-finance/sfdr';
+            }
+            
+            const contentElement = document.getElementById(contentId);
+            if (contentElement) {
+                contentElement.classList.remove('d-none');
+            }
+            
+            // Update learn more link
+            if (learnMoreLink) {
+                learnMoreLink.href = learnMoreUrl;
+            }
+        });
+    }
+    
+    // Generate sample companies for demo
+    function generateSampleCompanies(searchTerm, stageFilter, regionFilter) {
+        const sampleCompanies = [
+            {
+                name: 'EcoVolt Energy',
+                description: 'Advanced battery storage and smart grid solutions for renewable energy integration',
+                stage: 'Series B',
+                region: 'Europe',
+                foundedYear: '2019',
+                employees: '45-100',
+                funding: '€18.5M'
+            },
+            {
+                name: 'CarbonTrack AI',
+                description: 'Machine learning platform for carbon emissions monitoring and reduction strategies',
+                stage: 'Series A',
+                region: 'North America',
+                foundedYear: '2020',
+                employees: '25-50',
+                funding: '€7.2M'
+            },
+            {
+                name: 'AquaSmart Technologies',
+                description: 'IoT solutions for water conservation and quality monitoring in agriculture',
+                stage: 'Seed',
+                region: 'Europe',
+                foundedYear: '2022',
+                employees: '10-25',
+                funding: '€1.8M'
+            },
+            {
+                name: 'CircularPack',
+                description: 'Sustainable packaging solutions using recycled and biodegradable materials',
+                stage: 'Series A',
+                region: 'Europe',
+                foundedYear: '2018',
+                employees: '50-100',
+                funding: '€12.4M'
+            },
+            {
+                name: 'GreenBuild Materials',
+                description: 'Low-carbon construction materials and building efficiency solutions',
+                stage: 'Growth',
+                region: 'North America',
+                foundedYear: '2016',
+                employees: '100-250',
+                funding: '€32M'
+            },
+            {
+                name: 'SolarFlow Systems',
+                description: 'Integrated solar and water management solutions for urban environments',
+                stage: 'Series B',
+                region: 'Asia',
+                foundedYear: '2017',
+                employees: '75-150',
+                funding: '€24.5M'
+            }
+        ];
+        
+        // Filter results
+        return sampleCompanies.filter(company => {
+            const matchesTerm = company.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+                               company.description.toLowerCase().includes(searchTerm.toLowerCase());
+            
+            const matchesStage = !stageFilter || 
+                               company.stage.toLowerCase().includes(stageFilter.toLowerCase());
+            
+            const matchesRegion = !regionFilter || 
+                                company.region.toLowerCase().includes(regionFilter.replace('_', ' ').toLowerCase());
+            
+            return matchesTerm && matchesStage && matchesRegion;
+        });
+    }
+});
+</script>
+
+<style>
+.icon-circle {
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1rem;
+}
+
+.framework-content {
+    animation: fadeIn 0.3s ease-in-out;
+}
+
+@keyframes fadeIn {
+    from { opacity: 0; }
+    to { opacity: 1; }
+}
+</style>
+{% endblock %}

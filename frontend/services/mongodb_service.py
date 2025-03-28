@@ -1,305 +1,422 @@
 """
-MongoDB Service Layer for SustainaTrend™
+MongoDB Service for SustainaTrend Intelligence Platform
 
-This module provides a standardized service layer for MongoDB operations,
-ensuring consistent access patterns across the application.
+This service provides a unified interface for MongoDB operations,
+supporting both PyMongo and Motor (async) clients.
 """
 
 import logging
-from typing import List, Dict, Any, Optional, Sequence
-from datetime import datetime, timedelta
+import os
+from typing import Any, Dict, List, Optional, Union
 
-from frontend.mongo_client import (
-    verify_connection, 
-    get_database, 
-    serialize_document,
-    metrics_collection,
-    trends_collection,
-    stories_collection
-)
+# Try to import pymongo
+try:
+    import pymongo
+    from pymongo import MongoClient
+    from pymongo.collection import Collection
+    from pymongo.database import Database
+    PYMONGO_AVAILABLE = True
+except ImportError:
+    PYMONGO_AVAILABLE = False
+    # Create placeholder types for type hints when pymongo is not available
+    class Collection:
+        def insert_one(self, document):
+            class Result:
+                inserted_id = None
+            return Result()
+            
+        def find(self, query=None):
+            class Cursor:
+                def __iter__(self):
+                    # Make the cursor iterable
+                    return iter([])
+                
+                def skip(self, n):
+                    return self
+                
+                def limit(self, n):
+                    return self
+                
+                def sort(self, order):
+                    return self
+                
+                def to_list(self, length=None):
+                    return []
+            return Cursor()
+            
+        def update_one(self, query, update, upsert=False):
+            class Result:
+                modified_count = 0
+                upserted_id = None
+            return Result()
+            
+        def delete_one(self, query):
+            class Result:
+                deleted_count = 0
+            return Result()
+    
+    class Database:
+        pass
+    
+    class MongoClient:
+        def __init__(self, *args, **kwargs):
+            pass
+        
+        def __getitem__(self, name):
+            return None
 
-# Configure logging
+# Try to import motor for async MongoDB operations
+try:
+    import motor.motor_asyncio
+    MOTOR_AVAILABLE = True
+except ImportError:
+    MOTOR_AVAILABLE = False
+    # Create mock module for when motor is not available
+    class MockMotor:
+        class motor_asyncio:
+            class AsyncIOMotorClient:
+                def __init__(self, *args, **kwargs):
+                    pass
+                
+                def __getitem__(self, name):
+                    class MockDB:
+                        def __getitem__(self, collection_name):
+                            class MockCollection:
+                                async def insert_one(self, document):
+                                    class Result:
+                                        inserted_id = None
+                                    return Result()
+                                
+                                async def find(self, query=None):
+                                    class Cursor:
+                                        def __iter__(self):
+                                            # Make the cursor iterable
+                                            return iter([])
+                                            
+                                        def skip(self, n):
+                                            return self
+                                        
+                                        def limit(self, n):
+                                            return self
+                                        
+                                        def sort(self, order):
+                                            return self
+                                        
+                                        async def to_list(self, length=None):
+                                            return []
+                                    return Cursor()
+                                
+                                async def update_one(self, query, update, upsert=False):
+                                    class Result:
+                                        modified_count = 0
+                                        upserted_id = None
+                                    return Result()
+                                
+                                async def delete_one(self, query):
+                                    class Result:
+                                        deleted_count = 0
+                                    return Result()
+                            return MockCollection()
+                    return MockDB()
+    
+    motor = MockMotor()
+
+# Setup logging
 logger = logging.getLogger(__name__)
 
 class MongoDBService:
-    """Service class for standardized MongoDB operations"""
+    """MongoDB service for the SustainaTrend Intelligence Platform"""
     
-    @staticmethod
-    def check_connection() -> bool:
+    def __init__(self, connection_string: Optional[str] = None, db_name: str = "sustainatrend"):
         """
-        Check if MongoDB connection is available
+        Initialize the MongoDB service
         
-        Returns:
-            bool: True if connection is available, False otherwise
+        Args:
+            connection_string: MongoDB connection string (optional, will use environment variable if not provided)
+            db_name: Name of the database to use
         """
+        self.connection_string = connection_string or os.environ.get('MONGODB_URI', 'mongodb://localhost:27017/')
+        self.db_name = db_name
+        self.client = None
+        self.db = None
+        self.async_client = None
+        self.async_db = None
+        
+        # Initialize synchronous client if available
+        if PYMONGO_AVAILABLE:
+            try:
+                self.client = MongoClient(self.connection_string, serverSelectionTimeoutMS=5000)
+                self.db = self.client[self.db_name]
+                logger.info(f"MongoDB service initialized with database '{self.db_name}'")
+            except Exception as e:
+                logger.warning(f"Failed to initialize MongoDB client: {str(e)}")
+                self.client = None
+                self.db = None
+        else:
+            logger.warning("PyMongo not available, synchronous operations will not work")
+        
+        # Initialize asynchronous client if available
+        if MOTOR_AVAILABLE:
+            try:
+                self.async_client = motor.motor_asyncio.AsyncIOMotorClient(self.connection_string)
+                self.async_db = self.async_client[self.db_name]
+                logger.info(f"Async MongoDB service initialized with database '{self.db_name}'")
+            except Exception as e:
+                logger.warning(f"Failed to initialize async MongoDB client: {str(e)}")
+                self.async_client = None
+                self.async_db = None
+        else:
+            logger.warning("Motor not available, asynchronous operations will not work")
+    
+    def get_collection(self, collection_name: str) -> Optional[Collection]:
+        """
+        Get a MongoDB collection
+        
+        Args:
+            collection_name: Name of the collection
+            
+        Returns:
+            MongoDB collection or None if not available
+        """
+        if not self.db:
+            logger.warning(f"Cannot get collection '{collection_name}': MongoDB client not initialized")
+            return None
+        
+        return self.db[collection_name]
+    
+    async def get_async_collection(self, collection_name: str) -> Optional[Any]:
+        """
+        Get an async MongoDB collection
+        
+        Args:
+            collection_name: Name of the collection
+            
+        Returns:
+            Async MongoDB collection or None if not available
+        """
+        if not self.async_db:
+            logger.warning(f"Cannot get async collection '{collection_name}': Async MongoDB client not initialized")
+            return None
+        
+        return self.async_db[collection_name]
+    
+    def insert_document(self, collection_name: str, document: Dict[str, Any]) -> Optional[str]:
+        """
+        Insert a document into a collection
+        
+        Args:
+            collection_name: Name of the collection
+            document: Document to insert
+            
+        Returns:
+            ID of the inserted document or None if insertion failed
+        """
+        collection = self.get_collection(collection_name)
+        if not collection:
+            return None
+        
         try:
-            return verify_connection()
+            result = collection.insert_one(document)
+            return str(result.inserted_id)
         except Exception as e:
-            logger.error(f"Error checking MongoDB connection: {str(e)}")
+            logger.error(f"Failed to insert document into '{collection_name}': {str(e)}")
+            return None
+    
+    async def insert_document_async(self, collection_name: str, document: Dict[str, Any]) -> Optional[str]:
+        """
+        Insert a document into a collection asynchronously
+        
+        Args:
+            collection_name: Name of the collection
+            document: Document to insert
+            
+        Returns:
+            ID of the inserted document or None if insertion failed
+        """
+        collection = await self.get_async_collection(collection_name)
+        if not collection:
+            return None
+        
+        try:
+            result = await collection.insert_one(document)
+            return str(result.inserted_id)
+        except Exception as e:
+            logger.error(f"Failed to insert document into '{collection_name}' asynchronously: {str(e)}")
+            return None
+    
+    def find_documents(self, collection_name: str, query: Dict[str, Any], limit: int = 0, 
+                      sort_by: Optional[List[tuple]] = None, skip: int = 0) -> List[Dict[str, Any]]:
+        """
+        Find documents in a collection
+        
+        Args:
+            collection_name: Name of the collection
+            query: Query to find documents
+            limit: Maximum number of documents to return (0 for all)
+            sort_by: List of (field, direction) tuples to sort by
+            skip: Number of documents to skip
+            
+        Returns:
+            List of documents or empty list if no documents found or error occurred
+        """
+        collection = self.get_collection(collection_name)
+        if not collection:
+            return []
+        
+        try:
+            cursor = collection.find(query).skip(skip)
+            
+            if limit > 0:
+                cursor = cursor.limit(limit)
+                
+            if sort_by:
+                cursor = cursor.sort(sort_by)
+            
+            # Handle the case where cursor might not be iterable (in mock implementation)
+            try:
+                return list(cursor)
+            except (TypeError, AttributeError):
+                logger.warning(f"Cursor is not iterable, returning empty list")
+                return []
+        except Exception as e:
+            logger.error(f"Failed to find documents in '{collection_name}': {str(e)}")
+            return []
+    
+    async def find_documents_async(self, collection_name: str, query: Dict[str, Any], limit: int = 0,
+                                  sort_by: Optional[List[tuple]] = None, skip: int = 0) -> List[Dict[str, Any]]:
+        """
+        Find documents in a collection asynchronously
+        
+        Args:
+            collection_name: Name of the collection
+            query: Query to find documents
+            limit: Maximum number of documents to return (0 for all)
+            sort_by: List of (field, direction) tuples to sort by
+            skip: Number of documents to skip
+            
+        Returns:
+            List of documents or empty list if no documents found or error occurred
+        """
+        collection = await self.get_async_collection(collection_name)
+        if not collection:
+            return []
+        
+        try:
+            cursor = collection.find(query).skip(skip)
+            
+            if limit > 0:
+                cursor = cursor.limit(limit)
+                
+            if sort_by:
+                cursor = cursor.sort(sort_by)
+                
+            return await cursor.to_list(length=limit if limit > 0 else None)
+        except Exception as e:
+            logger.error(f"Failed to find documents in '{collection_name}' asynchronously: {str(e)}")
+            return []
+    
+    def update_document(self, collection_name: str, query: Dict[str, Any], update: Dict[str, Any], 
+                       upsert: bool = False) -> bool:
+        """
+        Update a document in a collection
+        
+        Args:
+            collection_name: Name of the collection
+            query: Query to find document to update
+            update: Update to apply
+            upsert: Whether to insert if document not found
+            
+        Returns:
+            True if update succeeded, False otherwise
+        """
+        collection = self.get_collection(collection_name)
+        if not collection:
             return False
-            
-    @classmethod
-    def get_metrics(
-        cls,
-        category: Optional[str] = None,
-        start_date: Optional[datetime] = None,
-        end_date: Optional[datetime] = None,
-        limit: int = 100
-    ) -> List[Dict[str, Any]]:
+        
+        try:
+            result = collection.update_one(query, update, upsert=upsert)
+            return result.modified_count > 0 or (upsert and result.upserted_id is not None)
+        except Exception as e:
+            logger.error(f"Failed to update document in '{collection_name}': {str(e)}")
+            return False
+    
+    async def update_document_async(self, collection_name: str, query: Dict[str, Any], update: Dict[str, Any],
+                                  upsert: bool = False) -> bool:
         """
-        Get sustainability metrics with optional filtering
+        Update a document in a collection asynchronously
         
         Args:
-            category: Filter by category (optional)
-            start_date: Filter by minimum date (optional)
-            end_date: Filter by maximum date (optional)
-            limit: Maximum number of metrics to return
+            collection_name: Name of the collection
+            query: Query to find document to update
+            update: Update to apply
+            upsert: Whether to insert if document not found
             
         Returns:
-            List of metrics as dictionaries
+            True if update succeeded, False otherwise
         """
+        collection = await self.get_async_collection(collection_name)
+        if not collection:
+            return False
+        
         try:
-            # Build query
-            query = {}
-            if category:
-                query['category'] = category
-                
-            # Add date range if specified
-            if start_date or end_date:
-                date_query = {}
-                if start_date:
-                    date_query['$gte'] = start_date
-                if end_date:
-                    date_query['$lte'] = end_date
-                if date_query:
-                    query['timestamp'] = date_query
-            
-            # Execute query
-            collection = metrics_collection()
-            cursor = collection.find(query).sort('timestamp', -1).limit(limit)
-            
-            # Serialize documents and filter out None values
-            metrics = []
-            for doc in cursor:
-                if doc is not None:
-                    metrics.append(serialize_document(doc))
-            
-            logger.info(f"Retrieved {len(metrics)} metrics from MongoDB")
-            return metrics
+            result = await collection.update_one(query, update, upsert=upsert)
+            return result.modified_count > 0 or (upsert and result.upserted_id is not None)
         except Exception as e:
-            logger.error(f"Error getting metrics from MongoDB: {str(e)}")
-            return []
+            logger.error(f"Failed to update document in '{collection_name}' asynchronously: {str(e)}")
+            return False
     
-    @classmethod
-    def get_trends(
-        cls,
-        category: Optional[str] = None,
-        min_virality: Optional[float] = None,
-        timeframe: Optional[str] = None,
-        limit: int = 50
-    ) -> List[Dict[str, Any]]:
+    def delete_document(self, collection_name: str, query: Dict[str, Any]) -> bool:
         """
-        Get sustainability trends with optional filtering
+        Delete a document from a collection
         
         Args:
-            category: Filter by category (optional)
-            min_virality: Minimum virality score (optional)
-            timeframe: Timeframe filter (optional)
-            limit: Maximum number of trends to return
+            collection_name: Name of the collection
+            query: Query to find document to delete
             
         Returns:
-            List of trends as dictionaries
+            True if deletion succeeded, False otherwise
         """
+        collection = self.get_collection(collection_name)
+        if not collection:
+            return False
+        
         try:
-            # Build query
-            query = {}
-            if category:
-                query['category'] = category
-                
-            if min_virality is not None:
-                query['virality_score'] = {'$gte': min_virality}
-                
-            if timeframe:
-                # Calculate date threshold based on timeframe
-                now = datetime.now()
-                date_threshold = None
-                
-                if timeframe == 'week':
-                    date_threshold = now - timedelta(days=7)
-                elif timeframe == 'month':
-                    date_threshold = now - timedelta(days=30)
-                elif timeframe == 'quarter':
-                    date_threshold = now - timedelta(days=90)
-                elif timeframe == 'year':
-                    date_threshold = now - timedelta(days=365)
-                    
-                if date_threshold:
-                    query['timestamp'] = {'$gte': date_threshold}
-            
-            # Execute query
-            collection = trends_collection()
-            cursor = collection.find(query).sort('virality_score', -1).limit(limit)
-            
-            # Serialize documents and filter out None values
-            trends = []
-            for doc in cursor:
-                if doc is not None:
-                    trends.append(serialize_document(doc))
-            
-            logger.info(f"Retrieved {len(trends)} trends from MongoDB")
-            return trends
+            result = collection.delete_one(query)
+            return result.deleted_count > 0
         except Exception as e:
-            logger.error(f"Error getting trends from MongoDB: {str(e)}")
-            return []
+            logger.error(f"Failed to delete document from '{collection_name}': {str(e)}")
+            return False
     
-    @classmethod
-    def get_stories(
-        cls,
-        category: Optional[str] = None,
-        tags: Optional[List[str]] = None,
-        start_date: Optional[datetime] = None,
-        end_date: Optional[datetime] = None,
-        limit: int = 50,
-        skip: int = 0
-    ) -> List[Dict[str, Any]]:
+    async def delete_document_async(self, collection_name: str, query: Dict[str, Any]) -> bool:
         """
-        Get sustainability stories with optional filtering
+        Delete a document from a collection asynchronously
         
         Args:
-            category: Filter by category (optional)
-            tags: Filter by tags (optional)
-            start_date: Filter by minimum date (optional)
-            end_date: Filter by maximum date (optional)
-            limit: Maximum number of stories to return
-            skip: Number of stories to skip (for pagination)
+            collection_name: Name of the collection
+            query: Query to find document to delete
             
         Returns:
-            List of stories as dictionaries
+            True if deletion succeeded, False otherwise
         """
-        try:
-            # Build query
-            query = {}
-            if category:
-                query['category'] = category
-                
-            if tags:
-                query['tags'] = {'$in': tags}
-                
-            if start_date or end_date:
-                date_query = {}
-                if start_date:
-                    date_query['$gte'] = start_date
-                if end_date:
-                    date_query['$lte'] = end_date
-                if date_query:
-                    query['publication_date'] = date_query
-            
-            # Execute query
-            collection = stories_collection()
-            cursor = collection.find(query).sort('publication_date', -1).skip(skip).limit(limit)
-            
-            # Serialize documents and filter out None values
-            stories = []
-            for doc in cursor:
-                if doc is not None:
-                    stories.append(serialize_document(doc))
-            
-            logger.info(f"Retrieved {len(stories)} stories from MongoDB")
-            return stories
-        except Exception as e:
-            logger.error(f"Error getting stories from MongoDB: {str(e)}")
-            return []
-    
-    @classmethod
-    def insert_metric(cls, metric_data: Dict[str, Any]) -> Optional[str]:
-        """
-        Insert a new sustainability metric
+        collection = await self.get_async_collection(collection_name)
+        if not collection:
+            return False
         
-        Args:
-            metric_data: Metric data to insert
-            
-        Returns:
-            ID of inserted document or None if failed
-        """
         try:
-            # Ensure timestamp exists
-            if 'timestamp' not in metric_data:
-                metric_data['timestamp'] = datetime.now()
-                
-            # Insert the document
-            collection = metrics_collection()
-            result = collection.insert_one(metric_data)
-            
-            logger.info(f"Inserted metric: {metric_data.get('name', 'Unknown')} with ID: {result.inserted_id}")
-            return str(result.inserted_id)
+            result = await collection.delete_one(query)
+            return result.deleted_count > 0
         except Exception as e:
-            logger.error(f"Error inserting metric: {str(e)}")
-            return None
+            logger.error(f"Failed to delete document from '{collection_name}' asynchronously: {str(e)}")
+            return False
+
+# Create a singleton instance
+mongodb_service = MongoDBService()
+
+def get_mongodb_service() -> MongoDBService:
+    """
+    Get the MongoDB service singleton
     
-    @classmethod
-    def insert_trend(cls, trend_data: Dict[str, Any]) -> Optional[str]:
-        """
-        Insert a new sustainability trend
-        
-        Args:
-            trend_data: Trend data to insert
-            
-        Returns:
-            ID of inserted document or None if failed
-        """
-        try:
-            # Ensure timestamp exists
-            if 'timestamp' not in trend_data:
-                trend_data['timestamp'] = datetime.now()
-                
-            # Insert the document
-            collection = trends_collection()
-            result = collection.insert_one(trend_data)
-            
-            logger.info(f"Inserted trend: {trend_data.get('name', 'Unknown')} with ID: {result.inserted_id}")
-            return str(result.inserted_id)
-        except Exception as e:
-            logger.error(f"Error inserting trend: {str(e)}")
-            return None
-    
-    @classmethod
-    def insert_story(cls, story_data: Dict[str, Any]) -> Optional[str]:
-        """
-        Insert a new sustainability story
-        
-        Args:
-            story_data: Story data to insert
-            
-        Returns:
-            ID of inserted document or None if failed
-        """
-        try:
-            # Ensure publication date exists
-            if 'publication_date' not in story_data:
-                story_data['publication_date'] = datetime.now()
-                
-            # Insert the document
-            collection = stories_collection()
-            result = collection.insert_one(story_data)
-            
-            logger.info(f"Inserted story: {story_data.get('title', 'Unknown')} with ID: {result.inserted_id}")
-            return str(result.inserted_id)
-        except Exception as e:
-            logger.error(f"Error inserting story: {str(e)}")
-            return None
-    
-    @classmethod
-    def get_categories(cls) -> List[str]:
-        """
-        Get all unique categories from the metrics collection
-        
-        Returns:
-            List of unique category names
-        """
-        try:
-            collection = metrics_collection()
-            result = collection.distinct("category")
-            return result
-        except Exception as e:
-            logger.error(f"Error getting categories: {str(e)}")
-            return []
+    Returns:
+        MongoDB service instance
+    """
+    return mongodb_service

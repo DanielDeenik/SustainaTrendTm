@@ -108,7 +108,7 @@ def update_story(story_id: str, story_data: Dict[str, Any]) -> bool:
     
     # Try to update in MongoDB if integrated
     try:
-        from frontend.mongo_stories import update_story as mongo_update
+        from mongo_stories import update_story as mongo_update
         result = mongo_update(story_id, story_data)
         if result:
             # Also update in memory
@@ -206,7 +206,7 @@ def get_story_by_id(story_id: str) -> Optional[Dict[str, Any]]:
     
     # Try to get from MongoDB
     try:
-        from frontend.mongo_stories import get_story_by_id as mongo_get
+        from mongo_stories import get_story_by_id as mongo_get
         story = mongo_get(story_id)
         if story:
             # Add to cache for future use
@@ -278,7 +278,7 @@ def delete_story(story_id: str) -> bool:
     
     # Delete from MongoDB if integrated
     try:
-        from frontend.mongo_stories import delete_story as mongo_delete
+        from mongo_stories import delete_story as mongo_delete
         result = mongo_delete(story_id)
         if result:
             logger.info(f"Deleted story {story_id} from MongoDB")

@@ -13,8 +13,32 @@
             </li>
             <li class="nav-item">
                 <a class="nav-link {% if active_page == 'dashboard' %}active{% endif %}" href="/dashboard">
-                    <i class="fas fa-tachometer-alt me-2"></i> Dashboard
+                    <i class="fas fa-chart-bar me-2"></i> Portfolio Overview
                 </a>
+            </li>
+            <li class="nav-item">
+                <a class="nav-link {% if active_page == 'vc_lens' or active_nav == 'vc_lens' %}active{% endif %}" href="/vc-insights">
+                    <i class="fas fa-search-dollar me-2"></i> VC-Lens™
+                </a>
+            </li>
+            <li class="nav-item">
+                <a class="nav-link {% if active_page == 'strategy_hub' %}active{% endif %}" href="/strategy-hub">
+                    <i class="fas fa-lightbulb me-2"></i> Strategy & Narrative
+                </a>
+            </li>
+            <li class="nav-item">
+                <a class="nav-link {% if active_page == 'document_upload' %}active{% endif %}" href="/document-upload">
+                    <i class="fas fa-file-alt me-2"></i> Disclosures & Reports
+                </a>
+            </li>
+            <li class="nav-item">
+                <a class="nav-link {% if active_page == 'trend_analysis' %}active{% endif %}" href="/trend-analysis">
+                    <i class="fas fa-chart-line me-2"></i> Smart ESG Search
+                </a>
+            </li>
+            
+            <li class="nav-item mt-3">
+                <div class="nav-link text-muted small fw-bold">TOOLS</div>
             </li>
             <li class="nav-item">
                 <a class="nav-link {% if active_page == 'story_cards' %}active{% endif %}" href="/story-cards">
@@ -22,18 +46,8 @@
                 </a>
             </li>
             <li class="nav-item">
-                <a class="nav-link {% if active_page == 'trend_analysis' %}active{% endif %}" href="/trend-analysis">
-                    <i class="fas fa-chart-line me-2"></i> Trend Analysis
-                </a>
-            </li>
-            <li class="nav-item">
-                <a class="nav-link {% if active_page == 'document_upload' %}active{% endif %}" href="/document-upload">
-                    <i class="fas fa-file-upload me-2"></i> Document Upload
-                </a>
-            </li>
-            <li class="nav-item">
                 <a class="nav-link {% if active_page == 'debug' %}active{% endif %}" href="/debug">
-                    <i class="fas fa-bug me-2"></i> Debug
+                    <i class="fas fa-tools me-2"></i> Settings
                 </a>
             </li>
         </ul>
