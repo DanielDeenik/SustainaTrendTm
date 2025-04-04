@@ -1,0 +1,441 @@
+{% extends "layouts/base.html" %}
+
+{% set active_nav = 'overview' %}
+
+{% block header_title %}Sustainability Overview{% endblock %}
+
+{% block header_actions %}
+<button class="btn btn-sm btn-outline-secondary">
+    <i class="fas fa-share-alt"></i> Share
+</button>
+<button class="btn btn-sm btn-outline-primary">
+    <i class="fas fa-download"></i> Export
+</button>
+{% endblock %}
+
+{% block content %}
+<div class="row">
+    <!-- Summary Card -->
+    <div class="col-12 mb-4">
+        <div class="card">
+            <div class="card-body">
+                <h5 class="card-title">Sustainability Snapshot</h5>
+                <p class="text-muted">A high-level overview of your organization's sustainability performance and progress toward key goals.</p>
+                
+                <div class="row mt-4">
+                    <div class="col-md-3 mb-3">
+                        <div class="d-flex align-items-center">
+                            <div class="me-3">
+                                <span class="badge bg-success p-2 rounded-circle">
+                                    <i class="fas fa-check"></i>
+                                </span>
+                            </div>
+                            <div>
+                                <h6 class="mb-0">Overall Score</h6>
+                                <h4 class="mb-0">78<small>/100</small></h4>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="col-md-3 mb-3">
+                        <div class="d-flex align-items-center">
+                            <div class="me-3">
+                                <span class="badge bg-primary p-2 rounded-circle">
+                                    <i class="fas fa-chart-line"></i>
+                                </span>
+                            </div>
+                            <div>
+                                <h6 class="mb-0">YoY Improvement</h6>
+                                <h4 class="mb-0">+12.5%</h4>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="col-md-3 mb-3">
+                        <div class="d-flex align-items-center">
+                            <div class="me-3">
+                                <span class="badge bg-warning p-2 rounded-circle">
+                                    <i class="fas fa-exclamation"></i>
+                                </span>
+                            </div>
+                            <div>
+                                <h6 class="mb-0">Alert Count</h6>
+                                <h4 class="mb-0">3</h4>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="col-md-3 mb-3">
+                        <div class="d-flex align-items-center">
+                            <div class="me-3">
+                                <span class="badge bg-info p-2 rounded-circle">
+                                    <i class="fas fa-calendar-check"></i>
+                                </span>
+                            </div>
+                            <div>
+                                <h6 class="mb-0">Targets On Track</h6>
+                                <h4 class="mb-0">8<small>/10</small></h4>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- ESG Categories -->
+    <div class="col-md-4 mb-4">
+        <div class="card h-100">
+            <div class="card-header">
+                <h5 class="card-title mb-0">Environmental</h5>
+            </div>
+            <div class="card-body">
+                <div class="d-flex justify-content-between align-items-center mb-4">
+                    <div class="text-center">
+                        <h2 class="mb-0">85</h2>
+                        <small class="text-muted">Score</small>
+                    </div>
+                    <div style="width: 120px; height: 120px;">
+                        <canvas id="environmentalChart"></canvas>
+                    </div>
+                </div>
+                
+                <div class="mt-4">
+                    <div class="d-flex justify-content-between mb-2">
+                        <span>Carbon Emissions</span>
+                        <span>78.5 tCO2e</span>
+                    </div>
+                    <div class="d-flex justify-content-between mb-2">
+                        <span>Energy Consumption</span>
+                        <span>342 MWh</span>
+                    </div>
+                    <div class="d-flex justify-content-between mb-2">
+                        <span>Water Usage</span>
+                        <span>1.28M L</span>
+                    </div>
+                    <div class="d-flex justify-content-between">
+                        <span>Waste Generated</span>
+                        <span>56.3 tonnes</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <div class="col-md-4 mb-4">
+        <div class="card h-100">
+            <div class="card-header">
+                <h5 class="card-title mb-0">Social</h5>
+            </div>
+            <div class="card-body">
+                <div class="d-flex justify-content-between align-items-center mb-4">
+                    <div class="text-center">
+                        <h2 class="mb-0">72</h2>
+                        <small class="text-muted">Score</small>
+                    </div>
+                    <div style="width: 120px; height: 120px;">
+                        <canvas id="socialChart"></canvas>
+                    </div>
+                </div>
+                
+                <div class="mt-4">
+                    <div class="d-flex justify-content-between mb-2">
+                        <span>Gender Diversity</span>
+                        <span>38%</span>
+                    </div>
+                    <div class="d-flex justify-content-between mb-2">
+                        <span>Employee Training</span>
+                        <span>24 hrs</span>
+                    </div>
+                    <div class="d-flex justify-content-between mb-2">
+                        <span>Community Investment</span>
+                        <span>$280K</span>
+                    </div>
+                    <div class="d-flex justify-content-between">
+                        <span>Employee Satisfaction</span>
+                        <span>4.2/5</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <div class="col-md-4 mb-4">
+        <div class="card h-100">
+            <div class="card-header">
+                <h5 class="card-title mb-0">Governance</h5>
+            </div>
+            <div class="card-body">
+                <div class="d-flex justify-content-between align-items-center mb-4">
+                    <div class="text-center">
+                        <h2 class="mb-0">78</h2>
+                        <small class="text-muted">Score</small>
+                    </div>
+                    <div style="width: 120px; height: 120px;">
+                        <canvas id="governanceChart"></canvas>
+                    </div>
+                </div>
+                
+                <div class="mt-4">
+                    <div class="d-flex justify-content-between mb-2">
+                        <span>Board Independence</span>
+                        <span>70%</span>
+                    </div>
+                    <div class="d-flex justify-content-between mb-2">
+                        <span>Ethical Sourcing</span>
+                        <span>85%</span>
+                    </div>
+                    <div class="d-flex justify-content-between mb-2">
+                        <span>Risk Management</span>
+                        <span>3.8/5</span>
+                    </div>
+                    <div class="d-flex justify-content-between">
+                        <span>Policy Compliance</span>
+                        <span>96%</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Benchmark Comparison -->
+    <div class="col-12 mb-4">
+        <div class="card">
+            <div class="card-header">
+                <h5 class="card-title mb-0">Industry Benchmark Comparison</h5>
+            </div>
+            <div class="card-body">
+                <div class="chart-container">
+                    <canvas id="benchmarkChart"></canvas>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Goals & Targets -->
+    <div class="col-12">
+        <div class="card">
+            <div class="card-header d-flex justify-content-between align-items-center">
+                <h5 class="card-title mb-0">Sustainability Targets</h5>
+                <button class="btn btn-sm btn-outline-primary">Add Target</button>
+            </div>
+            <div class="card-body">
+                <div class="table-responsive">
+                    <table class="table table-borderless">
+                        <thead>
+                            <tr>
+                                <th>Target</th>
+                                <th>Category</th>
+                                <th>Deadline</th>
+                                <th>Status</th>
+                                <th>Progress</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td>Carbon Neutrality</td>
+                                <td><span class="badge bg-success">Environmental</span></td>
+                                <td>2030</td>
+                                <td><span class="badge bg-warning">In Progress</span></td>
+                                <td>
+                                    <div class="progress-bar-container">
+                                        <div class="progress-fill" style="width: 68%;"></div>
+                                    </div>
+                                </td>
+                            </tr>
+                            <tr>
+                                <td>100% Renewable Energy</td>
+                                <td><span class="badge bg-success">Environmental</span></td>
+                                <td>2028</td>
+                                <td><span class="badge bg-warning">In Progress</span></td>
+                                <td>
+                                    <div class="progress-bar-container">
+                                        <div class="progress-fill" style="width: 42%;"></div>
+                                    </div>
+                                </td>
+                            </tr>
+                            <tr>
+                                <td>Zero Waste to Landfill</td>
+                                <td><span class="badge bg-success">Environmental</span></td>
+                                <td>2035</td>
+                                <td><span class="badge bg-warning">In Progress</span></td>
+                                <td>
+                                    <div class="progress-bar-container">
+                                        <div class="progress-fill" style="width: 35%;"></div>
+                                    </div>
+                                </td>
+                            </tr>
+                            <tr>
+                                <td>50% Gender Diversity</td>
+                                <td><span class="badge bg-info">Social</span></td>
+                                <td>2027</td>
+                                <td><span class="badge bg-warning">In Progress</span></td>
+                                <td>
+                                    <div class="progress-bar-container">
+                                        <div class="progress-fill" style="width: 76%;"></div>
+                                    </div>
+                                </td>
+                            </tr>
+                            <tr>
+                                <td>75% Board Independence</td>
+                                <td><span class="badge bg-primary">Governance</span></td>
+                                <td>2026</td>
+                                <td><span class="badge bg-warning">In Progress</span></td>
+                                <td>
+                                    <div class="progress-bar-container">
+                                        <div class="progress-fill" style="width: 93%;"></div>
+                                    </div>
+                                </td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        // ESG Category Charts
+        const environmentalCtx = document.getElementById('environmentalChart').getContext('2d');
+        const environmentalChart = new Chart(environmentalCtx, {
+            type: 'doughnut',
+            data: {
+                datasets: [{
+                    data: [85, 15],
+                    backgroundColor: [
+                        '#10b981',
+                        'rgba(255, 255, 255, 0.1)'
+                    ],
+                    borderWidth: 0,
+                    cutout: '70%'
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: true,
+                plugins: {
+                    legend: {
+                        display: false
+                    },
+                    tooltip: {
+                        enabled: false
+                    }
+                }
+            }
+        });
+        
+        const socialCtx = document.getElementById('socialChart').getContext('2d');
+        const socialChart = new Chart(socialCtx, {
+            type: 'doughnut',
+            data: {
+                datasets: [{
+                    data: [72, 28],
+                    backgroundColor: [
+                        '#3b82f6',
+                        'rgba(255, 255, 255, 0.1)'
+                    ],
+                    borderWidth: 0,
+                    cutout: '70%'
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: true,
+                plugins: {
+                    legend: {
+                        display: false
+                    },
+                    tooltip: {
+                        enabled: false
+                    }
+                }
+            }
+        });
+        
+        const governanceCtx = document.getElementById('governanceChart').getContext('2d');
+        const governanceChart = new Chart(governanceCtx, {
+            type: 'doughnut',
+            data: {
+                datasets: [{
+                    data: [78, 22],
+                    backgroundColor: [
+                        '#8b5cf6',
+                        'rgba(255, 255, 255, 0.1)'
+                    ],
+                    borderWidth: 0,
+                    cutout: '70%'
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: true,
+                plugins: {
+                    legend: {
+                        display: false
+                    },
+                    tooltip: {
+                        enabled: false
+                    }
+                }
+            }
+        });
+        
+        // Benchmark Comparison Chart
+        const benchmarkCtx = document.getElementById('benchmarkChart').getContext('2d');
+        const benchmarkChart = new Chart(benchmarkCtx, {
+            type: 'bar',
+            data: {
+                labels: ['Environmental', 'Social', 'Governance', 'Overall ESG'],
+                datasets: [{
+                    label: 'Your Organization',
+                    data: [85, 72, 78, 78],
+                    backgroundColor: 'rgba(59, 130, 246, 0.8)'
+                }, {
+                    label: 'Industry Average',
+                    data: [65, 68, 72, 68],
+                    backgroundColor: 'rgba(107, 114, 128, 0.5)'
+                }, {
+                    label: 'Industry Leaders',
+                    data: [92, 88, 95, 92],
+                    backgroundColor: 'rgba(16, 185, 129, 0.8)'
+                }]
+            },
+            options: {
+                responsive: true,
+                scales: {
+                    y: {
+                        beginAtZero: true,
+                        max: 100,
+                        grid: {
+                            color: 'rgba(255, 255, 255, 0.1)'
+                        },
+                        ticks: {
+                            color: '#9ca3af'
+                        }
+                    },
+                    x: {
+                        grid: {
+                            display: false
+                        },
+                        ticks: {
+                            color: '#9ca3af'
+                        }
+                    }
+                },
+                plugins: {
+                    legend: {
+                        position: 'top',
+                        labels: {
+                            color: '#f9fafb'
+                        }
+                    }
+                }
+            }
+        });
+    });
+</script>
+{% endblock %}

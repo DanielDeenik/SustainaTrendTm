@@ -1,0 +1,333 @@
+{% extends "layouts/base.html" %}
+
+{% set active_nav = 'performance' %}
+
+{% block header_title %}Performance Metrics{% endblock %}
+
+{% block header_actions %}
+<button class="btn btn-sm btn-outline-secondary">
+    <i class="fas fa-calendar"></i> Filter by Date
+</button>
+<button class="btn btn-sm btn-outline-primary">
+    <i class="fas fa-download"></i> Export
+</button>
+{% endblock %}
+
+{% block content %}
+<div class="row">
+    <!-- Performance Overview -->
+    <div class="col-12 mb-4">
+        <div class="card">
+            <div class="card-header">
+                <h5 class="card-title mb-0">Performance Overview</h5>
+            </div>
+            <div class="card-body">
+                <div class="chart-container">
+                    <canvas id="performanceChart"></canvas>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Performance Metrics -->
+    <div class="col-md-6 mb-4">
+        <div class="card">
+            <div class="card-header d-flex justify-content-between align-items-center">
+                <h5 class="card-title mb-0">Environmental Metrics</h5>
+                <div class="dropdown">
+                    <button class="btn btn-sm btn-outline-secondary dropdown-toggle" type="button" id="envMetricsDropdown" data-bs-toggle="dropdown" aria-expanded="false">
+                        <i class="fas fa-filter"></i>
+                    </button>
+                    <ul class="dropdown-menu" aria-labelledby="envMetricsDropdown">
+                        <li><a class="dropdown-item" href="#">All Metrics</a></li>
+                        <li><a class="dropdown-item" href="#">Emissions Only</a></li>
+                        <li><a class="dropdown-item" href="#">Resources Only</a></li>
+                    </ul>
+                </div>
+            </div>
+            <div class="card-body">
+                <div class="table-responsive">
+                    <table class="table table-borderless">
+                        <thead>
+                            <tr>
+                                <th>Metric</th>
+                                <th>Current</th>
+                                <th>Target</th>
+                                <th>Progress</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td>Carbon Emissions</td>
+                                <td>78.5 tCO2e</td>
+                                <td>50 tCO2e</td>
+                                <td>
+                                    <div class="progress-bar-container">
+                                        <div class="progress-fill" style="width: 64%;"></div>
+                                    </div>
+                                </td>
+                            </tr>
+                            <tr>
+                                <td>Energy Consumption</td>
+                                <td>342 MWh</td>
+                                <td>300 MWh</td>
+                                <td>
+                                    <div class="progress-bar-container">
+                                        <div class="progress-fill" style="width: 88%;"></div>
+                                    </div>
+                                </td>
+                            </tr>
+                            <tr>
+                                <td>Water Usage</td>
+                                <td>1.28M L</td>
+                                <td>1.0M L</td>
+                                <td>
+                                    <div class="progress-bar-container">
+                                        <div class="progress-fill" style="width: 78%;"></div>
+                                    </div>
+                                </td>
+                            </tr>
+                            <tr>
+                                <td>Waste Generated</td>
+                                <td>56.3 tonnes</td>
+                                <td>40 tonnes</td>
+                                <td>
+                                    <div class="progress-bar-container">
+                                        <div class="progress-fill" style="width: 71%;"></div>
+                                    </div>
+                                </td>
+                            </tr>
+                            <tr>
+                                <td>Renewable Energy</td>
+                                <td>42%</td>
+                                <td>100%</td>
+                                <td>
+                                    <div class="progress-bar-container">
+                                        <div class="progress-fill" style="width: 42%;"></div>
+                                    </div>
+                                </td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <div class="col-md-6 mb-4">
+        <div class="card">
+            <div class="card-header d-flex justify-content-between align-items-center">
+                <h5 class="card-title mb-0">Social & Governance Metrics</h5>
+                <div class="dropdown">
+                    <button class="btn btn-sm btn-outline-secondary dropdown-toggle" type="button" id="sgMetricsDropdown" data-bs-toggle="dropdown" aria-expanded="false">
+                        <i class="fas fa-filter"></i>
+                    </button>
+                    <ul class="dropdown-menu" aria-labelledby="sgMetricsDropdown">
+                        <li><a class="dropdown-item" href="#">All Metrics</a></li>
+                        <li><a class="dropdown-item" href="#">Social Only</a></li>
+                        <li><a class="dropdown-item" href="#">Governance Only</a></li>
+                    </ul>
+                </div>
+            </div>
+            <div class="card-body">
+                <div class="table-responsive">
+                    <table class="table table-borderless">
+                        <thead>
+                            <tr>
+                                <th>Metric</th>
+                                <th>Current</th>
+                                <th>Target</th>
+                                <th>Progress</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td>Gender Diversity</td>
+                                <td>38%</td>
+                                <td>50%</td>
+                                <td>
+                                    <div class="progress-bar-container">
+                                        <div class="progress-fill" style="width: 76%;"></div>
+                                    </div>
+                                </td>
+                            </tr>
+                            <tr>
+                                <td>Training Hours</td>
+                                <td>24 hrs</td>
+                                <td>40 hrs</td>
+                                <td>
+                                    <div class="progress-bar-container">
+                                        <div class="progress-fill" style="width: 60%;"></div>
+                                    </div>
+                                </td>
+                            </tr>
+                            <tr>
+                                <td>Board Independence</td>
+                                <td>70%</td>
+                                <td>75%</td>
+                                <td>
+                                    <div class="progress-bar-container">
+                                        <div class="progress-fill" style="width: 93%;"></div>
+                                    </div>
+                                </td>
+                            </tr>
+                            <tr>
+                                <td>Community Investment</td>
+                                <td>$280K</td>
+                                <td>$500K</td>
+                                <td>
+                                    <div class="progress-bar-container">
+                                        <div class="progress-fill" style="width: 56%;"></div>
+                                    </div>
+                                </td>
+                            </tr>
+                            <tr>
+                                <td>Ethical Sourcing</td>
+                                <td>85%</td>
+                                <td>100%</td>
+                                <td>
+                                    <div class="progress-bar-container">
+                                        <div class="progress-fill" style="width: 85%;"></div>
+                                    </div>
+                                </td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Historical Performance -->
+    <div class="col-12">
+        <div class="card">
+            <div class="card-header">
+                <h5 class="card-title mb-0">Performance History</h5>
+            </div>
+            <div class="card-body">
+                <div class="chart-container">
+                    <canvas id="historyChart"></canvas>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        // Performance Radar Chart
+        const performanceCtx = document.getElementById('performanceChart').getContext('2d');
+        const performanceChart = new Chart(performanceCtx, {
+            type: 'radar',
+            data: {
+                labels: ['Carbon Emissions', 'Energy', 'Water', 'Waste', 'Diversity', 'Governance', 'Innovation', 'Compliance'],
+                datasets: [{
+                    label: 'Current Performance',
+                    data: [78, 67, 83, 75, 68, 85, 72, 91],
+                    backgroundColor: 'rgba(59, 130, 246, 0.2)',
+                    borderColor: 'rgba(59, 130, 246, 1)',
+                    borderWidth: 2,
+                    pointBackgroundColor: 'rgba(59, 130, 246, 1)'
+                }, {
+                    label: 'Previous Year',
+                    data: [62, 58, 76, 68, 65, 82, 70, 88],
+                    backgroundColor: 'rgba(156, 39, 176, 0.2)',
+                    borderColor: 'rgba(156, 39, 176, 1)',
+                    borderWidth: 2,
+                    pointBackgroundColor: 'rgba(156, 39, 176, 1)'
+                }]
+            },
+            options: {
+                scales: {
+                    r: {
+                        beginAtZero: true,
+                        max: 100,
+                        ticks: {
+                            stepSize: 20,
+                            color: '#9ca3af'
+                        },
+                        angleLines: {
+                            color: 'rgba(255, 255, 255, 0.1)'
+                        },
+                        grid: {
+                            color: 'rgba(255, 255, 255, 0.1)'
+                        },
+                        pointLabels: {
+                            color: '#f9fafb'
+                        }
+                    }
+                },
+                plugins: {
+                    legend: {
+                        labels: {
+                            color: '#f9fafb'
+                        }
+                    }
+                }
+            }
+        });
+        
+        // Historical Performance Chart
+        const historyCtx = document.getElementById('historyChart').getContext('2d');
+        const historyChart = new Chart(historyCtx, {
+            type: 'line',
+            data: {
+                labels: ['Q1 2023', 'Q2 2023', 'Q3 2023', 'Q4 2023', 'Q1 2024', 'Q2 2024', 'Q3 2024', 'Q4 2024'],
+                datasets: [{
+                    label: 'Environmental Score',
+                    data: [65, 68, 72, 75, 78, 80, 82, 85],
+                    borderColor: 'rgba(76, 175, 80, 1)',
+                    backgroundColor: 'rgba(76, 175, 80, 0.2)',
+                    tension: 0.4,
+                    fill: true
+                }, {
+                    label: 'Social Score',
+                    data: [70, 71, 69, 72, 73, 75, 74, 78],
+                    borderColor: 'rgba(33, 150, 243, 1)',
+                    backgroundColor: 'rgba(33, 150, 243, 0.2)',
+                    tension: 0.4,
+                    fill: true
+                }, {
+                    label: 'Governance Score',
+                    data: [82, 83, 85, 84, 86, 87, 88, 91],
+                    borderColor: 'rgba(255, 152, 0, 1)',
+                    backgroundColor: 'rgba(255, 152, 0, 0.2)',
+                    tension: 0.4,
+                    fill: true
+                }]
+            },
+            options: {
+                scales: {
+                    y: {
+                        min: 50,
+                        max: 100,
+                        grid: {
+                            color: 'rgba(255, 255, 255, 0.1)'
+                        },
+                        ticks: {
+                            color: '#9ca3af'
+                        }
+                    },
+                    x: {
+                        grid: {
+                            color: 'rgba(255, 255, 255, 0.1)'
+                        },
+                        ticks: {
+                            color: '#9ca3af'
+                        }
+                    }
+                },
+                plugins: {
+                    legend: {
+                        labels: {
+                            color: '#f9fafb'
+                        }
+                    }
+                }
+            }
+        });
+    });
+</script>
+{% endblock %}

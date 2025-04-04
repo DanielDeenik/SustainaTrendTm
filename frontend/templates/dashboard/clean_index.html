@@ -1,0 +1,291 @@
+{% extends "layouts/base.html" %}
+
+{% set active_nav = 'dashboard' %}
+
+{% block header_title %}Sustainability Dashboard{% endblock %}
+
+{% block header_actions %}
+<button class="btn btn-sm btn-outline-secondary">
+    <i class="fas fa-download"></i> Export
+</button>
+<button class="btn btn-sm btn-outline-primary">
+    <i class="fas fa-sync"></i> Refresh
+</button>
+{% endblock %}
+
+{% block content %}
+<div class="row">
+    <!-- Metric Cards -->
+    <div class="col-12 mb-4">
+        <div class="row">
+            <div class="col-md-3 mb-3">
+                <div class="metric-card">
+                    <div class="metric-icon">
+                        <i class="fas fa-smog"></i>
+                    </div>
+                    <div class="metric-content">
+                        <div class="metric-title">Carbon Emissions</div>
+                        <div class="metric-value">78.5</div>
+                        <div class="metric-unit">tonnes CO<sub>2</sub>e</div>
+                        <div class="metric-change decrease">
+                            <i class="fas fa-caret-down"></i> 12.3%
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="col-md-3 mb-3">
+                <div class="metric-card">
+                    <div class="metric-icon">
+                        <i class="fas fa-bolt"></i>
+                    </div>
+                    <div class="metric-content">
+                        <div class="metric-title">Energy Consumption</div>
+                        <div class="metric-value">342</div>
+                        <div class="metric-unit">MWh</div>
+                        <div class="metric-change decrease">
+                            <i class="fas fa-caret-down"></i> 8.7%
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="col-md-3 mb-3">
+                <div class="metric-card">
+                    <div class="metric-icon">
+                        <i class="fas fa-tint"></i>
+                    </div>
+                    <div class="metric-content">
+                        <div class="metric-title">Water Usage</div>
+                        <div class="metric-value">1.28</div>
+                        <div class="metric-unit">million L</div>
+                        <div class="metric-change decrease">
+                            <i class="fas fa-caret-down"></i> 4.2%
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="col-md-3 mb-3">
+                <div class="metric-card">
+                    <div class="metric-icon">
+                        <i class="fas fa-trash"></i>
+                    </div>
+                    <div class="metric-content">
+                        <div class="metric-title">Waste Generated</div>
+                        <div class="metric-value">56.3</div>
+                        <div class="metric-unit">tonnes</div>
+                        <div class="metric-change decrease">
+                            <i class="fas fa-caret-down"></i> 15.8%
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Chart Section -->
+    <div class="col-12 mb-4">
+        <div class="row">
+            <div class="col-md-6 mb-3">
+                <div class="card">
+                    <div class="card-header">
+                        <h5 class="card-title mb-0">ESG Scores</h5>
+                    </div>
+                    <div class="card-body">
+                        <div class="chart-container">
+                            <canvas id="esgScoreChart"></canvas>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="col-md-6 mb-3">
+                <div class="card">
+                    <div class="card-header">
+                        <h5 class="card-title mb-0">Emissions Trend</h5>
+                    </div>
+                    <div class="card-body">
+                        <div class="chart-container">
+                            <canvas id="emissionsChart"></canvas>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Progress Bars -->
+    <div class="col-12">
+        <div class="card">
+            <div class="card-header">
+                <h5 class="card-title mb-0">Performance Against Targets</h5>
+            </div>
+            <div class="card-body">
+                <div class="row">
+                    <div class="col-md-4 mb-3">
+                        <div class="progress-card">
+                            <div class="progress-title">Carbon Neutrality</div>
+                            <div class="progress-bar-container">
+                                <div class="progress-fill" style="width: 68%;"></div>
+                            </div>
+                            <div class="progress-stats">
+                                <div class="progress-value">68%</div>
+                                <div class="progress-target">Target: 2030</div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="col-md-4 mb-3">
+                        <div class="progress-card">
+                            <div class="progress-title">Renewable Energy</div>
+                            <div class="progress-bar-container">
+                                <div class="progress-fill" style="width: 42%;"></div>
+                            </div>
+                            <div class="progress-stats">
+                                <div class="progress-value">42%</div>
+                                <div class="progress-target">Target: 100%</div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="col-md-4 mb-3">
+                        <div class="progress-card">
+                            <div class="progress-title">Zero Waste</div>
+                            <div class="progress-bar-container">
+                                <div class="progress-fill" style="width: 35%;"></div>
+                            </div>
+                            <div class="progress-stats">
+                                <div class="progress-value">35%</div>
+                                <div class="progress-target">Target: 2035</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        // ESG Score Chart
+        const esgScoreCtx = document.getElementById('esgScoreChart').getContext('2d');
+        const esgScoreChart = new Chart(esgScoreCtx, {
+            type: 'radar',
+            data: {
+                labels: ['Environmental', 'Social', 'Governance', 'Climate Risk', 'Resource Use', 'Human Capital'],
+                datasets: [{
+                    label: 'Current Score',
+                    data: [85, 72, 78, 65, 81, 76],
+                    backgroundColor: 'rgba(76, 175, 80, 0.2)',
+                    borderColor: 'rgba(76, 175, 80, 1)',
+                    borderWidth: 2,
+                    pointBackgroundColor: 'rgba(76, 175, 80, 1)'
+                }, {
+                    label: 'Industry Average',
+                    data: [65, 68, 72, 58, 63, 70],
+                    backgroundColor: 'rgba(33, 150, 243, 0.2)',
+                    borderColor: 'rgba(33, 150, 243, 1)',
+                    borderWidth: 2,
+                    pointBackgroundColor: 'rgba(33, 150, 243, 1)'
+                }]
+            },
+            options: {
+                scales: {
+                    r: {
+                        beginAtZero: true,
+                        max: 100,
+                        ticks: {
+                            stepSize: 20,
+                            color: '#9ca3af'
+                        },
+                        angleLines: {
+                            color: 'rgba(255, 255, 255, 0.1)'
+                        },
+                        grid: {
+                            color: 'rgba(255, 255, 255, 0.1)'
+                        },
+                        pointLabels: {
+                            color: '#f9fafb'
+                        }
+                    }
+                },
+                plugins: {
+                    legend: {
+                        labels: {
+                            color: '#f9fafb'
+                        }
+                    }
+                }
+            }
+        });
+        
+        // Emissions Chart
+        const emissionsCtx = document.getElementById('emissionsChart').getContext('2d');
+        const emissionsChart = new Chart(emissionsCtx, {
+            type: 'line',
+            data: {
+                labels: ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'],
+                datasets: [{
+                    label: 'Scope 1 Emissions',
+                    data: [42, 40, 38, 37, 36, 35, 33, 31, 30, 28, 26, 25],
+                    backgroundColor: 'rgba(244, 67, 54, 0.2)',
+                    borderColor: 'rgba(244, 67, 54, 1)',
+                    borderWidth: 2,
+                    tension: 0.4
+                }, {
+                    label: 'Scope 2 Emissions',
+                    data: [65, 63, 60, 58, 55, 52, 50, 49, 47, 45, 44, 42],
+                    backgroundColor: 'rgba(255, 152, 0, 0.2)',
+                    borderColor: 'rgba(255, 152, 0, 1)',
+                    borderWidth: 2,
+                    tension: 0.4
+                }, {
+                    label: 'Scope 3 Emissions',
+                    data: [120, 118, 115, 112, 110, 108, 105, 103, 100, 98, 95, 93],
+                    backgroundColor: 'rgba(156, 39, 176, 0.2)',
+                    borderColor: 'rgba(156, 39, 176, 1)',
+                    borderWidth: 2,
+                    tension: 0.4
+                }]
+            },
+            options: {
+                scales: {
+                    y: {
+                        beginAtZero: false,
+                        grid: {
+                            color: 'rgba(255, 255, 255, 0.1)'
+                        },
+                        ticks: {
+                            color: '#9ca3af'
+                        },
+                        title: {
+                            display: true,
+                            text: 'tonnes CO2e',
+                            color: '#f9fafb'
+                        }
+                    },
+                    x: {
+                        grid: {
+                            color: 'rgba(255, 255, 255, 0.1)'
+                        },
+                        ticks: {
+                            color: '#9ca3af'
+                        }
+                    }
+                },
+                plugins: {
+                    legend: {
+                        labels: {
+                            color: '#f9fafb'
+                        }
+                    }
+                }
+            }
+        });
+    });
+</script>
+{% endblock %}
