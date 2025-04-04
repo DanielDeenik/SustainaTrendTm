@@ -9,6 +9,7 @@ document.addEventListener('DOMContentLoaded', function() {
     // Initialize Strategy Hub components
     initStrategyHub();
     initAIConsultant();
+    initEthicalAI();
     initMonetizationStrategies();
     initCharts();
 });
@@ -241,6 +242,331 @@ function formatStrategyResults(strategy) {
     
     html += `</div>`;
     return html;
+}
+
+/**
+ * Initialize the Ethical AI functionality
+ */
+function initEthicalAI() {
+    const ethicalAiForm = document.getElementById('ethicalAiForm');
+    const resultContainer = document.getElementById('ethicalAiResults');
+    const loadingIndicator = document.getElementById('ethicalAiLoading');
+    
+    if (!ethicalAiForm) return;
+    
+    ethicalAiForm.addEventListener('submit', function(e) {
+        e.preventDefault();
+        
+        // Show loading indicator
+        if (loadingIndicator) {
+            loadingIndicator.style.display = 'block';
+        }
+        
+        // Hide any previous results
+        if (resultContainer) {
+            resultContainer.style.display = 'none';
+        }
+        
+        // Get form values
+        const strategyDocument = document.getElementById('strategyDocument').value;
+        const assessmentTypes = Array.from(document.querySelectorAll('input[name="assessmentType"]:checked'))
+            .map(checkbox => checkbox.value);
+        const context = document.getElementById('ethicalContext').value || '';
+        
+        // Validate inputs
+        if (!strategyDocument) {
+            if (loadingIndicator) loadingIndicator.style.display = 'none';
+            if (resultContainer) {
+                resultContainer.innerHTML = `
+                    <div class="alert alert-warning">
+                        <h5>Missing Information</h5>
+                        <p>Please select a strategy document to assess.</p>
+                    </div>
+                `;
+                resultContainer.style.display = 'block';
+            }
+            return;
+        }
+        
+        if (assessmentTypes.length === 0) {
+            if (loadingIndicator) loadingIndicator.style.display = 'none';
+            if (resultContainer) {
+                resultContainer.innerHTML = `
+                    <div class="alert alert-warning">
+                        <h5>Missing Information</h5>
+                        <p>Please select at least one assessment type.</p>
+                    </div>
+                `;
+                resultContainer.style.display = 'block';
+            }
+            return;
+        }
+        
+        // Prepare request data
+        const requestData = {
+            document_id: strategyDocument,
+            assessment_types: assessmentTypes,
+            context: context
+        };
+        
+        // Call the Ethical AI Assessment API
+        fetch('/api/ethical-ai/analyze-report', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify(requestData)
+        })
+        .then(response => response.json())
+        .then(data => {
+            // Hide loading indicator
+            if (loadingIndicator) {
+                loadingIndicator.style.display = 'none';
+            }
+            
+            // Display results
+            if (resultContainer) {
+                if (data.status === 'success') {
+                    // Format and display the assessment results
+                    resultContainer.innerHTML = formatEthicalAiResults(data);
+                    resultContainer.style.display = 'block';
+                } else {
+                    // Display error message
+                    resultContainer.innerHTML = `
+                        <div class="alert alert-danger">
+                            <h5>Error Running Assessment</h5>
+                            <p>${data.message || 'An unknown error occurred'}</p>
+                        </div>
+                    `;
+                    resultContainer.style.display = 'block';
+                }
+            }
+        })
+        .catch(error => {
+            console.error('Error calling Ethical AI Assessment API:', error);
+            
+            // Hide loading indicator
+            if (loadingIndicator) {
+                loadingIndicator.style.display = 'none';
+            }
+            
+            // Display error message
+            if (resultContainer) {
+                resultContainer.innerHTML = `
+                    <div class="alert alert-danger">
+                        <h5>Error Running Assessment</h5>
+                        <p>Could not connect to the Ethical AI service. Please try again later.</p>
+                    </div>
+                `;
+                resultContainer.style.display = 'block';
+            }
+        });
+    });
+}
+
+/**
+ * Format ethical AI assessment results for display
+ */
+function formatEthicalAiResults(data) {
+    if (!data || !data.results) {
+        return '<div class="alert alert-warning">No assessment data received</div>';
+    }
+    
+    const results = data.results;
+    
+    // Initialize HTML with header
+    let html = `
+        <div class="ethical-assessment-result">
+            <h4 class="mb-3 mt-4">Ethical AI Assessment Results</h4>
+    `;
+    
+    // Add overall score if available
+    if (results.overall_score !== undefined) {
+        const scoreColor = getScoreColor(results.overall_score);
+        html += `
+            <div class="d-flex align-items-center mb-4">
+                <div class="me-3">
+                    <div class="ethical-score-circle ${scoreColor}" style="width: 60px; height: 60px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-weight: bold; color: white;">
+                        ${Math.round(results.overall_score)}%
+                    </div>
+                </div>
+                <div>
+                    <h5 class="mb-1">Overall Ethical Assessment</h5>
+                    <p class="mb-0 text-muted">${getScoreDescription(results.overall_score)}</p>
+                </div>
+            </div>
+        `;
+    }
+    
+    // Add bias detection results if available
+    if (results.bias_detection) {
+        html += `
+            <div class="card mb-4">
+                <div class="card-header d-flex align-items-center">
+                    <i class="fas fa-balance-scale text-primary me-2"></i>
+                    <h5 class="mb-0">Bias Detection</h5>
+                </div>
+                <div class="card-body">
+                    <p>${results.bias_detection.summary || 'No bias detection summary available.'}</p>
+                    
+                    ${results.bias_detection.findings ? `
+                        <h6 class="mt-3">Key Findings:</h6>
+                        <ul class="list-group">
+                            ${Array.isArray(results.bias_detection.findings) ? 
+                                results.bias_detection.findings.map(finding => `
+                                    <li class="list-group-item d-flex">
+                                        <div class="me-3">
+                                            <i class="fas ${finding.severity === 'high' ? 'fa-exclamation-circle text-danger' : 
+                                                           finding.severity === 'medium' ? 'fa-exclamation-triangle text-warning' : 
+                                                           'fa-info-circle text-info'}"></i>
+                                        </div>
+                                        <div>
+                                            ${finding.description}
+                                        </div>
+                                    </li>
+                                `).join('') : 
+                                `<li class="list-group-item">No specific findings available.</li>`
+                            }
+                        </ul>
+                    ` : ''}
+                    
+                    ${results.bias_detection.recommendations ? `
+                        <h6 class="mt-3">Recommendations:</h6>
+                        <div class="ps-3 border-start border-primary">
+                            <p>${results.bias_detection.recommendations}</p>
+                        </div>
+                    ` : ''}
+                </div>
+            </div>
+        `;
+    }
+    
+    // Add transparency assessment if available
+    if (results.transparency) {
+        html += `
+            <div class="card mb-4">
+                <div class="card-header d-flex align-items-center">
+                    <i class="fas fa-eye text-primary me-2"></i>
+                    <h5 class="mb-0">Transparency Assessment</h5>
+                </div>
+                <div class="card-body">
+                    <p>${results.transparency.summary || 'No transparency assessment summary available.'}</p>
+                    
+                    ${results.transparency.score !== undefined ? `
+                        <div class="progress mb-3" style="height: 8px;">
+                            <div class="progress-bar ${getScoreColor(results.transparency.score)}" 
+                                role="progressbar" style="width: ${results.transparency.score}%;" 
+                                aria-valuenow="${results.transparency.score}" aria-valuemin="0" aria-valuemax="100">
+                            </div>
+                        </div>
+                        <p class="text-muted small mb-3">Transparency Score: ${results.transparency.score}%</p>
+                    ` : ''}
+                    
+                    ${results.transparency.recommendations ? `
+                        <h6 class="mt-3">Recommendations:</h6>
+                        <div class="ps-3 border-start border-primary">
+                            <p>${results.transparency.recommendations}</p>
+                        </div>
+                    ` : ''}
+                </div>
+            </div>
+        `;
+    }
+    
+    // Add compliance assessment if available
+    if (results.compliance) {
+        html += `
+            <div class="card mb-4">
+                <div class="card-header d-flex align-items-center">
+                    <i class="fas fa-check-circle text-primary me-2"></i>
+                    <h5 class="mb-0">Regulatory Compliance</h5>
+                </div>
+                <div class="card-body">
+                    <p>${results.compliance.summary || 'No compliance assessment summary available.'}</p>
+                    
+                    ${results.compliance.frameworks && results.compliance.frameworks.length > 0 ? `
+                        <h6 class="mt-3">Framework Alignment:</h6>
+                        <div class="row">
+                            ${results.compliance.frameworks.map(framework => `
+                                <div class="col-md-6 mb-3">
+                                    <div class="d-flex justify-content-between align-items-center mb-1">
+                                        <span>${framework.name}</span>
+                                        <span class="badge ${getScoreColor(framework.score)}">${Math.round(framework.score)}%</span>
+                                    </div>
+                                    <div class="progress" style="height: 5px;">
+                                        <div class="progress-bar ${getScoreColor(framework.score)}" 
+                                            role="progressbar" style="width: ${framework.score}%;" 
+                                            aria-valuenow="${framework.score}" aria-valuemin="0" aria-valuemax="100">
+                                        </div>
+                                    </div>
+                                </div>
+                            `).join('')}
+                        </div>
+                    ` : ''}
+                    
+                    ${results.compliance.issues ? `
+                        <h6 class="mt-3">Compliance Issues:</h6>
+                        <ul class="list-group">
+                            ${Array.isArray(results.compliance.issues) ? 
+                                results.compliance.issues.map(issue => `
+                                    <li class="list-group-item d-flex">
+                                        <div class="me-3">
+                                            <i class="fas ${issue.severity === 'high' ? 'fa-exclamation-circle text-danger' : 
+                                                           issue.severity === 'medium' ? 'fa-exclamation-triangle text-warning' : 
+                                                           'fa-info-circle text-info'}"></i>
+                                        </div>
+                                        <div>
+                                            <strong>${issue.title || 'Issue'}</strong>
+                                            <p class="mb-0">${issue.description}</p>
+                                        </div>
+                                    </li>
+                                `).join('') : 
+                                `<li class="list-group-item">No specific compliance issues found.</li>`
+                            }
+                        </ul>
+                    ` : ''}
+                </div>
+            </div>
+        `;
+    }
+    
+    // Add additional resources or actions
+    html += `
+        <div class="mt-4 d-flex justify-content-end">
+            <button class="btn btn-outline-secondary me-2">
+                <i class="fas fa-file-export me-2"></i> Export Report
+            </button>
+            <button class="btn btn-primary">
+                <i class="fas fa-tasks me-2"></i> Address Issues
+            </button>
+        </div>
+    `;
+    
+    html += `</div>`;
+    return html;
+}
+
+/**
+ * Get color class based on score
+ */
+function getScoreColor(score) {
+    if (score >= 80) return 'bg-success';
+    if (score >= 60) return 'bg-primary';
+    if (score >= 40) return 'bg-warning';
+    return 'bg-danger';
+}
+
+/**
+ * Get description based on score
+ */
+function getScoreDescription(score) {
+    if (score >= 90) return 'Excellent - Meets highest ethical standards';
+    if (score >= 80) return 'Very Good - Strong ethical alignment';
+    if (score >= 70) return 'Good - Solid ethical foundation with minor improvements needed';
+    if (score >= 60) return 'Satisfactory - Meets basic ethical requirements with areas for improvement';
+    if (score >= 40) return 'Needs Improvement - Several ethical concerns identified';
+    if (score >= 20) return 'Poor - Significant ethical issues requiring immediate attention';
+    return 'Critical - Major ethical concerns requiring complete reassessment';
 }
 
 /**

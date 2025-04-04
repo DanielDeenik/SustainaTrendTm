@@ -361,6 +361,94 @@
                 {% endif %}
             </div>
         </div>
+        
+        <!-- Ethical AI Assessment -->
+        <div class="card mt-4">
+            <div class="card-header">
+                <h5 class="card-title mb-0">Ethical AI Assessment</h5>
+            </div>
+            <div class="card-body">
+                {% if ethical_ai_available %}
+                    <form id="ethicalAiForm">
+                        <div class="mb-4">
+                            <p class="text-muted">
+                                Our Ethical AI Assessment tool evaluates your sustainability strategies for bias, 
+                                transparency, and regulatory compliance, ensuring your AI-driven initiatives 
+                                meet ethical standards.
+                            </p>
+                        </div>
+                        
+                        <div class="row mb-4">
+                            <div class="col-md-6">
+                                <div class="mb-3">
+                                    <label class="form-label">Strategy Document:</label>
+                                    <select class="form-select" id="strategyDocument">
+                                        <option value="" selected>Select a strategy document to analyze</option>
+                                        <option value="carbon_strategy">Carbon Neutrality Roadmap</option>
+                                        <option value="renewable_energy">Renewable Energy Transition</option>
+                                        <option value="circular_economy">Circular Economy Implementation</option>
+                                        <option value="water_strategy">Water Stewardship Program</option>
+                                    </select>
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="mb-3">
+                                    <label class="form-label">Assessment Type:</label>
+                                    <div class="form-check">
+                                        <input class="form-check-input" type="checkbox" value="bias" id="detectBias" name="assessmentType" checked>
+                                        <label class="form-check-label" for="detectBias">
+                                            Bias Detection
+                                        </label>
+                                    </div>
+                                    <div class="form-check">
+                                        <input class="form-check-input" type="checkbox" value="transparency" id="checkTransparency" name="assessmentType" checked>
+                                        <label class="form-check-label" for="checkTransparency">
+                                            Transparency Check
+                                        </label>
+                                    </div>
+                                    <div class="form-check">
+                                        <input class="form-check-input" type="checkbox" value="compliance" id="regulatoryCompliance" name="assessmentType" checked>
+                                        <label class="form-check-label" for="regulatoryCompliance">
+                                            Regulatory Compliance
+                                        </label>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="mb-4">
+                            <label class="form-label">Additional Context (Optional):</label>
+                            <textarea class="form-control" id="ethicalContext" rows="3" placeholder="Provide any additional context for the ethical assessment..."></textarea>
+                        </div>
+                        
+                        <div class="d-grid gap-2 d-md-flex justify-content-md-end">
+                            <button type="submit" class="btn btn-primary" id="runEthicalAssessmentBtn">
+                                <i class="fas fa-balance-scale me-2"></i> Run Ethical Assessment
+                            </button>
+                        </div>
+                    </form>
+                    
+                    <div id="ethicalAiLoading" style="display: none;" class="text-center my-4">
+                        <div class="spinner-border text-primary" role="status">
+                            <span class="visually-hidden">Loading...</span>
+                        </div>
+                        <p class="mt-2">Running ethical assessment...</p>
+                    </div>
+                    
+                    <div id="ethicalAiResults" style="display: none;">
+                        <!-- Results will be populated by JavaScript -->
+                    </div>
+                {% else %}
+                    <div class="alert alert-warning">
+                        <h5><i class="fas fa-exclamation-circle me-2"></i> Ethical AI Assessment Unavailable</h5>
+                        <p class="mb-0">
+                            The Ethical AI Assessment tool is currently unavailable. Please check API connections 
+                            or contact your administrator for assistance.
+                        </p>
+                    </div>
+                {% endif %}
+            </div>
+        </div>
     </div>
     
     <!-- Strategy Analytics -->

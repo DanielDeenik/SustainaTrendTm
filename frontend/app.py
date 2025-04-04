@@ -318,7 +318,7 @@ def register_routes(app):
         )
     
     # Performance route
-    @app.route('/performance')
+    @app.route('/performance/')
     def performance():
         """Performance metrics and analysis"""
         metrics = get_sustainability_metrics()
@@ -332,7 +332,7 @@ def register_routes(app):
         )
     
     # Overview route
-    @app.route('/overview')
+    @app.route('/overview/')
     def overview():
         """Overview of sustainability metrics"""
         metrics = get_sustainability_metrics()
@@ -346,7 +346,7 @@ def register_routes(app):
         )
     
     # Trend Analysis route
-    @app.route('/trend-analysis')
+    @app.route('/trend-analysis/')
     def trend_analysis():
         """Trend analysis for sustainability metrics"""
         metrics = get_sustainability_metrics()
@@ -372,6 +372,15 @@ def register_routes(app):
             consultant_available = False
             logger.warning("Strategy AI Consultant not available for strategy hub route")
         
+        # Try to import Ethical AI module
+        try:
+            import ethical_ai
+            ethical_ai_available = True
+            logger.info("Ethical AI module available for strategy hub route")
+        except (ImportError, AttributeError):
+            ethical_ai_available = False
+            logger.warning("Ethical AI module not available for strategy hub route")
+        
         # Try to get monetization strategies
         try:
             from monetization_strategies import get_monetization_strategies
@@ -386,6 +395,7 @@ def register_routes(app):
             active_nav='strategy',
             status=status,
             consultant_available=consultant_available,
+            ethical_ai_available=ethical_ai_available,
             monetization_strategies=monetization_strategies,
             page_title="Strategy Hub"
         )
@@ -396,9 +406,60 @@ def register_routes(app):
     def legacy_strategy_hub():
         """Redirect legacy strategy routes to the main strategy hub"""
         return redirect('/strategy-hub/')
+        
+    # Legacy routes without trailing slashes
+    @app.route('/performance')
+    def legacy_performance():
+        """Redirect from /performance to /performance/"""
+        return redirect('/performance/')
+        
+    @app.route('/overview')
+    def legacy_overview():
+        """Redirect from /overview to /overview/"""
+        return redirect('/overview/')
+        
+    @app.route('/trend-analysis')
+    def legacy_trend_analysis():
+        """Redirect from /trend-analysis to /trend-analysis/"""
+        return redirect('/trend-analysis/')
+        
+    @app.route('/strategy-hub')
+    def legacy_strategy_hub_no_slash():
+        """Redirect from /strategy-hub to /strategy-hub/"""
+        return redirect('/strategy-hub/')
+        
+    @app.route('/documents/document-upload')
+    def legacy_document_upload():
+        """Redirect from /documents/document-upload to /documents/document-upload/"""
+        return redirect('/documents/document-upload/')
+        
+    @app.route('/search')
+    def legacy_search():
+        """Redirect from /search to /search/"""
+        return redirect('/search/')
+        
+    @app.route('/debug')
+    def legacy_debug():
+        """Redirect from /debug to /debug/"""
+        return redirect('/debug/')
+        
+    @app.route('/api-status')
+    def legacy_api_status():
+        """Redirect from /api-status to /api-status/"""
+        return redirect('/api-status/')
+        
+    @app.route('/vc-lens')
+    def legacy_vc_lens():
+        """Redirect from /vc-lens to /vc-lens/"""
+        return redirect('/vc-lens/')
+        
+    @app.route('/settings')
+    def legacy_settings():
+        """Redirect from /settings to /settings/"""
+        return redirect('/settings/')
     
     # Documents route
-    @app.route('/documents/document-upload')
+    @app.route('/documents/document-upload/')
     def document_upload():
         """Document upload and analysis"""
         status = get_api_status()
@@ -410,7 +471,7 @@ def register_routes(app):
         )
     
     # Search route
-    @app.route('/search')
+    @app.route('/search/')
     def search():
         """Search for sustainability metrics and documents"""
         status = get_api_status()
@@ -422,19 +483,25 @@ def register_routes(app):
         )
     
     # Settings route
-    @app.route('/debug')
+    @app.route('/settings/')
     def settings():
         """Application settings"""
         status = get_api_status()
         return render_template(
             'clean/settings.html',
-            active_nav='debug',
+            active_nav='settings',
             status=status,
             page_title="Settings"
         )
     
+    # Debug route - maps to settings for consistency
+    @app.route('/debug/')
+    def debug():
+        """Debug and settings (legacy route)"""
+        return redirect('/settings/')
+    
     # API Status route
-    @app.route('/api-status')
+    @app.route('/api-status/')
     def api_status():
         """API connection status"""
         status = get_api_status()
