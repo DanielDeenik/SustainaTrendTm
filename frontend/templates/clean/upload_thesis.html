@@ -1,0 +1,257 @@
+{% extends "clean/base.html" %}
+
+{% set active_nav = 'vc_lens' %}
+
+{% block header_title %}Upload Investment Thesis - VC-Lens™{% endblock %}
+
+{% block header_actions %}
+<a href="/vc-lens/" class="btn btn-sm btn-outline-secondary">
+    <i class="fas fa-arrow-left me-1"></i> Back to VC-Lens
+</a>
+{% endblock %}
+
+{% block content %}
+<div class="row">
+    <!-- Upload Introduction -->
+    <div class="col-12 mb-4">
+        <div class="card">
+            <div class="card-body">
+                <div class="row">
+                    <div class="col-md-8">
+                        <h5>Investment Thesis Upload</h5>
+                        <p class="text-muted">
+                            Share your investment thesis documents for sustainability analysis and alignment 
+                            evaluation. Our AI-powered tools will analyze your documents to identify ESG alignment, 
+                            sustainability opportunities, and potential gaps in your investment approach.
+                        </p>
+                        <div class="alert alert-info">
+                            <i class="fas fa-info-circle me-2"></i> Your documents are processed confidentially and securely by our system. Only authorized users can access the analysis results.
+                        </div>
+                    </div>
+                    <div class="col-md-4 text-center">
+                        <i class="fas fa-file-upload fa-5x text-primary mb-3"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Upload Form -->
+    <div class="col-12">
+        <div class="card">
+            <div class="card-header">
+                <h5 class="card-title mb-0">Thesis Upload Form</h5>
+            </div>
+            <div class="card-body">
+                <form action="/vc-lens/upload-thesis/submit" method="POST" id="thesisUploadForm" class="needs-validation" enctype="multipart/form-data" novalidate>
+                    <!-- Basic Information Section -->
+                    <div class="mb-4">
+                        <h6 class="fw-bold mb-3">
+                            <i class="fas fa-info-circle me-2 text-primary"></i>
+                            Basic Information
+                        </h6>
+                        
+                        <div class="row g-3">
+                            <div class="col-md-6">
+                                <label for="fund_name" class="form-label">Fund/Firm Name <span class="text-danger">*</span></label>
+                                <input type="text" class="form-control" id="fund_name" name="fund_name" required>
+                                <div class="invalid-feedback">
+                                    Please provide your fund or firm name.
+                                </div>
+                            </div>
+                            
+                            <div class="col-md-6">
+                                <label for="investment_focus" class="form-label">Investment Focus <span class="text-danger">*</span></label>
+                                <select class="form-select" id="investment_focus" name="investment_focus" required>
+                                    <option value="" selected disabled>Select your primary investment focus</option>
+                                    <option value="Climate Tech">Climate Tech</option>
+                                    <option value="Clean Energy">Clean Energy</option>
+                                    <option value="Sustainable Agriculture">Sustainable Agriculture</option>
+                                    <option value="Circular Economy">Circular Economy</option>
+                                    <option value="Clean Transportation">Clean Transportation</option>
+                                    <option value="Water Technology">Water Technology</option>
+                                    <option value="ESG Integration">ESG Integration</option>
+                                    <option value="Impact Investing">Impact Investing</option>
+                                    <option value="Renewable Materials">Renewable Materials</option>
+                                    <option value="Carbon Markets">Carbon Markets</option>
+                                    <option value="General Sustainability">General Sustainability</option>
+                                    <option value="Other">Other</option>
+                                </select>
+                                <div class="invalid-feedback">
+                                    Please select your investment focus.
+                                </div>
+                            </div>
+                            
+                            <div class="col-md-6">
+                                <label for="fund_stage" class="form-label">Investment Stage Focus <span class="text-danger">*</span></label>
+                                <select class="form-select" id="fund_stage" name="fund_stage" required>
+                                    <option value="" selected disabled>Select your investment stage focus</option>
+                                    <option value="Pre-seed/Seed">Pre-seed/Seed</option>
+                                    <option value="Series A">Series A</option>
+                                    <option value="Series B">Series B</option>
+                                    <option value="Growth Stage">Growth Stage</option>
+                                    <option value="Late Stage">Late Stage</option>
+                                    <option value="Multi-stage">Multi-stage</option>
+                                </select>
+                                <div class="invalid-feedback">
+                                    Please select your investment stage focus.
+                                </div>
+                            </div>
+                            
+                            <div class="col-md-6">
+                                <label for="thesis_year" class="form-label">Thesis Document Year <span class="text-danger">*</span></label>
+                                <input type="number" class="form-control" id="thesis_year" name="thesis_year" min="2000" max="2025" required>
+                                <div class="invalid-feedback">
+                                    Please enter a valid year for your thesis document.
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- Document Upload Section -->
+                    <div class="mb-4">
+                        <h6 class="fw-bold mb-3">
+                            <i class="fas fa-file-alt me-2 text-primary"></i>
+                            Document Upload
+                        </h6>
+                        
+                        <div class="mb-3">
+                            <label for="thesis_document" class="form-label">
+                                Upload Investment Thesis Document <span class="text-danger">*</span>
+                            </label>
+                            <input type="file" class="form-control" id="thesis_document" name="thesis_document" accept=".pdf,.doc,.docx,.txt" required>
+                            <div class="invalid-feedback">
+                                Please upload your investment thesis document.
+                            </div>
+                            <div class="form-text">
+                                Accepted formats: PDF, Word (DOC/DOCX), or plain text (TXT). Maximum file size: 10MB.
+                            </div>
+                        </div>
+                        
+                        <div class="mb-3">
+                            <label for="additional_documents" class="form-label">
+                                Additional Supporting Documents (Optional)
+                            </label>
+                            <input type="file" class="form-control" id="additional_documents" name="additional_documents" accept=".pdf,.doc,.docx,.txt,.xlsx,.pptx" multiple>
+                            <div class="form-text">
+                                Upload any additional documents that provide context for your investment thesis.
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- Analysis Focus Section -->
+                    <div class="mb-4">
+                        <h6 class="fw-bold mb-3">
+                            <i class="fas fa-search me-2 text-primary"></i>
+                            Analysis Focus
+                        </h6>
+                        
+                        <div class="mb-3">
+                            <label for="analysis_objectives" class="form-label">
+                                What specific aspects of your investment thesis would you like analyzed? <span class="text-danger">*</span>
+                            </label>
+                            <textarea class="form-control" id="analysis_objectives" name="analysis_objectives" rows="4" required></textarea>
+                            <div class="invalid-feedback">
+                                Please specify what aspects you'd like analyzed.
+                            </div>
+                            <div class="form-text">
+                                Examples: ESG alignment, climate impact potential, regulatory resilience, impact measurement approaches
+                            </div>
+                        </div>
+                        
+                        <div class="mb-3">
+                            <label class="form-label d-block">Select Sustainability Frameworks for Analysis <span class="text-danger">*</span></label>
+                            
+                            <div class="form-check">
+                                <input class="form-check-input" type="checkbox" value="UN_SDGs" id="framework_sdgs" name="analysis_frameworks">
+                                <label class="form-check-label" for="framework_sdgs">
+                                    UN Sustainable Development Goals (SDGs)
+                                </label>
+                            </div>
+                            
+                            <div class="form-check">
+                                <input class="form-check-input" type="checkbox" value="TCFD" id="framework_tcfd" name="analysis_frameworks">
+                                <label class="form-check-label" for="framework_tcfd">
+                                    Task Force on Climate-related Financial Disclosures (TCFD)
+                                </label>
+                            </div>
+                            
+                            <div class="form-check">
+                                <input class="form-check-input" type="checkbox" value="EU_Taxonomy" id="framework_eu" name="analysis_frameworks">
+                                <label class="form-check-label" for="framework_eu">
+                                    EU Taxonomy for Sustainable Activities
+                                </label>
+                            </div>
+                            
+                            <div class="form-check">
+                                <input class="form-check-input" type="checkbox" value="SASB" id="framework_sasb" name="analysis_frameworks">
+                                <label class="form-check-label" for="framework_sasb">
+                                    Sustainability Accounting Standards Board (SASB)
+                                </label>
+                            </div>
+                            
+                            <div class="form-check">
+                                <input class="form-check-input" type="checkbox" value="GRI" id="framework_gri" name="analysis_frameworks">
+                                <label class="form-check-label" for="framework_gri">
+                                    Global Reporting Initiative (GRI)
+                                </label>
+                            </div>
+                            
+                            <div class="form-check">
+                                <input class="form-check-input" type="checkbox" value="SBTi" id="framework_sbti" name="analysis_frameworks">
+                                <label class="form-check-label" for="framework_sbti">
+                                    Science-Based Targets initiative (SBTi)
+                                </label>
+                            </div>
+                            
+                            <div class="invalid-feedback">
+                                Please select at least one framework.
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- Submission Section -->
+                    <div class="text-center mt-4">
+                        <button type="submit" class="btn btn-primary btn-lg">
+                            <i class="fas fa-upload me-2"></i> Upload and Analyze
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    // Form validation script
+    document.addEventListener('DOMContentLoaded', function() {
+        // Fetch all forms that need validation
+        var forms = document.querySelectorAll('.needs-validation');
+        
+        // Loop over them and prevent submission
+        Array.prototype.slice.call(forms).forEach(function(form) {
+            form.addEventListener('submit', function(event) {
+                if (!form.checkValidity()) {
+                    event.preventDefault();
+                    event.stopPropagation();
+                }
+                
+                // Custom validation for checkboxes
+                var frameworks = document.querySelectorAll('input[name="analysis_frameworks"]:checked');
+                if (frameworks.length === 0) {
+                    event.preventDefault();
+                    event.stopPropagation();
+                    document.querySelectorAll('input[name="analysis_frameworks"]')
+                        .forEach(checkbox => checkbox.closest('.form-check').classList.add('text-danger'));
+                    document.querySelector('input[name="analysis_frameworks"]')
+                        .closest('.mb-3').querySelector('.invalid-feedback').style.display = 'block';
+                }
+                
+                form.classList.add('was-validated');
+            }, false);
+        });
+    });
+</script>
+{% endblock %}

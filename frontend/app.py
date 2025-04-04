@@ -8,7 +8,8 @@ import os
 import logging
 import redis
 import psutil
-from flask import Flask, render_template, jsonify, request, redirect, url_for, g, session
+import uuid
+from flask import Flask, render_template, jsonify, request, redirect, url_for, g, session, flash
 from datetime import datetime
 from werkzeug.utils import secure_filename
 from logging.config import dictConfig
@@ -532,13 +533,217 @@ def register_routes(app):
     @app.route('/vc-lens/')
     def vc_lens():
         """VC-Lens™ main page"""
+        # Get a list of submitted assessments and theses
+        # In a real implementation, these would be fetched from a database
+        # For demonstration purposes, we'll create sample data
+        
+        # Try to list actual uploaded files
+        thesis_files = []
+        thesis_dir = os.path.join('uploads', 'thesis')
+        
+        if os.path.exists(thesis_dir):
+            try:
+                thesis_files = [f for f in os.listdir(thesis_dir) if os.path.isfile(os.path.join(thesis_dir, f))]
+            except Exception as e:
+                app.logger.error(f"Error listing thesis files: {str(e)}")
+        
+        # Sample assessments (in a real app, these would come from a database)
+        assessments = [
+            {
+                'id': str(uuid.uuid4()),
+                'company_name': 'Green Innovations',
+                'industry': 'Renewable Energy',
+                'submission_date': datetime.now().strftime("%Y-%m-%d"),
+                'status': 'Under Review'
+            }
+        ]
+        
+        # Sample theses (in a real app, these would come from a database)
+        theses = [
+            {
+                'id': str(uuid.uuid4()),
+                'fund_name': 'Test Fund',
+                'investment_focus': 'Climate Tech',
+                'submission_date': datetime.now().strftime("%Y-%m-%d"),
+                'status': 'Processing',
+                'files': [f for f in thesis_files if f.startswith('test_thesis')]
+            },
+            {
+                'id': str(uuid.uuid4()),
+                'fund_name': 'Test Fund 2',
+                'investment_focus': 'Green Energy',
+                'submission_date': datetime.now().strftime("%Y-%m-%d"),
+                'status': 'Processing',
+                'files': [f for f in thesis_files if f.startswith('additional_doc')]
+            }
+        ]
+        
         status = get_api_status()
+        
         return render_template(
             'clean/vc_lens.html',
             active_nav='vc_lens',
             status=status,
-            page_title="VC-Lens™"
+            page_title="VC-Lens™",
+            assessments=assessments,
+            theses=theses,
+            thesis_files=thesis_files
         )
+    
+    # VC-Lens startup assessment page
+    @app.route('/vc-lens/startup-assessment/')
+    def startup_assessment():
+        """VC-Lens™ Startup Assessment Form"""
+        status = get_api_status()
+        return render_template(
+            'clean/startup_assessment.html',
+            active_nav='vc_lens',
+            status=status,
+            page_title="Startup Assessment - VC-Lens™"
+        )
+    
+    # VC-Lens upload thesis page
+    @app.route('/vc-lens/upload-thesis/')
+    def upload_thesis():
+        """VC-Lens™ Investment Thesis Upload Form"""
+        status = get_api_status()
+        return render_template(
+            'clean/upload_thesis.html',
+            active_nav='vc_lens',
+            status=status,
+            page_title="Upload Investment Thesis - VC-Lens™"
+        )
+    
+    # Submit VC-Lens startup assessment
+    @app.route('/vc-lens/startup-assessment/submit', methods=['POST'])
+    def submit_startup_assessment():
+        """Process the startup assessment form submission"""
+        if request.method == 'POST':
+            try:
+                # Extract form data
+                company_name = request.form.get('company_name', '')
+                industry = request.form.get('industry', '')
+                funding_stage = request.form.get('funding_stage', '')
+                founding_year = request.form.get('founding_year', '')
+                sustainability_vision = request.form.get('sustainability_vision', '')
+                current_practices = request.form.get('current_practices', '')
+                sustainability_challenges = request.form.get('sustainability_challenges', '')
+                metrics_tracked = request.form.get('metrics_tracked', '')
+                competitive_advantage = request.form.get('competitive_advantage', '')
+                investor_alignment = request.form.get('investor_alignment', '')
+                
+                # Create a timestamp for this assessment
+                from datetime import datetime
+                timestamp = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+                
+                # Create an assessment entry
+                assessment = {
+                    'id': uuid.uuid4().hex,
+                    'timestamp': timestamp,
+                    'company_name': company_name,
+                    'industry': industry,
+                    'funding_stage': funding_stage,
+                    'founding_year': founding_year,
+                    'sustainability_vision': sustainability_vision,
+                    'current_practices': current_practices,
+                    'sustainability_challenges': sustainability_challenges,
+                    'metrics_tracked': metrics_tracked,
+                    'competitive_advantage': competitive_advantage,
+                    'investor_alignment': investor_alignment,
+                    'status': 'submitted'
+                }
+                
+                # In a real implementation, we would save this to a database
+                # For now, just flash a success message
+                flash('Assessment for {} successfully submitted!'.format(company_name), 'success')
+                
+                # Redirect to VC-Lens main page
+                return redirect(url_for('vc_lens'))
+                
+            except Exception as e:
+                app.logger.error(f"Error submitting startup assessment: {str(e)}")
+                flash('Error submitting assessment. Please try again.', 'error')
+                return redirect(url_for('startup_assessment'))
+        
+        # If not a POST request, redirect to the form
+        return redirect(url_for('startup_assessment'))
+    
+    # Submit VC-Lens investment thesis
+    @app.route('/vc-lens/upload-thesis/submit', methods=['POST'])
+    def submit_investment_thesis():
+        """Process the investment thesis form submission"""
+        if request.method == 'POST':
+            try:
+                # Extract form data
+                fund_name = request.form.get('fund_name', '')
+                investment_focus = request.form.get('investment_focus', '')
+                fund_stage = request.form.get('fund_stage', '')
+                thesis_year = request.form.get('thesis_year', '')
+                analysis_objectives = request.form.get('analysis_objectives', '')
+                
+                # Get selected analysis frameworks
+                analysis_frameworks = request.form.getlist('analysis_frameworks')
+                
+                # Handle file upload
+                thesis_document = request.files.get('thesis_document')
+                additional_documents = request.files.getlist('additional_documents')
+                
+                # Initialize thesis_path as None
+                thesis_path = None
+                
+                if thesis_document and thesis_document.filename:
+                    # Save main thesis document
+                    filename = secure_filename(thesis_document.filename)
+                    thesis_path = os.path.join('uploads', 'thesis', filename)
+                    thesis_dir = os.path.join('uploads', 'thesis')
+                    app.logger.info(f"Creating directory: {thesis_dir}")
+                    os.makedirs(thesis_dir, exist_ok=True)
+                    app.logger.info(f"Saving thesis to: {thesis_path}")
+                    thesis_document.save(thesis_path)
+                    app.logger.info(f"Thesis saved successfully: {os.path.exists(thesis_path)}")
+                
+                # Save additional documents if any
+                additional_paths = []
+                for doc in additional_documents:
+                    if doc and doc.filename:
+                        add_filename = secure_filename(doc.filename)
+                        add_path = os.path.join('uploads', 'thesis', add_filename)
+                        doc.save(add_path)
+                        additional_paths.append(add_path)
+                
+                # Create a timestamp for this submission
+                timestamp = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+                
+                # Create a thesis submission entry
+                thesis_submission = {
+                    'id': uuid.uuid4().hex,
+                    'timestamp': timestamp,
+                    'fund_name': fund_name,
+                    'investment_focus': investment_focus,
+                    'fund_stage': fund_stage,
+                    'thesis_year': thesis_year,
+                    'analysis_objectives': analysis_objectives,
+                    'analysis_frameworks': analysis_frameworks,
+                    'thesis_document_path': thesis_path,
+                    'additional_document_paths': additional_paths,
+                    'status': 'processing'
+                }
+                
+                # In a real implementation, we would save this to a database and 
+                # start an asynchronous processing job
+                # For now, just flash a success message
+                flash('Investment thesis for {} successfully uploaded and is being processed!'.format(fund_name), 'success')
+                
+                # Redirect to VC-Lens main page
+                return redirect(url_for('vc_lens'))
+                
+            except Exception as e:
+                app.logger.error(f"Error uploading investment thesis: {str(e)}")
+                flash('Error uploading investment thesis. Please try again.', 'error')
+                return redirect(url_for('upload_thesis'))
+        
+        # If not a POST request, redirect to the form
+        return redirect(url_for('upload_thesis'))
 
 if __name__ == "__main__":
     app = create_app()

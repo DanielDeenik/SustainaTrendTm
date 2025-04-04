@@ -1,0 +1,248 @@
+{% extends "clean/base.html" %}
+
+{% set active_nav = 'vc_lens' %}
+
+{% block header_title %}Startup Sustainability Assessment - VC-Lens™{% endblock %}
+
+{% block header_actions %}
+<a href="/vc-lens/" class="btn btn-sm btn-outline-secondary">
+    <i class="fas fa-arrow-left me-1"></i> Back to VC-Lens
+</a>
+{% endblock %}
+
+{% block content %}
+<div class="row">
+    <!-- Assessment Introduction -->
+    <div class="col-12 mb-4">
+        <div class="card">
+            <div class="card-body">
+                <div class="row">
+                    <div class="col-md-8">
+                        <h5>Startup Sustainability Assessment</h5>
+                        <p class="text-muted">
+                            Complete this comprehensive assessment to evaluate your startup's sustainability profile. 
+                            This assessment focuses on your environmental, social, and governance practices, alignment with 
+                            sustainability goals, and competitive advantages in sustainability-driven markets.
+                        </p>
+                        <div class="alert alert-info">
+                            <i class="fas fa-info-circle me-2"></i> Your responses will be evaluated by our AI-powered assessment system and reviewed by sustainability experts.
+                        </div>
+                    </div>
+                    <div class="col-md-4 text-center">
+                        <i class="fas fa-clipboard-check fa-5x text-primary mb-3"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Assessment Form -->
+    <div class="col-12">
+        <div class="card">
+            <div class="card-header">
+                <h5 class="card-title mb-0">Startup Assessment Form</h5>
+            </div>
+            <div class="card-body">
+                <form action="/vc-lens/startup-assessment/submit" method="POST" id="assessmentForm" class="needs-validation" novalidate>
+                    <!-- Company Information Section -->
+                    <div class="mb-4">
+                        <h6 class="fw-bold mb-3">
+                            <i class="fas fa-building me-2 text-primary"></i>
+                            Company Information
+                        </h6>
+                        
+                        <div class="row g-3">
+                            <div class="col-md-6">
+                                <label for="company_name" class="form-label">Company Name <span class="text-danger">*</span></label>
+                                <input type="text" class="form-control" id="company_name" name="company_name" required>
+                                <div class="invalid-feedback">
+                                    Please provide your company name.
+                                </div>
+                            </div>
+                            
+                            <div class="col-md-6">
+                                <label for="industry" class="form-label">Industry <span class="text-danger">*</span></label>
+                                <select class="form-select" id="industry" name="industry" required>
+                                    <option value="" selected disabled>Select your industry</option>
+                                    <option value="Clean Energy">Clean Energy</option>
+                                    <option value="AgTech">AgTech</option>
+                                    <option value="Circular Economy">Circular Economy</option>
+                                    <option value="Carbon Tech">Carbon Tech</option>
+                                    <option value="Sustainable Transport">Sustainable Transport</option>
+                                    <option value="Water Technology">Water Technology</option>
+                                    <option value="Green Building">Green Building</option>
+                                    <option value="Sustainable Materials">Sustainable Materials</option>
+                                    <option value="Waste Management">Waste Management</option>
+                                    <option value="Environmental Services">Environmental Services</option>
+                                    <option value="ESG Analytics">ESG Analytics</option>
+                                    <option value="Sustainable Finance">Sustainable Finance</option>
+                                    <option value="Other">Other</option>
+                                </select>
+                                <div class="invalid-feedback">
+                                    Please select your industry.
+                                </div>
+                            </div>
+                            
+                            <div class="col-md-6">
+                                <label for="funding_stage" class="form-label">Funding Stage <span class="text-danger">*</span></label>
+                                <select class="form-select" id="funding_stage" name="funding_stage" required>
+                                    <option value="" selected disabled>Select your funding stage</option>
+                                    <option value="Pre-seed">Pre-seed</option>
+                                    <option value="Seed">Seed</option>
+                                    <option value="Series A">Series A</option>
+                                    <option value="Series B">Series B</option>
+                                    <option value="Series C+">Series C+</option>
+                                    <option value="Growth Stage">Growth Stage</option>
+                                    <option value="Bootstrapped">Bootstrapped</option>
+                                </select>
+                                <div class="invalid-feedback">
+                                    Please select your funding stage.
+                                </div>
+                            </div>
+                            
+                            <div class="col-md-6">
+                                <label for="founding_year" class="form-label">Founding Year <span class="text-danger">*</span></label>
+                                <input type="number" class="form-control" id="founding_year" name="founding_year" min="1900" max="2025" required>
+                                <div class="invalid-feedback">
+                                    Please enter a valid founding year.
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- Sustainability Vision Section -->
+                    <div class="mb-4">
+                        <h6 class="fw-bold mb-3">
+                            <i class="fas fa-leaf me-2 text-primary"></i>
+                            Sustainability Vision & Strategy
+                        </h6>
+                        
+                        <div class="mb-3">
+                            <label for="sustainability_vision" class="form-label">
+                                Describe your startup's sustainability vision and mission. How is sustainability integrated into your core business model? <span class="text-danger">*</span>
+                            </label>
+                            <textarea class="form-control" id="sustainability_vision" name="sustainability_vision" rows="4" required></textarea>
+                            <div class="invalid-feedback">
+                                Please provide your sustainability vision.
+                            </div>
+                            <div class="form-text">
+                                Include your long-term sustainability goals and how they align with UN SDGs or other frameworks.
+                            </div>
+                        </div>
+                        
+                        <div class="mb-3">
+                            <label for="current_practices" class="form-label">
+                                What specific sustainability practices do you currently implement in your operations? <span class="text-danger">*</span>
+                            </label>
+                            <textarea class="form-control" id="current_practices" name="current_practices" rows="4" required></textarea>
+                            <div class="invalid-feedback">
+                                Please describe your current sustainability practices.
+                            </div>
+                            <div class="form-text">
+                                This could include energy efficiency measures, waste reduction, supply chain standards, diversity & inclusion policies, etc.
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- Challenges & Opportunities Section -->
+                    <div class="mb-4">
+                        <h6 class="fw-bold mb-3">
+                            <i class="fas fa-mountain me-2 text-primary"></i>
+                            Sustainability Challenges & Opportunities
+                        </h6>
+                        
+                        <div class="mb-3">
+                            <label for="sustainability_challenges" class="form-label">
+                                What are the biggest sustainability challenges your startup faces? <span class="text-danger">*</span>
+                            </label>
+                            <textarea class="form-control" id="sustainability_challenges" name="sustainability_challenges" rows="4" required></textarea>
+                            <div class="invalid-feedback">
+                                Please describe your sustainability challenges.
+                            </div>
+                            <div class="form-text">
+                                Be specific about both internal obstacles and external market or regulatory challenges.
+                            </div>
+                        </div>
+                        
+                        <div class="mb-3">
+                            <label for="metrics_tracked" class="form-label">
+                                Which sustainability metrics do you currently track? <span class="text-danger">*</span>
+                            </label>
+                            <textarea class="form-control" id="metrics_tracked" name="metrics_tracked" rows="4" required></textarea>
+                            <div class="invalid-feedback">
+                                Please describe the sustainability metrics you track.
+                            </div>
+                            <div class="form-text">
+                                Include environmental metrics (emissions, energy, water, waste), social metrics, and governance metrics.
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- Market & Investor Alignment Section -->
+                    <div class="mb-4">
+                        <h6 class="fw-bold mb-3">
+                            <i class="fas fa-chart-line me-2 text-primary"></i>
+                            Market Position & Investor Alignment
+                        </h6>
+                        
+                        <div class="mb-3">
+                            <label for="competitive_advantage" class="form-label">
+                                How does your sustainability approach provide a competitive advantage? <span class="text-danger">*</span>
+                            </label>
+                            <textarea class="form-control" id="competitive_advantage" name="competitive_advantage" rows="4" required></textarea>
+                            <div class="invalid-feedback">
+                                Please describe your competitive advantage.
+                            </div>
+                            <div class="form-text">
+                                Explain how your sustainability approach differentiates you from competitors and creates market opportunities.
+                            </div>
+                        </div>
+                        
+                        <div class="mb-3">
+                            <label for="investor_alignment" class="form-label">
+                                How do your sustainability goals align with investor expectations and market trends? <span class="text-danger">*</span>
+                            </label>
+                            <textarea class="form-control" id="investor_alignment" name="investor_alignment" rows="4" required></textarea>
+                            <div class="invalid-feedback">
+                                Please describe your alignment with investor expectations.
+                            </div>
+                            <div class="form-text">
+                                Include how your sustainability strategy could attract impact investors or ESG-focused venture capital.
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- Submission Section -->
+                    <div class="text-center mt-4">
+                        <button type="submit" class="btn btn-primary btn-lg">
+                            <i class="fas fa-paper-plane me-2"></i> Submit Assessment
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    // Form validation script
+    document.addEventListener('DOMContentLoaded', function() {
+        // Fetch all forms that need validation
+        var forms = document.querySelectorAll('.needs-validation');
+        
+        // Loop over them and prevent submission
+        Array.prototype.slice.call(forms).forEach(function(form) {
+            form.addEventListener('submit', function(event) {
+                if (!form.checkValidity()) {
+                    event.preventDefault();
+                    event.stopPropagation();
+                }
+                
+                form.classList.add('was-validated');
+            }, false);
+        });
+    });
+</script>
+{% endblock %}

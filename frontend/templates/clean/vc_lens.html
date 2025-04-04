@@ -5,12 +5,12 @@
 {% block header_title %}VC-Lens™ Platform{% endblock %}
 
 {% block header_actions %}
-<button class="btn btn-sm btn-outline-secondary">
-    <i class="fas fa-sliders-h"></i> Configure
-</button>
-<button class="btn btn-sm btn-outline-primary">
-    <i class="fas fa-plus"></i> New Assessment
-</button>
+<a href="/vc-lens/startup-assessment/" class="btn btn-sm btn-primary">
+    <i class="fas fa-clipboard-check"></i> New Assessment
+</a>
+<a href="/vc-lens/upload-thesis/" class="btn btn-sm btn-outline-primary">
+    <i class="fas fa-file-upload"></i> Upload Thesis
+</a>
 {% endblock %}
 
 {% block content %}
@@ -29,11 +29,19 @@
                         </p>
                     </div>
                     <div class="col-md-4 text-center">
-                        <i class="fas fa-search-dollar fa-5x text-primary mb-3"></i>
-                        <div>
-                            <button class="btn btn-primary">
-                                <i class="fas fa-play me-2"></i> Start New Assessment
-                            </button>
+                        <i class="fas fa-chart-line fa-5x text-primary mb-3"></i>
+                    </div>
+                </div>
+                
+                <div class="row mt-3">
+                    <div class="col-12">
+                        <div class="d-flex gap-2">
+                            <a href="/vc-lens/startup-assessment/" class="btn btn-primary">
+                                <i class="fas fa-clipboard-check me-2"></i> Submit Startup Assessment
+                            </a>
+                            <a href="/vc-lens/upload-thesis/" class="btn btn-outline-primary">
+                                <i class="fas fa-file-upload me-2"></i> Upload Investment Thesis
+                            </a>
                         </div>
                     </div>
                 </div>
@@ -59,7 +67,7 @@
                                 <p class="text-muted">
                                     Evaluate a startup's baseline sustainability infrastructure, policies, and commitment.
                                 </p>
-                                <a href="/vc-lens/startup-assessment" class="btn btn-outline-primary">Launch Module</a>
+                                <a href="/vc-lens/startup-assessment/" class="btn btn-outline-primary">Launch Module</a>
                             </div>
                         </div>
                     </div>
@@ -74,7 +82,7 @@
                                 <p class="text-muted">
                                     Analyze forward-looking metrics and sustainability KPIs across the ESG spectrum.
                                 </p>
-                                <a href="/vc-lens/startup-assessment" class="btn btn-outline-primary">Launch Module</a>
+                                <a href="/vc-lens/startup-assessment/" class="btn btn-outline-primary">Launch Module</a>
                             </div>
                         </div>
                     </div>
@@ -85,11 +93,11 @@
                                 <div class="mb-3">
                                     <i class="fas fa-align-left fa-3x text-primary"></i>
                                 </div>
-                                <h5>Module 3: Narrative Alignment</h5>
+                                <h5>Module 3: Thesis Upload</h5>
                                 <p class="text-muted">
-                                    Assess how the startup's sustainability story aligns with business model and market positioning.
+                                    Upload investment thesis documents for sustainability alignment analysis.
                                 </p>
-                                <a href="/vc-lens/startup-assessment" class="btn btn-outline-primary">Launch Module</a>
+                                <a href="/vc-lens/upload-thesis/" class="btn btn-outline-primary">Launch Module</a>
                             </div>
                         </div>
                     </div>
@@ -103,447 +111,119 @@
         <div class="card">
             <div class="card-header d-flex justify-content-between align-items-center">
                 <h5 class="card-title mb-0">Recent Assessments</h5>
-                <a href="#" class="btn btn-sm btn-outline-primary">View All</a>
-            </div>
-            <div class="card-body p-0">
-                <div class="table-responsive">
-                    <table class="table table-borderless">
-                        <thead>
-                            <tr>
-                                <th>Company</th>
-                                <th>Sector</th>
-                                <th>Assessment Date</th>
-                                <th>ESG Score</th>
-                                <th>Status</th>
-                                <th>Actions</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            <tr>
-                                <td>
-                                    <div class="d-flex align-items-center">
-                                        <div class="me-2" style="width: 32px; height: 32px; background-color: #3b82f6; color: white; display: flex; align-items: center; justify-content: center; border-radius: 6px;">
-                                            <i class="fas fa-bolt"></i>
-                                        </div>
-                                        <span>EnergyFlow Inc.</span>
-                                    </div>
-                                </td>
-                                <td>Clean Energy</td>
-                                <td>Apr 2, 2025</td>
-                                <td>
-                                    <div class="d-flex align-items-center">
-                                        <div style="width: 35px; height: 35px;" class="me-2">
-                                            <canvas id="scoreChart1" width="35" height="35"></canvas>
-                                        </div>
-                                        <span>82/100</span>
-                                    </div>
-                                </td>
-                                <td><span class="badge bg-success">Completed</span></td>
-                                <td>
-                                    <div class="btn-group btn-group-sm">
-                                        <button class="btn btn-outline-primary">
-                                            <i class="fas fa-eye"></i>
-                                        </button>
-                                        <button class="btn btn-outline-primary">
-                                            <i class="fas fa-download"></i>
-                                        </button>
-                                        <button class="btn btn-outline-danger">
-                                            <i class="fas fa-trash"></i>
-                                        </button>
-                                    </div>
-                                </td>
-                            </tr>
-                            <tr>
-                                <td>
-                                    <div class="d-flex align-items-center">
-                                        <div class="me-2" style="width: 32px; height: 32px; background-color: #10b981; color: white; display: flex; align-items: center; justify-content: center; border-radius: 6px;">
-                                            <i class="fas fa-leaf"></i>
-                                        </div>
-                                        <span>GreenTech Solutions</span>
-                                    </div>
-                                </td>
-                                <td>AgTech</td>
-                                <td>Mar 28, 2025</td>
-                                <td>
-                                    <div class="d-flex align-items-center">
-                                        <div style="width: 35px; height: 35px;" class="me-2">
-                                            <canvas id="scoreChart2" width="35" height="35"></canvas>
-                                        </div>
-                                        <span>75/100</span>
-                                    </div>
-                                </td>
-                                <td><span class="badge bg-success">Completed</span></td>
-                                <td>
-                                    <div class="btn-group btn-group-sm">
-                                        <button class="btn btn-outline-primary">
-                                            <i class="fas fa-eye"></i>
-                                        </button>
-                                        <button class="btn btn-outline-primary">
-                                            <i class="fas fa-download"></i>
-                                        </button>
-                                        <button class="btn btn-outline-danger">
-                                            <i class="fas fa-trash"></i>
-                                        </button>
-                                    </div>
-                                </td>
-                            </tr>
-                            <tr>
-                                <td>
-                                    <div class="d-flex align-items-center">
-                                        <div class="me-2" style="width: 32px; height: 32px; background-color: #8b5cf6; color: white; display: flex; align-items: center; justify-content: center; border-radius: 6px;">
-                                            <i class="fas fa-recycle"></i>
-                                        </div>
-                                        <span>Circular Materials</span>
-                                    </div>
-                                </td>
-                                <td>Waste Management</td>
-                                <td>Mar 25, 2025</td>
-                                <td>
-                                    <div class="d-flex align-items-center">
-                                        <div style="width: 35px; height: 35px;" class="me-2">
-                                            <canvas id="scoreChart3" width="35" height="35"></canvas>
-                                        </div>
-                                        <span>80/100</span>
-                                    </div>
-                                </td>
-                                <td><span class="badge bg-success">Completed</span></td>
-                                <td>
-                                    <div class="btn-group btn-group-sm">
-                                        <button class="btn btn-outline-primary">
-                                            <i class="fas fa-eye"></i>
-                                        </button>
-                                        <button class="btn btn-outline-primary">
-                                            <i class="fas fa-download"></i>
-                                        </button>
-                                        <button class="btn btn-outline-danger">
-                                            <i class="fas fa-trash"></i>
-                                        </button>
-                                    </div>
-                                </td>
-                            </tr>
-                            <tr>
-                                <td>
-                                    <div class="d-flex align-items-center">
-                                        <div class="me-2" style="width: 32px; height: 32px; background-color: #f59e0b; color: white; display: flex; align-items: center; justify-content: center; border-radius: 6px;">
-                                            <i class="fas fa-water"></i>
-                                        </div>
-                                        <span>WaterWise AI</span>
-                                    </div>
-                                </td>
-                                <td>Water Technology</td>
-                                <td>Mar 18, 2025</td>
-                                <td>
-                                    <div class="d-flex align-items-center">
-                                        <div style="width: 35px; height: 35px;" class="me-2">
-                                            <canvas id="scoreChart4" width="35" height="35"></canvas>
-                                        </div>
-                                        <span>68/100</span>
-                                    </div>
-                                </td>
-                                <td><span class="badge bg-warning">In Progress</span></td>
-                                <td>
-                                    <div class="btn-group btn-group-sm">
-                                        <button class="btn btn-outline-primary">
-                                            <i class="fas fa-edit"></i>
-                                        </button>
-                                        <button class="btn btn-outline-primary" disabled>
-                                            <i class="fas fa-download"></i>
-                                        </button>
-                                        <button class="btn btn-outline-danger">
-                                            <i class="fas fa-trash"></i>
-                                        </button>
-                                    </div>
-                                </td>
-                            </tr>
-                        </tbody>
-                    </table>
+                <div>
+                    <button class="btn btn-sm btn-outline-secondary">
+                        <i class="fas fa-filter"></i> Filter
+                    </button>
                 </div>
-            </div>
-        </div>
-    </div>
-    
-    <!-- Sector Analysis -->
-    <div class="col-md-6 mb-4">
-        <div class="card h-100">
-            <div class="card-header">
-                <h5 class="card-title mb-0">Sector Analysis</h5>
             </div>
             <div class="card-body">
-                <div class="chart-container">
-                    <canvas id="sectorChart"></canvas>
-                </div>
-                <div class="mt-4">
-                    <h6>Top Performing Sectors</h6>
+                {% if assessments %}
                     <div class="table-responsive">
-                        <table class="table table-borderless">
+                        <table class="table table-hover">
                             <thead>
                                 <tr>
-                                    <th>Sector</th>
-                                    <th>Avg. Score</th>
-                                    <th>Trend</th>
+                                    <th>Company</th>
+                                    <th>Industry</th>
+                                    <th>Date</th>
+                                    <th>Status</th>
+                                    <th>Actions</th>
                                 </tr>
                             </thead>
                             <tbody>
+                                {% for assessment in assessments %}
                                 <tr>
-                                    <td>Clean Energy</td>
-                                    <td>84/100</td>
-                                    <td><i class="fas fa-arrow-up text-success"></i></td>
+                                    <td>{{ assessment.company_name }}</td>
+                                    <td>{{ assessment.industry }}</td>
+                                    <td>{{ assessment.submission_date }}</td>
+                                    <td><span class="badge bg-warning">{{ assessment.status }}</span></td>
+                                    <td>
+                                        <button class="btn btn-sm btn-outline-primary">View</button>
+                                    </td>
                                 </tr>
-                                <tr>
-                                    <td>Circular Economy</td>
-                                    <td>78/100</td>
-                                    <td><i class="fas fa-arrow-up text-success"></i></td>
-                                </tr>
-                                <tr>
-                                    <td>Sustainable Transport</td>
-                                    <td>76/100</td>
-                                    <td><i class="fas fa-arrow-up text-success"></i></td>
-                                </tr>
+                                {% endfor %}
                             </tbody>
                         </table>
                     </div>
-                </div>
+                {% else %}
+                    <div class="alert alert-info">
+                        <i class="fas fa-info-circle me-2"></i> No recent assessments found. Use the modules above to create your first assessment.
+                    </div>
+                {% endif %}
             </div>
         </div>
     </div>
     
-    <!-- Portfolio Impact -->
-    <div class="col-md-6 mb-4">
-        <div class="card h-100">
-            <div class="card-header">
-                <h5 class="card-title mb-0">Portfolio Impact</h5>
-            </div>
-            <div class="card-body">
-                <div class="row mb-4">
-                    <div class="col-md-4 mb-3 mb-md-0">
-                        <div class="text-center">
-                            <h2 class="mb-0">76.5</h2>
-                            <small class="text-muted">Avg. ESG Score</small>
-                        </div>
-                    </div>
-                    <div class="col-md-4 mb-3 mb-md-0">
-                        <div class="text-center">
-                            <h2 class="mb-0">82%</h2>
-                            <small class="text-muted">SDG Alignment</small>
-                        </div>
-                    </div>
-                    <div class="col-md-4">
-                        <div class="text-center">
-                            <h2 class="mb-0">15</h2>
-                            <small class="text-muted">ESG Leaders</small>
-                        </div>
-                    </div>
-                </div>
-                
-                <div class="chart-container">
-                    <canvas id="impactChart"></canvas>
-                </div>
-                
-                <div class="alert alert-info mt-3">
-                    <i class="fas fa-info-circle me-2"></i>
-                    Improve your portfolio's sustainability performance by focusing on water and governance metrics.
-                </div>
-            </div>
-        </div>
-    </div>
-    
-    <!-- Assessment Templates -->
+    <!-- Uploaded Theses -->
     <div class="col-12">
         <div class="card">
             <div class="card-header d-flex justify-content-between align-items-center">
-                <h5 class="card-title mb-0">Assessment Templates</h5>
-                <button class="btn btn-sm btn-outline-primary">Create Template</button>
+                <h5 class="card-title mb-0">Uploaded Investment Theses</h5>
+                <div>
+                    <button class="btn btn-sm btn-outline-secondary">
+                        <i class="fas fa-filter"></i> Filter
+                    </button>
+                </div>
             </div>
             <div class="card-body">
-                <div class="row">
-                    <div class="col-md-4 mb-4">
-                        <div class="card">
-                            <div class="card-body">
-                                <h5 class="card-title">Standard ESG Assessment</h5>
-                                <p class="text-muted">Comprehensive ESG evaluation template suitable for most startups across sectors.</p>
-                                <div class="d-flex justify-content-between">
-                                    <span class="badge bg-info">Default</span>
-                                    <button class="btn btn-sm btn-outline-primary">Use</button>
-                                </div>
-                            </div>
-                        </div>
+                {% if theses %}
+                    <div class="table-responsive">
+                        <table class="table table-hover">
+                            <thead>
+                                <tr>
+                                    <th>Fund Name</th>
+                                    <th>Investment Focus</th>
+                                    <th>Date Uploaded</th>
+                                    <th>Files</th>
+                                    <th>Status</th>
+                                    <th>Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for thesis in theses %}
+                                <tr>
+                                    <td>{{ thesis.fund_name }}</td>
+                                    <td>{{ thesis.investment_focus }}</td>
+                                    <td>{{ thesis.submission_date }}</td>
+                                    <td>
+                                        {% if thesis.files %}
+                                            <span class="badge bg-info">{{ thesis.files|length }} file(s)</span>
+                                        {% else %}
+                                            <span class="badge bg-secondary">No files</span>
+                                        {% endif %}
+                                    </td>
+                                    <td><span class="badge bg-warning">{{ thesis.status }}</span></td>
+                                    <td>
+                                        <button class="btn btn-sm btn-outline-primary">View</button>
+                                    </td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
                     </div>
-                    
-                    <div class="col-md-4 mb-4">
-                        <div class="card">
-                            <div class="card-body">
-                                <h5 class="card-title">Climate Tech Deep Dive</h5>
-                                <p class="text-muted">Specialized assessment for climate technology startups with enhanced emissions metrics.</p>
-                                <div class="d-flex justify-content-between">
-                                    <span class="badge bg-secondary">Specialized</span>
-                                    <button class="btn btn-sm btn-outline-primary">Use</button>
-                                </div>
-                            </div>
-                        </div>
+                {% else %}
+                    <div class="alert alert-info">
+                        <i class="fas fa-info-circle me-2"></i> No investment theses found. Use the thesis upload module to submit your first thesis.
                     </div>
-                    
-                    <div class="col-md-4 mb-4">
-                        <div class="card">
-                            <div class="card-body">
-                                <h5 class="card-title">Social Impact Ventures</h5>
-                                <p class="text-muted">Focused template for social enterprises with emphasis on impact measurement and community engagement.</p>
-                                <div class="d-flex justify-content-between">
-                                    <span class="badge bg-secondary">Specialized</span>
-                                    <button class="btn btn-sm btn-outline-primary">Use</button>
-                                </div>
-                            </div>
-                        </div>
+                {% endif %}
+                
+                {% if thesis_files %}
+                    <div class="mt-4">
+                        <h6>Uploaded Files</h6>
+                        <ul class="list-group">
+                            {% for file in thesis_files %}
+                            <li class="list-group-item d-flex justify-content-between align-items-center">
+                                {{ file }}
+                                <span class="badge bg-primary rounded-pill">
+                                    <i class="fas fa-file-alt me-1"></i> Document
+                                </span>
+                            </li>
+                            {% endfor %}
+                        </ul>
                     </div>
-                </div>
+                {% endif %}
             </div>
         </div>
     </div>
 </div>
-{% endblock %}
-
-{% block scripts %}
-<script>
-    document.addEventListener('DOMContentLoaded', function() {
-        // Mini score charts for the table
-        function createScoreChart(canvasId, score) {
-            const ctx = document.getElementById(canvasId).getContext('2d');
-            return new Chart(ctx, {
-                type: 'doughnut',
-                data: {
-                    datasets: [{
-                        data: [score, 100 - score],
-                        backgroundColor: [
-                            score >= 80 ? '#10b981' : score >= 60 ? '#f59e0b' : '#ef4444',
-                            'rgba(255, 255, 255, 0.1)'
-                        ],
-                        borderWidth: 0,
-                        cutout: '70%'
-                    }]
-                },
-                options: {
-                    responsive: true,
-                    maintainAspectRatio: true,
-                    plugins: {
-                        legend: {
-                            display: false
-                        },
-                        tooltip: {
-                            enabled: false
-                        }
-                    }
-                }
-            });
-        }
-        
-        // Create the mini charts
-        createScoreChart('scoreChart1', 82);
-        createScoreChart('scoreChart2', 75);
-        createScoreChart('scoreChart3', 80);
-        createScoreChart('scoreChart4', 68);
-        
-        // Sector Analysis Chart
-        const sectorCtx = document.getElementById('sectorChart').getContext('2d');
-        const sectorChart = new Chart(sectorCtx, {
-            type: 'bar',
-            data: {
-                labels: ['Clean Energy', 'AgTech', 'Circular Economy', 'Water Tech', 'Sustainable Transport', 'Green Building'],
-                datasets: [{
-                    label: 'Average ESG Score',
-                    data: [84, 72, 78, 68, 76, 70],
-                    backgroundColor: [
-                        'rgba(59, 130, 246, 0.8)',
-                        'rgba(16, 185, 129, 0.8)',
-                        'rgba(139, 92, 246, 0.8)',
-                        'rgba(245, 158, 11, 0.8)',
-                        'rgba(236, 72, 153, 0.8)',
-                        'rgba(14, 165, 233, 0.8)'
-                    ],
-                    borderWidth: 0
-                }]
-            },
-            options: {
-                responsive: true,
-                scales: {
-                    y: {
-                        beginAtZero: true,
-                        max: 100,
-                        grid: {
-                            color: 'rgba(255, 255, 255, 0.1)'
-                        },
-                        ticks: {
-                            color: '#9ca3af'
-                        }
-                    },
-                    x: {
-                        grid: {
-                            display: false
-                        },
-                        ticks: {
-                            color: '#9ca3af'
-                        }
-                    }
-                },
-                plugins: {
-                    legend: {
-                        display: false
-                    }
-                }
-            }
-        });
-        
-        // Portfolio Impact Chart
-        const impactCtx = document.getElementById('impactChart').getContext('2d');
-        const impactChart = new Chart(impactCtx, {
-            type: 'radar',
-            data: {
-                labels: ['Environmental', 'Social', 'Governance', 'Carbon', 'Water', 'Waste', 'Diversity'],
-                datasets: [{
-                    label: 'Portfolio Average',
-                    data: [80, 75, 68, 82, 64, 76, 72],
-                    backgroundColor: 'rgba(59, 130, 246, 0.2)',
-                    borderColor: 'rgba(59, 130, 246, 1)',
-                    borderWidth: 2,
-                    pointBackgroundColor: 'rgba(59, 130, 246, 1)'
-                }, {
-                    label: 'Industry Benchmark',
-                    data: [65, 68, 62, 70, 60, 63, 67],
-                    backgroundColor: 'rgba(156, 163, 175, 0.2)',
-                    borderColor: 'rgba(156, 163, 175, 1)',
-                    borderWidth: 2,
-                    pointBackgroundColor: 'rgba(156, 163, 175, 1)',
-                    borderDash: [5, 5]
-                }]
-            },
-            options: {
-                scales: {
-                    r: {
-                        beginAtZero: true,
-                        max: 100,
-                        ticks: {
-                            stepSize: 20,
-                            color: '#9ca3af'
-                        },
-                        angleLines: {
-                            color: 'rgba(255, 255, 255, 0.1)'
-                        },
-                        grid: {
-                            color: 'rgba(255, 255, 255, 0.1)'
-                        },
-                        pointLabels: {
-                            color: '#f9fafb'
-                        }
-                    }
-                },
-                plugins: {
-                    legend: {
-                        position: 'top',
-                        labels: {
-                            color: '#f9fafb'
-                        }
-                    }
-                }
-            }
-        });
-    });
-</script>
 {% endblock %}
