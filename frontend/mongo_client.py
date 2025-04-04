@@ -36,9 +36,16 @@ except ImportError:
 DEFAULT_MONGO_URI = "mongodb://localhost:27017/"
 DEFAULT_DB_NAME = "sustainatrend"
 
-# Get MongoDB URI from environment or use default
-MONGO_URI = os.environ.get("MONGO_URI", DEFAULT_MONGO_URI)
+# Get MongoDB URI from environment (prefer MONGODB_URI for Atlas connections)
+if "MONGODB_URI" in os.environ:
+    MONGO_URI = os.environ.get("MONGODB_URI")
+    logger.info("Using MongoDB Atlas connection from MONGODB_URI")
+else:
+    MONGO_URI = os.environ.get("MONGO_URI", DEFAULT_MONGO_URI)
+    logger.info(f"Using standard MongoDB connection: {MONGO_URI}")
+
 DB_NAME = os.environ.get("MONGO_DB_NAME", DEFAULT_DB_NAME)
+logger.info(f"Using database name: {DB_NAME}")
 
 # Singleton client instances
 _sync_client = None

@@ -1,74 +1,26 @@
 #!/bin/bash
+# SustainaTrend Intelligence Platform - Consolidated Startup Script
+# This is the primary entry point for the platform
 
-echo "Starting Sustainability Intelligence Platform..."
+echo "Starting SustainaTrend Intelligence Platform..."
 
-# Create logs directory
+# Create logs directory if it doesn't exist
 mkdir -p logs
 
-# Function to check if port is already in use
-check_port() {
-  local port=$1
-  if lsof -Pi :$port -sTCP:LISTEN -t >/dev/null ; then
-    echo "Port $port is already in use."
-    return 0
-  else
-    return 1
-  fi
-}
-
-# Function to gracefully terminate processes
-terminate_processes() {
-  echo "Cleaning up existing processes..."
-  # Kill processes in a Replit-friendly way
-  for process in "python.*app.py" "flask" "port 5000" "redis-server" "gunicorn"; do
-    pids=$(pgrep -f "$process" 2>/dev/null || true)
-    if [ -n "$pids" ]; then
-      echo "Terminating $process processes: $pids"
-      for pid in $pids; do
-        # Try graceful termination first
-        kill -15 $pid 2>/dev/null || true
-        # Wait a bit
-        sleep 1
-        # Force kill if still running
-        kill -9 $pid 2>/dev/null || true
-      done
-    fi
-  done
-  sleep 2
-}
-
-# Clean up existing processes
-terminate_processes
-
-# Make the frontend start script executable
-chmod +x frontend/start.sh
-
-# Check if port 5000 is free
-if check_port 5000; then
-  echo "Warning: Port 5000 is still in use. Attempting to free it..."
-  fuser -k 5000/tcp 2>/dev/null || true
-  sleep 2
+# Terminate any existing processes on port 5000
+EXISTING_PID=$(lsof -t -i:5000 2>/dev/null)
+if [ ! -z "$EXISTING_PID" ]; then
+    echo "Port 5000 is in use by process $EXISTING_PID. Terminating..."
+    kill -15 $EXISTING_PID 2>/dev/null || kill -9 $EXISTING_PID 2>/dev/null
+    sleep 2
 fi
 
-# Start Flask dashboard
-echo "Starting Flask dashboard on port 5000..."
-cd frontend && ./start.sh &
+# Set environment variables
+export FLASK_ENV=development
+export FLASK_DEBUG=1
+export HOST="0.0.0.0"
+export PORT="5000"
+export PYTHONUNBUFFERED=1
 
-# Wait for port to become available
-echo "Waiting for server to start on port 5000..."
-timeout=60
-while [ $timeout -gt 0 ]; do
-  if curl -s http://localhost:5000 > /dev/null 2>&1; then
-    echo "Server is up and running on port 5000!"
-    break
-  fi
-  sleep 1
-  timeout=$((timeout-1))
-done
-
-if [ $timeout -eq 0 ]; then
-  echo "Warning: Timed out waiting for server to start, but continuing anyway..."
-fi
-
-# Keep the script running
-wait
+echo "Starting consolidated application on ${HOST}:${PORT}..."
+python consolidated_app.py 2>&1 | tee logs/app.log

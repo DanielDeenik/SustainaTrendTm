@@ -8,967 +8,347 @@
     <div class="d-flex justify-content-between align-items-center mb-4">
         <div>
             <h1 class="h2 mb-1">Startup Sustainability Assessment</h1>
-            <p class="text-muted">Evaluate startups against key ESG & impact metrics</p>
+            <p class="text-muted">Comprehensive ESG assessment for startups and portfolio companies</p>
         </div>
         <div>
-            <a href="/vc-insights" class="btn btn-outline-secondary me-2">
+            <a href="/vc-lens" class="btn btn-outline-secondary">
                 <i class="fas fa-arrow-left me-2"></i>Back to VC-Lens™
             </a>
-            <button type="button" class="btn btn-primary generate-report-btn d-none">
-                <i class="fas fa-file-pdf me-2"></i>Generate Report
-            </button>
         </div>
     </div>
 
     <!-- Main Content -->
     <div class="row">
-        <!-- Assessment Form -->
-        <div class="col-lg-4">
-            <div class="card shadow-sm mb-4">
-                <div class="card-header bg-transparent">
-                    <h5 class="card-title mb-0">Company Information</h5>
-                </div>
+        <!-- Assessment Modules -->
+        <div class="col-md-4 mb-4">
+            <div class="card h-100 shadow-sm">
                 <div class="card-body">
-                    <form id="startup-assessment-form">
-                        <div class="mb-3">
-                            <label for="company-name" class="form-label">Company Name</label>
-                            <input type="text" class="form-control" id="company-name" placeholder="Enter company name">
+                    <div class="d-flex align-items-center mb-3">
+                        <div class="rounded-circle bg-primary p-2 me-3">
+                            <i class="fas fa-clipboard-check text-white"></i>
                         </div>
-                        <div class="mb-3">
-                            <label for="company-sector" class="form-label">Sector</label>
-                            <select class="form-select" id="company-sector">
-                                <option value="">Select sector</option>
-                                <option value="Technology">Technology</option>
-                                <option value="Energy">Energy</option>
-                                <option value="Healthcare">Healthcare</option>
-                                <option value="Manufacturing">Manufacturing</option>
-                                <option value="Consumer">Consumer Goods</option>
-                                <option value="Financial">Financial Services</option>
-                                <option value="Transportation">Transportation</option>
-                            </select>
-                        </div>
-                        <div class="mb-3">
-                            <label for="company-stage" class="form-label">Company Stage</label>
-                            <select class="form-select" id="company-stage">
-                                <option value="">Select stage</option>
-                                <option value="Seed">Seed</option>
-                                <option value="Series A">Series A</option>
-                                <option value="Series B">Series B</option>
-                                <option value="Series C+">Series C+</option>
-                                <option value="Growth">Growth</option>
-                                <option value="Pre-IPO">Pre-IPO</option>
-                            </select>
-                        </div>
-                        <div class="mb-3">
-                            <label for="company-size" class="form-label">Company Size</label>
-                            <select class="form-select" id="company-size">
-                                <option value="">Select size</option>
-                                <option value="1-10">1-10 employees</option>
-                                <option value="11-50">11-50 employees</option>
-                                <option value="51-250">51-250 employees</option>
-                                <option value="251-1000">251-1000 employees</option>
-                                <option value="1000+">1000+ employees</option>
-                            </select>
-                        </div>
-                        <div class="mb-3">
-                            <label for="company-revenue" class="form-label">Annual Revenue (€)</label>
-                            <select class="form-select" id="company-revenue">
-                                <option value="">Select revenue range</option>
-                                <option value="Pre-revenue">Pre-revenue</option>
-                                <option value="<1M">< €1M</option>
-                                <option value="1-5M">€1M - €5M</option>
-                                <option value="5-20M">€5M - €20M</option>
-                                <option value="20-50M">€20M - €50M</option>
-                                <option value="50M+">€50M+</option>
-                            </select>
-                        </div>
-                        <div class="mb-3">
-                            <label class="form-label d-block">Sustainability Focus Areas</label>
-                            <div class="row">
-                                <div class="col-6">
-                                    <div class="form-check mb-2">
-                                        <input class="form-check-input" type="checkbox" value="emissions" id="check-emissions" checked>
-                                        <label class="form-check-label" for="check-emissions">Emissions</label>
-                                    </div>
-                                    <div class="form-check mb-2">
-                                        <input class="form-check-input" type="checkbox" value="energy" id="check-energy" checked>
-                                        <label class="form-check-label" for="check-energy">Energy</label>
-                                    </div>
-                                    <div class="form-check mb-2">
-                                        <input class="form-check-input" type="checkbox" value="water" id="check-water">
-                                        <label class="form-check-label" for="check-water">Water</label>
-                                    </div>
-                                    <div class="form-check mb-2">
-                                        <input class="form-check-input" type="checkbox" value="waste" id="check-waste">
-                                        <label class="form-check-label" for="check-waste">Waste</label>
-                                    </div>
-                                </div>
-                                <div class="col-6">
-                                    <div class="form-check mb-2">
-                                        <input class="form-check-input" type="checkbox" value="diversity" id="check-diversity" checked>
-                                        <label class="form-check-label" for="check-diversity">Diversity</label>
-                                    </div>
-                                    <div class="form-check mb-2">
-                                        <input class="form-check-input" type="checkbox" value="governance" id="check-governance" checked>
-                                        <label class="form-check-label" for="check-governance">Governance</label>
-                                    </div>
-                                    <div class="form-check mb-2">
-                                        <input class="form-check-input" type="checkbox" value="supply" id="check-supply">
-                                        <label class="form-check-label" for="check-supply">Supply Chain</label>
-                                    </div>
-                                    <div class="form-check mb-2">
-                                        <input class="form-check-input" type="checkbox" value="community" id="check-community">
-                                        <label class="form-check-label" for="check-community">Community</label>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-                        <div class="mb-3">
-                            <label class="form-label d-block">Applicable Frameworks</label>
-                            {% for framework in csrd_frameworks %}
-                            <div class="form-check mb-2">
-                                <input class="form-check-input" type="checkbox" value="{{ framework.id }}" id="check-{{ framework.id }}">
-                                <label class="form-check-label" for="check-{{ framework.id }}">
-                                    {{ framework.name }} <span class="text-muted small">({{ framework.description }})</span>
-                                </label>
-                            </div>
-                            {% endfor %}
-                        </div>
-                        <button type="button" id="run-assessment-btn" class="btn btn-primary w-100">
-                            <i class="fas fa-chart-line me-2"></i>Run Assessment
-                        </button>
-                    </form>
+                        <h4 class="card-title mb-0">Foundational Readiness</h4>
+                    </div>
+                    <p class="card-text">Assess startup's alignment with reporting frameworks, disclosure requirements, and baseline ESG metrics.</p>
+                    <ul class="list-unstyled mb-4">
+                        <li class="mb-2"><i class="fas fa-check text-primary me-2"></i>Framework readiness scoring</li>
+                        <li class="mb-2"><i class="fas fa-check text-primary me-2"></i>CSRD/ESRS alignment</li>
+                        <li class="mb-2"><i class="fas fa-check text-primary me-2"></i>Gap analysis & recommendations</li>
+                        <li><i class="fas fa-check text-primary me-2"></i>Regulatory readiness assessment</li>
+                    </ul>
+                    <a href="/vc-lens/startup-assessment/foundational" class="btn btn-primary">
+                        Start Assessment
+                    </a>
                 </div>
             </div>
         </div>
         
-        <!-- Assessment Results -->
-        <div class="col-lg-8">
-            <div id="assessment-results" class="d-none">
-                <!-- Results Tabs -->
-                <ul class="nav nav-tabs mb-4" id="assessmentTabs" role="tablist">
-                    <li class="nav-item" role="presentation">
-                        <button class="nav-link active" id="foundational-tab" data-bs-toggle="tab" data-bs-target="#foundational" type="button" role="tab" aria-controls="foundational" aria-selected="true">
-                            <i class="fas fa-clipboard-check me-2"></i>Foundational Readiness
-                        </button>
-                    </li>
-                    <li class="nav-item" role="presentation">
-                        <button class="nav-link" id="metrics-tab" data-bs-toggle="tab" data-bs-target="#metrics" type="button" role="tab" aria-controls="metrics" aria-selected="false">
-                            <i class="fas fa-chart-line me-2"></i>Forward-Looking Metrics
-                        </button>
-                    </li>
-                    <li class="nav-item" role="presentation">
-                        <button class="nav-link" id="narrative-tab" data-bs-toggle="tab" data-bs-target="#narrative" type="button" role="tab" aria-controls="narrative" aria-selected="false">
-                            <i class="fas fa-comment-alt me-2"></i>Narrative Alignment
-                        </button>
-                    </li>
-                </ul>
-                
-                <div class="tab-content" id="assessmentTabsContent">
-                    <!-- Foundational Readiness Tab -->
-                    <div class="tab-pane fade show active" id="foundational" role="tabpanel" aria-labelledby="foundational-tab">
-                        <div class="card shadow-sm mb-4">
-                            <div class="card-body">
-                                <div class="d-flex align-items-center mb-4">
-                                    <div class="position-relative me-4" style="width: 100px; height: 100px;">
-                                        <canvas id="readiness-score-chart" width="100" height="100"></canvas>
-                                        <div class="position-absolute top-50 start-50 translate-middle text-center">
-                                            <h3 class="mb-0 fw-bold" id="readiness-score-value">0%</h3>
-                                        </div>
-                                    </div>
-                                    <div>
-                                        <h5 class="mb-2">CSRD Readiness Score</h5>
-                                        <p class="mb-0" id="readiness-commentary">Awaiting assessment...</p>
-                                    </div>
-                                </div>
-                                
-                                <h5 class="mb-3">Framework Alignment</h5>
-                                <div class="row mb-4">
-                                    <div class="col-md-6">
-                                        <div class="framework-chart-container">
-                                            <canvas id="framework-alignment-chart"></canvas>
-                                        </div>
-                                    </div>
-                                    <div class="col-md-6">
-                                        <div id="framework-details">
-                                            <!-- Framework details will be populated here -->
-                                        </div>
-                                    </div>
-                                </div>
-                                
-                                <h5 class="mb-3">Key Gaps & Opportunities</h5>
-                                <div class="list-group mb-3" id="gap-list">
-                                    <!-- Gaps will be populated here -->
-                                    <div class="list-group-item d-flex align-items-center placeholder-gap">
-                                        <span class="icon-circle bg-warning text-white me-3">
-                                            <i class="fas fa-exclamation-triangle"></i>
-                                        </span>
-                                        <div>
-                                            <h6 class="mb-1">Awaiting assessment...</h6>
-                                            <p class="mb-0 small">Please run the assessment to identify gaps and opportunities.</p>
-                                        </div>
-                                    </div>
-                                </div>
-                            </div>
+        <div class="col-md-4 mb-4">
+            <div class="card h-100 shadow-sm">
+                <div class="card-body">
+                    <div class="d-flex align-items-center mb-3">
+                        <div class="rounded-circle bg-success p-2 me-3">
+                            <i class="fas fa-chart-line text-white"></i>
                         </div>
+                        <h4 class="card-title mb-0">Forward-Looking Metrics</h4>
                     </div>
-                    
-                    <!-- Forward-Looking Metrics Tab -->
-                    <div class="tab-pane fade" id="metrics" role="tabpanel" aria-labelledby="metrics-tab">
-                        <div class="card shadow-sm mb-4">
-                            <div class="card-header bg-transparent">
-                                <h5 class="card-title mb-0">Carbon Emissions Forecast</h5>
-                            </div>
-                            <div class="card-body">
-                                <div class="carbon-chart-container mb-4" style="height: 300px;">
-                                    <canvas id="carbon-forecast-chart"></canvas>
-                                </div>
-                                <div class="row" id="carbon-details">
-                                    <!-- Carbon details will be populated here -->
-                                </div>
-                            </div>
-                        </div>
-                        
-                        <div class="row mb-4">
-                            <div class="col-md-6">
-                                <div class="card shadow-sm h-100">
-                                    <div class="card-header bg-transparent">
-                                        <h5 class="card-title mb-0">Renewable Energy Growth</h5>
-                                    </div>
-                                    <div class="card-body">
-                                        <div class="renewable-chart-container" style="height: 200px;">
-                                            <canvas id="renewable-growth-chart"></canvas>
-                                        </div>
-                                    </div>
-                                </div>
-                            </div>
-                            <div class="col-md-6">
-                                <div class="card shadow-sm h-100">
-                                    <div class="card-header bg-transparent">
-                                        <h5 class="card-title mb-0">Circular Economy Index</h5>
-                                    </div>
-                                    <div class="card-body">
-                                        <div class="d-flex align-items-center mb-3">
-                                            <div class="position-relative me-4" style="width: 100px; height: 100px;">
-                                                <canvas id="circular-index-chart" width="100" height="100"></canvas>
-                                                <div class="position-absolute top-50 start-50 translate-middle text-center">
-                                                    <h3 class="mb-0 fw-bold" id="circular-index-value">0%</h3>
-                                                </div>
-                                            </div>
-                                            <div>
-                                                <h5 class="mb-2">Circular Index</h5>
-                                                <p class="mb-0 text-muted small">Measures product lifecycle circularity, resource recovery, and waste reduction capabilities.</p>
-                                            </div>
-                                        </div>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-                        
-                        <div class="card shadow-sm">
-                            <div class="card-header bg-transparent">
-                                <h5 class="card-title mb-0">Resource Efficiency Trends</h5>
-                            </div>
-                            <div class="card-body">
-                                <div class="row" id="efficiency-metrics">
-                                    <!-- Efficiency metrics will be populated here -->
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                    
-                    <!-- Narrative Alignment Tab -->
-                    <div class="tab-pane fade" id="narrative" role="tabpanel" aria-labelledby="narrative-tab">
-                        <div class="card shadow-sm mb-4">
-                            <div class="card-header bg-transparent">
-                                <h5 class="card-title mb-0">Sustainability Narrative</h5>
-                            </div>
-                            <div class="card-body">
-                                <div class="row mb-4">
-                                    <div class="col-md-6">
-                                        <h6 class="text-muted small text-uppercase mb-3">SDG Alignment</h6>
-                                        <div class="sdg-icons-container" id="sdg-alignment">
-                                            <!-- SDG icons will be populated here -->
-                                        </div>
-                                    </div>
-                                    <div class="col-md-6">
-                                        <h6 class="text-muted small text-uppercase mb-3">Key Messages</h6>
-                                        <div id="key-messages">
-                                            <!-- Key messages will be populated here -->
-                                        </div>
-                                    </div>
-                                </div>
-                                
-                                <div class="card bg-light border-0 mb-4">
-                                    <div class="card-body">
-                                        <h5 class="card-title mb-3">Investor Impact Story</h5>
-                                        <div id="investor-story">
-                                            <p class="placeholder-text">Run the assessment to generate an investor-focused sustainability narrative...</p>
-                                        </div>
-                                    </div>
-                                </div>
-                                
-                                <h6 class="text-muted small text-uppercase mb-3">Recommended Actions</h6>
-                                <div class="row" id="recommended-actions">
-                                    <!-- Recommended actions will be populated here -->
-                                    <div class="col-md-6 mb-3">
-                                        <div class="card h-100">
-                                            <div class="card-body">
-                                                <div class="d-flex align-items-center mb-3">
-                                                    <span class="icon-circle bg-primary text-white me-3">
-                                                        <i class="fas fa-clipboard-check"></i>
-                                                    </span>
-                                                    <h6 class="mb-0">Run the assessment to get recommendations</h6>
-                                                </div>
-                                                <p class="text-muted small mb-0">Detailed action items will appear here after analysis.</p>
-                                            </div>
-                                        </div>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
+                    <p class="card-text">Project future sustainability performance using predictive modeling and peer benchmarking.</p>
+                    <ul class="list-unstyled mb-4">
+                        <li class="mb-2"><i class="fas fa-check text-success me-2"></i>5-year emissions forecast</li>
+                        <li class="mb-2"><i class="fas fa-check text-success me-2"></i>Resource efficiency modeling</li>
+                        <li class="mb-2"><i class="fas fa-check text-success me-2"></i>Peer group comparison</li>
+                        <li><i class="fas fa-check text-success me-2"></i>Industry-specific benchmarks</li>
+                    </ul>
+                    <a href="/vc-lens/startup-assessment/forward-metrics" class="btn btn-success">
+                        Start Assessment
+                    </a>
                 </div>
             </div>
-            
-            <!-- Initial State (Before Assessment) -->
-            <div id="pre-assessment" class="text-center py-5">
-                <img src="https://via.placeholder.com/150x150?text=Assessment" alt="Assessment" class="mb-4 rounded">
-                <h3>Startup Sustainability Assessment</h3>
-                <p class="text-muted">Fill out the company information and run the assessment to generate a comprehensive sustainability analysis.</p>
-                <div class="mt-4">
-                    <h6 class="mb-3">Analysis includes:</h6>
-                    <div class="row justify-content-center">
-                        <div class="col-md-4">
-                            <div class="card border-0 bg-light mb-3">
-                                <div class="card-body text-center">
-                                    <i class="fas fa-clipboard-check text-primary mb-3" style="font-size: 2rem;"></i>
-                                    <h5>Foundational Readiness</h5>
-                                    <p class="small text-muted">CSRD readiness scoring, framework alignment, and gap analysis</p>
-                                </div>
-                            </div>
+        </div>
+        
+        <div class="col-md-4 mb-4">
+            <div class="card h-100 shadow-sm">
+                <div class="card-body">
+                    <div class="d-flex align-items-center mb-3">
+                        <div class="rounded-circle bg-info p-2 me-3">
+                            <i class="fas fa-comments text-white"></i>
                         </div>
-                        <div class="col-md-4">
-                            <div class="card border-0 bg-light mb-3">
-                                <div class="card-body text-center">
-                                    <i class="fas fa-chart-line text-primary mb-3" style="font-size: 2rem;"></i>
-                                    <h5>Forward Metrics</h5>
-                                    <p class="small text-muted">Carbon forecasting, circular economy index, and resource efficiency</p>
-                                </div>
-                            </div>
+                        <h4 class="card-title mb-0">Narrative Building</h4>
+                    </div>
+                    <p class="card-text">Construct an investor-ready sustainability narrative aligned with your thesis and frameworks.</p>
+                    <ul class="list-unstyled mb-4">
+                        <li class="mb-2"><i class="fas fa-check text-info me-2"></i>SDG mapping & impact metrics</li>
+                        <li class="mb-2"><i class="fas fa-check text-info me-2"></i>EU Taxonomy alignment</li>
+                        <li class="mb-2"><i class="fas fa-check text-info me-2"></i>Key message generation</li>
+                        <li><i class="fas fa-check text-info me-2"></i>Investor-ready storytelling</li>
+                    </ul>
+                    <a href="/vc-lens/startup-assessment/narrative" class="btn btn-info">
+                        Start Assessment
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Full Assessment Section -->
+    <div class="row mt-3">
+        <div class="col-12">
+            <div class="card shadow-sm">
+                <div class="card-body p-4">
+                    <div class="row align-items-center">
+                        <div class="col-md-8">
+                            <h4>Generate Comprehensive Assessment</h4>
+                            <p class="mb-md-0">Create a complete sustainability assessment across all three modules with a single report.</p>
                         </div>
-                        <div class="col-md-4">
-                            <div class="card border-0 bg-light mb-3">
-                                <div class="card-body text-center">
-                                    <i class="fas fa-comment-alt text-primary mb-3" style="font-size: 2rem;"></i>
-                                    <h5>Narrative Alignment</h5>
-                                    <p class="small text-muted">Investor story, SDG mapping, and key sustainability messages</p>
-                                </div>
-                            </div>
+                        <div class="col-md-4 text-md-end">
+                            <button class="btn btn-outline-primary" data-bs-toggle="modal" data-bs-target="#comprehensiveModal">
+                                <i class="fas fa-file-alt me-2"></i>Full Assessment
+                            </button>
                         </div>
                     </div>
                 </div>
             </div>
         </div>
     </div>
+    
+    <!-- Framework Guide Section -->
+    <div class="row mt-5">
+        <div class="col-12">
+            <h3 class="mb-4">Sustainability Framework Guide</h3>
+        </div>
+        
+        {% for framework in csrd_frameworks %}
+        <div class="col-md-6 col-lg-3 mb-4">
+            <div class="card h-100 shadow-sm">
+                <div class="card-header bg-transparent">
+                    <h5 class="card-title mb-0">{{ framework.name }}</h5>
+                </div>
+                <div class="card-body">
+                    <p class="card-text">{{ framework.description }}</p>
+                    <div class="d-grid">
+                        <button class="btn btn-sm btn-outline-secondary" data-bs-toggle="modal" data-bs-target="#frameworkModal{{ framework.id }}">
+                            Learn More
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+        {% endfor %}
+    </div>
 </div>
-{% endblock %}
 
-{% block scripts %}
+<!-- Comprehensive Assessment Modal -->
+<div class="modal fade" id="comprehensiveModal" tabindex="-1" aria-labelledby="comprehensiveModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content bg-dark">
+            <div class="modal-header">
+                <h5 class="modal-title" id="comprehensiveModalLabel">Comprehensive Sustainability Assessment</h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <form id="comprehensive-assessment-form">
+                    <div class="row">
+                        <div class="col-md-6">
+                            <div class="mb-3">
+                                <label for="company_name" class="form-label">Company Name</label>
+                                <input type="text" class="form-control" id="company_name" name="company_name" required>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="mb-3">
+                                <label for="sector" class="form-label">Industry Sector</label>
+                                <select class="form-select" id="sector" name="sector" required>
+                                    <option value="" selected disabled>Select sector</option>
+                                    <option value="Technology">Technology</option>
+                                    <option value="Energy">Energy</option>
+                                    <option value="Manufacturing">Manufacturing</option>
+                                    <option value="Consumer Goods">Consumer Goods</option>
+                                    <option value="Healthcare">Healthcare</option>
+                                    <option value="Financial Services">Financial Services</option>
+                                    <option value="Food & Agriculture">Food & Agriculture</option>
+                                    <option value="Transportation">Transportation</option>
+                                </select>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="row">
+                        <div class="col-md-6">
+                            <div class="mb-3">
+                                <label for="size" class="form-label">Company Size</label>
+                                <select class="form-select" id="size" name="size" required>
+                                    <option value="" selected disabled>Select size</option>
+                                    <option value="Startup (1-50)">Startup (1-50)</option>
+                                    <option value="Small (51-250)">Small (51-250)</option>
+                                    <option value="Medium (251-1000)">Medium (251-1000)</option>
+                                    <option value="Large (1001-5000)">Large (1001-5000)</option>
+                                    <option value="Enterprise (5000+)">Enterprise (5000+)</option>
+                                </select>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="mb-3">
+                                <label for="base_year" class="form-label">Base Year</label>
+                                <input type="number" class="form-control" id="base_year" name="base_year" value="2025">
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="mb-3">
+                        <label class="form-label d-block">Assessment Modules</label>
+                        <div class="form-check form-check-inline">
+                            <input class="form-check-input" type="checkbox" id="module_foundational" name="modules" value="foundational" checked>
+                            <label class="form-check-label" for="module_foundational">Foundational Readiness</label>
+                        </div>
+                        <div class="form-check form-check-inline">
+                            <input class="form-check-input" type="checkbox" id="module_forward" name="modules" value="forward" checked>
+                            <label class="form-check-label" for="module_forward">Forward-Looking Metrics</label>
+                        </div>
+                        <div class="form-check form-check-inline">
+                            <input class="form-check-input" type="checkbox" id="module_narrative" name="modules" value="narrative" checked>
+                            <label class="form-check-label" for="module_narrative">Narrative Building</label>
+                        </div>
+                    </div>
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                <button type="button" class="btn btn-primary" id="generate-comprehensive-btn">
+                    Generate Assessment
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Framework Modals -->
+{% for framework in csrd_frameworks %}
+<div class="modal fade" id="frameworkModal{{ framework.id }}" tabindex="-1" aria-labelledby="frameworkModal{{ framework.id }}Label" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content bg-dark">
+            <div class="modal-header">
+                <h5 class="modal-title" id="frameworkModal{{ framework.id }}Label">{{ framework.name }}</h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <p><strong>{{ framework.description }}</strong></p>
+                
+                {% if framework.id == 'gri' %}
+                <p>The Global Reporting Initiative (GRI) Standards are the world's most widely used sustainability reporting standards. They are designed to help organizations understand and communicate their impacts on the economy, environment, and society.</p>
+                <p>Key components include:</p>
+                <ul>
+                    <li>Universal Standards (GRI 1, 2, 3)</li>
+                    <li>Topic Standards (200 Economic, 300 Environmental, 400 Social)</li>
+                    <li>Sector Standards</li>
+                </ul>
+                <p>Startups typically begin with a materiality assessment to identify which topics are most relevant to their business model and stakeholders.</p>
+                
+                {% elif framework.id == 'sasb' %}
+                <p>The Sustainability Accounting Standards Board (SASB) Standards identify the subset of environmental, social, and governance issues most relevant to financial performance in each of 77 industries.</p>
+                <p>SASB focuses on:</p>
+                <ul>
+                    <li>Industry-specific metrics</li>
+                    <li>Financial materiality</li>
+                    <li>Decision-useful information for investors</li>
+                </ul>
+                <p>SASB is now part of the IFRS Foundation alongside the International Sustainability Standards Board (ISSB).</p>
+                
+                {% elif framework.id == 'tcfd' %}
+                <p>The Task Force on Climate-related Financial Disclosures (TCFD) provides recommendations for more effective climate-related disclosures that could promote more informed investment, credit, and insurance underwriting decisions.</p>
+                <p>TCFD's core elements:</p>
+                <ul>
+                    <li>Governance</li>
+                    <li>Strategy (including scenario analysis)</li>
+                    <li>Risk Management</li>
+                    <li>Metrics and Targets</li>
+                </ul>
+                <p>Many jurisdictions are now mandating TCFD-aligned reporting, including the UK, Switzerland, and New Zealand.</p>
+                
+                {% elif framework.id == 'esrs' %}
+                <p>The European Sustainability Reporting Standards (ESRS) are the reporting standards for the EU's Corporate Sustainability Reporting Directive (CSRD).</p>
+                <p>ESRS includes:</p>
+                <ul>
+                    <li>Cross-cutting standards</li>
+                    <li>Environmental standards (E1-E5)</li>
+                    <li>Social standards (S1-S4)</li>
+                    <li>Governance standards (G1-G2)</li>
+                </ul>
+                <p>CSRD will apply to all large companies and listed SMEs in the EU, as well as non-EU companies with significant EU operations.</p>
+                {% endif %}
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+            </div>
+        </div>
+    </div>
+</div>
+{% endfor %}
+
 <script>
 document.addEventListener('DOMContentLoaded', function() {
-    // DOM elements
-    const runAssessmentBtn = document.getElementById('run-assessment-btn');
-    const preAssessment = document.getElementById('pre-assessment');
-    const assessmentResults = document.getElementById('assessment-results');
-    const generateReportBtn = document.querySelector('.generate-report-btn');
+    // Comprehensive Assessment Button
+    const generateComprehensiveBtn = document.getElementById('generate-comprehensive-btn');
     
-    // Charts
-    let readinessScoreChart = null;
-    let frameworkAlignmentChart = null;
-    let carbonForecastChart = null;
-    let renewableGrowthChart = null;
-    let circularIndexChart = null;
-    
-    // Run Assessment
-    if (runAssessmentBtn) {
-        runAssessmentBtn.addEventListener('click', function() {
-            // Get form data
-            const companyName = document.getElementById('company-name').value || 'Sample Company';
-            const sector = document.getElementById('company-sector').value || 'Technology';
-            
-            // Validate form
-            if (!companyName) {
-                alert('Please enter a company name');
-                return;
-            }
-            
-            // Show loading state
-            runAssessmentBtn.innerHTML = '<span class="spinner-border spinner-border-sm me-2"></span>Analyzing...';
-            runAssessmentBtn.disabled = true;
-            
-            // Make API request to generate assessment
-            fetch('/vc-insights/api/sustainability-assessment', {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                },
-                body: JSON.stringify({
-                    company_name: companyName,
-                    sector: sector
-                }),
-            })
-            .then(response => response.json())
-            .then(data => {
-                // Hide pre-assessment, show results
-                preAssessment.classList.add('d-none');
-                assessmentResults.classList.remove('d-none');
-                generateReportBtn.classList.remove('d-none');
-                
-                // Update Foundational Readiness tab
-                updateFoundationalReadiness(data);
-                
-                // Update Forward-Looking Metrics tab
-                updateForwardMetrics(data);
-                
-                // Update Narrative Alignment tab
-                updateNarrativeAlignment(data);
-                
-                // Reset button state
-                runAssessmentBtn.innerHTML = '<i class="fas fa-chart-line me-2"></i>Run Assessment';
-                runAssessmentBtn.disabled = false;
-            })
-            .catch(error => {
-                console.error('Error:', error);
-                alert('Error generating assessment. Please try again.');
-                
-                // Reset button state
-                runAssessmentBtn.innerHTML = '<i class="fas fa-chart-line me-2"></i>Run Assessment';
-                runAssessmentBtn.disabled = false;
-            });
-        });
-    }
-    
-    function updateFoundationalReadiness(data) {
-        const foundational = data.modules.foundational_readiness;
+    generateComprehensiveBtn.addEventListener('click', function() {
+        const form = document.getElementById('comprehensive-assessment-form');
+        const formData = new FormData(form);
         
-        // Update readiness score
-        const readinessScore = foundational.score;
-        document.getElementById('readiness-score-value').textContent = `${readinessScore}%`;
-        document.getElementById('readiness-commentary').textContent = foundational.maturity_commentary;
-        
-        // Create/update readiness score chart
-        if (readinessScoreChart) {
-            readinessScoreChart.destroy();
+        // Validate form
+        if (!form.checkValidity()) {
+            form.reportValidity();
+            return;
         }
         
-        const ctxReadiness = document.getElementById('readiness-score-chart').getContext('2d');
-        readinessScoreChart = new Chart(ctxReadiness, {
-            type: 'doughnut',
-            data: {
-                datasets: [{
-                    data: [readinessScore, 100 - readinessScore],
-                    backgroundColor: [
-                        '#4CAF50',
-                        '#E0E0E0'
-                    ],
-                    borderWidth: 0
-                }]
-            },
-            options: {
-                cutout: '75%',
-                responsive: true,
-                maintainAspectRatio: true,
-                plugins: {
-                    legend: {
-                        display: false
-                    },
-                    tooltip: {
-                        enabled: false
-                    }
-                }
-            }
-        });
-        
-        // Update framework alignment chart
-        if (frameworkAlignmentChart) {
-            frameworkAlignmentChart.destroy();
+        // Get selected modules
+        const modules = formData.getAll('modules');
+        if (modules.length === 0) {
+            alert('Please select at least one assessment module.');
+            return;
         }
         
-        const ctxFramework = document.getElementById('framework-alignment-chart').getContext('2d');
-        const frameworkLabels = Object.keys(foundational.frameworks).map(key => key.toUpperCase());
-        const frameworkScores = Object.values(foundational.frameworks);
-        
-        frameworkAlignmentChart = new Chart(ctxFramework, {
-            type: 'radar',
-            data: {
-                labels: frameworkLabels,
-                datasets: [{
-                    label: 'Alignment Score',
-                    data: frameworkScores,
-                    fill: true,
-                    backgroundColor: 'rgba(54, 162, 235, 0.2)',
-                    borderColor: 'rgb(54, 162, 235)',
-                    pointBackgroundColor: 'rgb(54, 162, 235)',
-                    pointBorderColor: '#fff',
-                    pointHoverBackgroundColor: '#fff',
-                    pointHoverBorderColor: 'rgb(54, 162, 235)'
-                }]
-            },
-            options: {
-                scales: {
-                    r: {
-                        beginAtZero: true,
-                        max: 100,
-                        ticks: {
-                            stepSize: 20
-                        }
-                    }
-                }
-            }
-        });
-        
-        // Update framework details
-        const frameworkDetails = document.getElementById('framework-details');
-        frameworkDetails.innerHTML = '';
-        
-        Object.entries(foundational.frameworks).forEach(([key, value]) => {
-            const framework = key.toUpperCase();
-            const score = value;
-            let status = 'Needs Improvement';
-            let badgeClass = 'bg-warning';
-            
-            if (score >= 80) {
-                status = 'Excellent';
-                badgeClass = 'bg-success';
-            } else if (score >= 60) {
-                status = 'Good';
-                badgeClass = 'bg-primary';
-            } else if (score >= 40) {
-                status = 'Fair';
-                badgeClass = 'bg-info';
-            }
-            
-            const frameworkItem = document.createElement('div');
-            frameworkItem.className = 'mb-3';
-            frameworkItem.innerHTML = `
-                <div class="d-flex justify-content-between align-items-center mb-1">
-                    <h6 class="mb-0">${framework}</h6>
-                    <span class="badge ${badgeClass}">${status}</span>
-                </div>
-                <div class="progress" style="height: 10px;">
-                    <div class="progress-bar" role="progressbar" style="width: ${score}%;" 
-                        aria-valuenow="${score}" aria-valuemin="0" aria-valuemax="100"></div>
-                </div>
-                <p class="small text-muted mt-1">Alignment score: ${score}%</p>
-            `;
-            
-            frameworkDetails.appendChild(frameworkItem);
-        });
-        
-        // Update gaps list
-        const gapList = document.getElementById('gap-list');
-        gapList.innerHTML = '';
-        
-        foundational.gap_analysis.forEach(gap => {
-            const gapItem = document.createElement('div');
-            gapItem.className = 'list-group-item d-flex align-items-center';
-            gapItem.innerHTML = `
-                <span class="icon-circle bg-warning text-white me-3">
-                    <i class="fas fa-exclamation-triangle"></i>
-                </span>
-                <div>
-                    <h6 class="mb-1">${gap}</h6>
-                    <p class="mb-0 small">Priority improvement area for CSRD compliance</p>
-                </div>
-            `;
-            
-            gapList.appendChild(gapItem);
-        });
-    }
-    
-    function updateForwardMetrics(data) {
-        const forwardMetrics = data.modules.forward_metrics;
-        
-        // Update carbon forecast chart
-        if (carbonForecastChart) {
-            carbonForecastChart.destroy();
-        }
-        
-        const carbonForecast = forwardMetrics.carbon_forecast;
-        const ctxCarbon = document.getElementById('carbon-forecast-chart').getContext('2d');
-        
-        carbonForecastChart = new Chart(ctxCarbon, {
-            type: 'line',
-            data: {
-                labels: ['Current', 'Year 1', 'Year 2', 'Year 3', 'Year 5'],
-                datasets: [{
-                    label: 'Carbon Emissions (tCO₂e)',
-                    data: [
-                        carbonForecast.current_year,
-                        carbonForecast.year_1,
-                        carbonForecast.year_2,
-                        carbonForecast.year_3,
-                        carbonForecast.year_5
-                    ],
-                    fill: false,
-                    borderColor: 'rgb(75, 192, 192)',
-                    tension: 0.1,
-                    pointBackgroundColor: 'rgb(75, 192, 192)',
-                    pointBorderColor: '#fff'
-                }]
-            },
-            options: {
-                responsive: true,
-                maintainAspectRatio: false,
-                scales: {
-                    y: {
-                        beginAtZero: false,
-                        title: {
-                            display: true,
-                            text: 'Emissions (tCO₂e)'
-                        }
-                    },
-                    x: {
-                        title: {
-                            display: true,
-                            text: 'Timeline'
-                        }
-                    }
-                }
-            }
-        });
-        
-        // Update carbon details
-        const carbonDetails = document.getElementById('carbon-details');
-        carbonDetails.innerHTML = '';
-        
-        // Calculate reduction percentage
-        const currentEmissions = carbonForecast.current_year;
-        const year5Emissions = carbonForecast.year_5;
-        const reductionPercent = Math.round((1 - (year5Emissions / currentEmissions)) * 100);
-        
-        const carbonSummary = document.createElement('div');
-        carbonSummary.className = 'col-12 mb-3';
-        carbonSummary.innerHTML = `
-            <div class="alert alert-success">
-                <h5><i class="fas fa-leaf me-2"></i>Projected ${reductionPercent}% Reduction</h5>
-                <p class="mb-0">Based on current sustainability initiatives and industry benchmarks, emissions are 
-                projected to decrease from ${currentEmissions} tCO₂e to ${year5Emissions} tCO₂e over the next 5 years.</p>
-            </div>
-        `;
-        
-        carbonDetails.appendChild(carbonSummary);
-        
-        // Update renewable growth chart
-        if (renewableGrowthChart) {
-            renewableGrowthChart.destroy();
-        }
-        
-        const renewableGrowth = forwardMetrics.renewable_growth;
-        const ctxRenewable = document.getElementById('renewable-growth-chart').getContext('2d');
-        
-        renewableGrowthChart = new Chart(ctxRenewable, {
-            type: 'bar',
-            data: {
-                labels: ['Current', 'Year 5 (Projected)'],
-                datasets: [{
-                    label: 'Renewable Energy (%)',
-                    data: [renewableGrowth.current_year, renewableGrowth.year_5],
-                    backgroundColor: [
-                        'rgba(255, 159, 64, 0.7)',
-                        'rgba(75, 192, 192, 0.7)'
-                    ],
-                    borderColor: [
-                        'rgb(255, 159, 64)',
-                        'rgb(75, 192, 192)'
-                    ],
-                    borderWidth: 1
-                }]
-            },
-            options: {
-                responsive: true,
-                maintainAspectRatio: false,
-                scales: {
-                    y: {
-                        beginAtZero: true,
-                        max: 100,
-                        title: {
-                            display: true,
-                            text: 'Renewable Energy (%)'
-                        }
-                    }
-                }
-            }
-        });
-        
-        // Update circular index chart
-        if (circularIndexChart) {
-            circularIndexChart.destroy();
-        }
-        
-        const circularIndex = forwardMetrics.circular_index;
-        document.getElementById('circular-index-value').textContent = `${circularIndex}%`;
-        
-        const ctxCircular = document.getElementById('circular-index-chart').getContext('2d');
-        circularIndexChart = new Chart(ctxCircular, {
-            type: 'doughnut',
-            data: {
-                datasets: [{
-                    data: [circularIndex, 100 - circularIndex],
-                    backgroundColor: [
-                        '#FF9F40',
-                        '#E0E0E0'
-                    ],
-                    borderWidth: 0
-                }]
-            },
-            options: {
-                cutout: '75%',
-                responsive: true,
-                maintainAspectRatio: true,
-                plugins: {
-                    legend: {
-                        display: false
-                    },
-                    tooltip: {
-                        enabled: false
-                    }
-                }
-            }
-        });
-        
-        // Update efficiency metrics
-        const efficiencyMetrics = document.getElementById('efficiency-metrics');
-        efficiencyMetrics.innerHTML = '';
-        
-        Object.entries(forwardMetrics.efficiency_metrics).forEach(([key, value]) => {
-            const metricName = key.charAt(0).toUpperCase() + key.slice(1);
-            const trend = value.trend;
-            const percentChange = value.percent_change;
-            
-            let trendIcon = 'fa-arrow-up';
-            let trendClass = 'text-success';
-            
-            if (trend === 'declining') {
-                trendIcon = 'fa-arrow-down';
-                trendClass = 'text-danger';
-            } else if (trend === 'stable') {
-                trendIcon = 'fa-equals';
-                trendClass = 'text-warning';
-            }
-            
-            const metricCol = document.createElement('div');
-            metricCol.className = 'col-md-6 mb-3';
-            metricCol.innerHTML = `
-                <div class="card h-100">
-                    <div class="card-body">
-                        <div class="d-flex justify-content-between align-items-center mb-3">
-                            <h5 class="mb-0">${metricName} Efficiency</h5>
-                            <span class="badge bg-light">
-                                <i class="fas ${trendIcon} ${trendClass} me-1"></i>
-                                ${percentChange}%
-                            </span>
-                        </div>
-                        <div class="progress mb-2" style="height: 10px;">
-                            <div class="progress-bar bg-info" role="progressbar" style="width: ${percentChange}%;" 
-                                aria-valuenow="${percentChange}" aria-valuemin="0" aria-valuemax="100"></div>
-                        </div>
-                        <p class="text-muted small mb-0">
-                            ${trend.charAt(0).toUpperCase() + trend.slice(1)} trend showing a ${percentChange}% 
-                            ${trend === 'improving' ? 'improvement' : 'change'} in ${metricName.toLowerCase()} efficiency 
-                            over the next 3 years.
-                        </p>
-                    </div>
-                </div>
-            `;
-            
-            efficiencyMetrics.appendChild(metricCol);
-        });
-    }
-    
-    function updateNarrativeAlignment(data) {
-        const narrative = data.modules.narrative_alignment;
-        
-        // Update SDG alignment
-        const sdgContainer = document.getElementById('sdg-alignment');
-        sdgContainer.innerHTML = '';
-        
-        const sdgRow = document.createElement('div');
-        sdgRow.className = 'row g-2';
-        
-        // Map of SDG numbers to colors
-        const sdgColors = {
-            1: '#E5243B',  // No Poverty
-            2: '#DDA63A',  // Zero Hunger
-            3: '#4C9F38',  // Good Health and Well-being
-            4: '#C5192D',  // Quality Education
-            5: '#FF3A21',  // Gender Equality
-            6: '#26BDE2',  // Clean Water and Sanitation
-            7: '#FCC30B',  // Affordable and Clean Energy
-            8: '#A21942',  // Decent Work and Economic Growth
-            9: '#FD6925',  // Industry, Innovation and Infrastructure
-            10: '#DD1367', // Reduced Inequalities
-            11: '#FD9D24', // Sustainable Cities and Communities
-            12: '#BF8B2E', // Responsible Consumption and Production
-            13: '#3F7E44', // Climate Action
-            14: '#0A97D9', // Life Below Water
-            15: '#56C02B', // Life on Land
-            16: '#00689D', // Peace, Justice and Strong Institutions
-            17: '#19486A'  // Partnerships for the Goals
+        // Prepare data for API
+        const requestData = {
+            company_name: formData.get('company_name'),
+            sector: formData.get('sector'),
+            size: formData.get('size'),
+            base_year: formData.get('base_year'),
+            modules: modules
         };
         
-        narrative.sdg_mapping.forEach(sdg => {
-            const sdgCol = document.createElement('div');
-            sdgCol.className = 'col-3 col-md-2';
-            
-            const color = sdgColors[sdg] || '#777777';
-            
-            sdgCol.innerHTML = `
-                <div class="sdg-icon" style="background-color: ${color};">
-                    <span>${sdg}</span>
-                </div>
-            `;
-            
-            sdgRow.appendChild(sdgCol);
-        });
+        // Show loading
+        generateComprehensiveBtn.innerHTML = '<span class="spinner-border spinner-border-sm me-2" role="status" aria-hidden="true"></span>Generating...';
+        generateComprehensiveBtn.disabled = true;
         
-        sdgContainer.appendChild(sdgRow);
-        
-        // Update key messages
-        const keyMessages = document.getElementById('key-messages');
-        keyMessages.innerHTML = '';
-        
-        const messagesList = document.createElement('ul');
-        messagesList.className = 'list-unstyled';
-        
-        narrative.key_messages.forEach(message => {
-            const messageItem = document.createElement('li');
-            messageItem.className = 'mb-2';
-            messageItem.innerHTML = `
-                <div class="d-flex">
-                    <i class="fas fa-check-circle text-success mt-1 me-2"></i>
-                    <span>${message}</span>
-                </div>
-            `;
-            
-            messagesList.appendChild(messageItem);
-        });
-        
-        keyMessages.appendChild(messagesList);
-        
-        // Update investor story
-        const investorStory = document.getElementById('investor-story');
-        investorStory.innerHTML = `<p>${narrative.investor_story}</p>`;
-        
-        // Update recommended actions
-        const recommendedActions = document.getElementById('recommended-actions');
-        recommendedActions.innerHTML = '';
-        
-        // Sample recommended actions (in a real implementation, these would come from the API)
-        const actions = [
-            {
-                title: 'Enhance CSRD Readiness',
-                description: 'Develop a materiality assessment process and formalize governance oversight of sustainability',
-                icon: 'clipboard-check',
-                color: 'primary'
+        // Call API endpoint
+        fetch('/vc-lens/api/sustainability-assessment', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
             },
-            {
-                title: 'Improve Data Collection',
-                description: 'Implement systematic data collection for Scope 3 emissions and supply chain impacts',
-                icon: 'database',
-                color: 'info'
-            },
-            {
-                title: 'Develop Science-Based Targets',
-                description: 'Set formal science-based targets aligned with 1.5°C pathway',
-                icon: 'bullseye',
-                color: 'success'
-            },
-            {
-                title: 'Enhance Sustainability Reporting',
-                description: 'Publish an annual sustainability report following GRI Standards',
-                icon: 'file-alt',
-                color: 'warning'
-            }
-        ];
-        
-        actions.forEach(action => {
-            const actionCol = document.createElement('div');
-            actionCol.className = 'col-md-6 mb-3';
-            actionCol.innerHTML = `
-                <div class="card h-100">
-                    <div class="card-body">
-                        <div class="d-flex align-items-center mb-3">
-                            <span class="icon-circle bg-${action.color} text-white me-3">
-                                <i class="fas fa-${action.icon}"></i>
-                            </span>
-                            <h6 class="mb-0">${action.title}</h6>
-                        </div>
-                        <p class="text-muted small mb-0">${action.description}</p>
-                    </div>
-                </div>
-            `;
+            body: JSON.stringify(requestData)
+        })
+        .then(response => response.json())
+        .then(data => {
+            // Success - redirect to assessment result page
+            // In a real implementation, this would go to a comprehensive report page
+            alert('Comprehensive assessment generated! (In development)');
+            console.log('Assessment data:', data);
             
-            recommendedActions.appendChild(actionCol);
+            // Reset button
+            generateComprehensiveBtn.innerHTML = 'Generate Assessment';
+            generateComprehensiveBtn.disabled = false;
+            
+            // Close modal
+            const modal = bootstrap.Modal.getInstance(document.getElementById('comprehensiveModal'));
+            modal.hide();
+        })
+        .catch(error => {
+            console.error('Error generating assessment:', error);
+            generateComprehensiveBtn.innerHTML = 'Generate Assessment';
+            generateComprehensiveBtn.disabled = false;
+            alert('Error generating assessment. Please try again later.');
         });
-    }
-    
-    // Generate Report button
-    if (generateReportBtn) {
-        generateReportBtn.addEventListener('click', function() {
-            alert('Report generation feature will be available in the next release.');
-        });
-    }
+    });
 });
 </script>
-
-<style>
-.icon-circle {
-    width: 36px;
-    height: 36px;
-    border-radius: 50%;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    font-size: 0.875rem;
-}
-
-.framework-chart-container {
-    height: 300px;
-    position: relative;
-}
-
-.sdg-icon {
-    width: 100%;
-    padding-top: 100%; /* Creates a square */
-    border-radius: 8px;
-    position: relative;
-    color: white;
-    font-weight: bold;
-    margin-bottom: 10px;
-}
-
-.sdg-icon span {
-    position: absolute;
-    top: 50%;
-    left: 50%;
-    transform: translate(-50%, -50%);
-    font-size: 1.2rem;
-}
-
-.placeholder-text {
-    color: #999;
-    font-style: italic;
-}
-
-#assessment-results {
-    animation: fadeIn 0.5s ease-in-out;
-}
-
-@keyframes fadeIn {
-    from { opacity: 0; }
-    to { opacity: 1; }
-}
-</style>
 {% endblock %}

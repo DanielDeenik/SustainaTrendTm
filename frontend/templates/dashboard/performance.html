@@ -1,0 +1,253 @@
+{% extends "layouts/finchat_dark_layout.html" %}
+
+{% set active_nav = 'performance' %}
+
+{% block header_title %}Sustainability Performance{% endblock %}
+
+{% block main_content %}
+<div class="finchat-card">
+    <div class="finchat-card-header">
+        <h2>Sustainability Performance Metrics</h2>
+        <div class="finchat-card-actions">
+            <button class="finchat-button-secondary">
+                <i class="fas fa-download"></i> Export
+            </button>
+            <button class="finchat-button-primary">
+                <i class="fas fa-sync"></i> Refresh
+            </button>
+        </div>
+    </div>
+    
+    <div class="finchat-card-content">
+        <div class="finchat-grid-4">
+            <div class="finchat-metric-card">
+                <div class="finchat-metric-icon">
+                    <i class="fas fa-smog"></i>
+                </div>
+                <div class="finchat-metric-content">
+                    <div class="finchat-metric-title">Carbon Emissions</div>
+                    <div class="finchat-metric-value">78.5</div>
+                    <div class="finchat-metric-unit">tonnes CO<sub>2</sub>e</div>
+                    <div class="finchat-metric-change decrease">
+                        <i class="fas fa-caret-down"></i> 12.3%
+                    </div>
+                </div>
+            </div>
+            
+            <div class="finchat-metric-card">
+                <div class="finchat-metric-icon">
+                    <i class="fas fa-bolt"></i>
+                </div>
+                <div class="finchat-metric-content">
+                    <div class="finchat-metric-title">Energy Consumption</div>
+                    <div class="finchat-metric-value">342</div>
+                    <div class="finchat-metric-unit">MWh</div>
+                    <div class="finchat-metric-change decrease">
+                        <i class="fas fa-caret-down"></i> 8.7%
+                    </div>
+                </div>
+            </div>
+            
+            <div class="finchat-metric-card">
+                <div class="finchat-metric-icon">
+                    <i class="fas fa-tint"></i>
+                </div>
+                <div class="finchat-metric-content">
+                    <div class="finchat-metric-title">Water Usage</div>
+                    <div class="finchat-metric-value">1.28</div>
+                    <div class="finchat-metric-unit">million L</div>
+                    <div class="finchat-metric-change decrease">
+                        <i class="fas fa-caret-down"></i> 4.2%
+                    </div>
+                </div>
+            </div>
+            
+            <div class="finchat-metric-card">
+                <div class="finchat-metric-icon">
+                    <i class="fas fa-trash"></i>
+                </div>
+                <div class="finchat-metric-content">
+                    <div class="finchat-metric-title">Waste Generated</div>
+                    <div class="finchat-metric-value">56.3</div>
+                    <div class="finchat-metric-unit">tonnes</div>
+                    <div class="finchat-metric-change decrease">
+                        <i class="fas fa-caret-down"></i> 15.8%
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="finchat-card">
+    <div class="finchat-card-header">
+        <h3>Performance Against Targets</h3>
+    </div>
+    <div class="finchat-card-content">
+        <div class="finchat-grid-3">
+            <div class="finchat-progress-card">
+                <div class="finchat-progress-title">Carbon Neutrality</div>
+                <div class="finchat-progress-bar">
+                    <div class="finchat-progress-fill" style="width: 68%;"></div>
+                </div>
+                <div class="finchat-progress-stats">
+                    <div class="finchat-progress-value">68%</div>
+                    <div class="finchat-progress-target">Target: 2030</div>
+                </div>
+            </div>
+            
+            <div class="finchat-progress-card">
+                <div class="finchat-progress-title">Renewable Energy</div>
+                <div class="finchat-progress-bar">
+                    <div class="finchat-progress-fill" style="width: 42%;"></div>
+                </div>
+                <div class="finchat-progress-stats">
+                    <div class="finchat-progress-value">42%</div>
+                    <div class="finchat-progress-target">Target: 100%</div>
+                </div>
+            </div>
+            
+            <div class="finchat-progress-card">
+                <div class="finchat-progress-title">Zero Waste</div>
+                <div class="finchat-progress-bar">
+                    <div class="finchat-progress-fill" style="width: 35%;"></div>
+                </div>
+                <div class="finchat-progress-stats">
+                    <div class="finchat-progress-value">35%</div>
+                    <div class="finchat-progress-target">Target: 2035</div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="finchat-grid-2">
+    <div class="finchat-card">
+        <div class="finchat-card-header">
+            <h3>Performance by Business Unit</h3>
+        </div>
+        <div class="finchat-card-content">
+            <div class="finchat-chart-container">
+                <canvas id="businessUnitChart"></canvas>
+            </div>
+        </div>
+    </div>
+    
+    <div class="finchat-card">
+        <div class="finchat-card-header">
+            <h3>Year-over-Year Comparison</h3>
+        </div>
+        <div class="finchat-card-content">
+            <div class="finchat-chart-container">
+                <canvas id="yoyComparisonChart"></canvas>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block insights_panel %}
+<div class="finchat-insights-header">
+    <h3>Performance Insights</h3>
+    <button class="finchat-button-icon" id="closeInsights">
+        <i class="fas fa-times"></i>
+    </button>
+</div>
+
+<div class="finchat-insights-content">
+    <div class="finchat-insight-item">
+        <div class="finchat-insight-icon">
+            <i class="fas fa-lightbulb"></i>
+        </div>
+        <div class="finchat-insight-content">
+            <h4>Carbon Reduction</h4>
+            <p>Your carbon emissions have decreased by 12.3% compared to last year. This puts you on track to meet your 2030 carbon neutrality goal.</p>
+        </div>
+    </div>
+    
+    <div class="finchat-insight-item">
+        <div class="finchat-insight-icon">
+            <i class="fas fa-chart-line"></i>
+        </div>
+        <div class="finchat-insight-content">
+            <h4>Performance Trend</h4>
+            <p>All sustainability metrics show consistent improvement over the past 3 years, with waste reduction showing the strongest performance.</p>
+        </div>
+    </div>
+    
+    <div class="finchat-insight-item">
+        <div class="finchat-insight-icon">
+            <i class="fas fa-bullseye"></i>
+        </div>
+        <div class="finchat-insight-content">
+            <h4>Target Achievement</h4>
+            <p>At current rates, you'll reach carbon neutrality by 2029, one year ahead of your target date.</p>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block additional_scripts %}
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        // Business Unit Chart
+        const businessUnitCtx = document.getElementById('businessUnitChart').getContext('2d');
+        const businessUnitChart = new Chart(businessUnitCtx, {
+            type: 'bar',
+            data: {
+                labels: ['Manufacturing', 'Distribution', 'Corporate', 'R&D', 'Retail'],
+                datasets: [{
+                    label: 'Carbon Emissions (tCO2e)',
+                    data: [32.5, 18.7, 7.8, 5.2, 14.3],
+                    backgroundColor: 'rgba(76, 175, 80, 0.7)',
+                    borderColor: 'rgba(76, 175, 80, 1)',
+                    borderWidth: 1
+                }, {
+                    label: 'Energy Use (MWh)',
+                    data: [145, 85, 42, 30, 40],
+                    backgroundColor: 'rgba(33, 150, 243, 0.7)',
+                    borderColor: 'rgba(33, 150, 243, 1)',
+                    borderWidth: 1
+                }]
+            },
+            options: {
+                scales: {
+                    y: {
+                        beginAtZero: true
+                    }
+                }
+            }
+        });
+        
+        // Year-over-Year Comparison Chart
+        const yoyCtx = document.getElementById('yoyComparisonChart').getContext('2d');
+        const yoyChart = new Chart(yoyCtx, {
+            type: 'bar',
+            data: {
+                labels: ['Carbon', 'Energy', 'Water', 'Waste'],
+                datasets: [{
+                    label: '2023',
+                    data: [89.5, 375, 1.34, 67.2],
+                    backgroundColor: 'rgba(156, 39, 176, 0.7)',
+                    borderColor: 'rgba(156, 39, 176, 1)',
+                    borderWidth: 1
+                }, {
+                    label: '2024',
+                    data: [78.5, 342, 1.28, 56.3],
+                    backgroundColor: 'rgba(76, 175, 80, 0.7)',
+                    borderColor: 'rgba(76, 175, 80, 1)',
+                    borderWidth: 1
+                }]
+            },
+            options: {
+                scales: {
+                    y: {
+                        beginAtZero: false
+                    }
+                }
+            }
+        });
+    });
+</script>
+{% endblock %}

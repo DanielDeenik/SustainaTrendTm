@@ -1,0 +1,477 @@
+{% extends "layouts/finchat_dark_layout.html" %}
+
+{% block title %}Narrative Alignment Assessment - VC-Lens™{% endblock %}
+
+{% block content %}
+<div class="container-fluid px-4 py-5">
+    <!-- Header Section -->
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <div>
+            <h1 class="h2 mb-1">Narrative Alignment Assessment</h1>
+            <p class="text-muted">Align startup narrative with sustainability frameworks and impact metrics</p>
+        </div>
+        <div>
+            <a href="/vc-lens/startup-assessment" class="btn btn-outline-secondary me-2">
+                <i class="fas fa-arrow-left me-2"></i>Back to Assessment
+            </a>
+            <button type="button" class="btn btn-primary generate-report-btn d-none">
+                <i class="fas fa-file-pdf me-2"></i>Generate Report
+            </button>
+        </div>
+    </div>
+
+    <!-- Main Content -->
+    <div class="row">
+        <!-- Assessment Form -->
+        <div class="col-lg-4">
+            <div class="card shadow-sm mb-4">
+                <div class="card-header bg-transparent">
+                    <h5 class="card-title mb-0">Company Information</h5>
+                </div>
+                <div class="card-body">
+                    <form id="narrative-alignment-form">
+                        <div class="mb-3">
+                            <label for="company_name" class="form-label">Company Name</label>
+                            <input type="text" class="form-control" id="company_name" name="company_name" placeholder="Enter company name" required>
+                        </div>
+                        <div class="mb-3">
+                            <label for="sector" class="form-label">Industry Sector</label>
+                            <select class="form-select" id="sector" name="sector" required>
+                                <option value="" selected disabled>Select sector</option>
+                                <option value="Technology">Technology</option>
+                                <option value="Energy">Energy</option>
+                                <option value="Manufacturing">Manufacturing</option>
+                                <option value="Consumer Goods">Consumer Goods</option>
+                                <option value="Healthcare">Healthcare</option>
+                                <option value="Financial Services">Financial Services</option>
+                                <option value="Food & Agriculture">Food & Agriculture</option>
+                                <option value="Transportation">Transportation</option>
+                                <option value="Chemicals">Chemicals</option>
+                                <option value="Construction">Construction</option>
+                                <option value="Retail">Retail</option>
+                                <option value="Media & Entertainment">Media & Entertainment</option>
+                            </select>
+                        </div>
+                        <div class="mb-3">
+                            <label for="size" class="form-label">Company Size</label>
+                            <select class="form-select" id="size" name="size" required>
+                                <option value="" selected disabled>Select size</option>
+                                <option value="Startup (1-50)">Startup (1-50)</option>
+                                <option value="Small (51-250)">Small (51-250)</option>
+                                <option value="Medium (251-1000)">Medium (251-1000)</option>
+                                <option value="Large (1001-5000)">Large (1001-5000)</option>
+                                <option value="Enterprise (5000+)">Enterprise (5000+)</option>
+                            </select>
+                        </div>
+                        
+                        <div class="mb-3">
+                            <label for="thesis" class="form-label">Investment Thesis (Optional)</label>
+                            <textarea class="form-control" id="thesis" name="thesis" rows="3" placeholder="Enter your fund's investment thesis or sustainability focus"></textarea>
+                            <div class="form-text small">This helps align the narrative with your investment goals</div>
+                        </div>
+                        
+                        <div class="mb-3">
+                            <label class="form-label">Sustainable Development Goals (SDGs)</label>
+                            <div class="form-text mb-2">Select SDGs that align with the company's mission</div>
+                            
+                            <div class="row">
+                                {% for sdg in sdgs %}
+                                <div class="col-md-6">
+                                    <div class="form-check mb-2">
+                                        <input class="form-check-input" type="checkbox" value="{{ sdg.id }}" id="sdg_{{ sdg.id }}" name="sdgs">
+                                        <label class="form-check-label" for="sdg_{{ sdg.id }}">
+                                            {{ sdg.id }}. {{ sdg.name }}
+                                        </label>
+                                    </div>
+                                </div>
+                                {% endfor %}
+                            </div>
+                        </div>
+                        
+                        <button type="submit" class="btn btn-primary w-100">
+                            Generate Narrative
+                        </button>
+                    </form>
+                </div>
+            </div>
+            
+            <div class="card shadow-sm mb-4 d-none" id="impact-metrics-card">
+                <div class="card-header bg-transparent">
+                    <h5 class="card-title mb-0">Impact Metrics</h5>
+                </div>
+                <div class="card-body p-0">
+                    <div class="list-group list-group-flush" id="impact-metrics-list">
+                        <!-- Impact metrics will be loaded here -->
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Assessment Results -->
+        <div class="col-lg-8">
+            <div class="card shadow-sm mb-4 d-none" id="narrative-results-card">
+                <div class="card-header bg-transparent d-flex justify-content-between align-items-center">
+                    <h5 class="card-title mb-0">Sustainability Narrative</h5>
+                    <div>
+                        <button type="button" class="btn btn-sm btn-outline-primary copy-story-btn">
+                            <i class="fas fa-copy me-1"></i>Copy
+                        </button>
+                    </div>
+                </div>
+                <div class="card-body">
+                    <div class="investor-story-container bg-dark p-4 rounded mb-4">
+                        <h6 class="text-muted small text-uppercase mb-3">Investor Story</h6>
+                        <p class="mb-0" id="investor-story">
+                            <!-- Investor story will be loaded here -->
+                        </p>
+                    </div>
+                    
+                    <div class="row">
+                        <div class="col-md-7">
+                            <h6 class="fw-bold mb-3">Key Sustainability Messages</h6>
+                            <div class="list-group" id="key-messages-list">
+                                <!-- Key messages will be loaded here -->
+                            </div>
+                            
+                            <h6 class="fw-bold mb-3 mt-4">SDG Alignment</h6>
+                            <div class="sdg-badges mb-4" id="sdg-badges">
+                                <!-- SDG badges will be loaded here -->
+                            </div>
+                        </div>
+                        <div class="col-md-5">
+                            <h6 class="fw-bold mb-3">EU Taxonomy Alignment</h6>
+                            <div class="card bg-dark mb-3">
+                                <div class="card-body p-3">
+                                    <div class="mb-3">
+                                        <div class="d-flex justify-content-between mb-1">
+                                            <small>Revenue Eligible</small>
+                                            <small id="revenue-eligible-value">0%</small>
+                                        </div>
+                                        <div class="progress" style="height: 8px;">
+                                            <div class="progress-bar bg-primary" id="revenue-eligible-bar" role="progressbar" style="width: 0%"></div>
+                                        </div>
+                                    </div>
+                                    <div class="mb-3">
+                                        <div class="d-flex justify-content-between mb-1">
+                                            <small>Revenue Aligned</small>
+                                            <small id="revenue-aligned-value">0%</small>
+                                        </div>
+                                        <div class="progress" style="height: 8px;">
+                                            <div class="progress-bar bg-success" id="revenue-aligned-bar" role="progressbar" style="width: 0%"></div>
+                                        </div>
+                                    </div>
+                                    <div class="mb-3">
+                                        <div class="d-flex justify-content-between mb-1">
+                                            <small>CapEx Eligible</small>
+                                            <small id="capex-eligible-value">0%</small>
+                                        </div>
+                                        <div class="progress" style="height: 8px;">
+                                            <div class="progress-bar bg-primary" id="capex-eligible-bar" role="progressbar" style="width: 0%"></div>
+                                        </div>
+                                    </div>
+                                    <div>
+                                        <div class="d-flex justify-content-between mb-1">
+                                            <small>CapEx Aligned</small>
+                                            <small id="capex-aligned-value">0%</small>
+                                        </div>
+                                        <div class="progress" style="height: 8px;">
+                                            <div class="progress-bar bg-success" id="capex-aligned-bar" role="progressbar" style="width: 0%"></div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            <div id="taxonomy-assessment" class="small"></div>
+                        </div>
+                    </div>
+                    
+                    <hr class="my-4">
+                    
+                    <div class="row mt-4">
+                        <div class="col-md-7">
+                            <h6 class="fw-bold mb-3">Sentiment Analysis</h6>
+                            <div class="chart-container" style="position: relative; height:180px;">
+                                <canvas id="sentiment-chart"></canvas>
+                            </div>
+                        </div>
+                        <div class="col-md-5 d-flex align-items-center">
+                            <div class="sentiment-details w-100">
+                                <div class="d-flex justify-content-between mb-2">
+                                    <div>Positive</div>
+                                    <div class="text-success fw-bold" id="sentiment-positive">0%</div>
+                                </div>
+                                <div class="d-flex justify-content-between mb-2">
+                                    <div>Neutral</div>
+                                    <div class="text-muted fw-bold" id="sentiment-neutral">0%</div>
+                                </div>
+                                <div class="d-flex justify-content-between mb-2">
+                                    <div>Negative</div>
+                                    <div class="text-danger fw-bold" id="sentiment-negative">0%</div>
+                                </div>
+                                <div class="d-flex justify-content-between">
+                                    <div>Trend</div>
+                                    <div class="fw-bold" id="sentiment-trend">-</div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="card shadow-sm mb-4" id="loading-card">
+                <div class="card-body text-center py-5">
+                    <div class="spinner-border text-primary mb-3" role="status">
+                        <span class="visually-hidden">Loading...</span>
+                    </div>
+                    <h5 class="text-muted">Enter company information and select SDGs to begin assessment</h5>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- JavaScript for Assessment -->
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // Elements
+    const narrativeForm = document.getElementById('narrative-alignment-form');
+    const loadingCard = document.getElementById('loading-card');
+    const narrativeResultsCard = document.getElementById('narrative-results-card');
+    const impactMetricsCard = document.getElementById('impact-metrics-card');
+    const investorStoryEl = document.getElementById('investor-story');
+    const keyMessagesList = document.getElementById('key-messages-list');
+    const sdgBadges = document.getElementById('sdg-badges');
+    const impactMetricsList = document.getElementById('impact-metrics-list');
+    
+    // EU Taxonomy elements
+    const revenueEligibleBar = document.getElementById('revenue-eligible-bar');
+    const revenueEligibleValue = document.getElementById('revenue-eligible-value');
+    const revenueAlignedBar = document.getElementById('revenue-aligned-bar');
+    const revenueAlignedValue = document.getElementById('revenue-aligned-value');
+    const capexEligibleBar = document.getElementById('capex-eligible-bar');
+    const capexEligibleValue = document.getElementById('capex-eligible-value');
+    const capexAlignedBar = document.getElementById('capex-aligned-bar');
+    const capexAlignedValue = document.getElementById('capex-aligned-value');
+    const taxonomyAssessment = document.getElementById('taxonomy-assessment');
+    
+    // Sentiment elements
+    const sentimentPositive = document.getElementById('sentiment-positive');
+    const sentimentNeutral = document.getElementById('sentiment-neutral');
+    const sentimentNegative = document.getElementById('sentiment-negative');
+    const sentimentTrend = document.getElementById('sentiment-trend');
+    
+    // Charts
+    let sentimentChart = null;
+    
+    // Initialize sentiment chart
+    function initializeSentimentChart(sentimentData) {
+        // Chart data
+        const data = {
+            labels: ['Positive', 'Neutral', 'Negative'],
+            datasets: [{
+                data: [sentimentData.positive, sentimentData.neutral, sentimentData.negative],
+                backgroundColor: ['#3dd598', '#a0a0a0', '#ff6b81'],
+                borderWidth: 0
+            }]
+        };
+        
+        // Create the chart
+        const ctx = document.getElementById('sentiment-chart').getContext('2d');
+        
+        if (sentimentChart) {
+            sentimentChart.destroy();
+        }
+        
+        sentimentChart = new Chart(ctx, {
+            type: 'doughnut',
+            data: data,
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                cutout: '70%',
+                plugins: {
+                    legend: {
+                        display: false
+                    }
+                }
+            }
+        });
+        
+        // Update sentiment values
+        sentimentPositive.textContent = sentimentData.positive + '%';
+        sentimentNeutral.textContent = sentimentData.neutral + '%';
+        sentimentNegative.textContent = sentimentData.negative + '%';
+        
+        // Update trend
+        if (sentimentData.trending === 'up') {
+            sentimentTrend.innerHTML = '<i class="fas fa-arrow-up text-success me-1"></i> Improving';
+            sentimentTrend.className = 'fw-bold text-success';
+        } else if (sentimentData.trending === 'down') {
+            sentimentTrend.innerHTML = '<i class="fas fa-arrow-down text-danger me-1"></i> Declining';
+            sentimentTrend.className = 'fw-bold text-danger';
+        } else {
+            sentimentTrend.innerHTML = '<i class="fas fa-minus text-muted me-1"></i> Stable';
+            sentimentTrend.className = 'fw-bold text-muted';
+        }
+    }
+    
+    // Update EU Taxonomy visualization
+    function updateEUTaxonomy(taxonomyData) {
+        // Update bars and values
+        revenueEligibleBar.style.width = taxonomyData.revenue_eligible + '%';
+        revenueEligibleValue.textContent = taxonomyData.revenue_eligible + '%';
+        
+        revenueAlignedBar.style.width = taxonomyData.revenue_aligned + '%';
+        revenueAlignedValue.textContent = taxonomyData.revenue_aligned + '%';
+        
+        capexEligibleBar.style.width = taxonomyData.capex_eligible + '%';
+        capexEligibleValue.textContent = taxonomyData.capex_eligible + '%';
+        
+        capexAlignedBar.style.width = taxonomyData.capex_aligned + '%';
+        capexAlignedValue.textContent = taxonomyData.capex_aligned + '%';
+        
+        // Update assessment
+        taxonomyAssessment.innerHTML = `
+            <div class="alert ${taxonomyData.revenue_aligned > 50 ? 'alert-success' : taxonomyData.revenue_aligned > 25 ? 'alert-warning' : 'alert-danger'} py-2 px-3">
+                <div class="fw-bold">${taxonomyData.assessment}</div>
+                <div>${taxonomyData.recommendation}</div>
+            </div>
+        `;
+    }
+    
+    // Form Submission
+    narrativeForm.addEventListener('submit', function(e) {
+        e.preventDefault();
+        
+        // Show loading state
+        loadingCard.innerHTML = `
+            <div class="card-body text-center py-5">
+                <div class="spinner-border text-primary mb-3" role="status">
+                    <span class="visually-hidden">Loading...</span>
+                </div>
+                <h5 class="text-muted">Generating sustainability narrative...</h5>
+                <p class="text-muted small">This may take a few moments</p>
+            </div>
+        `;
+        
+        // Get form data
+        const formData = new FormData(narrativeForm);
+        const company_name = formData.get('company_name');
+        const sector = formData.get('sector');
+        const size = formData.get('size');
+        const thesis = formData.get('thesis');
+        const sdgs = formData.getAll('sdgs').map(sdg => parseInt(sdg));
+        
+        // Prepare request data
+        const requestData = {
+            company_name,
+            sector,
+            size,
+            thesis,
+            sdgs
+        };
+        
+        // Send API request
+        fetch('/vc-lens/api/assessment/narrative', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify(requestData)
+        })
+        .then(response => response.json())
+        .then(data => {
+            // Show results
+            loadingCard.classList.add('d-none');
+            narrativeResultsCard.classList.remove('d-none');
+            impactMetricsCard.classList.remove('d-none');
+            
+            // Update investor story
+            investorStoryEl.textContent = data.investor_story;
+            
+            // Update key messages
+            keyMessagesList.innerHTML = '';
+            data.key_messages.forEach(message => {
+                keyMessagesList.innerHTML += `
+                    <div class="list-group-item bg-dark border-light">
+                        <i class="fas fa-check-circle text-primary me-2"></i>
+                        ${message}
+                    </div>
+                `;
+            });
+            
+            // Update SDG badges
+            sdgBadges.innerHTML = '';
+            data.sdg_mapping.forEach(sdgId => {
+                const sdgName = document.querySelector(`label[for="sdg_${sdgId}"]`).textContent.trim();
+                sdgBadges.innerHTML += `
+                    <span class="badge bg-primary mb-2 me-2 p-2">
+                        <i class="fas fa-globe-americas me-1"></i>
+                        SDG ${sdgId}: ${sdgName.split('. ')[1]}
+                    </span>
+                `;
+            });
+            
+            // Update impact metrics
+            impactMetricsList.innerHTML = '';
+            data.impact_metrics.forEach(metric => {
+                let icon;
+                if (metric.sdg === 'sector') {
+                    icon = 'fa-building';
+                } else {
+                    icon = 'fa-bullseye';
+                }
+                
+                impactMetricsList.innerHTML += `
+                    <div class="list-group-item bg-dark border-light d-flex justify-content-between align-items-center">
+                        <div>
+                            <i class="fas ${icon} text-primary me-2"></i>
+                            ${metric.metric}
+                        </div>
+                        <div class="badge bg-primary">${metric.value}</div>
+                    </div>
+                `;
+            });
+            
+            // Update EU Taxonomy visualization
+            updateEUTaxonomy(data.eu_taxonomy_alignment);
+            
+            // Initialize sentiment chart
+            initializeSentimentChart(data.sentiment_analysis);
+            
+            // Show generate report button
+            document.querySelector('.generate-report-btn').classList.remove('d-none');
+        })
+        .catch(error => {
+            console.error('Error:', error);
+            loadingCard.innerHTML = `
+                <div class="card-body text-center py-5">
+                    <i class="fas fa-exclamation-circle text-danger fa-3x mb-3"></i>
+                    <h5 class="text-danger">Error generating narrative</h5>
+                    <p class="text-muted">Please try again later</p>
+                    <button class="btn btn-outline-primary mt-2" onclick="location.reload()">
+                        <i class="fas fa-redo me-2"></i>Reload Page
+                    </button>
+                </div>
+            `;
+        });
+    });
+    
+    // Copy investor story
+    document.querySelector('.copy-story-btn').addEventListener('click', function() {
+        const story = investorStoryEl.textContent;
+        navigator.clipboard.writeText(story).then(() => {
+            this.innerHTML = '<i class="fas fa-check me-1"></i>Copied!';
+            setTimeout(() => {
+                this.innerHTML = '<i class="fas fa-copy me-1"></i>Copy';
+            }, 2000);
+        });
+    });
+    
+    // Generate report button
+    document.querySelector('.generate-report-btn').addEventListener('click', function() {
+        alert('Report generation feature is in development. This will allow you to export this narrative as a PDF.');
+    });
+});
+</script>
+{% endblock %}

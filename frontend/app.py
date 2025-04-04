@@ -1,166 +1,44 @@
 """
-SustainaTrend Intelligence Platform - Application Factory
+SustainaTrend Intelligence Platform - Frontend Entry Point (Transitional)
 
-This file serves as the main entry point for the Flask application with a clean,
-modular blueprint-based architecture.
+This file is being maintained for backward compatibility and redirects
+to the consolidated_app.py implementation.
 """
+import os
+import sys
 import logging
+
+# Setup logging
+logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
 
-import os
-import logging
-from flask import Flask, request, g
-from logging.config import dictConfig
+# Add parent directory to path so we can import consolidated_app
+sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
 
-# Configure logging
-def configure_logging():
-    """Configure logging for the application"""
-    dictConfig({
-        'version': 1,
-        'formatters': {
-            'default': {
-                'format': '[%(asctime)s] %(levelname)s in %(module)s: %(message)s',
-            }
-        },
-        'handlers': {
-            'console': {
-                'class': 'logging.StreamHandler',
-                'level': 'INFO',
-                'formatter': 'default',
-                'stream': 'ext://sys.stdout',
-            },
-            'file': {
-                'class': 'logging.FileHandler',
-                'level': 'INFO',
-                'formatter': 'default',
-                'filename': 'app.log',
-            }
-        },
-        'root': {
-            'level': 'INFO',
-            'handlers': ['console', 'file']
-        }
-    })
+try:
+    # Import the functions from consolidated_app
+    from consolidated_app import create_app as consolidated_create_app
+    logger.info("Successfully imported consolidated_app")
+except ImportError as e:
+    logger.error(f"Failed to import consolidated_app: {e}")
+    raise
+
+# Import Flask for typing information
+import flask
+from flask import Flask
 
 def create_app(test_config=None):
     """
-    Create and configure the Flask application
+    Simply passes through to consolidated_app.create_app
     
     Args:
         test_config: Configuration dictionary for testing (optional)
         
     Returns:
-        Flask application instance
+        Flask application instance from consolidated_app
     """
-    # Configure logging
-    configure_logging()
-    
-    # Create Flask application
-    app = Flask(__name__)
-    
-    # Configure the application
-    app.config.from_mapping(
-        SECRET_KEY=os.environ.get('SECRET_KEY', 'dev'),
-        DEBUG=os.environ.get('FLASK_ENV', 'development') == 'development',
-        # Replit specific configurations
-        SERVER_NAME=None,  # Set to None to handle Replit's proxy
-        PREFERRED_URL_SCHEME='https',
-        APPLICATION_ROOT='/',
-    )
-    
-    # Replit-specific configuration for proxy
-    if os.environ.get('REPLIT_ENVIRONMENT') == 'true':
-        from werkzeug.middleware.proxy_fix import ProxyFix
-        app.wsgi_app = ProxyFix(
-            app.wsgi_app, x_for=1, x_proto=1, x_host=1, x_prefix=1
-        )
-        app.logger.info("Configured ProxyFix middleware for Replit environment")
-    
-    if test_config:
-        app.config.update(test_config)
-    
-    # Initialize the application
-    @app.before_request
-    def before_request():
-        """Execute before each request"""
-        g.theme = request.cookies.get('theme', 'dark')
-    
-    # Register template context processors
-    @app.context_processor
-    def inject_api_status():
-        """Inject API status into all templates"""
-        from direct_app import get_api_status
-        return {"api_status": get_api_status()}
-    
-    @app.context_processor
-    def inject_theme_preference():
-        """Inject theme preference into all templates"""
-        return {"theme": g.get('theme', 'dark')}
-    
-    # Add custom template filters
-    @app.template_filter('date')
-    def date_filter(value, format='%Y-%m-%d'):
-        """Format a date according to the given format"""
-        if value is None:
-            return ""
-        if isinstance(value, str):
-            # Try to parse the string to a datetime if needed
-            from datetime import datetime
-            try:
-                value = datetime.fromisoformat(value.replace('Z', '+00:00'))
-            except (ValueError, AttributeError):
-                try:
-                    value = datetime.strptime(value, '%Y-%m-%dT%H:%M:%S')
-                except (ValueError, AttributeError):
-                    return value
-        try:
-            return value.strftime(format)
-        except (AttributeError, ValueError):
-            return str(value)
-    
-    # Register blueprints
-    from routes import register_blueprints
-    register_blueprints(app)
-    
-    # Register API blueprint routes separately
-    from routes.api import api_bp
-    app.register_blueprint(api_bp)
-    
-    # Register the API views blueprint
-    from routes.api import api_views_bp
-    try:
-        app.register_blueprint(api_views_bp)
-        app.logger.info("API views blueprint registered successfully")
-    except Exception as e:
-        app.logger.error(f"Error registering API views blueprint: {e}")
-    
-    # The Strategy Hub blueprint is now registered via routes/__init__.py
-    # Removed direct registration to avoid duplicate registration
-    app.logger.info("Strategy Hub blueprint is registered through routes/__init__.py")
-    
-    # Note: Regulatory AI blueprints are also registered exclusively through routes/__init__.py
-    app.logger.info("Regulatory AI blueprints are registered through routes/__init__.py")
-    
-    # Add home route that redirects to dashboard (2025 refresh)
-    @app.route('/')
-    def home():
-        """Redirect to dashboard as the primary landing page for 2025 refresh"""
-        from flask import redirect
-        app.logger.info("Home route redirecting to dashboard")
-        return redirect('/dashboard/')
-    
-    # Register direct document upload shortcut
-    @app.route('/document-upload-standalone')
-    def document_upload_standalone():
-        """Redirect to standalone document upload on port 7000"""
-        from flask import redirect
-        host = request.host.split(':')[0]  # Get hostname without port
-        return redirect(f'http://{host}:7000')
-    
-    # Log the registered routes
-    app.logger.info(f"Registered routes: {len(list(app.url_map.iter_rules()))}")
-    
-    return app
+    logger.info("Redirecting to consolidated_app.create_app")
+    return consolidated_create_app(test_config)
     
 # If this file is run directly, start the application
 if __name__ == "__main__":

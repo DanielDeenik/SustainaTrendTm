@@ -1,5 +1,6 @@
 {pkgs}: {
   deps = [
+    pkgs.cacert
     pkgs.wget
     pkgs.mongodb
     pkgs.tesseract

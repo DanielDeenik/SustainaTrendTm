@@ -1,0 +1,41 @@
+Step 1: Clarify the Repurposing Goal
+
+You want to repurpose the existing SustainaTrend™ platform to:
+	•	Serve Private Equity & Venture Capital firms.
+	•	Integrate automated sustainability benchmarking, sentiment analysis, and APA RAG Agent workflows.
+	•	Avoid code duplication by identifying reusable components in the current Replit workspace.
+	•	Run everything within the existing app flow using AI-powered modular workflows.
+
+⸻
+
+Step 2: Define the Upgrade Scope
+
+To upgrade intelligently, we need a clear map of what’s already in the codebase vs. what needs to be enhanced or added. This means we need:
+	1.	Architectural Inventory (What’s Already Built?)
+	•	Which routes exist (e.g., /dashboard, /search, /uploads)?
+	•	What microservices are available (web scraping, sentiment scoring, benchmarking)?
+	•	Are Omniparser + document analysis workflows functional and modular?
+	•	Does the Gemini integration support retrieval-based workflows (RAG), or is it just chat?
+	•	Where are AI agents called from, and how is their context controlled?
+	2.	Workflow Gaps for PE/VC Use Cases
+	•	Are there flows for due diligence, founder profiling, deal screening?
+	•	Can we plug in a sentiment model to monitor startups or news?
+	•	Do we have a benchmarking engine by investment stage, geography, or sector?
+	•	Do we support generating IC memos or investor briefings in Google Docs or Notion?
+	3.	Data Structure Alignment
+	•	Do we have database schemas for:
+	•	Portfolio companies
+	•	Funding stages
+	•	Regulatory alignment scores
+	•	Sentiment timelines
+	•	Startup documents + metadata?
+	•	If not, what needs to be added?
+	4.	LLM Agent Pipeline (RAG-Based)
+	•	Where is the vector store currently configured (Qdrant, Pinecone, etc.)?
+	•	Do we chunk and embed startup documents, news, and filings already?
+	•	Is there a unified query interface that can interact across different data types?
+	5.	UI and Navigation Consistency
+	•	Are current routes styled consistently? (Based on your prior ask for Finchat-style UI)
+	•	Is Gemini the only search bar in use?
+	•	Do we have a VC/PE-focused dashboard pane?
+	•	How can we rewire the UI to dynamically reflect PE/VC-specific insights?
