@@ -16,6 +16,9 @@ from werkzeug.exceptions import BadRequest
 # Set up logging
 logger = logging.getLogger(__name__)
 
+# Create Blueprint
+strategy_api_bp = Blueprint('strategy_api', __name__)
+
 # Import strategy AI consultant functionality
 try:
     sys.path.append('..')
@@ -920,3 +923,84 @@ def register_blueprint(bp):
                 "status": "error",
                 "message": "An error occurred while generating the action plan."
             }), 500
+            
+    @bp.route('/api/strategy/ai-consultant/generate', methods=['POST'])
+    def api_ai_consultant_generate():
+        """
+        API endpoint for AI Strategy Consultant
+        
+        Accepts:
+            - company_name: Name of the company
+            - industry: Industry of the company
+            - focus_areas: Comma-separated focus areas (optional)
+            - challenge_description: Description of sustainability challenges (optional)
+            
+        Returns:
+            JSON with generated strategy and recommendations
+        """
+        try:
+            data = request.get_json()
+            
+            if not data:
+                return jsonify({
+                    "success": False,
+                    "message": "No data provided in request"
+                }), 400
+                
+            # Validate required fields
+            company_name = data.get('companyName')
+            industry = data.get('industry')
+            
+            if not company_name or not industry:
+                return jsonify({
+                    "success": False,
+                    "message": "Missing required fields: companyName, industry"
+                }), 400
+                
+            # Extract optional parameters
+            focus_areas = data.get('focusAreas', [])
+            challenge_description = data.get('challengeDescription', '')
+            
+            # Import strategy consultant
+            try:
+                from strategy_ai_consultant import strategy_consultant
+                
+                # Generate AI strategy
+                strategy_result = strategy_consultant.generate_ai_strategy(
+                    company_name=company_name,
+                    industry=industry,
+                    focus_areas=focus_areas,
+                    trend_analysis=challenge_description
+                )
+                
+                # Format result for frontend
+                result = {
+                    "success": True,
+                    "message": "Strategy generated successfully",
+                    "strategy": {
+                        "company": company_name,
+                        "industry": industry,
+                        "overview": strategy_result.get("summary", "A comprehensive sustainability strategy tailored to your industry and challenges."),
+                        "objectives": strategy_result.get("objectives", []),
+                        "recommendations": strategy_result.get("recommendations", []),
+                        "timeline": strategy_result.get("implementation_timeline", "")
+                    }
+                }
+                
+                return jsonify(result)
+                
+            except ImportError:
+                return jsonify({
+                    "success": False,
+                    "message": "Strategy AI Consultant module not available"
+                }), 503
+                
+        except Exception as e:
+            logger.error(f"Error in AI Consultant API: {str(e)}")
+            return jsonify({
+                "success": False,
+                "message": f"An error occurred while generating the strategy: {str(e)}"
+            }), 500
+            
+# Register routes with the blueprint
+register_blueprint(strategy_api_bp)

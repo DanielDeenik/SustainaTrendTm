@@ -1,0 +1,416 @@
+{% extends "clean/base.html" %}
+
+{% set active_nav = 'trends' %}
+
+{% block header_title %}Sustainability Trend Analysis{% endblock %}
+
+{% block header_actions %}
+<button class="btn btn-sm btn-outline-secondary">
+    <i class="fas fa-filter"></i> Filter
+</button>
+<button class="btn btn-sm btn-outline-primary">
+    <i class="fas fa-download"></i> Export
+</button>
+{% endblock %}
+
+{% block content %}
+<div class="row">
+    <!-- Time Period Selector -->
+    <div class="col-12 mb-4">
+        <div class="card">
+            <div class="card-body">
+                <div class="d-flex flex-wrap align-items-center">
+                    <div class="me-3 mb-2">
+                        <label class="text-muted d-block mb-1">Time Range</label>
+                        <div class="btn-group" role="group">
+                            <button type="button" class="btn btn-sm btn-primary">3M</button>
+                            <button type="button" class="btn btn-sm btn-outline-primary">6M</button>
+                            <button type="button" class="btn btn-sm btn-outline-primary">1Y</button>
+                            <button type="button" class="btn btn-sm btn-outline-primary">3Y</button>
+                            <button type="button" class="btn btn-sm btn-outline-primary">5Y</button>
+                        </div>
+                    </div>
+                    
+                    <div class="me-3 mb-2">
+                        <label class="text-muted d-block mb-1">Comparison</label>
+                        <select class="form-select form-select-sm">
+                            <option>Industry Average</option>
+                            <option>Peer Group</option>
+                            <option>Previous Period</option>
+                            <option>Custom Benchmark</option>
+                        </select>
+                    </div>
+                    
+                    <div class="me-3 mb-2">
+                        <label class="text-muted d-block mb-1">Granularity</label>
+                        <select class="form-select form-select-sm">
+                            <option>Monthly</option>
+                            <option>Quarterly</option>
+                            <option>Annual</option>
+                        </select>
+                    </div>
+                    
+                    <div class="ms-auto mb-2">
+                        <button class="btn btn-sm btn-primary">
+                            <i class="fas fa-sync-alt"></i> Update Analysis
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Main Trend Chart -->
+    <div class="col-12 mb-4">
+        <div class="card">
+            <div class="card-header d-flex justify-content-between align-items-center">
+                <h5 class="card-title mb-0">Carbon Emissions Trend</h5>
+                <div class="dropdown">
+                    <button class="btn btn-sm btn-outline-secondary dropdown-toggle" type="button" id="metricDropdown" data-bs-toggle="dropdown" aria-expanded="false">
+                        <i class="fas fa-chart-line"></i> Metric
+                    </button>
+                    <ul class="dropdown-menu" aria-labelledby="metricDropdown">
+                        <li><a class="dropdown-item" href="#">Carbon Emissions</a></li>
+                        <li><a class="dropdown-item" href="#">Energy Consumption</a></li>
+                        <li><a class="dropdown-item" href="#">Water Usage</a></li>
+                        <li><a class="dropdown-item" href="#">Waste Generation</a></li>
+                        <li><hr class="dropdown-divider"></li>
+                        <li><a class="dropdown-item" href="#">Gender Diversity</a></li>
+                        <li><a class="dropdown-item" href="#">Board Independence</a></li>
+                    </ul>
+                </div>
+            </div>
+            <div class="card-body">
+                <div class="chart-container">
+                    <canvas id="mainTrendChart"></canvas>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Trend Metrics -->
+    <div class="col-md-4 mb-4">
+        <div class="card">
+            <div class="card-header">
+                <h5 class="card-title mb-0">Key Statistics</h5>
+            </div>
+            <div class="card-body">
+                <div class="mb-3">
+                    <h6 class="text-muted mb-2">Current Value</h6>
+                    <h3>78.5 <small class="text-muted">tCO2e</small></h3>
+                </div>
+                
+                <div class="row">
+                    <div class="col-6 mb-3">
+                        <h6 class="text-muted mb-2">Avg. Change</h6>
+                        <h4 class="text-success">-4.2%</h4>
+                    </div>
+                    <div class="col-6 mb-3">
+                        <h6 class="text-muted mb-2">YoY Change</h6>
+                        <h4 class="text-success">-12.3%</h4>
+                    </div>
+                    <div class="col-6 mb-3">
+                        <h6 class="text-muted mb-2">Max Value</h6>
+                        <h4>98.1</h4>
+                    </div>
+                    <div class="col-6 mb-3">
+                        <h6 class="text-muted mb-2">Min Value</h6>
+                        <h4>72.3</h4>
+                    </div>
+                </div>
+                
+                <div class="mb-3">
+                    <h6 class="text-muted mb-2">Trend Direction</h6>
+                    <h4 class="text-success">
+                        <i class="fas fa-long-arrow-alt-down me-2"></i> Downward
+                    </h4>
+                </div>
+                
+                <div class="mb-3">
+                    <h6 class="text-muted mb-2">Volatility</h6>
+                    <h4>Low <small class="text-muted">(0.32)</small></h4>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <div class="col-md-4 mb-4">
+        <div class="card">
+            <div class="card-header">
+                <h5 class="card-title mb-0">Benchmark Comparison</h5>
+            </div>
+            <div class="card-body">
+                <div class="mb-3">
+                    <h6 class="text-muted mb-2">Vs. Industry Average</h6>
+                    <div class="d-flex align-items-center">
+                        <h3 class="text-success me-2">18.5%</h3>
+                        <span class="text-muted">better than industry</span>
+                    </div>
+                </div>
+                
+                <div class="mb-3">
+                    <h6 class="text-muted mb-2">Vs. Previous Period</h6>
+                    <div class="d-flex align-items-center">
+                        <h3 class="text-success me-2">6.3%</h3>
+                        <span class="text-muted">improvement</span>
+                    </div>
+                </div>
+                
+                <div class="mb-3">
+                    <h6 class="text-muted mb-2">Vs. Target (50 tCO2e)</h6>
+                    <div class="d-flex align-items-center">
+                        <h3 class="text-danger me-2">36.4%</h3>
+                        <span class="text-muted">above target</span>
+                    </div>
+                </div>
+                
+                <div class="progress-bar-container mt-4">
+                    <div class="progress-fill" style="width: 64%;"></div>
+                </div>
+                <div class="d-flex justify-content-between">
+                    <small class="text-muted">Current: 78.5</small>
+                    <small class="text-muted">Target: 50</small>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <div class="col-md-4 mb-4">
+        <div class="card">
+            <div class="card-header">
+                <h5 class="card-title mb-0">Trend Analysis</h5>
+            </div>
+            <div class="card-body">
+                <div class="mb-3">
+                    <h6 class="text-muted mb-2">12-Month Forecast</h6>
+                    <h3>64.7 <small class="text-muted">tCO2e</small></h3>
+                    <small class="text-success">
+                        <i class="fas fa-caret-down me-1"></i> Projected 17.6% decrease
+                    </small>
+                </div>
+                
+                <div class="mb-3">
+                    <h6 class="text-muted mb-2">Trend Drivers</h6>
+                    <ul class="list-unstyled">
+                        <li class="mb-2">
+                            <i class="fas fa-check-circle text-success me-2"></i> Renewable energy transition
+                        </li>
+                        <li class="mb-2">
+                            <i class="fas fa-check-circle text-success me-2"></i> Fleet electrification
+                        </li>
+                        <li class="mb-2">
+                            <i class="fas fa-check-circle text-success me-2"></i> Energy efficiency measures
+                        </li>
+                        <li class="mb-2">
+                            <i class="fas fa-times-circle text-danger me-2"></i> Supply chain emissions
+                        </li>
+                    </ul>
+                </div>
+                
+                <div class="mb-3">
+                    <h6 class="text-muted mb-2">Target Achievement</h6>
+                    <div class="d-flex align-items-center">
+                        <h4 class="me-2">2029</h4>
+                        <span class="text-muted">projected year</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Correlation Analysis -->
+    <div class="col-12">
+        <div class="card">
+            <div class="card-header">
+                <h5 class="card-title mb-0">Correlation Analysis</h5>
+            </div>
+            <div class="card-body">
+                <div class="row">
+                    <div class="col-md-6">
+                        <div class="chart-container">
+                            <canvas id="correlationChart"></canvas>
+                        </div>
+                    </div>
+                    <div class="col-md-6">
+                        <h6 class="mb-3">Key Correlations with Carbon Emissions</h6>
+                        <div class="table-responsive">
+                            <table class="table table-borderless">
+                                <thead>
+                                    <tr>
+                                        <th>Metric</th>
+                                        <th>Correlation</th>
+                                        <th>Significance</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    <tr>
+                                        <td>Energy Consumption</td>
+                                        <td>
+                                            <span class="badge bg-danger">0.92</span>
+                                        </td>
+                                        <td>Very High</td>
+                                    </tr>
+                                    <tr>
+                                        <td>Renewable Energy %</td>
+                                        <td>
+                                            <span class="badge bg-success">-0.87</span>
+                                        </td>
+                                        <td>Very High</td>
+                                    </tr>
+                                    <tr>
+                                        <td>Business Travel</td>
+                                        <td>
+                                            <span class="badge bg-warning">0.65</span>
+                                        </td>
+                                        <td>Moderate</td>
+                                    </tr>
+                                    <tr>
+                                        <td>Production Volume</td>
+                                        <td>
+                                            <span class="badge bg-warning">0.58</span>
+                                        </td>
+                                        <td>Moderate</td>
+                                    </tr>
+                                    <tr>
+                                        <td>Water Consumption</td>
+                                        <td>
+                                            <span class="badge bg-info">0.32</span>
+                                        </td>
+                                        <td>Low</td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        // Main Trend Chart
+        const mainTrendCtx = document.getElementById('mainTrendChart').getContext('2d');
+        const mainTrendChart = new Chart(mainTrendCtx, {
+            type: 'line',
+            data: {
+                labels: ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'],
+                datasets: [{
+                    label: 'Carbon Emissions',
+                    data: [95, 92, 88, 87, 85, 83, 82, 80, 81, 79, 78, 78.5],
+                    backgroundColor: 'rgba(59, 130, 246, 0.2)',
+                    borderColor: 'rgba(59, 130, 246, 1)',
+                    borderWidth: 3,
+                    tension: 0.4,
+                    fill: 'origin'
+                }, {
+                    label: 'Industry Average',
+                    data: [85, 84, 86, 85, 83, 84, 82, 83, 81, 82, 80, 79],
+                    backgroundColor: 'rgba(156, 163, 175, 0.1)',
+                    borderColor: 'rgba(156, 163, 175, 1)',
+                    borderWidth: 2,
+                    tension: 0.4,
+                    borderDash: [5, 5],
+                    fill: false
+                }, {
+                    label: 'Target Path',
+                    data: [95, 90, 85, 80, 75, 70, 65, 60, 55, 53, 52, 50],
+                    backgroundColor: 'rgba(16, 185, 129, 0.1)',
+                    borderColor: 'rgba(16, 185, 129, 1)',
+                    borderWidth: 2,
+                    tension: 0.4,
+                    borderDash: [10, 5],
+                    fill: false
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                scales: {
+                    y: {
+                        title: {
+                            display: true,
+                            text: 'tonnes CO2e',
+                            color: '#f9fafb'
+                        },
+                        grid: {
+                            color: 'rgba(255, 255, 255, 0.1)'
+                        },
+                        ticks: {
+                            color: '#9ca3af'
+                        }
+                    },
+                    x: {
+                        grid: {
+                            color: 'rgba(255, 255, 255, 0.1)'
+                        },
+                        ticks: {
+                            color: '#9ca3af'
+                        }
+                    }
+                },
+                plugins: {
+                    legend: {
+                        position: 'top',
+                        labels: {
+                            color: '#f9fafb'
+                        }
+                    },
+                    tooltip: {
+                        mode: 'index',
+                        intersect: false
+                    }
+                }
+            }
+        });
+        
+        // Correlation Chart
+        const correlationCtx = document.getElementById('correlationChart').getContext('2d');
+        const correlationChart = new Chart(correlationCtx, {
+            type: 'radar',
+            data: {
+                labels: ['Energy', 'Renewable', 'Travel', 'Production', 'Water', 'Waste', 'Supply Chain'],
+                datasets: [{
+                    label: 'Correlation with Carbon Emissions',
+                    data: [0.92, -0.87, 0.65, 0.58, 0.32, 0.45, 0.76],
+                    backgroundColor: 'rgba(239, 68, 68, 0.2)',
+                    borderColor: 'rgba(239, 68, 68, 1)',
+                    borderWidth: 2,
+                    pointBackgroundColor: 'rgba(239, 68, 68, 1)'
+                }]
+            },
+            options: {
+                scales: {
+                    r: {
+                        min: -1,
+                        max: 1,
+                        ticks: {
+                            stepSize: 0.2,
+                            color: '#9ca3af'
+                        },
+                        angleLines: {
+                            color: 'rgba(255, 255, 255, 0.1)'
+                        },
+                        grid: {
+                            color: 'rgba(255, 255, 255, 0.1)'
+                        },
+                        pointLabels: {
+                            color: '#f9fafb'
+                        }
+                    }
+                },
+                plugins: {
+                    legend: {
+                        labels: {
+                            color: '#f9fafb'
+                        }
+                    }
+                }
+            }
+        });
+    });
+</script>
+{% endblock %}

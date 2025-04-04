@@ -1,0 +1,326 @@
+{% extends "clean/base.html" %}
+
+{% set active_nav = 'debug' %}
+
+{% block header_title %}Settings & Configuration{% endblock %}
+
+{% block content %}
+<div class="row">
+    <!-- Application Settings -->
+    <div class="col-md-6 mb-4">
+        <div class="card">
+            <div class="card-header">
+                <h5 class="card-title mb-0">Application Settings</h5>
+            </div>
+            <div class="card-body">
+                <form>
+                    <!-- Theme Settings -->
+                    <div class="mb-4">
+                        <label class="form-label">Theme Preference</label>
+                        <div class="d-flex">
+                            <div class="form-check me-4">
+                                <input class="form-check-input" type="radio" name="themeOption" id="darkTheme" checked>
+                                <label class="form-check-label" for="darkTheme">
+                                    Dark Mode
+                                </label>
+                            </div>
+                            <div class="form-check">
+                                <input class="form-check-input" type="radio" name="themeOption" id="lightTheme">
+                                <label class="form-check-label" for="lightTheme">
+                                    Light Mode
+                                </label>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- Language Settings -->
+                    <div class="mb-4">
+                        <label class="form-label">Language</label>
+                        <select class="form-select">
+                            <option selected>English</option>
+                            <option>French</option>
+                            <option>German</option>
+                            <option>Spanish</option>
+                            <option>Japanese</option>
+                            <option>Chinese (Simplified)</option>
+                        </select>
+                    </div>
+                    
+                    <!-- Date Format -->
+                    <div class="mb-4">
+                        <label class="form-label">Date Format</label>
+                        <select class="form-select">
+                            <option selected>MM/DD/YYYY</option>
+                            <option>DD/MM/YYYY</option>
+                            <option>YYYY-MM-DD</option>
+                        </select>
+                    </div>
+                    
+                    <!-- Time Zone -->
+                    <div class="mb-4">
+                        <label class="form-label">Time Zone</label>
+                        <select class="form-select">
+                            <option selected>(GMT-08:00) Pacific Time</option>
+                            <option>(GMT-05:00) Eastern Time</option>
+                            <option>(GMT+00:00) UTC</option>
+                            <option>(GMT+01:00) Central European Time</option>
+                            <option>(GMT+08:00) China Standard Time</option>
+                            <option>(GMT+09:00) Japan Standard Time</option>
+                        </select>
+                    </div>
+                    
+                    <!-- Dashboard Settings -->
+                    <div class="mb-4">
+                        <label class="form-label">Default Dashboard View</label>
+                        <select class="form-select">
+                            <option selected>Summary</option>
+                            <option>Environmental</option>
+                            <option>Social</option>
+                            <option>Governance</option>
+                            <option>Custom</option>
+                        </select>
+                    </div>
+                    
+                    <div class="d-grid">
+                        <button type="submit" class="btn btn-primary">Save Settings</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+    
+    <!-- User Profile -->
+    <div class="col-md-6 mb-4">
+        <div class="card">
+            <div class="card-header">
+                <h5 class="card-title mb-0">User Profile</h5>
+            </div>
+            <div class="card-body">
+                <div class="text-center mb-4">
+                    <div class="avatar avatar-lg mb-3">
+                        <span class="avatar-text rounded-circle bg-primary">
+                            <i class="fas fa-user fa-2x"></i>
+                        </span>
+                    </div>
+                    <h5 class="mb-0">Administrator</h5>
+                    <p class="text-muted">admin@example.com</p>
+                </div>
+                
+                <form>
+                    <div class="mb-3">
+                        <label class="form-label">Name</label>
+                        <input type="text" class="form-control" value="Administrator">
+                    </div>
+                    
+                    <div class="mb-3">
+                        <label class="form-label">Email</label>
+                        <input type="email" class="form-control" value="admin@example.com">
+                    </div>
+                    
+                    <div class="mb-3">
+                        <label class="form-label">Role</label>
+                        <input type="text" class="form-control" value="Administrator" disabled>
+                    </div>
+                    
+                    <div class="mb-4">
+                        <label class="form-label">Notification Preferences</label>
+                        <div class="form-check mb-2">
+                            <input class="form-check-input" type="checkbox" id="emailNotifs" checked>
+                            <label class="form-check-label" for="emailNotifs">
+                                Email Notifications
+                            </label>
+                        </div>
+                        <div class="form-check mb-2">
+                            <input class="form-check-input" type="checkbox" id="reportNotifs" checked>
+                            <label class="form-check-label" for="reportNotifs">
+                                Report Completions
+                            </label>
+                        </div>
+                        <div class="form-check">
+                            <input class="form-check-input" type="checkbox" id="systemNotifs">
+                            <label class="form-check-label" for="systemNotifs">
+                                System Updates
+                            </label>
+                        </div>
+                    </div>
+                    
+                    <div class="d-grid">
+                        <button type="submit" class="btn btn-primary">Update Profile</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+    
+    <!-- API Configuration -->
+    <div class="col-md-6 mb-4">
+        <div class="card">
+            <div class="card-header">
+                <h5 class="card-title mb-0">API Configuration</h5>
+            </div>
+            <div class="card-body">
+                <form>
+                    <div class="mb-3">
+                        <label class="form-label">OpenAI API Key</label>
+                        <div class="input-group">
+                            <input type="password" class="form-control" value="{{ '••••••••••••••••••••••••••••••••' if status.services.openai.status == 'online' else '' }}" placeholder="Enter API key">
+                            <button class="btn btn-outline-secondary" type="button">
+                                <i class="fas fa-eye"></i>
+                            </button>
+                        </div>
+                        <div class="form-text">API key for ChatGPT and other OpenAI services</div>
+                    </div>
+                    
+                    <div class="mb-3">
+                        <label class="form-label">Google Gemini API Key</label>
+                        <div class="input-group">
+                            <input type="password" class="form-control" value="{{ '••••••••••••••••••••••••••••••••' if status.services.gemini.status == 'online' else '' }}" placeholder="Enter API key">
+                            <button class="btn btn-outline-secondary" type="button">
+                                <i class="fas fa-eye"></i>
+                            </button>
+                        </div>
+                        <div class="form-text">API key for Google Gemini AI services</div>
+                    </div>
+                    
+                    <div class="mb-3">
+                        <label class="form-label">Pinecone API Key</label>
+                        <div class="input-group">
+                            <input type="password" class="form-control" value="{{ '••••••••••••••••••••••••••••••••' if status.services.pinecone.status == 'online' else '' }}" placeholder="Enter API key">
+                            <button class="btn btn-outline-secondary" type="button">
+                                <i class="fas fa-eye"></i>
+                            </button>
+                        </div>
+                        <div class="form-text">API key for Pinecone vector database</div>
+                    </div>
+                    
+                    <div class="mb-4">
+                        <label class="form-label">Database Connection String</label>
+                        <div class="input-group">
+                            <input type="password" class="form-control" value="{{ '••••••••••••••••••••••••••••••••' if status.infrastructure.postgres.status == 'online' else '' }}" disabled>
+                            <button class="btn btn-outline-secondary" type="button">
+                                <i class="fas fa-eye"></i>
+                            </button>
+                        </div>
+                        <div class="form-text">PostgreSQL connection URL (managed by system)</div>
+                    </div>
+                    
+                    <div class="d-grid">
+                        <button type="submit" class="btn btn-primary">Save API Configuration</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+    
+    <!-- System Information -->
+    <div class="col-md-6 mb-4">
+        <div class="card">
+            <div class="card-header d-flex justify-content-between align-items-center">
+                <h5 class="card-title mb-0">System Information</h5>
+                <button class="btn btn-sm btn-outline-primary" onclick="window.location.reload();">
+                    <i class="fas fa-sync-alt"></i> Refresh
+                </button>
+            </div>
+            <div class="card-body">
+                <div class="table-responsive">
+                    <table class="table table-borderless">
+                        <tbody>
+                            <tr>
+                                <td>Application Version</td>
+                                <td>2.5.0</td>
+                            </tr>
+                            <tr>
+                                <td>Environment</td>
+                                <td>
+                                    {% if status.env == 'production' %}
+                                    <span class="badge bg-success">Production</span>
+                                    {% elif status.env == 'staging' %}
+                                    <span class="badge bg-warning">Staging</span>
+                                    {% else %}
+                                    <span class="badge bg-primary">Development</span>
+                                    {% endif %}
+                                </td>
+                            </tr>
+                            <tr>
+                                <td>System Uptime</td>
+                                <td>{{ status.system.uptime }}</td>
+                            </tr>
+                            <tr>
+                                <td>CPU Usage</td>
+                                <td>{{ status.system.cpu_usage }}</td>
+                            </tr>
+                            <tr>
+                                <td>Memory Usage</td>
+                                <td>{{ status.system.memory_usage }}</td>
+                            </tr>
+                            <tr>
+                                <td>Replit Environment</td>
+                                <td>
+                                    <span class="badge bg-success">Active</span>
+                                </td>
+                            </tr>
+                            <tr>
+                                <td>Last Update</td>
+                                <td>Apr 3, 2025 10:15 AM</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+                
+                <div class="d-grid gap-2 mt-3">
+                    <button class="btn btn-outline-secondary">
+                        <i class="fas fa-file-download me-2"></i> Download Logs
+                    </button>
+                    <button class="btn btn-outline-danger">
+                        <i class="fas fa-power-off me-2"></i> Restart Application
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Import/Export Settings -->
+    <div class="col-12">
+        <div class="card">
+            <div class="card-header">
+                <h5 class="card-title mb-0">Data Import/Export</h5>
+            </div>
+            <div class="card-body">
+                <div class="row">
+                    <div class="col-md-6 mb-3 mb-md-0">
+                        <h6>Export Data</h6>
+                        <p class="text-muted mb-3">Export your sustainability data for backup or analysis in external tools.</p>
+                        <div class="d-grid gap-2">
+                            <button class="btn btn-outline-primary">
+                                <i class="fas fa-file-export me-2"></i> Export All Data
+                            </button>
+                            <button class="btn btn-outline-secondary">
+                                <i class="fas fa-file-csv me-2"></i> Export Metrics (CSV)
+                            </button>
+                            <button class="btn btn-outline-secondary">
+                                <i class="fas fa-file-pdf me-2"></i> Export Reports (PDF)
+                            </button>
+                        </div>
+                    </div>
+                    
+                    <div class="col-md-6">
+                        <h6>Import Data</h6>
+                        <p class="text-muted mb-3">Import sustainability data from external sources or restore from backup.</p>
+                        <div class="d-grid gap-2">
+                            <button class="btn btn-outline-primary">
+                                <i class="fas fa-file-import me-2"></i> Import Data
+                            </button>
+                            <div class="input-group">
+                                <input type="file" class="form-control" id="importFile">
+                                <button class="btn btn-outline-secondary" type="button">
+                                    <i class="fas fa-upload"></i>
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

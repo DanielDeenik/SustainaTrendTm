@@ -91,15 +91,15 @@ def test_redirect():
 # Strategy Hub redirect routes
 @strategy_hub_bp.route('/')
 def redirect_strategy_hub_root():
-    """Redirect /strategy-hub to enhanced strategy hub"""
-    logger.info("Redirecting /strategy-hub to enhanced strategy hub")
-    return redirect(url_for('enhanced_strategy.strategy_hub'))
+    """Render the strategy hub page directly"""
+    logger.info("Accessing strategy hub")
+    return redirect('/strategy-hub-direct/')
 
 @strategy_hub_bp.route('/<path:subpath>')
 def redirect_strategy_hub_subpath(subpath):
-    """Redirect all /strategy-hub/* routes to enhanced strategy hub"""
-    logger.info(f"Redirecting /strategy-hub/{subpath} to enhanced strategy hub")
-    return redirect(url_for('enhanced_strategy.strategy_hub'))
+    """Redirect all /strategy-hub/* routes to strategy hub"""
+    logger.info(f"Redirecting /strategy-hub/{subpath} to strategy hub")
+    return redirect('/strategy-hub-direct/')
 
 # Register the blueprint with the app
 def register_blueprint(app):

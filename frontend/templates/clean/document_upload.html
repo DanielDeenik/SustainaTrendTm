@@ -1,0 +1,332 @@
+{% extends "clean/base.html" %}
+
+{% set active_nav = 'documents' %}
+
+{% block header_title %}Document Upload & Analysis{% endblock %}
+
+{% block header_actions %}
+<button class="btn btn-sm btn-outline-secondary">
+    <i class="fas fa-cog"></i> Settings
+</button>
+<button class="btn btn-sm btn-outline-primary">
+    <i class="fas fa-folder-open"></i> View Library
+</button>
+{% endblock %}
+
+{% block content %}
+<div class="row">
+    <!-- Upload Area -->
+    <div class="col-md-6 mb-4">
+        <div class="card h-100">
+            <div class="card-header">
+                <h5 class="card-title mb-0">Upload Documents</h5>
+            </div>
+            <div class="card-body">
+                <p class="text-muted mb-4">
+                    Upload sustainability reports, ESG documents, or any other relevant files for AI-powered analysis.
+                    Supported formats: PDF, DOCX, TXT, XLSX.
+                </p>
+                
+                <form>
+                    <div class="mb-4">
+                        <label class="form-label">Document Type</label>
+                        <select class="form-select">
+                            <option>Sustainability Report</option>
+                            <option>ESG Framework</option>
+                            <option>Regulatory Document</option>
+                            <option>Industry Research</option>
+                            <option>Internal Assessment</option>
+                            <option>Other</option>
+                        </select>
+                    </div>
+                    
+                    <div class="mb-4">
+                        <label class="form-label">Document Year</label>
+                        <select class="form-select">
+                            <option>2025</option>
+                            <option>2024</option>
+                            <option>2023</option>
+                            <option>2022</option>
+                            <option>2021</option>
+                            <option>2020</option>
+                            <option>Older</option>
+                        </select>
+                    </div>
+                    
+                    <div class="mb-4">
+                        <label class="form-label">Document Description (Optional)</label>
+                        <textarea class="form-control" rows="3" placeholder="Enter a brief description of the document..."></textarea>
+                    </div>
+                    
+                    <div class="mb-4">
+                        <label class="form-label">Tags (Optional)</label>
+                        <input type="text" class="form-control" placeholder="e.g., emissions, water, governance">
+                        <div class="form-text">Separate multiple tags with commas</div>
+                    </div>
+                    
+                    <div class="mb-4">
+                        <div class="d-flex justify-content-center align-items-center border border-dashed rounded-3 p-5" style="min-height: 200px;">
+                            <div class="text-center">
+                                <i class="fas fa-file-upload fa-3x mb-3 text-primary"></i>
+                                <h5>Drag and drop files here</h5>
+                                <p class="text-muted mb-3">or</p>
+                                <button type="button" class="btn btn-primary">
+                                    <i class="fas fa-folder-open me-2"></i> Browse Files
+                                </button>
+                                <input type="file" class="d-none" multiple>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="d-grid">
+                        <button type="submit" class="btn btn-primary">
+                            <i class="fas fa-upload me-2"></i> Upload & Analyze
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Analysis Options -->
+    <div class="col-md-6 mb-4">
+        <div class="card h-100">
+            <div class="card-header">
+                <h5 class="card-title mb-0">Analysis Options</h5>
+            </div>
+            <div class="card-body">
+                <p class="text-muted mb-4">
+                    Select analysis options to extract valuable insights from your sustainability documents.
+                    Our AI will process your documents and generate comprehensive results.
+                </p>
+                
+                <div class="mb-4">
+                    <h6 class="mb-3">What would you like to analyze?</h6>
+                    
+                    <div class="form-check mb-2">
+                        <input class="form-check-input" type="checkbox" id="esgMetrics" checked>
+                        <label class="form-check-label" for="esgMetrics">
+                            <strong>ESG Metrics Extraction</strong>
+                            <p class="text-muted small mb-0">Extract key ESG metrics and KPIs from documents</p>
+                        </label>
+                    </div>
+                    
+                    <div class="form-check mb-2">
+                        <input class="form-check-input" type="checkbox" id="complianceCheck" checked>
+                        <label class="form-check-label" for="complianceCheck">
+                            <strong>Framework Compliance Check</strong>
+                            <p class="text-muted small mb-0">Assess compliance with major ESG frameworks (GRI, SASB, TCFD)</p>
+                        </label>
+                    </div>
+                    
+                    <div class="form-check mb-2">
+                        <input class="form-check-input" type="checkbox" id="sentimentAnalysis">
+                        <label class="form-check-label" for="sentimentAnalysis">
+                            <strong>Sentiment & Topic Analysis</strong>
+                            <p class="text-muted small mb-0">Analyze sentiment and identify key sustainability topics</p>
+                        </label>
+                    </div>
+                    
+                    <div class="form-check mb-2">
+                        <input class="form-check-input" type="checkbox" id="gapAnalysis">
+                        <label class="form-check-label" for="gapAnalysis">
+                            <strong>Gap Analysis</strong>
+                            <p class="text-muted small mb-0">Identify gaps in sustainability reporting and strategy</p>
+                        </label>
+                    </div>
+                    
+                    <div class="form-check mb-2">
+                        <input class="form-check-input" type="checkbox" id="benchmarking">
+                        <label class="form-check-label" for="benchmarking">
+                            <strong>Industry Benchmarking</strong>
+                            <p class="text-muted small mb-0">Compare with industry peers and best practices</p>
+                        </label>
+                    </div>
+                    
+                    <div class="form-check">
+                        <input class="form-check-input" type="checkbox" id="recommendationGen">
+                        <label class="form-check-label" for="recommendationGen">
+                            <strong>Recommendation Generation</strong>
+                            <p class="text-muted small mb-0">Generate strategic recommendations based on document analysis</p>
+                        </label>
+                    </div>
+                </div>
+                
+                <div class="mb-4">
+                    <h6 class="mb-3">Analysis Depth</h6>
+                    <div class="form-check form-check-inline">
+                        <input class="form-check-input" type="radio" name="analysisDepth" id="basicAnalysis">
+                        <label class="form-check-label" for="basicAnalysis">Basic</label>
+                    </div>
+                    <div class="form-check form-check-inline">
+                        <input class="form-check-input" type="radio" name="analysisDepth" id="standardAnalysis" checked>
+                        <label class="form-check-label" for="standardAnalysis">Standard</label>
+                    </div>
+                    <div class="form-check form-check-inline">
+                        <input class="form-check-input" type="radio" name="analysisDepth" id="deepAnalysis">
+                        <label class="form-check-label" for="deepAnalysis">Deep</label>
+                    </div>
+                </div>
+                
+                <div class="alert alert-info">
+                    <i class="fas fa-info-circle me-2"></i>
+                    <strong>Note:</strong> Deep analysis may take longer to process but provides more comprehensive insights.
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Recent Documents -->
+    <div class="col-12">
+        <div class="card">
+            <div class="card-header d-flex justify-content-between align-items-center">
+                <h5 class="card-title mb-0">Recent Documents</h5>
+                <a href="#" class="btn btn-sm btn-outline-primary">View All</a>
+            </div>
+            <div class="card-body p-0">
+                <div class="table-responsive">
+                    <table class="table table-borderless">
+                        <thead>
+                            <tr>
+                                <th>Document Name</th>
+                                <th>Type</th>
+                                <th>Date Uploaded</th>
+                                <th>Size</th>
+                                <th>Status</th>
+                                <th>Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td>
+                                    <div class="d-flex align-items-center">
+                                        <i class="fas fa-file-pdf me-2 text-danger"></i>
+                                        <span>Sustainability_Report_2024.pdf</span>
+                                    </div>
+                                </td>
+                                <td>Sustainability Report</td>
+                                <td>Apr 2, 2025</td>
+                                <td>4.2 MB</td>
+                                <td><span class="badge bg-success">Analyzed</span></td>
+                                <td>
+                                    <div class="btn-group btn-group-sm">
+                                        <button class="btn btn-outline-primary">
+                                            <i class="fas fa-eye"></i>
+                                        </button>
+                                        <button class="btn btn-outline-primary">
+                                            <i class="fas fa-download"></i>
+                                        </button>
+                                        <button class="btn btn-outline-danger">
+                                            <i class="fas fa-trash"></i>
+                                        </button>
+                                    </div>
+                                </td>
+                            </tr>
+                            <tr>
+                                <td>
+                                    <div class="d-flex align-items-center">
+                                        <i class="fas fa-file-word me-2 text-primary"></i>
+                                        <span>ESG_Framework_Analysis.docx</span>
+                                    </div>
+                                </td>
+                                <td>ESG Framework</td>
+                                <td>Mar 28, 2025</td>
+                                <td>1.8 MB</td>
+                                <td><span class="badge bg-success">Analyzed</span></td>
+                                <td>
+                                    <div class="btn-group btn-group-sm">
+                                        <button class="btn btn-outline-primary">
+                                            <i class="fas fa-eye"></i>
+                                        </button>
+                                        <button class="btn btn-outline-primary">
+                                            <i class="fas fa-download"></i>
+                                        </button>
+                                        <button class="btn btn-outline-danger">
+                                            <i class="fas fa-trash"></i>
+                                        </button>
+                                    </div>
+                                </td>
+                            </tr>
+                            <tr>
+                                <td>
+                                    <div class="d-flex align-items-center">
+                                        <i class="fas fa-file-excel me-2 text-success"></i>
+                                        <span>Carbon_Emissions_Data_2024.xlsx</span>
+                                    </div>
+                                </td>
+                                <td>Internal Assessment</td>
+                                <td>Mar 25, 2025</td>
+                                <td>2.1 MB</td>
+                                <td><span class="badge bg-success">Analyzed</span></td>
+                                <td>
+                                    <div class="btn-group btn-group-sm">
+                                        <button class="btn btn-outline-primary">
+                                            <i class="fas fa-eye"></i>
+                                        </button>
+                                        <button class="btn btn-outline-primary">
+                                            <i class="fas fa-download"></i>
+                                        </button>
+                                        <button class="btn btn-outline-danger">
+                                            <i class="fas fa-trash"></i>
+                                        </button>
+                                    </div>
+                                </td>
+                            </tr>
+                            <tr>
+                                <td>
+                                    <div class="d-flex align-items-center">
+                                        <i class="fas fa-file-pdf me-2 text-danger"></i>
+                                        <span>Regulatory_Guidelines_2025.pdf</span>
+                                    </div>
+                                </td>
+                                <td>Regulatory Document</td>
+                                <td>Mar 18, 2025</td>
+                                <td>3.5 MB</td>
+                                <td><span class="badge bg-warning">Processing</span></td>
+                                <td>
+                                    <div class="btn-group btn-group-sm">
+                                        <button class="btn btn-outline-primary" disabled>
+                                            <i class="fas fa-eye"></i>
+                                        </button>
+                                        <button class="btn btn-outline-primary">
+                                            <i class="fas fa-download"></i>
+                                        </button>
+                                        <button class="btn btn-outline-danger">
+                                            <i class="fas fa-trash"></i>
+                                        </button>
+                                    </div>
+                                </td>
+                            </tr>
+                            <tr>
+                                <td>
+                                    <div class="d-flex align-items-center">
+                                        <i class="fas fa-file-alt me-2 text-secondary"></i>
+                                        <span>Industry_Benchmarks_Q1_2025.txt</span>
+                                    </div>
+                                </td>
+                                <td>Industry Research</td>
+                                <td>Mar 15, 2025</td>
+                                <td>0.8 MB</td>
+                                <td><span class="badge bg-success">Analyzed</span></td>
+                                <td>
+                                    <div class="btn-group btn-group-sm">
+                                        <button class="btn btn-outline-primary">
+                                            <i class="fas fa-eye"></i>
+                                        </button>
+                                        <button class="btn btn-outline-primary">
+                                            <i class="fas fa-download"></i>
+                                        </button>
+                                        <button class="btn btn-outline-danger">
+                                            <i class="fas fa-trash"></i>
+                                        </button>
+                                    </div>
+                                </td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

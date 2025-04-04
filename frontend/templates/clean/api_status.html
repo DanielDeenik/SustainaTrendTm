@@ -1,0 +1,343 @@
+{% extends "clean/base.html" %}
+
+{% set active_nav = 'api_status' %}
+
+{% block header_title %}API Status Dashboard{% endblock %}
+
+{% block header_actions %}
+<button class="btn btn-sm btn-outline-secondary" onclick="window.location.reload();">
+    <i class="fas fa-sync"></i> Refresh
+</button>
+{% endblock %}
+
+{% block content %}
+<div class="row">
+    <!-- Status Overview -->
+    <div class="col-12 mb-4">
+        <div class="card">
+            <div class="card-body">
+                <div class="row">
+                    <div class="col-md-3 mb-3">
+                        <div class="d-flex align-items-center">
+                            <div class="me-3">
+                                <span class="badge p-2 rounded-circle {% if status.overall == 'online' %}bg-success{% else %}bg-warning{% endif %}">
+                                    <i class="fas {% if status.overall == 'online' %}fa-check{% else %}fa-exclamation{% endif %}"></i>
+                                </span>
+                            </div>
+                            <div>
+                                <h6 class="mb-0">Overall Status</h6>
+                                <h4 class="mb-0 {% if status.overall == 'online' %}text-success{% else %}text-warning{% endif %}">{{ status.overall|capitalize }}</h4>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="col-md-3 mb-3">
+                        <div class="d-flex align-items-center">
+                            <div class="me-3">
+                                <span class="badge bg-primary p-2 rounded-circle">
+                                    <i class="fas fa-clock"></i>
+                                </span>
+                            </div>
+                            <div>
+                                <h6 class="mb-0">Last Check</h6>
+                                <h4 class="mb-0">{{ status.last_check|date('%H:%M:%S') }}</h4>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="col-md-3 mb-3">
+                        <div class="d-flex align-items-center">
+                            <div class="me-3">
+                                <span class="badge bg-info p-2 rounded-circle">
+                                    <i class="fas fa-microchip"></i>
+                                </span>
+                            </div>
+                            <div>
+                                <h6 class="mb-0">CPU Usage</h6>
+                                <h4 class="mb-0">{{ status.system.cpu_usage }}</h4>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="col-md-3 mb-3">
+                        <div class="d-flex align-items-center">
+                            <div class="me-3">
+                                <span class="badge bg-info p-2 rounded-circle">
+                                    <i class="fas fa-memory"></i>
+                                </span>
+                            </div>
+                            <div>
+                                <h6 class="mb-0">Memory</h6>
+                                <h4 class="mb-0">{{ status.system.memory_usage }}</h4>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- AI Services -->
+    <div class="col-md-6 mb-4">
+        <div class="card">
+            <div class="card-header">
+                <h5 class="card-title mb-0">AI Services</h5>
+            </div>
+            <div class="card-body">
+                <div class="table-responsive">
+                    <table class="table table-borderless">
+                        <thead>
+                            <tr>
+                                <th>Service</th>
+                                <th>Status</th>
+                                <th>Model</th>
+                                <th>Details</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td>
+                                    <div class="d-flex align-items-center">
+                                        <i class="fas fa-robot me-2"></i>
+                                        <span>OpenAI</span>
+                                    </div>
+                                </td>
+                                <td>
+                                    <span class="badge {% if status.services.openai.status == 'online' %}bg-success{% else %}bg-danger{% endif %}">
+                                        {{ status.services.openai.status }}
+                                    </span>
+                                </td>
+                                <td>{{ status.services.openai.model|default('N/A') }}</td>
+                                <td>
+                                    {% if status.services.openai.status == 'online' %}
+                                    <span class="text-success">Connected</span>
+                                    {% else %}
+                                    <a href="#" class="btn btn-sm btn-outline-primary">Configure</a>
+                                    {% endif %}
+                                </td>
+                            </tr>
+                            <tr>
+                                <td>
+                                    <div class="d-flex align-items-center">
+                                        <i class="fas fa-brain me-2"></i>
+                                        <span>Google Gemini</span>
+                                    </div>
+                                </td>
+                                <td>
+                                    <span class="badge {% if status.services.gemini.status == 'online' %}bg-success{% else %}bg-danger{% endif %}">
+                                        {{ status.services.gemini.status }}
+                                    </span>
+                                </td>
+                                <td>{{ status.services.gemini.model|default('N/A') }}</td>
+                                <td>
+                                    {% if status.services.gemini.status == 'online' %}
+                                    <span class="text-success">Connected</span>
+                                    {% else %}
+                                    <a href="#" class="btn btn-sm btn-outline-primary">Configure</a>
+                                    {% endif %}
+                                </td>
+                            </tr>
+                            <tr>
+                                <td>
+                                    <div class="d-flex align-items-center">
+                                        <i class="fas fa-database me-2"></i>
+                                        <span>Pinecone</span>
+                                    </div>
+                                </td>
+                                <td>
+                                    <span class="badge {% if status.services.pinecone.status == 'online' %}bg-success{% else %}bg-danger{% endif %}">
+                                        {{ status.services.pinecone.status }}
+                                    </span>
+                                </td>
+                                <td>{{ status.services.pinecone.index|default('N/A') }}</td>
+                                <td>
+                                    {% if status.services.pinecone.status == 'online' %}
+                                    <span class="text-success">Connected</span>
+                                    {% else %}
+                                    <a href="#" class="btn btn-sm btn-outline-primary">Configure</a>
+                                    {% endif %}
+                                </td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Infrastructure -->
+    <div class="col-md-6 mb-4">
+        <div class="card">
+            <div class="card-header">
+                <h5 class="card-title mb-0">Infrastructure</h5>
+            </div>
+            <div class="card-body">
+                <div class="table-responsive">
+                    <table class="table table-borderless">
+                        <thead>
+                            <tr>
+                                <th>Service</th>
+                                <th>Status</th>
+                                <th>Version</th>
+                                <th>Details</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td>
+                                    <div class="d-flex align-items-center">
+                                        <i class="fas fa-database me-2"></i>
+                                        <span>PostgreSQL</span>
+                                    </div>
+                                </td>
+                                <td>
+                                    <span class="badge {% if status.infrastructure.postgres.status == 'online' %}bg-success{% else %}bg-danger{% endif %}">
+                                        {{ status.infrastructure.postgres.status }}
+                                    </span>
+                                </td>
+                                <td>{{ status.infrastructure.postgres.version|default('N/A') }}</td>
+                                <td>
+                                    {% if status.infrastructure.postgres.status == 'online' %}
+                                    <span class="text-success">Connected</span>
+                                    {% else %}
+                                    <a href="#" class="btn btn-sm btn-outline-primary">Troubleshoot</a>
+                                    {% endif %}
+                                </td>
+                            </tr>
+                            <tr>
+                                <td>
+                                    <div class="d-flex align-items-center">
+                                        <i class="fas fa-memory me-2"></i>
+                                        <span>Redis Cache</span>
+                                    </div>
+                                </td>
+                                <td>
+                                    <span class="badge {% if status.infrastructure.redis.status == 'online' %}bg-success{% else %}bg-danger{% endif %}">
+                                        {{ status.infrastructure.redis.status }}
+                                    </span>
+                                </td>
+                                <td>-</td>
+                                <td>
+                                    {% if status.infrastructure.redis.status == 'online' %}
+                                    <span class="text-success">Connected</span>
+                                    {% else %}
+                                    <span class="text-muted">Using fallback</span>
+                                    {% endif %}
+                                </td>
+                            </tr>
+                            <tr>
+                                <td>
+                                    <div class="d-flex align-items-center">
+                                        <i class="fas fa-server me-2"></i>
+                                        <span>Replit Environment</span>
+                                    </div>
+                                </td>
+                                <td>
+                                    <span class="badge bg-success">online</span>
+                                </td>
+                                <td>-</td>
+                                <td>
+                                    <div class="d-flex align-items-center">
+                                        <span class="text-success me-2">Running</span>
+                                        <small class="text-muted">{{ status.system.uptime }}</small>
+                                    </div>
+                                </td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Service Configuration -->
+    <div class="col-12">
+        <div class="card">
+            <div class="card-header d-flex justify-content-between align-items-center">
+                <h5 class="card-title mb-0">API Configuration</h5>
+                <button class="btn btn-sm btn-primary">
+                    <i class="fas fa-cog"></i> Manage API Keys
+                </button>
+            </div>
+            <div class="card-body">
+                <div class="alert alert-info mb-4">
+                    <i class="fas fa-info-circle me-2"></i>
+                    Configure API keys for external services here. Missing or misconfigured services may limit functionality.
+                </div>
+                
+                <form>
+                    <div class="row">
+                        <div class="col-md-6 mb-3">
+                            <label class="form-label">OpenAI API Key</label>
+                            <div class="input-group">
+                                <input type="password" class="form-control" value="{{ 'sk-••••••••••••••••••••••••••••••••••••••••••••••' if status.services.openai.status == 'online' else '' }}" placeholder="sk-..." disabled>
+                                <button class="btn btn-outline-secondary" type="button">
+                                    <i class="fas {{ 'fa-pencil-alt' if status.services.openai.status == 'online' else 'fa-plus' }}"></i>
+                                </button>
+                            </div>
+                            <div class="form-text">
+                                {% if status.services.openai.status == 'online' %}
+                                <span class="text-success"><i class="fas fa-check-circle me-1"></i> API key configured</span>
+                                {% else %}
+                                <span class="text-danger"><i class="fas fa-exclamation-circle me-1"></i> API key required for AI functionality</span>
+                                {% endif %}
+                            </div>
+                        </div>
+                        
+                        <div class="col-md-6 mb-3">
+                            <label class="form-label">Google Gemini API Key</label>
+                            <div class="input-group">
+                                <input type="password" class="form-control" value="{{ 'AIza••••••••••••••••••••••••••••••••••••••••••' if status.services.gemini.status == 'online' else '' }}" placeholder="AIza..." disabled>
+                                <button class="btn btn-outline-secondary" type="button">
+                                    <i class="fas {{ 'fa-pencil-alt' if status.services.gemini.status == 'online' else 'fa-plus' }}"></i>
+                                </button>
+                            </div>
+                            <div class="form-text">
+                                {% if status.services.gemini.status == 'online' %}
+                                <span class="text-success"><i class="fas fa-check-circle me-1"></i> API key configured</span>
+                                {% else %}
+                                <span class="text-danger"><i class="fas fa-exclamation-circle me-1"></i> API key required for Gemini functionality</span>
+                                {% endif %}
+                            </div>
+                        </div>
+                        
+                        <div class="col-md-6 mb-3">
+                            <label class="form-label">Pinecone API Key</label>
+                            <div class="input-group">
+                                <input type="password" class="form-control" value="{{ '••••••••-••••-••••-••••-••••••••••••' if status.services.pinecone.status == 'online' else '' }}" placeholder="xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx" disabled>
+                                <button class="btn btn-outline-secondary" type="button">
+                                    <i class="fas {{ 'fa-pencil-alt' if status.services.pinecone.status == 'online' else 'fa-plus' }}"></i>
+                                </button>
+                            </div>
+                            <div class="form-text">
+                                {% if status.services.pinecone.status == 'online' %}
+                                <span class="text-success"><i class="fas fa-check-circle me-1"></i> API key configured</span>
+                                {% else %}
+                                <span class="text-warning"><i class="fas fa-exclamation-circle me-1"></i> Required for vector search functionality</span>
+                                {% endif %}
+                            </div>
+                        </div>
+                        
+                        <div class="col-md-6 mb-3">
+                            <label class="form-label">PostgreSQL Connection</label>
+                            <div class="input-group">
+                                <input type="text" class="form-control" value="{{ 'postgres://user:•••••••@host:5432/db' if status.infrastructure.postgres.status == 'online' else '' }}" disabled>
+                                <button class="btn btn-outline-secondary" type="button">
+                                    <i class="fas fa-cog"></i>
+                                </button>
+                            </div>
+                            <div class="form-text">
+                                {% if status.infrastructure.postgres.status == 'online' %}
+                                <span class="text-success"><i class="fas fa-check-circle me-1"></i> Database connected</span>
+                                {% else %}
+                                <span class="text-danger"><i class="fas fa-exclamation-circle me-1"></i> Database connection required</span>
+                                {% endif %}
+                            </div>
+                        </div>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
