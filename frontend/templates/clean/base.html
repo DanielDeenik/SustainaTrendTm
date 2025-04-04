@@ -40,8 +40,19 @@
             background-color: var(--card-bg-dark);
             border: 1px solid var(--border-dark);
             box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
-            transition: transform 0.3s ease;
+            transition: transform 0.3s ease, background-color 0.3s;
             margin-bottom: 1rem;
+        }
+        
+        /* Light Mode */
+        html.light-mode body {
+            background-color: var(--light-bg);
+            color: var(--dark-text);
+        }
+        
+        html.light-mode .card {
+            background-color: var(--card-bg-light);
+            border: 1px solid var(--border-light);
         }
         
         .btn-primary {
@@ -64,6 +75,7 @@
             padding: 48px 0 0;
             box-shadow: inset -1px 0 0 var(--border-dark);
             background-color: var(--card-bg-dark);
+            transition: background-color 0.3s, box-shadow 0.3s;
         }
         
         .sidebar-sticky {
@@ -75,6 +87,12 @@
             overflow-y: auto;
         }
         
+        /* Light Mode Sidebar */
+        html.light-mode .sidebar {
+            background-color: var(--card-bg-light);
+            box-shadow: inset -1px 0 0 var(--border-light);
+        }
+        
         /* Sidebar navigation */
         .sidebar .nav-link {
             color: var(--light-text);
@@ -82,6 +100,12 @@
             padding: 0.75rem 1rem;
             border-radius: 0.375rem;
             margin: 0.25rem 0.5rem;
+            transition: color 0.3s, background-color 0.3s;
+        }
+        
+        /* Light Mode Nav Links */
+        html.light-mode .sidebar .nav-link {
+            color: var(--dark-text);
         }
         
         .sidebar .nav-link:hover {
@@ -238,6 +262,61 @@
             border-top: 1px solid var(--border-dark);
             padding: 1rem 0;
             margin-top: 2rem;
+            transition: background-color 0.3s, border-color 0.3s;
+        }
+        
+        /* Light Mode Footer */
+        html.light-mode footer {
+            background-color: var(--card-bg-light);
+            border-top: 1px solid var(--border-light);
+        }
+        
+        /* Light Mode Metric Cards and Progress Cards */
+        html.light-mode .metric-card,
+        html.light-mode .progress-card {
+            background-color: var(--card-bg-light);
+        }
+        
+        /* Light Mode Progress Bar */
+        html.light-mode .progress-bar-container {
+            background-color: rgba(0, 0, 0, 0.1);
+        }
+        
+        /* Light Mode Table */
+        html.light-mode .table {
+            color: var(--dark-text);
+            border-color: var(--border-light);
+        }
+        
+        html.light-mode .table-dark {
+            background-color: var(--dark-bg);
+        }
+        
+        /* Light Mode Inputs */
+        html.light-mode input,
+        html.light-mode select,
+        html.light-mode textarea {
+            background-color: #ffffff;
+            color: var(--dark-text);
+            border: 1px solid var(--border-light);
+        }
+        
+        /* Theme toggle button styles */
+        #theme-toggle {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.3s ease;
+        }
+        
+        html.light-mode #theme-toggle {
+            color: var(--dark-text);
+            border-color: var(--border-light);
+        }
+        
+        html.dark-mode #theme-toggle {
+            color: var(--light-text);
+            border-color: var(--border-dark);
         }
         
         /* Custom spacing */
@@ -324,6 +403,15 @@
                         <div class="btn-group me-2">
                             {% block header_actions %}{% endblock %}
                         </div>
+                        <div class="btn-group">
+                            <button id="theme-toggle" class="btn btn-sm btn-outline-secondary" onclick="toggleTheme()">
+                                <i class="fas fa-moon dark-icon"></i>
+                                <i class="fas fa-sun light-icon" style="display: none;"></i>
+                                <span class="ms-1 theme-text">Toggle Theme</span>
+                            </button>
+                            <form id="theme-form" action="/toggle-theme/" method="POST" style="display:none;">
+                            </form>
+                        </div>
                     </div>
                 </div>
                 
@@ -368,14 +456,37 @@
         // Theme toggle functionality
         function toggleTheme() {
             const html = document.documentElement;
+            const darkIcon = document.querySelector('.dark-icon');
+            const lightIcon = document.querySelector('.light-icon');
+            const themeText = document.querySelector('.theme-text');
+            const themeForm = document.getElementById('theme-form');
+            
+            // Toggle theme visually
             if (html.classList.contains('light-mode')) {
+                // Switch to dark mode
                 html.classList.remove('light-mode');
                 html.classList.add('dark-mode');
                 localStorage.setItem('theme', 'dark');
+                
+                // Update icons
+                darkIcon.style.display = 'inline-block';
+                lightIcon.style.display = 'none';
+                themeText.textContent = 'Dark Mode';
             } else {
+                // Switch to light mode
                 html.classList.remove('dark-mode');
                 html.classList.add('light-mode');
                 localStorage.setItem('theme', 'light');
+                
+                // Update icons
+                darkIcon.style.display = 'none';
+                lightIcon.style.display = 'inline-block';
+                themeText.textContent = 'Light Mode';
+            }
+            
+            // Submit the form to update theme on server side
+            if (themeForm) {
+                themeForm.submit();
             }
         }
         
@@ -383,10 +494,31 @@
         document.addEventListener('DOMContentLoaded', function() {
             const savedTheme = localStorage.getItem('theme');
             const html = document.documentElement;
+            const darkIcon = document.querySelector('.dark-icon');
+            const lightIcon = document.querySelector('.light-icon');
+            const themeText = document.querySelector('.theme-text');
             
             if (savedTheme) {
                 html.classList.remove('light-mode', 'dark-mode');
                 html.classList.add(savedTheme === 'dark' ? 'dark-mode' : 'light-mode');
+                
+                // Update icons based on current theme
+                if (savedTheme === 'dark') {
+                    darkIcon.style.display = 'inline-block';
+                    lightIcon.style.display = 'none';
+                    themeText.textContent = 'Dark Mode';
+                } else {
+                    darkIcon.style.display = 'none';
+                    lightIcon.style.display = 'inline-block';
+                    themeText.textContent = 'Light Mode';
+                }
+            } else {
+                // Default to dark mode if no theme is saved
+                if (html.classList.contains('dark-mode')) {
+                    darkIcon.style.display = 'inline-block';
+                    lightIcon.style.display = 'none';
+                    themeText.textContent = 'Dark Mode';
+                }
             }
         });
     </script>

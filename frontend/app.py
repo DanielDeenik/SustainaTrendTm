@@ -511,6 +511,22 @@ def register_routes(app):
             status=status,
             page_title="API Status"
         )
+        
+    @app.route('/toggle-theme/', methods=['POST'])
+    def toggle_theme():
+        """Toggle between light and dark theme"""
+        # Get current theme from cookie or default to dark
+        current_theme = request.cookies.get('theme', 'dark')
+        # Toggle theme
+        new_theme = 'light' if current_theme == 'dark' else 'dark'
+        
+        # Create response with redirect to previous page
+        response = redirect(request.referrer or '/')
+        
+        # Set cookie with new theme
+        response.set_cookie('theme', new_theme, max_age=31536000)  # 1 year
+        
+        return response
     
     # VC-Lens main page
     @app.route('/vc-lens/')
