@@ -280,17 +280,14 @@ def register_routes(app):
         app: Flask application
     """
     # Import strategy modules
-    from routes.enhanced_strategy_routes import strategy_bp as enhanced_strategy_bp
     from routes.strategy_api import strategy_api_bp
     from routes.monetization import monetization_bp
-    from routes.strategy import strategy_bp, strategy_hub_bp
+    from routes.strategy import strategy_bp
     
     # Register blueprints
-    app.register_blueprint(enhanced_strategy_bp)
     app.register_blueprint(strategy_api_bp)
     app.register_blueprint(monetization_bp)
     app.register_blueprint(strategy_bp)
-    app.register_blueprint(strategy_hub_bp)
     
     # Register AI Strategy Consultant routes
     try:
@@ -363,8 +360,8 @@ def register_routes(app):
         )
     
     # Strategy Hub route
-    @app.route('/strategy-hub-direct/')
-    def strategy_hub_direct():
+    @app.route('/strategy-hub/')
+    def strategy_hub():
         """Strategy Hub for sustainability insights"""
         # Import strategy AI consultant for template
         try:
@@ -393,17 +390,12 @@ def register_routes(app):
             page_title="Strategy Hub"
         )
     
-    # Original strategy hub route - redirect to direct route
-    @app.route('/strategy-hub/')
-    def strategy_hub():
-        """Strategy Hub route - redirects to direct route"""
-        return redirect('/strategy-hub-direct/')
-        
-    # Legacy strategy hub route - redirect to new route
+    # Legacy routes that redirect to main strategy hub
     @app.route('/enhanced-strategy/')
+    @app.route('/strategy-hub-direct/')
     def legacy_strategy_hub():
-        """Redirect legacy enhanced strategy route to new strategy hub"""
-        return redirect('/strategy-hub-direct/')
+        """Redirect legacy strategy routes to the main strategy hub"""
+        return redirect('/strategy-hub/')
     
     # Documents route
     @app.route('/documents/document-upload')
