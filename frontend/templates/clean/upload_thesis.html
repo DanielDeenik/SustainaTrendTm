@@ -119,12 +119,39 @@
                             <label for="thesis_document" class="form-label">
                                 Upload Investment Thesis Document <span class="text-danger">*</span>
                             </label>
-                            <input type="file" class="form-control" id="thesis_document" name="thesis_document" accept=".pdf,.doc,.docx,.txt" required>
+                            <div class="input-group mb-2">
+                                <input type="file" class="form-control" id="thesis_document" name="thesis_document" accept=".pdf,.doc,.docx,.txt" required>
+                                <button class="btn btn-outline-primary" type="button" id="autoFillBtn" onclick="processDocumentForAutoFill()">
+                                    <i class="fas fa-magic me-1"></i> Auto-Fill
+                                </button>
+                            </div>
                             <div class="invalid-feedback">
                                 Please upload your investment thesis document.
                             </div>
                             <div class="form-text">
                                 Accepted formats: PDF, Word (DOC/DOCX), or plain text (TXT). Maximum file size: 10MB.
+                            </div>
+                            <div class="alert alert-info mt-2" id="processingAlert" style="display: none;">
+                                <div class="d-flex align-items-center">
+                                    <div class="spinner-border spinner-border-sm me-2" role="status">
+                                        <span class="visually-hidden">Processing...</span>
+                                    </div>
+                                    <div>
+                                        <strong>AI Processing</strong> - Analyzing document to auto-populate fields...
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="alert alert-success mt-2" id="successAlert" style="display: none;">
+                                <i class="fas fa-check-circle me-2"></i>
+                                <span id="successMessage">Document processed successfully! Fields have been auto-populated.</span>
+                            </div>
+                            <div class="alert alert-warning mt-2" id="partialAlert" style="display: none;">
+                                <i class="fas fa-exclamation-triangle me-2"></i>
+                                <span id="partialMessage">Some fields could not be auto-populated. Please review and fill in any missing information.</span>
+                            </div>
+                            <div class="alert alert-danger mt-2" id="errorAlert" style="display: none;">
+                                <i class="fas fa-times-circle me-2"></i>
+                                <span id="errorMessage">Error processing document. Please try again or fill the form manually.</span>
                             </div>
                         </div>
                         
@@ -253,5 +280,138 @@
             }, false);
         });
     });
+    
+    // Document auto-fill functionality
+    function processDocumentForAutoFill() {
+        const fileInput = document.getElementById('thesis_document');
+        if (!fileInput.files || fileInput.files.length === 0) {
+            showAlert('errorAlert', 'Please select a document to process first.');
+            return;
+        }
+        
+        const file = fileInput.files[0];
+        showAlert('processingAlert');
+        
+        // Create FormData and append the file
+        const formData = new FormData();
+        formData.append('document', file);
+        formData.append('form_type', 'investment_thesis');
+        
+        // Send the file for processing
+        fetch('/vc-lens/process-document', {
+            method: 'POST',
+            body: formData
+        })
+        .then(response => response.json())
+        .then(data => {
+            // Hide processing alert
+            hideAlert('processingAlert');
+            
+            if (data.success) {
+                // Populate form fields with extracted data
+                if (data.fields) {
+                    const fields = data.fields;
+                    
+                    // Basic fields
+                    if (fields.fund_name) document.getElementById('fund_name').value = fields.fund_name;
+                    
+                    // Investment focus dropdown
+                    if (fields.investment_focus) {
+                        const focusSelect = document.getElementById('investment_focus');
+                        const focusOptions = Array.from(focusSelect.options);
+                        
+                        // Find best match for investment focus
+                        const matchingOption = focusOptions.find(option => 
+                            option.value.toLowerCase().includes(fields.investment_focus.toLowerCase()) ||
+                            fields.investment_focus.toLowerCase().includes(option.value.toLowerCase())
+                        );
+                        
+                        if (matchingOption) {
+                            focusSelect.value = matchingOption.value;
+                        }
+                    }
+                    
+                    // Fund stage dropdown
+                    if (fields.fund_stage) {
+                        const stageSelect = document.getElementById('fund_stage');
+                        const stageOptions = Array.from(stageSelect.options);
+                        
+                        // Find best match for fund stage
+                        const matchingOption = stageOptions.find(option => 
+                            option.value.toLowerCase().includes(fields.fund_stage.toLowerCase()) ||
+                            fields.fund_stage.toLowerCase().includes(option.value.toLowerCase())
+                        );
+                        
+                        if (matchingOption) {
+                            stageSelect.value = matchingOption.value;
+                        }
+                    }
+                    
+                    // Thesis year
+                    if (fields.thesis_year) {
+                        const yearInput = document.getElementById('thesis_year');
+                        const year = parseInt(fields.thesis_year);
+                        if (!isNaN(year) && year >= 2000 && year <= 2025) {
+                            yearInput.value = year;
+                        }
+                    }
+                    
+                    // Analysis objectives
+                    if (fields.analysis_objectives) {
+                        document.getElementById('analysis_objectives').value = fields.analysis_objectives;
+                    }
+                    
+                    // Count how many fields were successfully populated
+                    const totalFields = Object.keys(fields).length;
+                    const populatedFields = Object.values(fields).filter(value => value && value.trim() !== '').length;
+                    
+                    if (populatedFields === totalFields) {
+                        showAlert('successAlert', 'Document processed successfully! All fields have been auto-populated.');
+                    } else if (populatedFields > 0) {
+                        showAlert('partialAlert', `${populatedFields} out of ${totalFields} fields were auto-populated. Please review and complete any missing information.`);
+                    } else {
+                        showAlert('errorAlert', 'Could not extract information from the document. Please fill in the form manually.');
+                    }
+                } else {
+                    showAlert('errorAlert', 'No fields could be extracted from the document.');
+                }
+            } else {
+                showAlert('errorAlert', data.error || 'Error processing document. Please try again or fill the form manually.');
+            }
+        })
+        .catch(error => {
+            console.error('Error:', error);
+            hideAlert('processingAlert');
+            showAlert('errorAlert', 'An unexpected error occurred. Please try again later.');
+        });
+    }
+    
+    function showAlert(alertId, message = null) {
+        // Hide all alerts first
+        document.querySelectorAll('.alert').forEach(alert => {
+            alert.style.display = 'none';
+        });
+        
+        // Show the specified alert
+        const alert = document.getElementById(alertId);
+        if (alert) {
+            alert.style.display = 'block';
+            
+            // Update message if provided
+            if (message) {
+                const messageElement = alert.querySelector('span');
+                if (messageElement) {
+                    messageElement.textContent = message;
+                }
+            }
+        }
+    }
+    
+    function hideAlert(alertId) {
+        const alert = document.getElementById(alertId);
+        if (alert) {
+            alert.style.display = 'none';
+        }
+    }
 </script>
 {% endblock %}

@@ -688,6 +688,77 @@ def register_routes(app):
             page_title="Upload Investment Thesis - VC-Lens™"
         )
     
+    # Process document for AI-powered field extraction
+    @app.route('/vc-lens/process-document', methods=['POST'])
+    def process_document_for_fields():
+        """Process a document and extract fields for auto-populating forms"""
+        if request.method == 'POST':
+            try:
+                # Check if document was uploaded
+                if 'document' not in request.files:
+                    return jsonify({'success': False, 'error': 'No document uploaded'})
+                
+                document = request.files['document']
+                if not document or not document.filename:
+                    return jsonify({'success': False, 'error': 'No document selected'})
+                
+                # Get form type
+                form_type = request.form.get('form_type')
+                if not form_type:
+                    return jsonify({'success': False, 'error': 'Form type not specified'})
+                
+                # Save uploaded file temporarily
+                filename = secure_filename(document.filename)
+                temp_path = os.path.join('uploads', 'temp', filename)
+                os.makedirs(os.path.dirname(temp_path), exist_ok=True)
+                document.save(temp_path)
+                
+                # Import document processor if needed
+                from document_processor import DocumentProcessor
+                processor = DocumentProcessor()
+                
+                # Extract text from document
+                try:
+                    extracted_text, page_count = processor.extract_text(temp_path)
+                    app.logger.info(f"Successfully extracted text from document ({page_count} pages)")
+                except Exception as e:
+                    app.logger.error(f"Error extracting text from document: {str(e)}")
+                    return jsonify({'success': False, 'error': f'Error extracting text: {str(e)}'})
+                
+                # Extract structured fields based on form type
+                try:
+                    result = processor.extract_structured_fields(extracted_text, form_type)
+                    app.logger.info(f"Field extraction result: {result['success']}, confidence: {result.get('confidence', 'unknown')}")
+                    
+                    if result['success']:
+                        # Clean up temporary file after processing
+                        try:
+                            os.remove(temp_path)
+                        except:
+                            pass
+                            
+                        return jsonify({
+                            'success': True,
+                            'fields': result['fields'],
+                            'form_type': form_type,
+                            'confidence': result.get('confidence', 'medium')
+                        })
+                    else:
+                        return jsonify({
+                            'success': False, 
+                            'error': result.get('error', 'Failed to extract fields'),
+                            'fields': result.get('fields', {})
+                        })
+                except Exception as e:
+                    app.logger.error(f"Error extracting fields from document: {str(e)}")
+                    return jsonify({'success': False, 'error': f'Error extracting fields: {str(e)}'})
+                    
+            except Exception as e:
+                app.logger.error(f"Error processing document: {str(e)}")
+                return jsonify({'success': False, 'error': f'Unexpected error: {str(e)}'})
+        
+        return jsonify({'success': False, 'error': 'Invalid request method'})
+    
     # Submit VC-Lens startup assessment
     @app.route('/vc-lens/startup-assessment/submit', methods=['POST'])
     def submit_startup_assessment():

@@ -36,6 +36,56 @@
         </div>
     </div>
     
+    <!-- Document Upload for Auto-Fill -->
+    <div class="col-12 mb-4">
+        <div class="card">
+            <div class="card-header">
+                <h5 class="card-title mb-0">AI-Powered Auto-Fill</h5>
+            </div>
+            <div class="card-body">
+                <p class="text-muted mb-3">
+                    Upload a company sustainability report, pitch deck, or business plan to auto-populate the assessment form.
+                    Our AI system will analyze your document and extract relevant information.
+                </p>
+                
+                <div class="mb-3">
+                    <div class="input-group">
+                        <input type="file" class="form-control" id="auto_fill_document" accept=".pdf,.doc,.docx,.txt,.ppt,.pptx">
+                        <button class="btn btn-primary" type="button" id="autoFillBtn" onclick="processDocumentForAutoFill()">
+                            <i class="fas fa-magic me-1"></i> Auto-Fill Form
+                        </button>
+                    </div>
+                    <div class="form-text">
+                        Accepted formats: PDF, Word, PowerPoint, or plain text. Maximum file size: 10MB.
+                    </div>
+                </div>
+                
+                <div class="alert alert-info mt-2" id="processingAlert" style="display: none;">
+                    <div class="d-flex align-items-center">
+                        <div class="spinner-border spinner-border-sm me-2" role="status">
+                            <span class="visually-hidden">Processing...</span>
+                        </div>
+                        <div>
+                            <strong>AI Processing</strong> - Analyzing document to auto-populate fields...
+                        </div>
+                    </div>
+                </div>
+                <div class="alert alert-success mt-2" id="successAlert" style="display: none;">
+                    <i class="fas fa-check-circle me-2"></i>
+                    <span id="successMessage">Document processed successfully! Fields have been auto-populated.</span>
+                </div>
+                <div class="alert alert-warning mt-2" id="partialAlert" style="display: none;">
+                    <i class="fas fa-exclamation-triangle me-2"></i>
+                    <span id="partialMessage">Some fields could not be auto-populated. Please review and fill in any missing information.</span>
+                </div>
+                <div class="alert alert-danger mt-2" id="errorAlert" style="display: none;">
+                    <i class="fas fa-times-circle me-2"></i>
+                    <span id="errorMessage">Error processing document. Please try again or fill the form manually.</span>
+                </div>
+            </div>
+        </div>
+    </div>
+    
     <!-- Assessment Form -->
     <div class="col-12">
         <div class="card">
@@ -244,5 +294,143 @@
             }, false);
         });
     });
+    
+    // Document auto-fill functionality
+    function processDocumentForAutoFill() {
+        const fileInput = document.getElementById('auto_fill_document');
+        if (!fileInput.files || fileInput.files.length === 0) {
+            showAlert('errorAlert', 'Please select a document to process first.');
+            return;
+        }
+        
+        const file = fileInput.files[0];
+        showAlert('processingAlert');
+        
+        // Create FormData and append the file
+        const formData = new FormData();
+        formData.append('document', file);
+        formData.append('form_type', 'startup_assessment');
+        
+        // Send the file for processing
+        fetch('/vc-lens/process-document', {
+            method: 'POST',
+            body: formData
+        })
+        .then(response => response.json())
+        .then(data => {
+            // Hide processing alert
+            hideAlert('processingAlert');
+            
+            if (data.success) {
+                // Populate form fields with extracted data
+                if (data.fields) {
+                    const fields = data.fields;
+                    
+                    // Basic fields
+                    if (fields.company_name) document.getElementById('company_name').value = fields.company_name;
+                    
+                    // Industry dropdown
+                    if (fields.industry) {
+                        const industrySelect = document.getElementById('industry');
+                        const industryOptions = Array.from(industrySelect.options);
+                        
+                        // Find best match for industry
+                        const matchingOption = industryOptions.find(option => 
+                            option.value.toLowerCase().includes(fields.industry.toLowerCase()) ||
+                            fields.industry.toLowerCase().includes(option.value.toLowerCase())
+                        );
+                        
+                        if (matchingOption) {
+                            industrySelect.value = matchingOption.value;
+                        }
+                    }
+                    
+                    // Funding stage dropdown
+                    if (fields.funding_stage) {
+                        const stageSelect = document.getElementById('funding_stage');
+                        const stageOptions = Array.from(stageSelect.options);
+                        
+                        // Find best match for funding stage
+                        const matchingOption = stageOptions.find(option => 
+                            option.value.toLowerCase().includes(fields.funding_stage.toLowerCase()) ||
+                            fields.funding_stage.toLowerCase().includes(option.value.toLowerCase())
+                        );
+                        
+                        if (matchingOption) {
+                            stageSelect.value = matchingOption.value;
+                        }
+                    }
+                    
+                    // Founding year
+                    if (fields.founding_year) {
+                        const yearInput = document.getElementById('founding_year');
+                        const year = parseInt(fields.founding_year);
+                        if (!isNaN(year) && year >= 1900 && year <= 2025) {
+                            yearInput.value = year;
+                        }
+                    }
+                    
+                    // Text areas
+                    if (fields.sustainability_vision) document.getElementById('sustainability_vision').value = fields.sustainability_vision;
+                    if (fields.current_practices) document.getElementById('current_practices').value = fields.current_practices;
+                    if (fields.sustainability_challenges) document.getElementById('sustainability_challenges').value = fields.sustainability_challenges;
+                    if (fields.metrics_tracked) document.getElementById('metrics_tracked').value = fields.metrics_tracked;
+                    if (fields.competitive_advantage) document.getElementById('competitive_advantage').value = fields.competitive_advantage;
+                    if (fields.investor_alignment) document.getElementById('investor_alignment').value = fields.investor_alignment;
+                    
+                    // Count how many fields were successfully populated
+                    const totalFields = Object.keys(fields).length;
+                    const populatedFields = Object.values(fields).filter(value => value && value.trim() !== '').length;
+                    
+                    if (populatedFields === totalFields) {
+                        showAlert('successAlert', 'Document processed successfully! All fields have been auto-populated.');
+                    } else if (populatedFields > 0) {
+                        showAlert('partialAlert', `${populatedFields} out of ${totalFields} fields were auto-populated. Please review and complete any missing information.`);
+                    } else {
+                        showAlert('errorAlert', 'Could not extract information from the document. Please fill in the form manually.');
+                    }
+                } else {
+                    showAlert('errorAlert', 'No fields could be extracted from the document.');
+                }
+            } else {
+                showAlert('errorAlert', data.error || 'Error processing document. Please try again or fill the form manually.');
+            }
+        })
+        .catch(error => {
+            console.error('Error:', error);
+            hideAlert('processingAlert');
+            showAlert('errorAlert', 'An unexpected error occurred. Please try again later.');
+        });
+    }
+    
+    function showAlert(alertId, message = null) {
+        // Hide all alerts first
+        document.querySelectorAll('.alert').forEach(alert => {
+            if (alert.id !== 'processingAlert') {
+                alert.style.display = 'none';
+            }
+        });
+        
+        // Show the specified alert
+        const alert = document.getElementById(alertId);
+        if (alert) {
+            alert.style.display = 'block';
+            
+            // Update message if provided
+            if (message) {
+                const messageElement = alert.querySelector('span');
+                if (messageElement) {
+                    messageElement.textContent = message;
+                }
+            }
+        }
+    }
+    
+    function hideAlert(alertId) {
+        const alert = document.getElementById(alertId);
+        if (alert) {
+            alert.style.display = 'none';
+        }
+    }
 </script>
 {% endblock %}

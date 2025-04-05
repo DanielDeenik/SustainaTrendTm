@@ -59,7 +59,21 @@ except ImportError:
 try:
     import openai
     from openai import OpenAI
-    OPENAI_AVAILABLE = True
+    
+    # Test if OpenAI is actually usable with the provided key
+    try:
+        client = OpenAI()
+        # Make a very simple request to test the key
+        response = client.chat.completions.create(
+            model="gpt-3.5-turbo",
+            messages=[{"role": "system", "content": "Test"}],
+            max_tokens=5
+        )
+        OPENAI_AVAILABLE = True
+    except Exception as e:
+        OPENAI_AVAILABLE = False
+        logging.warning(f"OpenAI API key validation failed: {str(e)}")
+        logging.warning("RAG capabilities will use fallback mechanisms.")
 except ImportError:
     OPENAI_AVAILABLE = False
     openai = None
@@ -873,6 +887,242 @@ class DocumentProcessor:
         except Exception as e:
             self.logger.error(f"Error generating RAG response: {str(e)}")
             return self._generate_mock_rag_response(document_text, query)
+            
+    def extract_structured_fields(self, document_text: str, form_type: str) -> Dict[str, Any]:
+        """
+        Extract structured fields from document text for auto-populating forms
+        
+        Args:
+            document_text: The text extracted from the document
+            form_type: Type of form to populate (e.g., 'startup_assessment', 'investment_thesis')
+            
+        Returns:
+            Dictionary with field names and extracted values
+        """
+        self.logger.info(f"Extracting structured fields for {form_type} form")
+        
+        if not OPENAI_AVAILABLE or openai is None:
+            self.logger.warning("OpenAI not available. Using pattern matching for field extraction.")
+            return self._extract_fields_with_patterns(document_text, form_type)
+            
+        try:
+            # Define field extraction prompts based on form type
+            if form_type == 'startup_assessment':
+                field_schema = {
+                    "company_name": "The full official name of the company",
+                    "industry": "The specific industry or sector the company operates in",
+                    "funding_stage": "Current funding stage (e.g., Pre-seed, Seed, Series A, Series B, Growth)",
+                    "founding_year": "Year when the company was founded (e.g., 2020)",
+                    "sustainability_vision": "The company's vision or mission related to sustainability",
+                    "current_practices": "Current sustainability practices or initiatives",
+                    "sustainability_challenges": "Key sustainability challenges the company faces",
+                    "metrics_tracked": "Sustainability metrics or KPIs the company tracks",
+                    "competitive_advantage": "How sustainability provides competitive advantage",
+                    "investor_alignment": "How the company's sustainability approach aligns with investor interests"
+                }
+            elif form_type == 'investment_thesis':
+                field_schema = {
+                    "fund_name": "The name of the investment fund or firm",
+                    "investment_focus": "Primary investment focus area (e.g., Climate Tech, Clean Energy)",
+                    "fund_stage": "Investment stage preference (e.g., Seed, Series A, Growth)",
+                    "thesis_year": "Year of the investment thesis document",
+                    "analysis_objectives": "Key objectives or questions for the sustainability analysis"
+                }
+            else:
+                self.logger.error(f"Unknown form type: {form_type}")
+                return {"error": f"Unknown form type: {form_type}"}
+                
+            # Create JSON schema for extraction
+            json_schema = {
+                "type": "object",
+                "properties": {field: {"type": "string", "description": desc} for field, desc in field_schema.items()},
+                "required": list(field_schema.keys())
+            }
+            
+            # Convert schema to string for the prompt
+            schema_str = json.dumps(json_schema, indent=2)
+            
+            # Prepare system message for structured extraction
+            system_message = (
+                "You are an AI assistant specialized in extracting structured information from sustainability documents. "
+                "Extract the requested fields as accurately as possible from the provided document. "
+                "If a field cannot be confidently extracted, provide your best estimate and mark it with '[ESTIMATED]'. "
+                "If no relevant information exists, respond with '[NOT FOUND]'."
+            )
+            
+            # Build prompt with document text as context
+            # Use a shortened version if document is too long
+            max_context_length = 12000  # Limit context to avoid token limits
+            context = document_text[:max_context_length] + (" [TRUNCATED]" if len(document_text) > max_context_length else "")
+            
+            user_prompt = f"""
+            Extract the following fields from this document according to the provided schema:
+            
+            SCHEMA:
+            {schema_str}
+            
+            DOCUMENT:
+            {context}
+            
+            Return the extracted fields in a valid JSON format matching the schema.
+            """
+            
+            # Use OpenAI API to extract fields
+            client = openai.OpenAI()
+            response = client.chat.completions.create(
+                model="gpt-3.5-turbo-16k",  # Using a model with larger context window
+                response_format={ "type": "json_object" },
+                messages=[
+                    {"role": "system", "content": system_message},
+                    {"role": "user", "content": user_prompt}
+                ],
+                max_tokens=1000,
+                temperature=0.1  # Low temperature for more deterministic extraction
+            )
+            
+            # Process response
+            response_text = response.choices[0].message.content.strip()
+            
+            try:
+                # Parse JSON response
+                extracted_fields = json.loads(response_text)
+                
+                # Clean up any [NOT FOUND] or [ESTIMATED] markers for better UI experience
+                for field, value in extracted_fields.items():
+                    if isinstance(value, str):
+                        if value == '[NOT FOUND]':
+                            extracted_fields[field] = ''
+                        else:
+                            extracted_fields[field] = value.replace('[ESTIMATED] ', '')
+                
+                return {
+                    'success': True,
+                    'fields': extracted_fields,
+                    'form_type': form_type,
+                    'confidence': 'high'
+                }
+                
+            except json.JSONDecodeError as e:
+                self.logger.error(f"Error parsing JSON response: {str(e)}")
+                self.logger.debug(f"Failed JSON response: {response_text}")
+                return {
+                    'success': False,
+                    'error': 'Failed to parse extracted fields',
+                    'form_type': form_type,
+                    'fields': self._extract_fields_with_patterns(document_text, form_type)['fields']
+                }
+                
+        except Exception as e:
+            self.logger.error(f"Error extracting structured fields: {str(e)}")
+            return self._extract_fields_with_patterns(document_text, form_type)
+            
+    def _extract_fields_with_patterns(self, document_text: str, form_type: str) -> Dict[str, Any]:
+        """
+        Extract structured fields using regex patterns when AI extraction is unavailable
+        
+        Args:
+            document_text: The text extracted from the document
+            form_type: Type of form to populate
+            
+        Returns:
+            Dictionary with extracted fields
+        """
+        self.logger.warning(f"OpenAI not available. Using pattern matching for field extraction.")
+        original_text = document_text
+        document_text = document_text.lower()
+        
+        # Define extraction patterns based on form type
+        if form_type == 'startup_assessment':
+            patterns = {
+                'company_name': [
+                    r'company(?:\s+name)?[:\s]+([A-Za-z0-9\s&.,\-]+?)(?:[\n\.]|$)',
+                    r'(?:^|\n\s*)([A-Za-z0-9\s&.,\-]+?)(?:\n\s*(?:a|an)\s+[A-Za-z0-9\s&.,\-]+?\s+company)',
+                    r'(?:^|\n)([A-Za-z0-9\s&.,\-]+?)\s*(?:inc\.?|llc|corp\.?|corporation|company)(?:[\n\s\.]|$)',
+                    r'(?:profile|about)\s+(?:of\s+)?([A-Za-z0-9\s&.,\-]+?)(?:[\n\.]|$)'
+                ],
+                'industry': [
+                    r'industry[:\s]+([A-Za-z0-9\s&.,\-]+?)(?:[\n\.]|$)',
+                    r'sector[:\s]+([A-Za-z0-9\s&.,\-]+?)(?:[\n\.]|$)'
+                ],
+                'funding_stage': [
+                    r'funding\s+stage[:\s]+([A-Za-z0-9\s&.,\-]+?)(?:[\n\.]|$)',
+                    r'(?:current|latest)\s+funding[:\s]+([A-Za-z0-9\s&.,\-]+?)(?:[\n\.]|$)',
+                    r'stage[:\s]+([A-Za-z0-9\s&.,\-]+?\s+round)(?:[\n\.]|$)',
+                    r'(?:^|\n|\s)(pre-seed|seed|series\s+[a-c]|growth)(?:[\s\n\.]|$)',
+                ],
+                'founding_year': [
+                    r'found(?:ed|ing)\s+(?:in\s+)?(?:the\s+)?(?:year\s+)?([1-2][0-9]{3})',
+                    r'(?:est\.|established)(?:\s+in)?(?:\s+the)?(?:\s+year)?(?:\s+)([1-2][0-9]{3})',
+                    r'since\s+([1-2][0-9]{3})'
+                ],
+                'sustainability_vision': [
+                    r'(?:sustainability|mission|vision)[:\s]+([^.]{10,200}\.)',
+                    r'our\s+(?:sustainability|mission|vision)(?:\s+is)?[:\s]+([^.]{10,200}\.)'
+                ]
+            }
+        elif form_type == 'investment_thesis':
+            patterns = {
+                'fund_name': [
+                    r'fund(?:\s+name)?[:\s]+([A-Za-z0-9\s&.,\-]+?)(?:[\n\.]|$)',
+                    r'(?:^|\n)([A-Za-z0-9\s&.,\-]+?)\s+(?:capital|partners|ventures|investment)(?:[\n\s\.]|$)',
+                    r'(?:^|\n)([A-Za-z0-9\s&.,\-]+?\s+fund)(?:\s+(?:iv|v|vi|i+))?(?:[\n\s\.]|$)'
+                ],
+                'investment_focus': [
+                    r'(?:investment|investing)\s+focus[:\s]+([A-Za-z0-9\s&.,\-]+?)(?:[\n\.]|$)',
+                    r'focus(?:es|ing)?\s+on\s+([A-Za-z0-9\s&.,\-]+?)(?:[\n\.]|$)',
+                    r'(?:invests?|investing)\s+in\s+([A-Za-z0-9\s&.,\-]+?)(?:[\n\.]|$)'
+                ],
+                'fund_stage': [
+                    r'(?:investment|fund)\s+stage[:\s]+([A-Za-z0-9\s&.,\-]+?)(?:[\n\.]|$)',
+                    r'target(?:s|ing)?\s+(?:primarily\s+)?([A-Za-z0-9\s&.,\-]*?(?:seed|series\s+[a-c]|early|growth)[A-Za-z0-9\s&.,\-]*?)(?:[\n\.]|$)',
+                    r'invests?\s+in\s+([A-Za-z0-9\s&.,\-]*?(?:seed|series\s+[a-c]|early|growth)[A-Za-z0-9\s&.,\-]*?)(?:[\n\.]|$)'
+                ],
+                'thesis_year': [
+                    r'(?:thesis|report|document)\s+(?:date|year|for)[:\s]+([1-2][0-9]{3})',
+                    r'(?:dated|published|prepared)(?:\s+in)?(?:\s+)([1-2][0-9]{3})',
+                    r'([1-2][0-9]{3})(?:\s+investment\s+thesis|\s+thesis)'
+                ]
+            }
+        else:
+            return {
+                'success': False,
+                'error': f'Unknown form type: {form_type}',
+                'fields': {}
+            }
+            
+        # Extract fields using patterns
+        extracted_fields = {}
+        
+        # First try with lowercase text
+        for field, pattern_list in patterns.items():
+            for pattern in pattern_list:
+                match = re.search(pattern, document_text, re.IGNORECASE)
+                if match:
+                    extracted_value = match.group(1).strip()
+                    # Limit to 100 chars for any field and capitalize properly
+                    extracted_fields[field] = extracted_value[:100].capitalize()
+                    break
+            
+            # If still no match, try again with original text case
+            if field not in extracted_fields:
+                for pattern in pattern_list:
+                    match = re.search(pattern, original_text, re.IGNORECASE)
+                    if match:
+                        extracted_value = match.group(1).strip()
+                        extracted_fields[field] = extracted_value[:100].capitalize()
+                        break
+                    
+            # If no match found, set to empty string
+            if field not in extracted_fields:
+                extracted_fields[field] = ''
+                
+        return {
+            'success': True,
+            'fields': extracted_fields,
+            'form_type': form_type,
+            'confidence': 'medium',
+            'method': 'pattern_matching'
+        }
     
     def _generate_mock_rag_response(self, document_text: str, query: str) -> Dict[str, Any]:
         """Generate a mock RAG response when OpenAI is not available"""
