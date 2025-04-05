@@ -535,19 +535,69 @@ def register_routes(app):
         """VC-Lens™ main page"""
         # Get a list of submitted assessments and theses
         # In a real implementation, these would be fetched from a database
-        # For demonstration purposes, we'll create sample data
+        # For demonstration purposes, we'll create sample data plus any uploaded files
         
-        # Try to list actual uploaded files
+        # Try to list actual uploaded files from both project root and frontend directories
+        # with categorization
+        
+        # Structure to hold categorized files
+        file_categories = {
+            'thesis_dir': {'path': 'uploads/thesis', 'files': []},
+            'frontend_thesis_dir': {'path': 'frontend/uploads/thesis', 'files': []},
+            'uploads_dir': {'path': 'uploads', 'files': []}
+        }
+        
+        # Combined list for backward compatibility
         thesis_files = []
+        
+        # Try the thesis-specific directory 
         thesis_dir = os.path.join('uploads', 'thesis')
         
         if os.path.exists(thesis_dir):
             try:
-                thesis_files = [f for f in os.listdir(thesis_dir) if os.path.isfile(os.path.join(thesis_dir, f))]
+                thesis_files_list = [f for f in os.listdir(thesis_dir) if os.path.isfile(os.path.join(thesis_dir, f))]
+                file_categories['thesis_dir']['files'] = thesis_files_list
+                thesis_files.extend(thesis_files_list)
+                app.logger.info(f"Found {len(thesis_files_list)} thesis files in uploads/thesis: {thesis_files_list}")
             except Exception as e:
-                app.logger.error(f"Error listing thesis files: {str(e)}")
+                app.logger.error(f"Error listing thesis files from uploads/thesis: {str(e)}")
+                
+        # Try the frontend/uploads/thesis directory
+        frontend_thesis_dir = os.path.join('frontend', 'uploads', 'thesis')
         
-        # Sample assessments (in a real app, these would come from a database)
+        if os.path.exists(frontend_thesis_dir):
+            try:
+                frontend_thesis_files = [f for f in os.listdir(frontend_thesis_dir) if os.path.isfile(os.path.join(frontend_thesis_dir, f))]
+                
+                # Only include files that aren't already in our list
+                unique_frontend_files = []
+                for file in frontend_thesis_files:
+                    if file not in thesis_files:
+                        thesis_files.append(file)
+                        unique_frontend_files.append(file)
+                
+                file_categories['frontend_thesis_dir']['files'] = unique_frontend_files
+                app.logger.info(f"Found {len(frontend_thesis_files)} thesis files in frontend/uploads/thesis (adding {len(unique_frontend_files)} unique ones)")
+            except Exception as e:
+                app.logger.error(f"Error listing thesis files from frontend/uploads/thesis: {str(e)}")
+                
+        # Also check for general upload files in the root uploads directory
+        uploads_dir = 'uploads'
+        
+        if os.path.exists(uploads_dir):
+            try:
+                # Only include files that aren't in a subdirectory and aren't already in our list
+                upload_files = [f for f in os.listdir(uploads_dir) 
+                              if os.path.isfile(os.path.join(uploads_dir, f)) 
+                              and f not in thesis_files]
+                              
+                file_categories['uploads_dir']['files'] = upload_files
+                thesis_files.extend(upload_files)
+                app.logger.info(f"Found {len(upload_files)} additional files in uploads/: {upload_files}")
+            except Exception as e:
+                app.logger.error(f"Error listing files from uploads/: {str(e)}")
+        
+        # Sample and submitted assessments (in a real app, these would all come from a database)
         assessments = [
             {
                 'id': str(uuid.uuid4()),
@@ -558,8 +608,26 @@ def register_routes(app):
             }
         ]
         
-        # Sample theses (in a real app, these would come from a database)
-        theses = [
+        # Generate thesis entries from uploaded files
+        # This combines sample data with actual uploaded files
+        theses = []
+        
+        # Add actual uploaded files that don't match our sample patterns
+        uploaded_files = [f for f in thesis_files if not (f.startswith('test_thesis') or f.startswith('additional_doc'))]
+        
+        if uploaded_files:
+            # Add Green Ventures thesis (for the newly uploaded file)
+            theses.append({
+                'id': str(uuid.uuid4()),
+                'fund_name': 'Green Ventures',
+                'investment_focus': 'Renewable Energy',
+                'submission_date': datetime.now().strftime("%Y-%m-%d"),
+                'status': 'Under Review',
+                'files': uploaded_files
+            })
+        
+        # Add sample theses with any matching files
+        sample_theses = [
             {
                 'id': str(uuid.uuid4()),
                 'fund_name': 'Test Fund',
@@ -578,6 +646,11 @@ def register_routes(app):
             }
         ]
         
+        # Only add sample theses if they have matching files
+        for thesis in sample_theses:
+            if thesis['files']:
+                theses.append(thesis)
+        
         status = get_api_status()
         
         return render_template(
@@ -587,7 +660,8 @@ def register_routes(app):
             page_title="VC-Lens™",
             assessments=assessments,
             theses=theses,
-            thesis_files=thesis_files
+            thesis_files=thesis_files,
+            file_categories=file_categories
         )
     
     # VC-Lens startup assessment page
