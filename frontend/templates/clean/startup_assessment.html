@@ -322,70 +322,118 @@
             hideAlert('processingAlert');
             
             if (data.success) {
+
                 // Populate form fields with extracted data
                 if (data.fields) {
                     const fields = data.fields;
-                    
-                    // Basic fields
-                    if (fields.company_name) document.getElementById('company_name').value = fields.company_name;
-                    
-                    // Industry dropdown
-                    if (fields.industry) {
-                        const industrySelect = document.getElementById('industry');
-                        const industryOptions = Array.from(industrySelect.options);
-                        
-                        // Find best match for industry
-                        const matchingOption = industryOptions.find(option => 
-                            option.value.toLowerCase().includes(fields.industry.toLowerCase()) ||
-                            fields.industry.toLowerCase().includes(option.value.toLowerCase())
-                        );
-                        
-                        if (matchingOption) {
-                            industrySelect.value = matchingOption.value;
-                        }
-                    }
-                    
-                    // Funding stage dropdown
-                    if (fields.funding_stage) {
-                        const stageSelect = document.getElementById('funding_stage');
-                        const stageOptions = Array.from(stageSelect.options);
-                        
-                        // Find best match for funding stage
-                        const matchingOption = stageOptions.find(option => 
-                            option.value.toLowerCase().includes(fields.funding_stage.toLowerCase()) ||
-                            fields.funding_stage.toLowerCase().includes(option.value.toLowerCase())
-                        );
-                        
-                        if (matchingOption) {
-                            stageSelect.value = matchingOption.value;
-                        }
-                    }
-                    
-                    // Founding year
-                    if (fields.founding_year) {
-                        const yearInput = document.getElementById('founding_year');
-                        const year = parseInt(fields.founding_year);
-                        if (!isNaN(year) && year >= 1900 && year <= 2025) {
-                            yearInput.value = year;
-                        }
-                    }
-                    
-                    // Text areas
-                    if (fields.sustainability_vision) document.getElementById('sustainability_vision').value = fields.sustainability_vision;
-                    if (fields.current_practices) document.getElementById('current_practices').value = fields.current_practices;
-                    if (fields.sustainability_challenges) document.getElementById('sustainability_challenges').value = fields.sustainability_challenges;
-                    if (fields.metrics_tracked) document.getElementById('metrics_tracked').value = fields.metrics_tracked;
-                    if (fields.competitive_advantage) document.getElementById('competitive_advantage').value = fields.competitive_advantage;
-                    if (fields.investor_alignment) document.getElementById('investor_alignment').value = fields.investor_alignment;
+                    populateAvailableFields(fields);
                     
                     // Count how many fields were successfully populated
                     const totalFields = Object.keys(fields).length;
                     const populatedFields = Object.values(fields).filter(value => value && value.trim() !== '').length;
                     
+                    // Check if we're using the fallback pattern matching method
+                    const usingFallback = data.using_fallback || data.method === 'pattern_matching';
+                    const methodName = usingFallback ? 'Pattern Matching' : 'AI Analysis';
+                    
                     if (populatedFields === totalFields) {
-                        showAlert('successAlert', 'Document processed successfully! All fields have been auto-populated.');
+                        let message = `Document processed successfully! All fields have been auto-populated using ${methodName}.`;
+                        showAlert('successAlert', message);
                     } else if (populatedFields > 0) {
-                        showAlert('partialAlert', `${populatedFields} out of ${totalFields} fields were auto-populated. Please review and complete any missing information.`);
+                        let message = `${populatedFields} out of ${totalFields} fields were auto-populated using ${methodName}. Please review and complete any missing information.`;
+                        showAlert('partialAlert', message);
+                    } else {
+                        showAlert('errorAlert', 'Could not extract information from the document. Please fill in the form manually.');
+                    }
+                } else {
+                    showAlert('errorAlert', 'No fields could be extracted from the document.');
+                }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+            } else {
+                // Check if it's a known API error with fallback information
+                if (data.using_fallback && data.fallback_reason) {
+                    let errorMessage = data.error || 'Error processing document.';
+                    
+                    if (data.fallback_reason === 'api_key_error') {
+                        errorMessage = 'API service unavailable for document analysis. Using basic pattern matching instead.';
+                        showAlert('partialAlert', errorMessage);
+                    } else if (data.fallback_reason === 'quota_exceeded') {
+                        errorMessage = 'AI quota exceeded for document analysis. Using basic pattern matching instead.';
+                        showAlert('partialAlert', errorMessage);
+                    } else {
+                        showAlert('errorAlert', errorMessage + ' Please try again or fill the form manually.');
+                    }
+                    
+                    // Even with errors, we might have partial results
+                    if (data.fields && Object.keys(data.fields).length > 0) {
+                        populateAvailableFields(data.fields);
+                    }
+                } else {
+                    showAlert('errorAlert', data.error || 'Error processing document. Please try again or fill the form manually.');
+                }
+            }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
                     } else {
                         showAlert('errorAlert', 'Could not extract information from the document. Please fill in the form manually.');
                     }
@@ -403,6 +451,61 @@
         });
     }
     
+
+    // Helper function to populate available fields from partial extraction
+    function populateAvailableFields(fields) {
+        // Basic fields
+        if (fields.company_name) document.getElementById("company_name").value = fields.company_name;
+        
+        // Industry dropdown
+        if (fields.industry) {
+            const industrySelect = document.getElementById("industry");
+            const industryOptions = Array.from(industrySelect.options);
+            
+            // Find best match for industry
+            const matchingOption = industryOptions.find(option => 
+                option.value.toLowerCase().includes(fields.industry.toLowerCase()) ||
+                fields.industry.toLowerCase().includes(option.value.toLowerCase())
+            );
+            
+            if (matchingOption) {
+                industrySelect.value = matchingOption.value;
+            }
+        }
+        
+        // Funding stage dropdown
+        if (fields.funding_stage) {
+            const stageSelect = document.getElementById("funding_stage");
+            const stageOptions = Array.from(stageSelect.options);
+            
+            // Find best match for funding stage
+            const matchingOption = stageOptions.find(option => 
+                option.value.toLowerCase().includes(fields.funding_stage.toLowerCase()) ||
+                fields.funding_stage.toLowerCase().includes(option.value.toLowerCase())
+            );
+            
+            if (matchingOption) {
+                stageSelect.value = matchingOption.value;
+            }
+        }
+        
+        // Founding year
+        if (fields.founding_year) {
+            const yearInput = document.getElementById("founding_year");
+            const year = parseInt(fields.founding_year);
+            if (!isNaN(year) && year >= 1900 && year <= 2025) {
+                yearInput.value = year;
+            }
+        }
+        
+        // Text fields
+        if (fields.sustainability_vision) document.getElementById("sustainability_vision").value = fields.sustainability_vision;
+        if (fields.current_practices) document.getElementById("current_practices").value = fields.current_practices;
+        if (fields.sustainability_challenges) document.getElementById("sustainability_challenges").value = fields.sustainability_challenges;
+        if (fields.metrics_tracked) document.getElementById("metrics_tracked").value = fields.metrics_tracked;
+        if (fields.competitive_advantage) document.getElementById("competitive_advantage").value = fields.competitive_advantage;
+        if (fields.investor_alignment) document.getElementById("investor_alignment").value = fields.investor_alignment;
+    }
     function showAlert(alertId, message = null) {
         // Hide all alerts first
         document.querySelectorAll('.alert').forEach(alert => {

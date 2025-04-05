@@ -727,8 +727,9 @@ def register_routes(app):
                 
                 # Extract structured fields based on form type
                 try:
+                    app.logger.info(f"Attempting to extract structured fields for {form_type} form...")
                     result = processor.extract_structured_fields(extracted_text, form_type)
-                    app.logger.info(f"Field extraction result: {result['success']}, confidence: {result.get('confidence', 'unknown')}")
+                    app.logger.info(f"Field extraction result: {result['success']}, confidence: {result.get('confidence', 'unknown')}, method: {result.get('method', 'unknown')}")
                     
                     if result['success']:
                         # Clean up temporary file after processing
@@ -737,21 +738,52 @@ def register_routes(app):
                         except:
                             pass
                             
+                        # Indicate if pattern matching fallback was used
+                        is_fallback = result.get('method', '') == 'pattern_matching'
+                        
                         return jsonify({
                             'success': True,
                             'fields': result['fields'],
                             'form_type': form_type,
-                            'confidence': result.get('confidence', 'medium')
+                            'confidence': result.get('confidence', 'medium'),
+                            'using_fallback': is_fallback,
+                            'method': result.get('method', 'ai_extraction')
                         })
                     else:
                         return jsonify({
                             'success': False, 
                             'error': result.get('error', 'Failed to extract fields'),
-                            'fields': result.get('fields', {})
+                            'fields': result.get('fields', {}),
+                            'using_fallback': True,
+                            'fallback_reason': result.get('error', 'extraction_failed')
                         })
                 except Exception as e:
-                    app.logger.error(f"Error extracting fields from document: {str(e)}")
-                    return jsonify({'success': False, 'error': f'Error extracting fields: {str(e)}'})
+                    error_message = str(e)
+                    # Check for common API errors
+                    if "api key" in error_message.lower() or "apikey" in error_message.lower():
+                        app.logger.error(f"API key error extracting fields: {error_message}")
+                        return jsonify({
+                            'success': False, 
+                            'error': 'API key configuration error. Using pattern matching instead.',
+                            'using_fallback': True,
+                            'fallback_reason': 'api_key_error'
+                        })
+                    elif "exceeded your current quota" in error_message.lower() or "insufficient_quota" in error_message.lower():
+                        app.logger.error(f"API quota exceeded: {error_message}")
+                        return jsonify({
+                            'success': False, 
+                            'error': 'AI service quota exceeded. Using pattern matching instead.',
+                            'using_fallback': True,
+                            'fallback_reason': 'quota_exceeded'
+                        })
+                    else:
+                        app.logger.error(f"Error extracting fields from document: {error_message}")
+                        return jsonify({
+                            'success': False, 
+                            'error': f'Error extracting fields: {error_message}',
+                            'using_fallback': True,
+                            'fallback_reason': 'general_error'
+                        })
                     
             except Exception as e:
                 app.logger.error(f"Error processing document: {str(e)}")

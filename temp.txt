@@ -1,0 +1,55 @@
+    
+    // Helper function to populate available fields from partial extraction
+    function populateAvailableFields(fields) {
+        // Basic fields
+        if (fields.company_name) document.getElementById('company_name').value = fields.company_name;
+        
+        // Industry dropdown
+        if (fields.industry) {
+            const industrySelect = document.getElementById('industry');
+            const industryOptions = Array.from(industrySelect.options);
+            
+            // Find best match for industry
+            const matchingOption = industryOptions.find(option => 
+                option.value.toLowerCase().includes(fields.industry.toLowerCase()) ||
+                fields.industry.toLowerCase().includes(option.value.toLowerCase())
+            );
+            
+            if (matchingOption) {
+                industrySelect.value = matchingOption.value;
+            }
+        }
+        
+        // Funding stage dropdown
+        if (fields.funding_stage) {
+            const stageSelect = document.getElementById('funding_stage');
+            const stageOptions = Array.from(stageSelect.options);
+            
+            // Find best match for funding stage
+            const matchingOption = stageOptions.find(option => 
+                option.value.toLowerCase().includes(fields.funding_stage.toLowerCase()) ||
+                fields.funding_stage.toLowerCase().includes(option.value.toLowerCase())
+            );
+            
+            if (matchingOption) {
+                stageSelect.value = matchingOption.value;
+            }
+        }
+        
+        // Founding year
+        if (fields.founding_year) {
+            const yearInput = document.getElementById('founding_year');
+            const year = parseInt(fields.founding_year);
+            if (!isNaN(year) && year >= 1900 && year <= 2025) {
+                yearInput.value = year;
+            }
+        }
+        
+        // Text fields
+        if (fields.sustainability_vision) document.getElementById('sustainability_vision').value = fields.sustainability_vision;
+        if (fields.current_practices) document.getElementById('current_practices').value = fields.current_practices;
+        if (fields.sustainability_challenges) document.getElementById('sustainability_challenges').value = fields.sustainability_challenges;
+        if (fields.metrics_tracked) document.getElementById('metrics_tracked').value = fields.metrics_tracked;
+        if (fields.competitive_advantage) document.getElementById('competitive_advantage').value = fields.competitive_advantage;
+        if (fields.investor_alignment) document.getElementById('investor_alignment').value = fields.investor_alignment;
+    }

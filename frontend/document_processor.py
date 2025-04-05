@@ -62,14 +62,32 @@ try:
     
     # Test if OpenAI is actually usable with the provided key
     try:
-        client = OpenAI()
-        # Make a very simple request to test the key
-        response = client.chat.completions.create(
-            model="gpt-3.5-turbo",
-            messages=[{"role": "system", "content": "Test"}],
-            max_tokens=5
-        )
-        OPENAI_AVAILABLE = True
+        # Use trendsense_openai_api environment variable instead of default OPENAI_API_KEY
+        api_key = os.environ.get("trendsense_openai_api")
+        if not api_key:
+            raise ValueError("trendsense_openai_api environment variable not set")
+            
+        try:
+            # Create client with explicit API key
+            client = OpenAI(api_key=api_key)
+            
+            # Make a very simple request to test the key
+            response = client.chat.completions.create(
+                model="gpt-3.5-turbo",
+                messages=[{"role": "system", "content": "Test"}],
+                max_tokens=5
+            )
+            OPENAI_AVAILABLE = True
+            logging.info("OpenAI API initialized successfully with trendsense_openai_api key")
+        except Exception as e:
+            error_message = str(e)
+            # Check specifically for quota error but consider the key valid
+            if "exceeded your current quota" in error_message or "insufficient_quota" in error_message:
+                logging.warning("OpenAI API key is valid but has exceeded quota limits. Using fallback mechanisms.")
+                OPENAI_AVAILABLE = False
+            else:
+                # Other errors mean the key is invalid or there's another issue
+                raise e
     except Exception as e:
         OPENAI_AVAILABLE = False
         logging.warning(f"OpenAI API key validation failed: {str(e)}")
@@ -124,6 +142,20 @@ class DocumentProcessor:
     def __init__(self):
         """Initialize the document processor"""
         self.logger = logging.getLogger(__name__)
+        
+        # Check OpenAI API key status
+        api_key = os.environ.get("trendsense_openai_api")
+        if not api_key:
+            self.logger.warning("trendsense_openai_api environment variable not set. AI extraction will use fallback methods.")
+            self.openai_status = "missing_key"
+        else:
+            try:
+                # Create client with explicit API key (this doesn't validate the key)
+                self.logger.info("trendsense_openai_api key found, using for AI-powered extraction")
+                self.openai_status = "available"
+            except Exception as e:
+                self.logger.error(f"Error initializing OpenAI client: {str(e)}")
+                self.openai_status = "error" 
         
         # Initialize sustainability metrics patterns
         self.metrics_patterns = {
@@ -859,31 +891,42 @@ class DocumentProcessor:
             """
             
             # Use OpenAI API to generate response
-            client = openai.OpenAI()
-            response = client.chat.completions.create(
-                model="gpt-3.5-turbo",
-                messages=[
-                    {"role": "system", "content": system_message},
-                    {"role": "user", "content": user_prompt}
-                ],
-                max_tokens=1000,
-                temperature=0.2
-            )
-            
-            # Process response
-            ai_response = response.choices[0].message.content.strip()
-            
-            # Extract key metrics mentioned in the response
-            metrics = self._extract_metrics_from_rag_response(ai_response)
-            
-            return {
-                'success': True,
-                'response': ai_response,
-                'metrics_extracted': metrics,
-                'chunks_analyzed': len(chunks),
-                'query': query
-            }
-            
+            api_key = os.environ.get("trendsense_openai_api")
+            if not api_key:
+                raise ValueError("trendsense_openai_api environment variable not set")
+                
+            client = openai.OpenAI(api_key=api_key)
+            try:
+                response = client.chat.completions.create(
+                    model="gpt-3.5-turbo",
+                    messages=[
+                        {"role": "system", "content": system_message},
+                        {"role": "user", "content": user_prompt}
+                    ],
+                    max_tokens=1000,
+                    temperature=0.2
+                )
+                
+                # Process response
+                ai_response = response.choices[0].message.content.strip()
+                
+                # Extract key metrics mentioned in the response
+                metrics = self._extract_metrics_from_rag_response(ai_response)
+                
+                return {
+                    'success': True,
+                    'response': ai_response,
+                    'metrics_extracted': metrics,
+                    'chunks_analyzed': len(chunks),
+                    'query': query
+                }
+            except Exception as e:
+                error_message = str(e)
+                # Check specifically for quota error to provide better logging
+                if "exceeded your current quota" in error_message or "insufficient_quota" in error_message:
+                    self.logger.warning("OpenAI API key has exceeded quota limits. Using fallback mechanisms.")
+                self.logger.error(f"Error in API call: {str(e)}")
+                raise  # Re-throw the exception so the outer try/except can handle it
         except Exception as e:
             self.logger.error(f"Error generating RAG response: {str(e)}")
             return self._generate_mock_rag_response(document_text, query)
@@ -897,13 +940,30 @@ class DocumentProcessor:
             form_type: Type of form to populate (e.g., 'startup_assessment', 'investment_thesis')
             
         Returns:
-            Dictionary with field names and extracted values
+            Dictionary with field names and extracted values and metadata about extraction process
         """
         self.logger.info(f"Extracting structured fields for {form_type} form")
         
+        # Check OpenAI availability based on our class init status
+        if hasattr(self, 'openai_status') and self.openai_status != "available":
+            fallback_reason = self.openai_status if self.openai_status else 'openai_not_available'
+            self.logger.warning(f"OpenAI not available (reason: {fallback_reason}). Using pattern matching for field extraction.")
+            pattern_result = self._extract_fields_with_patterns(document_text, form_type)
+            pattern_result.update({
+                'method': 'pattern_matching',
+                'fallback_reason': fallback_reason
+            })
+            return pattern_result
+        
+        # Also check for overall OpenAI availability from module import status
         if not OPENAI_AVAILABLE or openai is None:
-            self.logger.warning("OpenAI not available. Using pattern matching for field extraction.")
-            return self._extract_fields_with_patterns(document_text, form_type)
+            self.logger.warning("OpenAI module not available. Using pattern matching for field extraction.")
+            pattern_result = self._extract_fields_with_patterns(document_text, form_type)
+            pattern_result.update({
+                'method': 'pattern_matching',
+                'fallback_reason': 'openai_module_unavailable'
+            })
+            return pattern_result
             
         try:
             # Define field extraction prompts based on form type
@@ -930,7 +990,13 @@ class DocumentProcessor:
                 }
             else:
                 self.logger.error(f"Unknown form type: {form_type}")
-                return {"error": f"Unknown form type: {form_type}"}
+                return {
+                    "success": False,
+                    "error": f"Unknown form type: {form_type}",
+                    "form_type": form_type,
+                    "fields": {},
+                    "method": "none"
+                }
                 
             # Create JSON schema for extraction
             json_schema = {
@@ -968,17 +1034,47 @@ class DocumentProcessor:
             """
             
             # Use OpenAI API to extract fields
-            client = openai.OpenAI()
-            response = client.chat.completions.create(
-                model="gpt-3.5-turbo-16k",  # Using a model with larger context window
-                response_format={ "type": "json_object" },
-                messages=[
-                    {"role": "system", "content": system_message},
-                    {"role": "user", "content": user_prompt}
-                ],
-                max_tokens=1000,
-                temperature=0.1  # Low temperature for more deterministic extraction
-            )
+            api_key = os.environ.get("trendsense_openai_api")
+            if not api_key:
+                self.logger.error("trendsense_openai_api environment variable not set")
+                pattern_result = self._extract_fields_with_patterns(document_text, form_type)
+                pattern_result.update({
+                    'method': 'pattern_matching',
+                    'fallback_reason': 'missing_api_key'
+                })
+                return pattern_result
+                
+            client = openai.OpenAI(api_key=api_key)
+            try:
+                response = client.chat.completions.create(
+                    model="gpt-3.5-turbo-16k",  # Using a model with larger context window
+                    response_format={ "type": "json_object" },
+                    messages=[
+                        {"role": "system", "content": system_message},
+                        {"role": "user", "content": user_prompt}
+                    ],
+                    max_tokens=1000,
+                    temperature=0.1  # Low temperature for more deterministic extraction
+                )
+            except Exception as e:
+                error_message = str(e)
+                # Check specifically for quota error to provide better logging
+                if "exceeded your current quota" in error_message or "insufficient_quota" in error_message:
+                    self.logger.warning("OpenAI API key has exceeded quota limits. Using pattern matching fallback.")
+                    pattern_result = self._extract_fields_with_patterns(document_text, form_type)
+                    pattern_result.update({
+                        'method': 'pattern_matching',
+                        'fallback_reason': 'quota_exceeded'
+                    })
+                    return pattern_result
+                else:
+                    self.logger.error(f"Error in OpenAI API call: {str(e)}")
+                    pattern_result = self._extract_fields_with_patterns(document_text, form_type)
+                    pattern_result.update({
+                        'method': 'pattern_matching',
+                        'fallback_reason': 'api_error'
+                    })
+                    return pattern_result
             
             # Process response
             response_text = response.choices[0].message.content.strip()
@@ -988,33 +1084,42 @@ class DocumentProcessor:
                 extracted_fields = json.loads(response_text)
                 
                 # Clean up any [NOT FOUND] or [ESTIMATED] markers for better UI experience
+                estimation_markers = []
                 for field, value in extracted_fields.items():
                     if isinstance(value, str):
                         if value == '[NOT FOUND]':
                             extracted_fields[field] = ''
-                        else:
+                        elif '[ESTIMATED]' in value:
+                            estimation_markers.append(field)
                             extracted_fields[field] = value.replace('[ESTIMATED] ', '')
                 
                 return {
                     'success': True,
                     'fields': extracted_fields,
                     'form_type': form_type,
-                    'confidence': 'high'
+                    'confidence': 'high',
+                    'method': 'ai_extraction',
+                    'estimated_fields': estimation_markers
                 }
                 
             except json.JSONDecodeError as e:
                 self.logger.error(f"Error parsing JSON response: {str(e)}")
                 self.logger.debug(f"Failed JSON response: {response_text}")
-                return {
-                    'success': False,
-                    'error': 'Failed to parse extracted fields',
-                    'form_type': form_type,
-                    'fields': self._extract_fields_with_patterns(document_text, form_type)['fields']
-                }
+                pattern_result = self._extract_fields_with_patterns(document_text, form_type)
+                pattern_result.update({
+                    'method': 'pattern_matching',
+                    'fallback_reason': 'json_parse_error'
+                })
+                return pattern_result
                 
         except Exception as e:
             self.logger.error(f"Error extracting structured fields: {str(e)}")
-            return self._extract_fields_with_patterns(document_text, form_type)
+            pattern_result = self._extract_fields_with_patterns(document_text, form_type)
+            pattern_result.update({
+                'method': 'pattern_matching',
+                'fallback_reason': 'general_error'
+            })
+            return pattern_result
             
     def _extract_fields_with_patterns(self, document_text: str, form_type: str) -> Dict[str, Any]:
         """
@@ -1025,9 +1130,9 @@ class DocumentProcessor:
             form_type: Type of form to populate
             
         Returns:
-            Dictionary with extracted fields
+            Dictionary with extracted fields and metadata about the extraction process
         """
-        self.logger.warning(f"OpenAI not available. Using pattern matching for field extraction.")
+        self.logger.warning(f"Using pattern matching for field extraction.")
         original_text = document_text
         document_text = document_text.lower()
         
@@ -1058,6 +1163,18 @@ class DocumentProcessor:
                 'sustainability_vision': [
                     r'(?:sustainability|mission|vision)[:\s]+([^.]{10,200}\.)',
                     r'our\s+(?:sustainability|mission|vision)(?:\s+is)?[:\s]+([^.]{10,200}\.)'
+                ],
+                'current_practices': [
+                    r'current\s+(?:practices|initiatives)[:\s]+([^.]{10,200}\.)',
+                    r'(?:implement|use)\s+(?:the\s+following|these)\s+(?:sustainability|sustainable)(?:\s+[^.]{10,200}\.)'
+                ],
+                'sustainability_challenges': [
+                    r'(?:key|main|primary)?\s*challenges?[:\s]+([^.]{10,200}\.)',
+                    r'(?:face|encounter|dealing\s+with)\s+(?:challenges|difficulties|problems)[:\s]+([^.]{10,200}\.)'
+                ],
+                'metrics_tracked': [
+                    r'(?:metrics|kpis|indicators)[:\s]+([^.]{10,200}\.)',
+                    r'(?:track|measure|monitor)[:\s]+([^.]{10,200}\.)'
                 ]
             }
         elif form_type == 'investment_thesis':
@@ -1081,17 +1198,23 @@ class DocumentProcessor:
                     r'(?:thesis|report|document)\s+(?:date|year|for)[:\s]+([1-2][0-9]{3})',
                     r'(?:dated|published|prepared)(?:\s+in)?(?:\s+)([1-2][0-9]{3})',
                     r'([1-2][0-9]{3})(?:\s+investment\s+thesis|\s+thesis)'
+                ],
+                'analysis_objectives': [
+                    r'(?:objectives?|goals?|aims?)[:\s]+([^.]{10,200}\.)',
+                    r'(?:seek|looking|aims?)\s+to\s+([^.]{10,200}\.)'
                 ]
             }
         else:
             return {
                 'success': False,
                 'error': f'Unknown form type: {form_type}',
-                'fields': {}
+                'fields': {},
+                'method': 'none'
             }
             
         # Extract fields using patterns
         extracted_fields = {}
+        extracted_with_pattern = []
         
         # First try with lowercase text
         for field, pattern_list in patterns.items():
@@ -1101,6 +1224,7 @@ class DocumentProcessor:
                     extracted_value = match.group(1).strip()
                     # Limit to 100 chars for any field and capitalize properly
                     extracted_fields[field] = extracted_value[:100].capitalize()
+                    extracted_with_pattern.append(field)
                     break
             
             # If still no match, try again with original text case
@@ -1110,18 +1234,31 @@ class DocumentProcessor:
                     if match:
                         extracted_value = match.group(1).strip()
                         extracted_fields[field] = extracted_value[:100].capitalize()
+                        extracted_with_pattern.append(field)
                         break
                     
             # If no match found, set to empty string
             if field not in extracted_fields:
                 extracted_fields[field] = ''
+        
+        # Calculate confidence based on how many fields were successfully extracted
+        confidence = 'low'
+        if extracted_with_pattern:
+            extraction_ratio = len(extracted_with_pattern) / len(patterns)
+            if extraction_ratio > 0.7:
+                confidence = 'medium'
+            elif extraction_ratio > 0.3:
+                confidence = 'low'
+        
+        self.logger.info(f"Pattern matching extracted {len(extracted_with_pattern)} fields with {confidence} confidence")
                 
         return {
             'success': True,
             'fields': extracted_fields,
             'form_type': form_type,
-            'confidence': 'medium',
-            'method': 'pattern_matching'
+            'confidence': confidence,
+            'method': 'pattern_matching',
+            'extracted_with_pattern': extracted_with_pattern
         }
     
     def _generate_mock_rag_response(self, document_text: str, query: str) -> Dict[str, Any]:

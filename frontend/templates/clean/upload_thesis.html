@@ -308,67 +308,140 @@
             hideAlert('processingAlert');
             
             if (data.success) {
-                // Populate form fields with extracted data
-                if (data.fields) {
-                    const fields = data.fields;
-                    
-                    // Basic fields
-                    if (fields.fund_name) document.getElementById('fund_name').value = fields.fund_name;
-                    
-                    // Investment focus dropdown
-                    if (fields.investment_focus) {
-                        const focusSelect = document.getElementById('investment_focus');
-                        const focusOptions = Array.from(focusSelect.options);
+
+                    // Populate form fields with extracted data
+                    if (data.fields) {
+                        const fields = data.fields;
                         
-                        // Find best match for investment focus
-                        const matchingOption = focusOptions.find(option => 
-                            option.value.toLowerCase().includes(fields.investment_focus.toLowerCase()) ||
-                            fields.investment_focus.toLowerCase().includes(option.value.toLowerCase())
-                        );
+                        // Use helper function to populate fields
+                        populateAvailableFields(fields);
                         
-                        if (matchingOption) {
-                            focusSelect.value = matchingOption.value;
+                        // Count how many fields were successfully populated
+                        const totalFields = Object.keys(fields).length;
+                        const populatedFields = Object.values(fields).filter(value => value && value.trim() !== '').length;
+                        
+                        // Check if we're using the fallback pattern matching method
+                        const usingFallback = data.using_fallback || data.method === 'pattern_matching';
+                        const methodName = usingFallback ? 'Pattern Matching' : 'AI Analysis';
+                        
+                        if (populatedFields === totalFields) {
+                            let message = `Document processed successfully! All fields have been auto-populated using ${methodName}.`;
+                            showAlert('successAlert', message);
+                        } else if (populatedFields > 0) {
+                            let message = `${populatedFields} out of ${totalFields} fields were auto-populated using ${methodName}. Please review and complete any missing information.`;
+                            showAlert('partialAlert', message);
+                        } else {
+                            showAlert('errorAlert', 'Could not extract information from the document. Please fill in the form manually.');
                         }
+                    } else {
+                        showAlert('errorAlert', 'No fields could be extracted from the document.');
+                    }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+            } else {
+                // Check if it's a known API error with fallback information
+                if (data.using_fallback && data.fallback_reason) {
+                    let errorMessage = data.error || 'Error processing document.';
+                    
+                    if (data.fallback_reason === 'api_key_error') {
+                        errorMessage = 'API service unavailable for document analysis. Using basic pattern matching instead.';
+                        showAlert('partialAlert', errorMessage);
+                    } else if (data.fallback_reason === 'quota_exceeded') {
+                        errorMessage = 'AI quota exceeded for document analysis. Using basic pattern matching instead.';
+                        showAlert('partialAlert', errorMessage);
+                    } else {
+                        showAlert('errorAlert', errorMessage + ' Please try again or fill the form manually.');
                     }
                     
-                    // Fund stage dropdown
-                    if (fields.fund_stage) {
-                        const stageSelect = document.getElementById('fund_stage');
-                        const stageOptions = Array.from(stageSelect.options);
-                        
-                        // Find best match for fund stage
-                        const matchingOption = stageOptions.find(option => 
-                            option.value.toLowerCase().includes(fields.fund_stage.toLowerCase()) ||
-                            fields.fund_stage.toLowerCase().includes(option.value.toLowerCase())
-                        );
-                        
-                        if (matchingOption) {
-                            stageSelect.value = matchingOption.value;
-                        }
+                    // Even with errors, we might have partial results
+                    if (data.fields && Object.keys(data.fields).length > 0) {
+                        populateAvailableFields(data.fields);
                     }
-                    
-                    // Thesis year
-                    if (fields.thesis_year) {
-                        const yearInput = document.getElementById('thesis_year');
-                        const year = parseInt(fields.thesis_year);
-                        if (!isNaN(year) && year >= 2000 && year <= 2025) {
-                            yearInput.value = year;
-                        }
+                } else {
+                    showAlert('errorAlert', data.error || 'Error processing document. Please try again or fill the form manually.');
+                }
+            }
+
+
                     }
-                    
-                    // Analysis objectives
-                    if (fields.analysis_objectives) {
-                        document.getElementById('analysis_objectives').value = fields.analysis_objectives;
-                    }
-                    
-                    // Count how many fields were successfully populated
-                    const totalFields = Object.keys(fields).length;
-                    const populatedFields = Object.values(fields).filter(value => value && value.trim() !== '').length;
-                    
-                    if (populatedFields === totalFields) {
-                        showAlert('successAlert', 'Document processed successfully! All fields have been auto-populated.');
+
+
+
+
+
+
+
+
+
+
                     } else if (populatedFields > 0) {
-                        showAlert('partialAlert', `${populatedFields} out of ${totalFields} fields were auto-populated. Please review and complete any missing information.`);
+                        let message = `${populatedFields} out of ${totalFields} fields were auto-populated using ${methodName}. Please review and complete any missing information.`;
+                        showAlert('partialAlert', message);
                     } else {
                         showAlert('errorAlert', 'Could not extract information from the document. Please fill in the form manually.');
                     }
@@ -407,6 +480,58 @@
         }
     }
     
+
+    // Helper function to populate available fields from partial extraction
+    function populateAvailableFields(fields) {
+        // Basic fields
+        if (fields.fund_name) document.getElementById("fund_name").value = fields.fund_name;
+        
+        // Investment focus dropdown
+        if (fields.investment_focus) {
+            const focusSelect = document.getElementById("investment_focus");
+            const focusOptions = Array.from(focusSelect.options);
+            
+            // Find best match for investment focus
+            const matchingOption = focusOptions.find(option => 
+                option.value.toLowerCase().includes(fields.investment_focus.toLowerCase()) ||
+                fields.investment_focus.toLowerCase().includes(option.value.toLowerCase())
+            );
+            
+            if (matchingOption) {
+                focusSelect.value = matchingOption.value;
+            }
+        }
+        
+        // Fund stage dropdown
+        if (fields.fund_stage) {
+            const stageSelect = document.getElementById("fund_stage");
+            const stageOptions = Array.from(stageSelect.options);
+            
+            // Find best match for fund stage
+            const matchingOption = stageOptions.find(option => 
+                option.value.toLowerCase().includes(fields.fund_stage.toLowerCase()) ||
+                fields.fund_stage.toLowerCase().includes(option.value.toLowerCase())
+            );
+            
+            if (matchingOption) {
+                stageSelect.value = matchingOption.value;
+            }
+        }
+        
+        // Thesis year
+        if (fields.thesis_year) {
+            const yearInput = document.getElementById("thesis_year");
+            const year = parseInt(fields.thesis_year);
+            if (!isNaN(year) && year >= 2000 && year <= 2025) {
+                yearInput.value = year;
+            }
+        }
+        
+        // Analysis objectives
+        if (fields.analysis_objectives) {
+            document.getElementById("analysis_objectives").value = fields.analysis_objectives;
+        }
+    }
     function hideAlert(alertId) {
         const alert = document.getElementById(alertId);
         if (alert) {
