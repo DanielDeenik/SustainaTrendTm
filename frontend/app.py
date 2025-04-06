@@ -6,15 +6,38 @@ consolidated architecture.
 """
 import os
 import logging
-import redis
-import psutil
+# Comment out redis import since it's not essential for basic functionality
+# import redis
 import uuid
 from flask import Flask, render_template, jsonify, request, redirect, url_for, g, session, flash
 from datetime import datetime
 from werkzeug.utils import secure_filename
 from logging.config import dictConfig
-from flask_caching import Cache
+# Comment out flask_caching since it depends on redis
+# from flask_caching import Cache
 import importlib.util
+
+# Optional imports with fallbacks
+try:
+    import psutil
+except ImportError:
+    # Create a simple psutil fallback
+    class PsutilFallback:
+        @staticmethod
+        def cpu_percent():
+            return 0
+        
+        @staticmethod
+        def virtual_memory():
+            class Memory:
+                used = 0
+            return Memory()
+            
+        @staticmethod
+        def boot_time():
+            return datetime.now().timestamp()
+    
+    psutil = PsutilFallback()
 
 # Configure logging function
 def configure_logging():
@@ -246,27 +269,21 @@ def create_app(test_config=None):
         except (AttributeError, ValueError):
             return str(value)
     
-    # Setup caching system
-    try:
-        redis_client = redis.Redis(
-            host=os.getenv('REDIS_HOST', 'localhost'),
-            port=int(os.getenv('REDIS_PORT', 6379)),
-            db=0,
-            socket_timeout=5,
-            decode_responses=True
-        )
-        # Test connection
-        redis_client.ping()
-        logger.info("Connected to Redis successfully")
-        cache = Cache(app, config={
-            'CACHE_TYPE': 'redis',
-            'CACHE_REDIS_HOST': os.getenv('REDIS_HOST', 'localhost'),
-            'CACHE_REDIS_PORT': int(os.getenv('REDIS_PORT', 6379)),
-            'CACHE_DEFAULT_TIMEOUT': 300
-        })
-    except (redis.ConnectionError, redis.exceptions.RedisError) as e:
-        logger.warning(f"Redis connection failed, using simple cache instead: {str(e)}")
-        cache = Cache(app, config={'CACHE_TYPE': 'simple'})
+    # Setup caching system with simple memory cache
+    # Since redis and flask-caching might not be available,
+    # use a simple dictionary-based cache for development
+    app.config['CACHE_TYPE'] = 'simple'
+    if importlib.util.find_spec("flask_caching") is not None:
+        logger.info("Using flask_caching with simple memory cache")
+        try:
+            from flask_caching import Cache
+            cache = Cache(app)
+        except ImportError:
+            logger.warning("flask_caching not available, some features may be limited")
+            cache = None
+    else:
+        logger.warning("flask_caching not available, some features may be limited")
+        cache = None
     
     # Register routes
     register_routes(app)

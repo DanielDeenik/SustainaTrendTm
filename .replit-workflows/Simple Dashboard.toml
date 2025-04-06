@@ -1,0 +1,4 @@
+[workflow]
+name = "Simple Dashboard"
+entrypoint = "frontend/simple_app.py"
+run_command = "cd frontend && python simple_app.py"
