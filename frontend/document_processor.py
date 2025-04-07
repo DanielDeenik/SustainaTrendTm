@@ -62,32 +62,39 @@ try:
     
     # Test if OpenAI is actually usable with the provided key
     try:
-        # Use trendsense_openai_api environment variable instead of default OPENAI_API_KEY
+        # Use trendsense_openai_api environment variable for API key
         api_key = os.environ.get("trendsense_openai_api")
         if not api_key:
-            raise ValueError("trendsense_openai_api environment variable not set")
-            
-        try:
-            # Create client with explicit API key
-            client = OpenAI(api_key=api_key)
-            
-            # Make a very simple request to test the key
-            response = client.chat.completions.create(
-                model="gpt-3.5-turbo",
-                messages=[{"role": "system", "content": "Test"}],
-                max_tokens=5
-            )
-            OPENAI_AVAILABLE = True
-            logging.info("OpenAI API initialized successfully with trendsense_openai_api key")
-        except Exception as e:
-            error_message = str(e)
-            # Check specifically for quota error but consider the key valid
-            if "exceeded your current quota" in error_message or "insufficient_quota" in error_message:
-                logging.warning("OpenAI API key is valid but has exceeded quota limits. Using fallback mechanisms.")
+            # Fall back to OPENAI_API_KEY for backward compatibility
+            api_key = os.environ.get("OPENAI_API_KEY")
+            if not api_key:
+                logging.warning("Neither trendsense_openai_api nor OPENAI_API_KEY environment variables are set. RAG capabilities will use fallback mechanisms.")
                 OPENAI_AVAILABLE = False
             else:
-                # Other errors mean the key is invalid or there's another issue
-                raise e
+                logging.info("Using OPENAI_API_KEY as fallback since trendsense_openai_api is not set")
+        else:
+            try:
+                # Create client with explicit API key
+                client = OpenAI(api_key=api_key)
+                
+                # Make a very simple request to test the key
+                response = client.chat.completions.create(
+                    model="gpt-3.5-turbo",
+                    messages=[{"role": "system", "content": "Test"}],
+                    max_tokens=5
+                )
+                OPENAI_AVAILABLE = True
+                logging.info("OpenAI API initialized successfully with trendsense_openai_api key")
+            except Exception as e:
+                error_message = str(e)
+                # Check specifically for quota error but consider the key valid
+                if "exceeded your current quota" in error_message or "insufficient_quota" in error_message:
+                    logging.warning("OpenAI API key is valid but has exceeded quota limits. Using fallback mechanisms.")
+                    OPENAI_AVAILABLE = False  # Still mark as unavailable for consistency
+                else:
+                    # Other errors mean the key is invalid or there's another issue
+                    logging.warning(f"OpenAI API error: {str(e)}. Using fallback mechanisms.")
+                    OPENAI_AVAILABLE = False
     except Exception as e:
         OPENAI_AVAILABLE = False
         logging.warning(f"OpenAI API key validation failed: {str(e)}")
@@ -146,8 +153,14 @@ class DocumentProcessor:
         # Check OpenAI API key status
         api_key = os.environ.get("trendsense_openai_api")
         if not api_key:
-            self.logger.warning("trendsense_openai_api environment variable not set. AI extraction will use fallback methods.")
-            self.openai_status = "missing_key"
+            # Fall back to OPENAI_API_KEY for backward compatibility
+            api_key = os.environ.get("OPENAI_API_KEY")
+            if not api_key:
+                self.logger.warning("Neither trendsense_openai_api nor OPENAI_API_KEY environment variables are set. AI extraction will use fallback methods.")
+                self.openai_status = "missing_key"
+            else:
+                self.logger.info("Using OPENAI_API_KEY as fallback since trendsense_openai_api is not set")
+                self.openai_status = "available"
         else:
             try:
                 # Create client with explicit API key (this doesn't validate the key)
@@ -893,7 +906,11 @@ class DocumentProcessor:
             # Use OpenAI API to generate response
             api_key = os.environ.get("trendsense_openai_api")
             if not api_key:
-                raise ValueError("trendsense_openai_api environment variable not set")
+                # Fall back to OPENAI_API_KEY for backward compatibility
+                api_key = os.environ.get("OPENAI_API_KEY")
+                if not api_key:
+                    raise ValueError("Neither trendsense_openai_api nor OPENAI_API_KEY environment variables are set")
+                self.logger.info("Using OPENAI_API_KEY as fallback since trendsense_openai_api is not set")
                 
             client = openai.OpenAI(api_key=api_key)
             try:
@@ -1036,18 +1053,24 @@ class DocumentProcessor:
             # Use OpenAI API to extract fields
             api_key = os.environ.get("trendsense_openai_api")
             if not api_key:
-                self.logger.error("trendsense_openai_api environment variable not set")
-                pattern_result = self._extract_fields_with_patterns(document_text, form_type)
-                pattern_result.update({
-                    'method': 'pattern_matching',
-                    'fallback_reason': 'missing_api_key'
-                })
-                return pattern_result
+                # Fall back to OPENAI_API_KEY for backward compatibility
+                api_key = os.environ.get("OPENAI_API_KEY")
+                if not api_key:
+                    self.logger.error("Neither trendsense_openai_api nor OPENAI_API_KEY environment variables are set")
+                    pattern_result = self._extract_fields_with_patterns(document_text, form_type)
+                    pattern_result.update({
+                        'method': 'pattern_matching',
+                        'fallback_reason': 'missing_api_key'
+                    })
+                    return pattern_result
+                self.logger.info("Using OPENAI_API_KEY as fallback since trendsense_openai_api is not set")
                 
-            client = openai.OpenAI(api_key=api_key)
+            # Create the client with the API key
+            client = OpenAI(api_key=api_key)
             try:
+                # Use a consistent model with sufficient context window
                 response = client.chat.completions.create(
-                    model="gpt-3.5-turbo-16k",  # Using a model with larger context window
+                    model="gpt-3.5-turbo-16k",
                     response_format={ "type": "json_object" },
                     messages=[
                         {"role": "system", "content": system_message},

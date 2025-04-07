@@ -99,14 +99,19 @@ try:
     import openai
     
     # Initialize OpenAI client if API key is available
-    OPENAI_API_KEY = os.getenv("OPENAI_API_KEY")
+    # First try trendsense_openai_api, fall back to OPENAI_API_KEY
+    OPENAI_API_KEY = os.getenv("trendsense_openai_api")
+    if not OPENAI_API_KEY:
+        OPENAI_API_KEY = os.getenv("OPENAI_API_KEY")
+        if OPENAI_API_KEY:
+            logger.info("Using OPENAI_API_KEY as fallback since trendsense_openai_api is not set")
     
     if OPENAI_API_KEY:
         logger.info("Initializing OpenAI for LCM embeddings")
         openai.api_key = OPENAI_API_KEY
         OPENAI_AVAILABLE = True
     else:
-        logger.warning("OpenAI API key not found, using fallback embeddings")
+        logger.warning("Neither trendsense_openai_api nor OPENAI_API_KEY environment variables are set, using fallback embeddings")
         OPENAI_AVAILABLE = False
 except ImportError:
     logger.warning("OpenAI package not available, using fallback embeddings")
@@ -200,7 +205,9 @@ def generate_lcm_story(story_id: str, audience: str, category: str, prompt: str,
             embedding = embedding_response['data'][0]['embedding']
         else:
             # Using newer openai >= 1.0.0
-            client = openai.OpenAI(api_key=os.getenv("OPENAI_API_KEY"))
+            # Use trendsense_openai_api with fallback to OPENAI_API_KEY
+            api_key = os.getenv("trendsense_openai_api") or os.getenv("OPENAI_API_KEY")
+            client = openai.OpenAI(api_key=api_key)
             embedding_response = client.embeddings.create(
                 input=embedding_text,
                 model="text-embedding-ada-002"
@@ -262,7 +269,9 @@ def generate_lcm_story(story_id: str, audience: str, category: str, prompt: str,
                     new_embedding = embedding_response['data'][0]['embedding']
                 else:
                     # Using newer openai >= 1.0.0
-                    client = openai.OpenAI(api_key=os.getenv("OPENAI_API_KEY"))
+                    # Use trendsense_openai_api with fallback to OPENAI_API_KEY
+                    api_key = os.getenv("trendsense_openai_api") or os.getenv("OPENAI_API_KEY")
+                    client = openai.OpenAI(api_key=api_key)
                     embedding_response = client.embeddings.create(
                         input=story_text,
                         model="text-embedding-ada-002"
@@ -388,7 +397,9 @@ def create_lcm_enhanced_story(
             response_text = response.choices[0].message.content.strip()
         else:
             # Using newer openai >= 1.0.0
-            client = openai.OpenAI(api_key=os.getenv("OPENAI_API_KEY"))
+            # Use trendsense_openai_api with fallback to OPENAI_API_KEY
+            api_key = os.getenv("trendsense_openai_api") or os.getenv("OPENAI_API_KEY")
+            client = openai.OpenAI(api_key=api_key)
             response = client.chat.completions.create(
                 model="gpt-4",
                 messages=[

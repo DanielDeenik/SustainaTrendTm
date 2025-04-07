@@ -83,7 +83,8 @@ def get_api_status():
         dict: Comprehensive API connection status information
     """
     # Check for OpenAI API key
-    openai_connected = bool(os.environ.get('OPENAI_API_KEY'))
+    # Check for either trendsense_openai_api or OPENAI_API_KEY
+    openai_connected = bool(os.environ.get('trendsense_openai_api') or os.environ.get('OPENAI_API_KEY'))
     
     # Check for Google Gemini API key
     gemini_connected = bool(os.environ.get('GOOGLE_API_KEY'))
@@ -529,6 +530,13 @@ def register_routes(app):
             status=status,
             page_title="API Status"
         )
+        
+    # API Status JSON endpoint
+    @app.route('/api-status-json/')
+    def api_status_json():
+        """API connection status as JSON"""
+        status = get_api_status()
+        return jsonify(status)
         
     @app.route('/toggle-theme/', methods=['POST'])
     def toggle_theme():

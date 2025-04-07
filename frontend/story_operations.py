@@ -17,7 +17,8 @@ logger = logging.getLogger(__name__)
 
 # Configure storage variables
 PINECONE_AVAILABLE = os.getenv("PINECONE_API_KEY") is not None
-OPENAI_AVAILABLE = os.getenv("OPENAI_API_KEY") is not None
+# Check for either trendsense_openai_api or OPENAI_API_KEY
+OPENAI_AVAILABLE = (os.getenv("trendsense_openai_api") is not None or os.getenv("OPENAI_API_KEY") is not None)
 INDEX_NAME = os.getenv("PINECONE_INDEX_NAME", "multilingual-e5-large")
 
 # In-memory storage for fallback
@@ -44,8 +45,9 @@ def update_story_in_pinecone(story_id: str, story_data: Dict[str, Any]) -> bool:
         # Create Pinecone client
         pinecone_client = Pinecone(api_key=os.getenv("PINECONE_API_KEY"))
         
-        # Get OpenAI client
-        openai_client = openai.OpenAI(api_key=os.getenv("OPENAI_API_KEY"))
+        # Get OpenAI client - use trendsense_openai_api with fallback to OPENAI_API_KEY
+        api_key = os.getenv("trendsense_openai_api") or os.getenv("OPENAI_API_KEY")
+        openai_client = openai.OpenAI(api_key=api_key)
         
         # Create a copy of the story data to use as metadata
         metadata = story_data.copy()

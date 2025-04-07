@@ -63,7 +63,12 @@ def connect_to_ai_services() -> bool:
     # Connect to OpenAI if available
     if OPENAI_AVAILABLE:
         try:
-            openai_api_key = os.environ.get("OPENAI_API_KEY")
+            # Use trendsense_openai_api environment variable for consistency
+            openai_api_key = os.environ.get("trendsense_openai_api")
+            if not openai_api_key:
+                # Fall back to OPENAI_API_KEY for backward compatibility
+                openai_api_key = os.environ.get("OPENAI_API_KEY")
+                
             if openai_api_key:
                 openai.api_key = openai_api_key
                 # Test the connection
@@ -71,7 +76,7 @@ def connect_to_ai_services() -> bool:
                 logger.info("Configured OpenAI with provided API key")
                 success = True
             else:
-                logger.warning("OpenAI API key not found in environment variables")
+                logger.warning("OpenAI API key not found in environment variables (trendsense_openai_api or OPENAI_API_KEY)")
                 OPENAI_AVAILABLE = False
         except Exception as e:
             logger.error(f"Error connecting to OpenAI: {str(e)}")
