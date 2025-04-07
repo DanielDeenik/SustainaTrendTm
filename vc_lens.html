@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Sustainability Dashboard</title>
+    <title>VC-Lens™</title>
     
     <!-- Bootstrap CSS -->
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/css/bootstrap.min.css" rel="stylesheet">
@@ -342,7 +342,7 @@
                     </div>
                     <ul class="nav flex-column">
                         <li class="nav-item">
-                            <a class="nav-link active" href="/dashboard/">
+                            <a class="nav-link " href="/dashboard/">
                                 <i class="fas fa-chart-bar"></i> Dashboard
                             </a>
                         </li>
@@ -387,7 +387,7 @@
                             </a>
                         </li>
                         <li class="nav-item">
-                            <a class="nav-link " href="/vc-lens/">
+                            <a class="nav-link active" href="/vc-lens/">
                                 <i class="fas fa-search-dollar"></i> VC-Lens™
                             </a>
                         </li>
@@ -398,16 +398,16 @@
             <!-- Main Content -->
             <div class="col-md-9 ms-sm-auto col-lg-10 px-md-4">
                 <div class="d-flex justify-content-between flex-wrap flex-md-nowrap align-items-center pt-3 pb-2 mb-3 border-bottom">
-                    <h1 class="h2">Sustainability Dashboard</h1>
+                    <h1 class="h2">VC-Lens™ Platform</h1>
                     <div class="btn-toolbar mb-2 mb-md-0">
                         <div class="btn-group me-2">
                             
-<button class="btn btn-sm btn-outline-secondary">
-    <i class="fas fa-download"></i> Export
-</button>
-<button class="btn btn-sm btn-outline-primary">
-    <i class="fas fa-sync"></i> Refresh
-</button>
+<a href="/vc-lens/startup-assessment/" class="btn btn-sm btn-primary">
+    <i class="fas fa-clipboard-check"></i> New Assessment
+</a>
+<a href="/vc-lens/upload-thesis/" class="btn btn-sm btn-outline-primary">
+    <i class="fas fa-file-upload"></i> Upload Thesis
+</a>
 
                         </div>
                         <div class="btn-group">
@@ -426,68 +426,33 @@
                 <div class="main-content">
                     
 <div class="row">
-    <!-- Metric Cards -->
+    <!-- VC-Lens Intro -->
     <div class="col-12 mb-4">
-        <div class="row">
-            <div class="col-md-3 mb-3">
-                <div class="metric-card">
-                    <div class="metric-icon">
-                        <i class="fas fa-smog"></i>
+        <div class="card">
+            <div class="card-body">
+                <div class="row">
+                    <div class="col-md-8">
+                        <h5>Venture Capital Sustainability Assessment Platform</h5>
+                        <p class="text-muted">
+                            VC-Lens™ is a specialized tool for venture capital firms to assess and evaluate 
+                            startup sustainability performance across environmental, social, and governance dimensions.
+                            Use our assessment modules to gain insights into sustainability readiness, metrics, and narrative alignment.
+                        </p>
                     </div>
-                    <div class="metric-content">
-                        <div class="metric-title">Carbon Emissions</div>
-                        <div class="metric-value">78.5</div>
-                        <div class="metric-unit">tonnes CO<sub>2</sub>e</div>
-                        <div class="metric-change decrease">
-                            <i class="fas fa-caret-down"></i> 12.3%
-                        </div>
-                    </div>
-                </div>
-            </div>
-            
-            <div class="col-md-3 mb-3">
-                <div class="metric-card">
-                    <div class="metric-icon">
-                        <i class="fas fa-bolt"></i>
-                    </div>
-                    <div class="metric-content">
-                        <div class="metric-title">Energy Consumption</div>
-                        <div class="metric-value">342</div>
-                        <div class="metric-unit">MWh</div>
-                        <div class="metric-change decrease">
-                            <i class="fas fa-caret-down"></i> 8.7%
-                        </div>
+                    <div class="col-md-4 text-center">
+                        <i class="fas fa-chart-line fa-5x text-primary mb-3"></i>
                     </div>
                 </div>
-            </div>
-            
-            <div class="col-md-3 mb-3">
-                <div class="metric-card">
-                    <div class="metric-icon">
-                        <i class="fas fa-tint"></i>
-                    </div>
-                    <div class="metric-content">
-                        <div class="metric-title">Water Usage</div>
-                        <div class="metric-value">1.28</div>
-                        <div class="metric-unit">million L</div>
-                        <div class="metric-change decrease">
-                            <i class="fas fa-caret-down"></i> 4.2%
-                        </div>
-                    </div>
-                </div>
-            </div>
-            
-            <div class="col-md-3 mb-3">
-                <div class="metric-card">
-                    <div class="metric-icon">
-                        <i class="fas fa-trash"></i>
-                    </div>
-                    <div class="metric-content">
-                        <div class="metric-title">Waste Generated</div>
-                        <div class="metric-value">56.3</div>
-                        <div class="metric-unit">tonnes</div>
-                        <div class="metric-change decrease">
-                            <i class="fas fa-caret-down"></i> 15.8%
+                
+                <div class="row mt-3">
+                    <div class="col-12">
+                        <div class="d-flex gap-2">
+                            <a href="/vc-lens/startup-assessment/" class="btn btn-primary">
+                                <i class="fas fa-clipboard-check me-2"></i> Submit Startup Assessment
+                            </a>
+                            <a href="/vc-lens/upload-thesis/" class="btn btn-outline-primary">
+                                <i class="fas fa-file-upload me-2"></i> Upload Investment Thesis
+                            </a>
                         </div>
                     </div>
                 </div>
@@ -495,84 +460,262 @@
         </div>
     </div>
     
-    <!-- Chart Section -->
+    <!-- Assessment Modules -->
     <div class="col-12 mb-4">
-        <div class="row">
-            <div class="col-md-6 mb-3">
-                <div class="card">
-                    <div class="card-header">
-                        <h5 class="card-title mb-0">ESG Scores</h5>
-                    </div>
-                    <div class="card-body">
-                        <div class="chart-container">
-                            <canvas id="esgScoreChart"></canvas>
-                        </div>
-                    </div>
-                </div>
-            </div>
-            
-            <div class="col-md-6 mb-3">
-                <div class="card">
-                    <div class="card-header">
-                        <h5 class="card-title mb-0">Emissions Trend</h5>
-                    </div>
-                    <div class="card-body">
-                        <div class="chart-container">
-                            <canvas id="emissionsChart"></canvas>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </div>
-    </div>
-    
-    <!-- Progress Bars -->
-    <div class="col-12">
         <div class="card">
             <div class="card-header">
-                <h5 class="card-title mb-0">Performance Against Targets</h5>
+                <h5 class="card-title mb-0">Assessment Modules</h5>
             </div>
             <div class="card-body">
                 <div class="row">
-                    <div class="col-md-4 mb-3">
-                        <div class="progress-card">
-                            <div class="progress-title">Carbon Neutrality</div>
-                            <div class="progress-bar-container">
-                                <div class="progress-fill" style="width: 68%;"></div>
-                            </div>
-                            <div class="progress-stats">
-                                <div class="progress-value">68%</div>
-                                <div class="progress-target">Target: 2030</div>
-                            </div>
-                        </div>
-                    </div>
-                    
-                    <div class="col-md-4 mb-3">
-                        <div class="progress-card">
-                            <div class="progress-title">Renewable Energy</div>
-                            <div class="progress-bar-container">
-                                <div class="progress-fill" style="width: 42%;"></div>
-                            </div>
-                            <div class="progress-stats">
-                                <div class="progress-value">42%</div>
-                                <div class="progress-target">Target: 100%</div>
+                    <div class="col-md-4 mb-4 mb-md-0">
+                        <div class="card h-100">
+                            <div class="card-body text-center">
+                                <div class="mb-3">
+                                    <i class="fas fa-clipboard-check fa-3x text-primary"></i>
+                                </div>
+                                <h5>Module 1: Foundational Readiness</h5>
+                                <p class="text-muted">
+                                    Evaluate a startup's baseline sustainability infrastructure, policies, and commitment.
+                                </p>
+                                <a href="/vc-lens/startup-assessment/" class="btn btn-outline-primary">Launch Module</a>
                             </div>
                         </div>
                     </div>
                     
-                    <div class="col-md-4 mb-3">
-                        <div class="progress-card">
-                            <div class="progress-title">Zero Waste</div>
-                            <div class="progress-bar-container">
-                                <div class="progress-fill" style="width: 35%;"></div>
+                    <div class="col-md-4 mb-4 mb-md-0">
+                        <div class="card h-100">
+                            <div class="card-body text-center">
+                                <div class="mb-3">
+                                    <i class="fas fa-chart-line fa-3x text-primary"></i>
+                                </div>
+                                <h5>Module 2: Forward Metrics</h5>
+                                <p class="text-muted">
+                                    Analyze forward-looking metrics and sustainability KPIs across the ESG spectrum.
+                                </p>
+                                <a href="/vc-lens/startup-assessment/" class="btn btn-outline-primary">Launch Module</a>
                             </div>
-                            <div class="progress-stats">
-                                <div class="progress-value">35%</div>
-                                <div class="progress-target">Target: 2035</div>
+                        </div>
+                    </div>
+                    
+                    <div class="col-md-4">
+                        <div class="card h-100">
+                            <div class="card-body text-center">
+                                <div class="mb-3">
+                                    <i class="fas fa-align-left fa-3x text-primary"></i>
+                                </div>
+                                <h5>Module 3: Thesis Upload</h5>
+                                <p class="text-muted">
+                                    Upload investment thesis documents for sustainability alignment analysis.
+                                </p>
+                                <a href="/vc-lens/upload-thesis/" class="btn btn-outline-primary">Launch Module</a>
                             </div>
                         </div>
                     </div>
                 </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Recent Assessments -->
+    <div class="col-12 mb-4">
+        <div class="card">
+            <div class="card-header d-flex justify-content-between align-items-center">
+                <h5 class="card-title mb-0">Recent Assessments</h5>
+                <div>
+                    <button class="btn btn-sm btn-outline-secondary">
+                        <i class="fas fa-filter"></i> Filter
+                    </button>
+                </div>
+            </div>
+            <div class="card-body">
+                
+                    <div class="table-responsive">
+                        <table class="table table-hover">
+                            <thead>
+                                <tr>
+                                    <th>Company</th>
+                                    <th>Industry</th>
+                                    <th>Date</th>
+                                    <th>Status</th>
+                                    <th>Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                
+                                <tr>
+                                    <td>Green Innovations</td>
+                                    <td>Renewable Energy</td>
+                                    <td>2025-04-07</td>
+                                    <td><span class="badge bg-warning">Under Review</span></td>
+                                    <td>
+                                        <button class="btn btn-sm btn-outline-primary">View</button>
+                                    </td>
+                                </tr>
+                                
+                            </tbody>
+                        </table>
+                    </div>
+                
+            </div>
+        </div>
+    </div>
+    
+    <!-- Uploaded Theses -->
+    <div class="col-12">
+        <div class="card">
+            <div class="card-header d-flex justify-content-between align-items-center">
+                <h5 class="card-title mb-0">Uploaded Investment Theses</h5>
+                <div>
+                    <button class="btn btn-sm btn-outline-secondary">
+                        <i class="fas fa-filter"></i> Filter
+                    </button>
+                </div>
+            </div>
+            <div class="card-body">
+                
+                    <div class="table-responsive">
+                        <table class="table table-hover">
+                            <thead>
+                                <tr>
+                                    <th>Fund Name</th>
+                                    <th>Investment Focus</th>
+                                    <th>Date Uploaded</th>
+                                    <th>Files</th>
+                                    <th>Status</th>
+                                    <th>Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                
+                                <tr>
+                                    <td>Green Ventures</td>
+                                    <td>Renewable Energy</td>
+                                    <td>2025-04-07</td>
+                                    <td>
+                                        
+                                            <span class="badge bg-info">7 file(s)</span>
+                                        
+                                    </td>
+                                    <td><span class="badge bg-warning">Under Review</span></td>
+                                    <td>
+                                        <button class="btn btn-sm btn-outline-primary">View</button>
+                                    </td>
+                                </tr>
+                                
+                                <tr>
+                                    <td>Test Fund</td>
+                                    <td>Climate Tech</td>
+                                    <td>2025-04-07</td>
+                                    <td>
+                                        
+                                            <span class="badge bg-info">1 file(s)</span>
+                                        
+                                    </td>
+                                    <td><span class="badge bg-warning">Processing</span></td>
+                                    <td>
+                                        <button class="btn btn-sm btn-outline-primary">View</button>
+                                    </td>
+                                </tr>
+                                
+                                <tr>
+                                    <td>Test Fund 2</td>
+                                    <td>Green Energy</td>
+                                    <td>2025-04-07</td>
+                                    <td>
+                                        
+                                            <span class="badge bg-info">2 file(s)</span>
+                                        
+                                    </td>
+                                    <td><span class="badge bg-warning">Processing</span></td>
+                                    <td>
+                                        <button class="btn btn-sm btn-outline-primary">View</button>
+                                    </td>
+                                </tr>
+                                
+                            </tbody>
+                        </table>
+                    </div>
+                
+                
+                
+                    <div class="mt-4">
+                        <h6>All Uploaded Files</h6>
+                        <ul class="list-group">
+                            
+                            <li class="list-group-item d-flex justify-content-between align-items-center">
+                                test_thesis.txt
+                                <span class="badge bg-primary rounded-pill">
+                                    <i class="fas fa-file-alt me-1"></i> Document
+                                </span>
+                            </li>
+                            
+                            <li class="list-group-item d-flex justify-content-between align-items-center">
+                                additional_doc1.txt
+                                <span class="badge bg-primary rounded-pill">
+                                    <i class="fas fa-file-alt me-1"></i> Document
+                                </span>
+                            </li>
+                            
+                            <li class="list-group-item d-flex justify-content-between align-items-center">
+                                additional_doc2.txt
+                                <span class="badge bg-primary rounded-pill">
+                                    <i class="fas fa-file-alt me-1"></i> Document
+                                </span>
+                            </li>
+                            
+                            <li class="list-group-item d-flex justify-content-between align-items-center">
+                                newest_test.txt
+                                <span class="badge bg-primary rounded-pill">
+                                    <i class="fas fa-file-alt me-1"></i> Document
+                                </span>
+                            </li>
+                            
+                            <li class="list-group-item d-flex justify-content-between align-items-center">
+                                example_vc_document.txt
+                                <span class="badge bg-primary rounded-pill">
+                                    <i class="fas fa-file-alt me-1"></i> Document
+                                </span>
+                            </li>
+                            
+                            <li class="list-group-item d-flex justify-content-between align-items-center">
+                                fdfd6d8e-9035-4395-910d-609eaae8156f_test_sustainability_report.pdf
+                                <span class="badge bg-primary rounded-pill">
+                                    <i class="fas fa-file-alt me-1"></i> Document
+                                </span>
+                            </li>
+                            
+                            <li class="list-group-item d-flex justify-content-between align-items-center">
+                                7623860f-8596-4547-8859-08bb905e2d84_test_sustainability_report.pdf
+                                <span class="badge bg-primary rounded-pill">
+                                    <i class="fas fa-file-alt me-1"></i> Document
+                                </span>
+                            </li>
+                            
+                            <li class="list-group-item d-flex justify-content-between align-items-center">
+                                7e1ab90a-4683-4f23-8497-119a327d5ca2_Integrating ESG Datasets into Investment Operations.pdf
+                                <span class="badge bg-primary rounded-pill">
+                                    <i class="fas fa-file-alt me-1"></i> Document
+                                </span>
+                            </li>
+                            
+                            <li class="list-group-item d-flex justify-content-between align-items-center">
+                                test_upload.txt
+                                <span class="badge bg-primary rounded-pill">
+                                    <i class="fas fa-file-alt me-1"></i> Document
+                                </span>
+                            </li>
+                            
+                            <li class="list-group-item d-flex justify-content-between align-items-center">
+                                Data_storytelling.pdf
+                                <span class="badge bg-primary rounded-pill">
+                                    <i class="fas fa-file-alt me-1"></i> Document
+                                </span>
+                            </li>
+                            
+                        </ul>
+                    </div>
+                
             </div>
         </div>
     </div>
@@ -684,125 +827,5 @@
     </script>
     
     
-<script>
-    document.addEventListener('DOMContentLoaded', function() {
-        // ESG Score Chart
-        const esgScoreCtx = document.getElementById('esgScoreChart').getContext('2d');
-        const esgScoreChart = new Chart(esgScoreCtx, {
-            type: 'radar',
-            data: {
-                labels: ['Environmental', 'Social', 'Governance', 'Climate Risk', 'Resource Use', 'Human Capital'],
-                datasets: [{
-                    label: 'Current Score',
-                    data: [85, 72, 78, 65, 81, 76],
-                    backgroundColor: 'rgba(76, 175, 80, 0.2)',
-                    borderColor: 'rgba(76, 175, 80, 1)',
-                    borderWidth: 2,
-                    pointBackgroundColor: 'rgba(76, 175, 80, 1)'
-                }, {
-                    label: 'Industry Average',
-                    data: [65, 68, 72, 58, 63, 70],
-                    backgroundColor: 'rgba(33, 150, 243, 0.2)',
-                    borderColor: 'rgba(33, 150, 243, 1)',
-                    borderWidth: 2,
-                    pointBackgroundColor: 'rgba(33, 150, 243, 1)'
-                }]
-            },
-            options: {
-                scales: {
-                    r: {
-                        beginAtZero: true,
-                        max: 100,
-                        ticks: {
-                            stepSize: 20,
-                            color: '#9ca3af'
-                        },
-                        angleLines: {
-                            color: 'rgba(255, 255, 255, 0.1)'
-                        },
-                        grid: {
-                            color: 'rgba(255, 255, 255, 0.1)'
-                        },
-                        pointLabels: {
-                            color: '#f9fafb'
-                        }
-                    }
-                },
-                plugins: {
-                    legend: {
-                        labels: {
-                            color: '#f9fafb'
-                        }
-                    }
-                }
-            }
-        });
-        
-        // Emissions Chart
-        const emissionsCtx = document.getElementById('emissionsChart').getContext('2d');
-        const emissionsChart = new Chart(emissionsCtx, {
-            type: 'line',
-            data: {
-                labels: ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'],
-                datasets: [{
-                    label: 'Scope 1 Emissions',
-                    data: [42, 40, 38, 37, 36, 35, 33, 31, 30, 28, 26, 25],
-                    backgroundColor: 'rgba(244, 67, 54, 0.2)',
-                    borderColor: 'rgba(244, 67, 54, 1)',
-                    borderWidth: 2,
-                    tension: 0.4
-                }, {
-                    label: 'Scope 2 Emissions',
-                    data: [65, 63, 60, 58, 55, 52, 50, 49, 47, 45, 44, 42],
-                    backgroundColor: 'rgba(255, 152, 0, 0.2)',
-                    borderColor: 'rgba(255, 152, 0, 1)',
-                    borderWidth: 2,
-                    tension: 0.4
-                }, {
-                    label: 'Scope 3 Emissions',
-                    data: [120, 118, 115, 112, 110, 108, 105, 103, 100, 98, 95, 93],
-                    backgroundColor: 'rgba(156, 39, 176, 0.2)',
-                    borderColor: 'rgba(156, 39, 176, 1)',
-                    borderWidth: 2,
-                    tension: 0.4
-                }]
-            },
-            options: {
-                scales: {
-                    y: {
-                        beginAtZero: false,
-                        grid: {
-                            color: 'rgba(255, 255, 255, 0.1)'
-                        },
-                        ticks: {
-                            color: '#9ca3af'
-                        },
-                        title: {
-                            display: true,
-                            text: 'tonnes CO2e',
-                            color: '#f9fafb'
-                        }
-                    },
-                    x: {
-                        grid: {
-                            color: 'rgba(255, 255, 255, 0.1)'
-                        },
-                        ticks: {
-                            color: '#9ca3af'
-                        }
-                    }
-                },
-                plugins: {
-                    legend: {
-                        labels: {
-                            color: '#f9fafb'
-                        }
-                    }
-                }
-            }
-        });
-    });
-</script>
-
 </body>
 </html>
