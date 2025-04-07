@@ -161,9 +161,12 @@ def get_navigation_structure():
                     },
                     {
                         "id": "copilot",
-                        "title": "AI Co-Pilot",
-                        "url": "/co-pilot",
-                        "icon": "fa-robot"
+                        "title": "SustainaTrend Co-Pilot",
+                        "url": "/copilot/",
+                        "icon": "fa-robot",
+                        "badge": "New",
+                        "badge_color": "success",
+                        "description": "AI-powered sustainability assistant"
                     },
                     {
                         "id": "realestate",

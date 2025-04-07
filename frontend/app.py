@@ -315,6 +315,85 @@ def register_routes(app):
         logger.info("Strategy AI Consultant routes registered")
     except ImportError as e:
         logger.warning(f"Failed to register Strategy AI Consultant routes: {str(e)}")
+        
+    # Register Sustainability Co-Pilot routes
+    try:
+        from sustainability_copilot import SustainabilityCopilot, copilot_blueprint
+        copilot_assistant = SustainabilityCopilot()
+        
+        # Direct API endpoint registration without using blueprint
+        @app.route('/api/copilot/status')
+        def api_copilot_status():
+            """Check co-pilot availability status"""
+            return jsonify({
+                "available": copilot_assistant.available,
+                "version": "1.0.0",
+                "message": "Co-Pilot is available and ready to assist"
+            })
+            
+        @app.route('/api/copilot/suggested-prompts', methods=['GET'])
+        def api_copilot_suggested_prompts():
+            """Get suggested prompts for the co-pilot"""
+            context = request.args.get('context', 'general')
+            page = request.args.get('page', '')
+            conversation_id = request.args.get('conversation_id')
+            
+            prompts = copilot_assistant.get_suggested_prompts(context, page, conversation_id)
+            return jsonify({
+                "success": True,
+                "prompts": prompts
+            })
+            
+        @app.route('/api/copilot/query', methods=['POST'])
+        def api_copilot_query():
+            """Process a co-pilot query"""
+            data = request.json
+            
+            if not data:
+                return jsonify({
+                    "success": False,
+                    "error": "Missing request body"
+                }), 400
+                
+            query = data.get('query')
+            if not query:
+                return jsonify({
+                    "success": False,
+                    "error": "Missing required parameter: query"
+                }), 400
+                
+            context = data.get('context', 'general')
+            page = data.get('page', '')
+            conversation_id = data.get('conversation_id')
+            structured_prompt = data.get('structured_prompt')
+            
+            response = copilot_assistant.process_query(
+                query, 
+                context,
+                page,
+                conversation_id,
+                structured_prompt
+            )
+            
+            return jsonify({
+                "success": True,
+                **response
+            })
+        
+        logger.info("Sustainability Co-Pilot API routes registered successfully")
+    except ImportError as e:
+        logger.warning(f"Failed to register Sustainability Co-Pilot routes: {str(e)}")
+    
+    # Co-Pilot interface route
+    @app.route('/copilot/')
+    def copilot():
+        """SustainaTrend Co-Pilot interface"""
+        status = get_api_status()
+        return render_template('clean/copilot.html', 
+                               page_title="Sustainability Co-Pilot",
+                               active_page="copilot",
+                               active_nav="copilot",
+                               status=status)
     
     # Home route redirects to dashboard
     @app.route('/')
@@ -476,6 +555,11 @@ def register_routes(app):
     def legacy_settings():
         """Redirect from /settings to /settings/"""
         return redirect('/settings/')
+        
+    @app.route('/copilot')
+    def legacy_copilot():
+        """Redirect from /copilot to /copilot/"""
+        return redirect('/copilot/')
     
     # Documents route
     @app.route('/documents/document-upload/')

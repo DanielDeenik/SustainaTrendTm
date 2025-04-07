@@ -1,0 +1,431 @@
+{% extends "clean/base.html" %}
+
+{% block title %}Sustainability Co-Pilot | SustainaTrend™{% endblock %}
+
+{% block content %}
+<div class="copilot-container">
+  <div class="grid grid-cols-1 lg:grid-cols-4 gap-6">
+    <!-- Left sidebar - Conversation history and actions -->
+    <div class="col-span-1 bg-white dark:bg-gray-800 rounded-lg shadow-md p-4">
+      <h2 class="text-xl font-bold mb-4 text-emerald-700 dark:text-emerald-400">
+        <i class="fas fa-history mr-2"></i> Conversations
+      </h2>
+      <div class="conversation-history space-y-2">
+        <!-- Placeholder for conversation history -->
+        <p class="text-sm text-gray-500 dark:text-gray-400 italic">Your conversation history will appear here.</p>
+      </div>
+      <hr class="my-4 border-gray-200 dark:border-gray-700">
+      <h3 class="text-lg font-semibold mb-3 text-emerald-700 dark:text-emerald-400">Actions</h3>
+      <div class="actions space-y-2">
+        <button id="new-conversation" class="w-full bg-emerald-600 hover:bg-emerald-700 text-white font-semibold py-2 px-4 rounded transition duration-300">
+          <i class="fas fa-plus mr-2"></i> New Conversation
+        </button>
+        <button id="export-conversation" class="w-full bg-gray-200 dark:bg-gray-700 hover:bg-gray-300 dark:hover:bg-gray-600 text-gray-800 dark:text-white font-semibold py-2 px-4 rounded transition duration-300">
+          <i class="fas fa-download mr-2"></i> Export
+        </button>
+      </div>
+    </div>
+    
+    <!-- Main chat area - Messages and input -->
+    <div class="col-span-1 lg:col-span-2 bg-white dark:bg-gray-800 rounded-lg shadow-md p-4 flex flex-col h-[80vh]">
+      <div class="flex justify-between items-center mb-4">
+        <h1 class="text-2xl font-bold text-emerald-700 dark:text-emerald-400">
+          <i class="fas fa-robot mr-2"></i> SustainaTrend Co-Pilot
+        </h1>
+        <div class="flex space-x-2">
+          <button id="save-conversation" class="bg-emerald-100 dark:bg-emerald-900 hover:bg-emerald-200 dark:hover:bg-emerald-800 text-emerald-700 dark:text-emerald-300 p-2 rounded-full transition duration-300">
+            <i class="fas fa-save"></i>
+          </button>
+          <button id="settings-button" class="bg-gray-100 dark:bg-gray-700 hover:bg-gray-200 dark:hover:bg-gray-600 text-gray-700 dark:text-gray-300 p-2 rounded-full transition duration-300">
+            <i class="fas fa-cog"></i>
+          </button>
+        </div>
+      </div>
+      
+      <!-- Chat messages container -->
+      <div id="chat-messages" class="flex-grow overflow-y-auto mb-4 p-2 space-y-4 bg-gray-50 dark:bg-gray-900 rounded-lg">
+        <!-- Welcome message -->
+        <div class="message assistant-message">
+          <div class="flex items-start">
+            <div class="message-avatar flex-shrink-0 bg-emerald-100 dark:bg-emerald-900 text-emerald-700 dark:text-emerald-300 p-2 rounded-full">
+              <i class="fas fa-robot"></i>
+            </div>
+            <div class="message-content ml-3 bg-white dark:bg-gray-800 p-3 rounded-lg shadow-sm">
+              <div class="font-semibold text-emerald-700 dark:text-emerald-400">SustainaTrend Co-Pilot</div>
+              <div class="mt-1 text-gray-800 dark:text-gray-200">
+                <p>Welcome to the SustainaTrend™ Co-Pilot! I'm here to help you navigate sustainability data, generate insights, and answer your questions.</p>
+                <p class="mt-2">How can I assist you today?</p>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+      
+      <!-- Suggested prompts -->
+      <div id="suggested-prompts" class="mb-4 flex overflow-x-auto py-2 space-x-2">
+        <button class="suggested-prompt flex-shrink-0 bg-emerald-50 dark:bg-emerald-900/30 hover:bg-emerald-100 dark:hover:bg-emerald-900/50 text-emerald-700 dark:text-emerald-300 py-1 px-3 rounded-full text-sm transition duration-300">
+          Explain ESG reporting requirements
+        </button>
+        <button class="suggested-prompt flex-shrink-0 bg-emerald-50 dark:bg-emerald-900/30 hover:bg-emerald-100 dark:hover:bg-emerald-900/50 text-emerald-700 dark:text-emerald-300 py-1 px-3 rounded-full text-sm transition duration-300">
+          What are the latest sustainability trends?
+        </button>
+        <button class="suggested-prompt flex-shrink-0 bg-emerald-50 dark:bg-emerald-900/30 hover:bg-emerald-100 dark:hover:bg-emerald-900/50 text-emerald-700 dark:text-emerald-300 py-1 px-3 rounded-full text-sm transition duration-300">
+          How can I improve my carbon metrics?
+        </button>
+        <button class="suggested-prompt flex-shrink-0 bg-emerald-50 dark:bg-emerald-900/30 hover:bg-emerald-100 dark:hover:bg-emerald-900/50 text-emerald-700 dark:text-emerald-300 py-1 px-3 rounded-full text-sm transition duration-300">
+          Explain the ESRS framework
+        </button>
+      </div>
+      
+      <!-- Input area -->
+      <div class="flex items-end">
+        <div class="relative flex-grow">
+          <textarea id="user-input" rows="2" class="w-full resize-none rounded-lg border-gray-300 dark:border-gray-700 dark:bg-gray-700 dark:text-white focus:ring-emerald-500 focus:border-emerald-500 p-3 pr-12" placeholder="Ask about sustainability metrics, trends, or reporting..."></textarea>
+          <button id="voice-input" class="absolute right-3 bottom-3 text-gray-500 dark:text-gray-400 hover:text-emerald-600 dark:hover:text-emerald-400">
+            <i class="fas fa-microphone"></i>
+          </button>
+        </div>
+        <button id="send-message" class="ml-2 bg-emerald-600 hover:bg-emerald-700 text-white p-3 rounded-lg transition duration-300">
+          <i class="fas fa-paper-plane"></i>
+        </button>
+      </div>
+    </div>
+    
+    <!-- Right sidebar - Context and resources -->
+    <div class="col-span-1 bg-white dark:bg-gray-800 rounded-lg shadow-md p-4">
+      <h2 class="text-xl font-bold mb-4 text-emerald-700 dark:text-emerald-400">
+        <i class="fas fa-info-circle mr-2"></i> Context
+      </h2>
+      <div id="context-panel">
+        <div class="current-context p-3 bg-emerald-50 dark:bg-emerald-900/20 rounded-lg mb-4">
+          <h3 class="font-semibold text-emerald-700 dark:text-emerald-400">Current Focus</h3>
+          <p class="text-sm text-gray-700 dark:text-gray-300 mt-1">General sustainability assistance</p>
+        </div>
+        
+        <div class="context-sources space-y-2 mb-4">
+          <h3 class="font-semibold text-emerald-700 dark:text-emerald-400">Knowledge Sources</h3>
+          <div class="source-item p-2 bg-gray-50 dark:bg-gray-900 rounded flex items-center text-sm">
+            <i class="fas fa-book text-emerald-600 dark:text-emerald-400 mr-2"></i>
+            <span class="text-gray-700 dark:text-gray-300">ESRS Framework</span>
+          </div>
+          <div class="source-item p-2 bg-gray-50 dark:bg-gray-900 rounded flex items-center text-sm">
+            <i class="fas fa-chart-line text-emerald-600 dark:text-emerald-400 mr-2"></i>
+            <span class="text-gray-700 dark:text-gray-300">Sustainability Metrics</span>
+          </div>
+          <div class="source-item p-2 bg-gray-50 dark:bg-gray-900 rounded flex items-center text-sm">
+            <i class="fas fa-globe text-emerald-600 dark:text-emerald-400 mr-2"></i>
+            <span class="text-gray-700 dark:text-gray-300">Industry Benchmarks</span>
+          </div>
+        </div>
+        
+        <hr class="my-4 border-gray-200 dark:border-gray-700">
+        
+        <h3 class="font-semibold text-emerald-700 dark:text-emerald-400 mb-2">Related Resources</h3>
+        <div class="resources space-y-2">
+          <a href="/dashboard/" class="resource-link block p-2 hover:bg-gray-100 dark:hover:bg-gray-700 rounded transition duration-300">
+            <div class="flex items-center">
+              <i class="fas fa-tachometer-alt text-emerald-600 dark:text-emerald-400 mr-2"></i>
+              <div>
+                <div class="font-medium text-gray-800 dark:text-gray-200">Dashboard</div>
+                <div class="text-xs text-gray-500 dark:text-gray-400">View key sustainability metrics</div>
+              </div>
+            </div>
+          </a>
+          <a href="/trend-analysis/" class="resource-link block p-2 hover:bg-gray-100 dark:hover:bg-gray-700 rounded transition duration-300">
+            <div class="flex items-center">
+              <i class="fas fa-chart-line text-emerald-600 dark:text-emerald-400 mr-2"></i>
+              <div>
+                <div class="font-medium text-gray-800 dark:text-gray-200">Trend Analysis</div>
+                <div class="text-xs text-gray-500 dark:text-gray-400">Analyze sustainability trends</div>
+              </div>
+            </div>
+          </a>
+          <a href="/documents/document-upload/" class="resource-link block p-2 hover:bg-gray-100 dark:hover:bg-gray-700 rounded transition duration-300">
+            <div class="flex items-center">
+              <i class="fas fa-file-upload text-emerald-600 dark:text-emerald-400 mr-2"></i>
+              <div>
+                <div class="font-medium text-gray-800 dark:text-gray-200">Document Upload</div>
+                <div class="text-xs text-gray-500 dark:text-gray-400">Process sustainability reports</div>
+              </div>
+            </div>
+          </a>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- JavaScript for Co-Pilot functionality -->
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+  // Elements
+  const chatMessages = document.getElementById('chat-messages');
+  const userInput = document.getElementById('user-input');
+  const sendButton = document.getElementById('send-message');
+  const suggestedPrompts = document.querySelectorAll('.suggested-prompt');
+  const newConversationButton = document.getElementById('new-conversation');
+  
+  // State
+  let conversationId = null;
+  let isProcessing = false;
+  
+  // Initialize
+  fetchSuggestedPrompts();
+  
+  // Event Listeners
+  sendButton.addEventListener('click', sendMessage);
+  userInput.addEventListener('keydown', function(e) {
+    if (e.key === 'Enter' && !e.shiftKey) {
+      e.preventDefault();
+      sendMessage();
+    }
+  });
+  
+  suggestedPrompts.forEach(prompt => {
+    prompt.addEventListener('click', function() {
+      userInput.value = this.textContent.trim();
+      sendMessage();
+    });
+  });
+  
+  newConversationButton.addEventListener('click', startNewConversation);
+  
+  // Functions
+  function sendMessage() {
+    const message = userInput.value.trim();
+    if (message === '' || isProcessing) return;
+    
+    // Add user message to UI
+    addMessageToUI('user', message);
+    
+    // Clear input
+    userInput.value = '';
+    
+    // Show processing indicator
+    isProcessing = true;
+    addProcessingIndicator();
+    
+    // Send to backend
+    processQuery(message);
+  }
+  
+  function addMessageToUI(role, content) {
+    const messageDiv = document.createElement('div');
+    messageDiv.className = `message ${role}-message`;
+    
+    const isUser = role === 'user';
+    const avatar = isUser ? '<i class="fas fa-user"></i>' : '<i class="fas fa-robot"></i>';
+    const name = isUser ? 'You' : 'SustainaTrend Co-Pilot';
+    const avatarColorClass = isUser ? 'bg-blue-100 dark:bg-blue-900 text-blue-700 dark:text-blue-300' : 'bg-emerald-100 dark:bg-emerald-900 text-emerald-700 dark:text-emerald-300';
+    const nameColorClass = isUser ? 'text-blue-700 dark:text-blue-400' : 'text-emerald-700 dark:text-emerald-400';
+    
+    messageDiv.innerHTML = `
+      <div class="flex items-start">
+        <div class="message-avatar flex-shrink-0 ${avatarColorClass} p-2 rounded-full">
+          ${avatar}
+        </div>
+        <div class="message-content ml-3 bg-white dark:bg-gray-800 p-3 rounded-lg shadow-sm">
+          <div class="font-semibold ${nameColorClass}">${name}</div>
+          <div class="mt-1 text-gray-800 dark:text-gray-200">
+            ${content}
+          </div>
+        </div>
+      </div>
+    `;
+    
+    chatMessages.appendChild(messageDiv);
+    chatMessages.scrollTop = chatMessages.scrollHeight;
+  }
+  
+  function addProcessingIndicator() {
+    const processingDiv = document.createElement('div');
+    processingDiv.id = 'processing-indicator';
+    processingDiv.className = 'message assistant-message';
+    processingDiv.innerHTML = `
+      <div class="flex items-start">
+        <div class="message-avatar flex-shrink-0 bg-emerald-100 dark:bg-emerald-900 text-emerald-700 dark:text-emerald-300 p-2 rounded-full">
+          <i class="fas fa-robot"></i>
+        </div>
+        <div class="message-content ml-3 bg-white dark:bg-gray-800 p-3 rounded-lg shadow-sm">
+          <div class="font-semibold text-emerald-700 dark:text-emerald-400">SustainaTrend Co-Pilot</div>
+          <div class="mt-1 text-gray-800 dark:text-gray-200">
+            <div class="typing-indicator">
+              <span></span>
+              <span></span>
+              <span></span>
+            </div>
+          </div>
+        </div>
+      </div>
+    `;
+    
+    chatMessages.appendChild(processingDiv);
+    chatMessages.scrollTop = chatMessages.scrollHeight;
+  }
+  
+  function removeProcessingIndicator() {
+    const indicator = document.getElementById('processing-indicator');
+    if (indicator) {
+      indicator.remove();
+    }
+  }
+  
+  async function fetchSuggestedPrompts() {
+    try {
+      const response = await fetch(`/api/copilot/suggested-prompts?context=general&page=${window.location.pathname}&conversation_id=${conversationId || ''}`);
+      if (response.ok) {
+        const data = await response.json();
+        if (data.success && data.prompts && data.prompts.length) {
+          updateSuggestedPrompts(data.prompts);
+        }
+      }
+    } catch (error) {
+      console.error('Error fetching suggested prompts:', error);
+    }
+  }
+  
+  function updateSuggestedPrompts(prompts) {
+    const container = document.getElementById('suggested-prompts');
+    container.innerHTML = '';
+    
+    prompts.forEach(prompt => {
+      const button = document.createElement('button');
+      button.className = 'suggested-prompt flex-shrink-0 bg-emerald-50 dark:bg-emerald-900/30 hover:bg-emerald-100 dark:hover:bg-emerald-900/50 text-emerald-700 dark:text-emerald-300 py-1 px-3 rounded-full text-sm transition duration-300';
+      button.textContent = prompt;
+      
+      button.addEventListener('click', function() {
+        userInput.value = this.textContent.trim();
+        sendMessage();
+      });
+      
+      container.appendChild(button);
+    });
+  }
+  
+  async function processQuery(query) {
+    try {
+      const response = await fetch('/api/copilot/query', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          query,
+          context: 'general',
+          page: window.location.pathname,
+          conversation_id: conversationId
+        })
+      });
+      
+      if (response.ok) {
+        const data = await response.json();
+        if (data.success) {
+          // Store conversation ID if this is a new conversation
+          if (!conversationId && data.conversation_id) {
+            conversationId = data.conversation_id;
+          }
+          
+          // Remove processing indicator
+          removeProcessingIndicator();
+          
+          // Add assistant response to UI
+          addMessageToUI('assistant', data.response || 'I apologize, but I couldn\'t generate a response at this time.');
+          
+          // Update suggested prompts for follow-up
+          fetchSuggestedPrompts();
+        } else {
+          handleError(data.error || 'Unknown error occurred');
+        }
+      } else {
+        handleError('Failed to process your request');
+      }
+    } catch (error) {
+      handleError('Network error occurred');
+      console.error('Error processing query:', error);
+    } finally {
+      isProcessing = false;
+    }
+  }
+  
+  function handleError(errorMessage) {
+    removeProcessingIndicator();
+    addMessageToUI('assistant', `<p class="text-red-500">Error: ${errorMessage}</p>`);
+    isProcessing = false;
+  }
+  
+  function startNewConversation() {
+    // Clear conversation ID
+    conversationId = null;
+    
+    // Clear chat messages except the welcome message
+    while (chatMessages.children.length > 1) {
+      chatMessages.removeChild(chatMessages.lastChild);
+    }
+    
+    // Reset suggested prompts
+    fetchSuggestedPrompts();
+  }
+});
+</script>
+
+<style>
+.typing-indicator {
+  display: flex;
+  align-items: center;
+}
+
+.typing-indicator span {
+  height: 8px;
+  width: 8px;
+  margin: 0 2px;
+  background-color: #10b981;
+  border-radius: 50%;
+  display: inline-block;
+  opacity: 0.6;
+  animation: typing 1.5s infinite ease-in-out;
+}
+
+.dark .typing-indicator span {
+  background-color: #34d399;
+}
+
+.typing-indicator span:nth-child(1) {
+  animation-delay: 0s;
+}
+
+.typing-indicator span:nth-child(2) {
+  animation-delay: 0.3s;
+}
+
+.typing-indicator span:nth-child(3) {
+  animation-delay: 0.6s;
+}
+
+@keyframes typing {
+  0%, 60%, 100% {
+    transform: translateY(0);
+  }
+  30% {
+    transform: translateY(-4px);
+  }
+}
+
+/* Custom scrollbar for chat messages */
+#chat-messages::-webkit-scrollbar {
+  width: 5px;
+}
+
+#chat-messages::-webkit-scrollbar-thumb {
+  background-color: #d1d5db;
+  border-radius: 10px;
+}
+
+.dark #chat-messages::-webkit-scrollbar-thumb {
+  background-color: #4b5563;
+}
+
+#chat-messages::-webkit-scrollbar-track {
+  background: transparent;
+}
+</style>
+{% endblock %}

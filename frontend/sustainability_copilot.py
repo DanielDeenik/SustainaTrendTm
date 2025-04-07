@@ -21,7 +21,7 @@ from datetime import datetime
 from typing import Dict, List, Any, Optional, Tuple
 
 try:
-    from flask import Blueprint, request, jsonify, current_app
+    from flask import Blueprint, request, jsonify, current_app, render_template
     FLASK_AVAILABLE = True
 except ImportError:
     FLASK_AVAILABLE = False
@@ -43,7 +43,7 @@ except ImportError:
     logger.warning("Gemini API not available, Co-Pilot will use fallback mode")
 
 # Blueprint for Flask routes
-copilot_blueprint = Blueprint('sustainability_copilot', __name__)
+copilot_blueprint = Blueprint('sustainability_copilot', __name__, url_prefix='/api')
 
 # In-memory storage for conversation history (in production would use a database)
 CONVERSATIONS = {}
@@ -88,6 +88,90 @@ class SustainabilityCopilot:
         self.available = GEMINI_AVAILABLE
         self.gemini_controller = gemini_search_controller if GEMINI_AVAILABLE else None
         logger.info(f"Sustainability Co-Pilot is {'available' if self.available else 'not available'}")
+        
+    def register_routes(self, app):
+        """
+        Register Flask routes for the Sustainability Co-Pilot
+        
+        Args:
+            app: Flask application
+        """
+        if not FLASK_AVAILABLE:
+            logger.warning("Flask not available, cannot register Co-Pilot routes")
+            return
+        
+        # Create a reference to self for use in route functions
+        copilot_instance = self
+        
+        # Define blueprint routes first
+        if not hasattr(copilot_blueprint, '_got_registered_once'):
+            # API endpoint to get suggested prompts
+            @copilot_blueprint.route('/copilot/suggested-prompts', methods=['GET'])
+            def get_suggested_prompts():
+                """Get suggested prompts for the co-pilot"""
+                context = request.args.get('context', 'general')
+                page = request.args.get('page', '')
+                conversation_id = request.args.get('conversation_id')
+                
+                prompts = copilot_instance.get_suggested_prompts(context, page, conversation_id)
+                return jsonify({
+                    "success": True,
+                    "prompts": prompts
+                })
+                
+            # API endpoint to process a query
+            @copilot_blueprint.route('/copilot/query', methods=['POST'])
+            def process_query():
+                """Process a co-pilot query"""
+                data = request.json
+                
+                if not data:
+                    return jsonify({
+                        "success": False,
+                        "error": "Missing request body"
+                    }), 400
+                    
+                query = data.get('query')
+                if not query:
+                    return jsonify({
+                        "success": False,
+                        "error": "Missing required parameter: query"
+                    }), 400
+                    
+                context = data.get('context', 'general')
+                page = data.get('page', '')
+                conversation_id = data.get('conversation_id')
+                structured_prompt = data.get('structured_prompt')
+                
+                response = copilot_instance.process_query(
+                    query, 
+                    context,
+                    page,
+                    conversation_id,
+                    structured_prompt
+                )
+                
+                return jsonify({
+                    "success": True,
+                    **response
+                })
+                
+            # Co-pilot status endpoint
+            @copilot_blueprint.route('/copilot/status')
+            def copilot_status():
+                """Check co-pilot availability status"""
+                return jsonify({
+                    "available": copilot_instance.available,
+                    "gemini_available": GEMINI_AVAILABLE,
+                    "version": "1.0.0"
+                })
+                
+            # Mark blueprint as having routes defined
+            setattr(copilot_blueprint, '_got_registered_once', True)
+            
+        # Then register the blueprint with the app
+        app.register_blueprint(copilot_blueprint)
+        logger.info("Sustainability Co-Pilot routes registered successfully")
     
     def get_suggested_prompts(self, context: str = "general", page: str = "", 
                               conversation_id: Optional[str] = None) -> List[str]:
@@ -702,15 +786,4 @@ if FLASK_AVAILABLE:
             logger.error(f"Error getting Co-Pilot suggested prompts: {str(e)}")
             return jsonify({"error": "Failed to get suggested prompts", "prompts": []}), 500
 
-def register_routes(app):
-    """
-    Register the Sustainability Co-Pilot routes with a Flask application
-    
-    Args:
-        app: Flask application
-    """
-    if FLASK_AVAILABLE:
-        app.register_blueprint(copilot_blueprint)
-        logger.info("Sustainability Co-Pilot routes registered successfully")
-    else:
-        logger.error("Cannot register Sustainability Co-Pilot routes: Flask not available")
+# Use the class method register_routes instead of global function
