@@ -384,16 +384,7 @@ def register_routes(app):
     except ImportError as e:
         logger.warning(f"Failed to register Sustainability Co-Pilot routes: {str(e)}")
     
-    # Co-Pilot interface route
-    @app.route('/copilot/')
-    def copilot():
-        """SustainaTrend Co-Pilot interface"""
-        status = get_api_status()
-        return render_template('clean/copilot.html', 
-                               page_title="Sustainability Co-Pilot",
-                               active_page="copilot",
-                               active_nav="copilot",
-                               status=status)
+    # Co-Pilot is now embedded in all pages as a widget
     
     # Home route redirects to dashboard
     @app.route('/')
@@ -557,9 +548,10 @@ def register_routes(app):
         return redirect('/settings/')
         
     @app.route('/copilot')
+    @app.route('/copilot/')
     def legacy_copilot():
-        """Redirect from /copilot to /copilot/"""
-        return redirect('/copilot/')
+        """Redirect legacy /copilot route to dashboard since Co-Pilot is now embedded everywhere"""
+        return redirect('/dashboard/')
     
     # Documents route
     @app.route('/documents/document-upload/')

@@ -1,0 +1,332 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SustainaTrend Application Overview</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            line-height: 1.6;
+            margin: 0;
+            padding: 20px;
+            color: #333;
+            background-color: #f7f9fc;
+        }
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+            background-color: #fff;
+            border-radius: 8px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+        h1, h2, h3 {
+            color: #2c3e50;
+        }
+        h1 {
+            text-align: center;
+            margin-bottom: 30px;
+            color: #16a085;
+            border-bottom: 2px solid #eee;
+            padding-bottom: 15px;
+        }
+        .feature-section {
+            margin-bottom: 40px;
+            padding: 20px;
+            background-color: #f9f9f9;
+            border-radius: 6px;
+            border-left: 4px solid #16a085;
+        }
+        .feature-section h2 {
+            color: #16a085;
+            margin-top: 0;
+        }
+        .screenshot {
+            margin: 15px 0;
+            padding: 10px;
+            background-color: #fff;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+        }
+        .screenshot img {
+            max-width: 100%;
+            height: auto;
+            display: block;
+            margin: 0 auto;
+        }
+        .highlight {
+            background-color: #e8f6f3;
+            padding: 15px;
+            border-radius: 4px;
+            margin: 15px 0;
+        }
+        .copilot-widget {
+            position: relative;
+            padding: 10px;
+            background-color: #f0f7ff;
+            border: 1px solid #d0e3ff;
+            border-radius: 8px;
+            margin: 15px 0;
+        }
+        .copilot-icon {
+            position: absolute;
+            bottom: 10px;
+            right: 10px;
+            width: 48px;
+            height: 48px;
+            background-color: #16a085;
+            color: white;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 24px;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.2);
+        }
+        code {
+            background-color: #f5f5f5;
+            padding: 2px 4px;
+            border-radius: 3px;
+            font-family: monospace;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>SustainaTrend Platform Overview</h1>
+        
+        <div class="feature-section">
+            <h2>1. Unified Dashboard with Embedded Co-Pilot</h2>
+            <p>The main dashboard now features an embedded Co-Pilot widget in the corner that's available throughout the entire application. This provides consistent access to AI assistance without needing to navigate to a separate page.</p>
+            <div class="highlight">
+                <strong>Key Improvement:</strong> Co-Pilot functionality is now embedded in all routes rather than being a standalone feature, creating a more integrated user experience.
+            </div>
+            <div class="screenshot">
+                <div style="position: relative; padding: 20px; border: 1px solid #ddd; background-color: #fff;">
+                    <h3 style="margin-top: 0; color: #16a085;">Sustainability Dashboard</h3>
+                    
+                    <!-- Navigation -->
+                    <div style="background-color: #2c3e50; color: white; padding: 10px; margin-bottom: 20px; border-radius: 4px;">
+                        <span style="margin-right: 15px; font-weight: bold; color: #1abc9c;">Dashboard</span>
+                        <span style="margin-right: 15px;">Performance</span>
+                        <span style="margin-right: 15px;">Overview</span>
+                        <span style="margin-right: 15px;">Trend Analysis</span>
+                        <span style="margin-right: 15px;">Strategy Hub</span>
+                        <span style="margin-right: 15px;">Documents</span>
+                        <span style="margin-right: 15px;">VC Lens</span>
+                    </div>
+                    
+                    <!-- Content -->
+                    <div style="display: flex;">
+                        <div style="width: 70%; padding-right: 20px;">
+                            <div style="background-color: #f9f9f9; padding: 15px; border-radius: 4px; margin-bottom: 15px;">
+                                <h4 style="margin-top: 0;">Emissions Metrics</h4>
+                                <div style="height: 150px; background-color: #e8f6f3; border-radius: 4px; display: flex; align-items: center; justify-content: center;">
+                                    [Emissions Chart Visualization]
+                                </div>
+                            </div>
+                            
+                            <div style="background-color: #f9f9f9; padding: 15px; border-radius: 4px;">
+                                <h4 style="margin-top: 0;">Energy Consumption</h4>
+                                <div style="height: 150px; background-color: #e8f6f3; border-radius: 4px; display: flex; align-items: center; justify-content: center;">
+                                    [Energy Chart Visualization]
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div style="width: 30%; background-color: #f5f5f5; padding: 15px; border-radius: 4px;">
+                            <h4 style="margin-top: 0;">Recent Updates</h4>
+                            <ul style="padding-left: 20px;">
+                                <li>Energy consumption down 15%</li>
+                                <li>New sustainability report uploaded</li>
+                                <li>3 new trends identified</li>
+                                <li>ESG score improved to A-</li>
+                            </ul>
+                        </div>
+                    </div>
+                    
+                    <!-- Co-Pilot Widget -->
+                    <div class="copilot-icon">AI</div>
+                </div>
+            </div>
+        </div>
+
+        <div class="feature-section">
+            <h2>2. Strategy Hub with Ethical AI Integration</h2>
+            <p>The Strategy Hub now features integrated Ethical AI functionality, allowing users to evaluate their sustainability strategies against ethical frameworks.</p>
+            <div class="highlight">
+                <strong>Key Improvement:</strong> Ethical AI assessment is now seamlessly integrated within the Strategy Hub rather than being a separate module.
+            </div>
+            <div class="screenshot">
+                <div style="position: relative; padding: 20px; border: 1px solid #ddd; background-color: #fff;">
+                    <h3 style="margin-top: 0; color: #16a085;">Strategy Hub</h3>
+                    
+                    <!-- Navigation -->
+                    <div style="background-color: #2c3e50; color: white; padding: 10px; margin-bottom: 20px; border-radius: 4px;">
+                        <span style="margin-right: 15px;">Dashboard</span>
+                        <span style="margin-right: 15px;">Performance</span>
+                        <span style="margin-right: 15px;">Overview</span>
+                        <span style="margin-right: 15px;">Trend Analysis</span>
+                        <span style="margin-right: 15px; font-weight: bold; color: #1abc9c;">Strategy Hub</span>
+                        <span style="margin-right: 15px;">Documents</span>
+                        <span style="margin-right: 15px;">VC Lens</span>
+                    </div>
+                    
+                    <!-- Content -->
+                    <div style="display: flex;">
+                        <div style="width: 60%; padding-right: 20px;">
+                            <div style="background-color: #f9f9f9; padding: 15px; border-radius: 4px; margin-bottom: 15px;">
+                                <h4 style="margin-top: 0;">Sustainability Strategy Recommendations</h4>
+                                <div style="background-color: #e8f6f3; padding: 10px; border-radius: 4px; margin-bottom: 10px;">
+                                    <p style="margin: 0;"><strong>Net Zero Transition Plan</strong> - Implement a phased approach to carbon neutrality by 2030.</p>
+                                </div>
+                                <div style="background-color: #e8f6f3; padding: 10px; border-radius: 4px; margin-bottom: 10px;">
+                                    <p style="margin: 0;"><strong>Circular Economy Initiative</strong> - Introduce product lifecycle management with 80% materials recyclability.</p>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div style="width: 40%; background-color: #f0f7ff; padding: 15px; border-radius: 4px;">
+                            <h4 style="margin-top: 0; color: #3498db;">Ethical AI Assessment</h4>
+                            <div style="background-color: #d6eaf8; padding: 10px; border-radius: 4px; margin-bottom: 10px;">
+                                <p style="margin: 0;"><strong>Environmental Justice Score: 85/100</strong></p>
+                                <p style="margin: 5px 0 0 0; font-size: 0.9em;">Your strategy adequately addresses environmental justice concerns.</p>
+                            </div>
+                            <div style="background-color: #d6eaf8; padding: 10px; border-radius: 4px;">
+                                <p style="margin: 0;"><strong>Stakeholder Impact Score: 78/100</strong></p>
+                                <p style="margin: 5px 0 0 0; font-size: 0.9em;">Consider more inclusive stakeholder engagement processes.</p>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- Co-Pilot Widget -->
+                    <div class="copilot-icon">AI</div>
+                </div>
+            </div>
+        </div>
+
+        <div class="feature-section">
+            <h2>3. VC-Lens with AI Document Processing</h2>
+            <p>The VC-Lens module features enhanced document processing with AI-powered field extraction that automatically populates form fields from uploaded sustainability documentation.</p>
+            <div class="highlight">
+                <strong>Key Improvement:</strong> Document intelligence with robust field extraction that works with both AI and fallback pattern matching methods.
+            </div>
+            <div class="screenshot">
+                <div style="position: relative; padding: 20px; border: 1px solid #ddd; background-color: #fff;">
+                    <h3 style="margin-top: 0; color: #16a085;">VC-Lens™ Investment Thesis Upload</h3>
+                    
+                    <!-- Navigation -->
+                    <div style="background-color: #2c3e50; color: white; padding: 10px; margin-bottom: 20px; border-radius: 4px;">
+                        <span style="margin-right: 15px;">Dashboard</span>
+                        <span style="margin-right: 15px;">Performance</span>
+                        <span style="margin-right: 15px;">Overview</span>
+                        <span style="margin-right: 15px;">Trend Analysis</span>
+                        <span style="margin-right: 15px;">Strategy Hub</span>
+                        <span style="margin-right: 15px;">Documents</span>
+                        <span style="margin-right: 15px; font-weight: bold; color: #1abc9c;">VC Lens</span>
+                    </div>
+                    
+                    <!-- Content -->
+                    <div style="display: flex;">
+                        <div style="width: 40%; padding-right: 20px;">
+                            <div style="background-color: #f9f9f9; padding: 15px; border-radius: 4px;">
+                                <h4 style="margin-top: 0;">Upload Investment Thesis</h4>
+                                <div style="margin-bottom: 15px;">
+                                    <label style="display: block; margin-bottom: 5px; font-weight: bold;">Document</label>
+                                    <div style="border: 1px dashed #ccc; padding: 20px; border-radius: 4px; text-align: center; background-color: #f5f5f5;">
+                                        Drag and drop your investment thesis document here or click to browse
+                                    </div>
+                                </div>
+                                <button style="background-color: #16a085; color: white; border: none; padding: 10px 15px; border-radius: 4px; cursor: pointer;">
+                                    Process Document with AI
+                                </button>
+                            </div>
+                        </div>
+                        
+                        <div style="width: 60%; background-color: #f5f5f5; padding: 15px; border-radius: 4px;">
+                            <h4 style="margin-top: 0;">Form Fields (Auto-Populated)</h4>
+                            <div style="margin-bottom: 15px;">
+                                <label style="display: block; margin-bottom: 5px; font-weight: bold;">Fund Name</label>
+                                <input type="text" value="Green Ventures Capital" style="width: 100%; padding: 8px; border: 1px solid #ddd; border-radius: 4px;">
+                            </div>
+                            <div style="margin-bottom: 15px;">
+                                <label style="display: block; margin-bottom: 5px; font-weight: bold;">Investment Focus</label>
+                                <input type="text" value="Climate Technology, Renewable Energy" style="width: 100%; padding: 8px; border: 1px solid #ddd; border-radius: 4px;">
+                            </div>
+                            <div style="margin-bottom: 15px;">
+                                <label style="display: block; margin-bottom: 5px; font-weight: bold;">Target Return</label>
+                                <input type="text" value="18-22% IRR" style="width: 100%; padding: 8px; border: 1px solid #ddd; border-radius: 4px;">
+                            </div>
+                            <div style="display: flex;">
+                                <div style="width: 48%; margin-right: 4%;">
+                                    <label style="display: block; margin-bottom: 5px; font-weight: bold;">Fund Size</label>
+                                    <input type="text" value="$250M" style="width: 100%; padding: 8px; border: 1px solid #ddd; border-radius: 4px;">
+                                </div>
+                                <div style="width: 48%;">
+                                    <label style="display: block; margin-bottom: 5px; font-weight: bold;">ESG Integration Level</label>
+                                    <select style="width: 100%; padding: 8px; border: 1px solid #ddd; border-radius: 4px;">
+                                        <option>Comprehensive</option>
+                                        <option>Significant</option>
+                                        <option>Moderate</option>
+                                        <option>Limited</option>
+                                    </select>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- Co-Pilot Widget -->
+                    <div class="copilot-icon">AI</div>
+                </div>
+            </div>
+        </div>
+
+        <div class="feature-section">
+            <h2>4. Consistent Light/Dark Mode Toggle</h2>
+            <p>The application now supports toggling between light and dark themes consistently across all pages, with the preference stored in cookies for persistence.</p>
+            <div class="highlight">
+                <strong>Key Improvement:</strong> Theme preference is preserved across sessions and consistently applied to all templates.
+            </div>
+            <div style="display: flex; justify-content: space-between;">
+                <div style="width: 48%;">
+                    <h4 style="text-align: center;">Light Mode</h4>
+                    <div style="background-color: #fff; border: 1px solid #ddd; border-radius: 4px; padding: 15px; height: 200px; position: relative;">
+                        <div style="background-color: #f8f9fa; padding: 10px; border-radius: 4px; margin-bottom: 10px;">
+                            <h5 style="margin-top: 0; color: #333;">Sustainability Metrics Dashboard</h5>
+                        </div>
+                        <div style="background-color: #e9ecef; height: 100px; border-radius: 4px;"></div>
+                        <div style="position: absolute; top: 10px; right: 10px; background-color: #fff; border: 1px solid #ddd; border-radius: 20px; padding: 5px 10px; font-size: 12px;">
+                            🌙 Switch to Dark
+                        </div>
+                    </div>
+                </div>
+                <div style="width: 48%;">
+                    <h4 style="text-align: center;">Dark Mode</h4>
+                    <div style="background-color: #2c3e50; border: 1px solid #1a2530; border-radius: 4px; padding: 15px; height: 200px; position: relative; color: #eee;">
+                        <div style="background-color: #34495e; padding: 10px; border-radius: 4px; margin-bottom: 10px;">
+                            <h5 style="margin-top: 0; color: #ecf0f1;">Sustainability Metrics Dashboard</h5>
+                        </div>
+                        <div style="background-color: #2c3e50; height: 100px; border-radius: 4px; border: 1px solid #4a6782;"></div>
+                        <div style="position: absolute; top: 10px; right: 10px; background-color: #34495e; border: 1px solid #4a6782; border-radius: 20px; padding: 5px 10px; font-size: 12px; color: #ecf0f1;">
+                            ☀️ Switch to Light
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="feature-section">
+            <h2>Summary of Improvements</h2>
+            <ul>
+                <li><strong>Consolidated Application Structure:</strong> Removed redundant code and standardized templates using a consistent base layout.</li>
+                <li><strong>Embedded Co-Pilot:</strong> Integrated the AI assistant throughout the application instead of having standalone routes.</li>
+                <li><strong>Enhanced VC-Lens Functionality:</strong> Improved document processing with AI-powered field extraction for better form auto-population.</li>
+                <li><strong>Consistent Theme Support:</strong> Added reliable light/dark mode toggle with persistent preference storage.</li>
+                <li><strong>Ethical AI Integration:</strong> Seamlessly combined ethical assessment capabilities with the Strategy Hub.</li>
+            </ul>
+        </div>
+    </div>
+</body>
+</html>

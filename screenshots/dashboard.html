@@ -390,16 +390,6 @@
                             <a class="nav-link " href="/vc-lens/">
                                 <i class="fas fa-search-dollar"></i> VC-Lens™
                             </a>
-                        <li class="nav-item">
-                            <a class="nav-link " href="/copilot/">
-                                <i class="fas fa-robot"></i> Co-Pilot
-                            </a>
-                        </li>
-                        </li>
-                        <li class="nav-item">
-                            <a class="nav-link " href="/copilot/">
-                                <i class="fas fa-robot"></i> Co-Pilot
-                            </a>
                         </li>
                     </ul>
                 </div>
@@ -814,5 +804,351 @@
     });
 </script>
 
+    
+    <!-- Include Co-Pilot Widget -->
+    <!-- Embedded Co-Pilot Widget -->
+<div id="copilot-widget" class="fixed-bottom end-0 mb-4 me-4" style="z-index: 1050; max-width: 400px; display: none;">
+  <div class="bg-white dark:bg-gray-800 rounded-lg shadow-lg border border-gray-200 dark:border-gray-700 overflow-hidden">
+    <!-- Header -->
+    <div class="bg-emerald-600 dark:bg-emerald-700 text-white p-3 flex justify-between items-center">
+      <div class="flex items-center">
+        <i class="fas fa-robot mr-2"></i>
+        <h3 class="font-bold text-lg">SustainaTrend Co-Pilot</h3>
+      </div>
+      <div class="flex space-x-2">
+        <button id="minimize-copilot" class="text-white hover:text-gray-200 transition-colors">
+          <i class="fas fa-minus"></i>
+        </button>
+        <button id="close-copilot" class="text-white hover:text-gray-200 transition-colors">
+          <i class="fas fa-times"></i>
+        </button>
+      </div>
+    </div>
+    
+    <!-- Chat area -->
+    <div id="widget-chat-messages" class="h-64 overflow-y-auto p-3 bg-gray-50 dark:bg-gray-900 space-y-3">
+      <!-- Welcome message -->
+      <div class="message assistant-message">
+        <div class="flex items-start">
+          <div class="message-avatar flex-shrink-0 bg-emerald-100 dark:bg-emerald-900 text-emerald-700 dark:text-emerald-300 p-2 rounded-full">
+            <i class="fas fa-robot"></i>
+          </div>
+          <div class="message-content ml-3 bg-white dark:bg-gray-800 p-3 rounded-lg shadow-sm">
+            <div class="font-semibold text-emerald-700 dark:text-emerald-400">SustainaTrend Co-Pilot</div>
+            <div class="mt-1 text-gray-800 dark:text-gray-200">
+              <p>How can I help you with sustainability insights today?</p>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+    
+    <!-- Suggested prompts -->
+    <div id="widget-suggested-prompts" class="overflow-x-auto py-2 px-3 bg-white dark:bg-gray-800 border-t border-gray-200 dark:border-gray-700">
+      <div class="flex space-x-2">
+        <button class="widget-suggested-prompt flex-shrink-0 bg-emerald-50 dark:bg-emerald-900/30 hover:bg-emerald-100 dark:hover:bg-emerald-900/50 text-emerald-700 dark:text-emerald-300 py-1 px-3 rounded-full text-sm transition duration-300">
+          ESG metrics?
+        </button>
+        <button class="widget-suggested-prompt flex-shrink-0 bg-emerald-50 dark:bg-emerald-900/30 hover:bg-emerald-100 dark:hover:bg-emerald-900/50 text-emerald-700 dark:text-emerald-300 py-1 px-3 rounded-full text-sm transition duration-300">
+          Carbon trends
+        </button>
+        <button class="widget-suggested-prompt flex-shrink-0 bg-emerald-50 dark:bg-emerald-900/30 hover:bg-emerald-100 dark:hover:bg-emerald-900/50 text-emerald-700 dark:text-emerald-300 py-1 px-3 rounded-full text-sm transition duration-300">
+          ESRS help
+        </button>
+      </div>
+    </div>
+    
+    <!-- Input area -->
+    <div class="p-3 border-t border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800">
+      <div class="flex items-end">
+        <div class="relative flex-grow">
+          <textarea id="widget-user-input" rows="1" class="w-full resize-none rounded-lg border-gray-300 dark:border-gray-700 dark:bg-gray-700 dark:text-white focus:ring-emerald-500 focus:border-emerald-500 p-2 pr-8" placeholder="Ask me anything..."></textarea>
+          <button id="widget-voice-input" class="absolute right-2 bottom-2 text-gray-500 dark:text-gray-400 hover:text-emerald-600 dark:hover:text-emerald-400">
+            <i class="fas fa-microphone"></i>
+          </button>
+        </div>
+        <button id="widget-send-message" class="ml-2 bg-emerald-600 hover:bg-emerald-700 text-white p-2 rounded-lg transition duration-300">
+          <i class="fas fa-paper-plane"></i>
+        </button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Floating button to open co-pilot -->
+<button id="open-copilot" class="fixed-bottom end-0 mb-4 me-4 bg-emerald-600 hover:bg-emerald-700 text-white rounded-full w-14 h-14 flex items-center justify-center shadow-lg" style="z-index: 1040;">
+  <i class="fas fa-robot text-xl"></i>
+</button>
+
+<!-- Co-Pilot Widget Scripts -->
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+  // Elements
+  const openCopilotBtn = document.getElementById('open-copilot');
+  const copilotWidget = document.getElementById('copilot-widget');
+  const closeCopilotBtn = document.getElementById('close-copilot');
+  const minimizeCopilotBtn = document.getElementById('minimize-copilot');
+  const chatMessages = document.getElementById('widget-chat-messages');
+  const userInput = document.getElementById('widget-user-input');
+  const sendButton = document.getElementById('widget-send-message');
+  const suggestedPrompts = document.querySelectorAll('.widget-suggested-prompt');
+  
+  // State
+  let conversationId = null;
+  let isProcessing = false;
+  let isMinimized = false;
+  
+  // Initialize
+  fetchSuggestedPrompts();
+  
+  // Event Listeners
+  openCopilotBtn.addEventListener('click', function() {
+    copilotWidget.style.display = 'block';
+    openCopilotBtn.style.display = 'none';
+  });
+  
+  closeCopilotBtn.addEventListener('click', function() {
+    copilotWidget.style.display = 'none';
+    openCopilotBtn.style.display = 'flex';
+  });
+  
+  minimizeCopilotBtn.addEventListener('click', function() {
+    copilotWidget.style.display = 'none';
+    openCopilotBtn.style.display = 'flex';
+  });
+  
+  sendButton.addEventListener('click', sendMessage);
+  userInput.addEventListener('keydown', function(e) {
+    if (e.key === 'Enter' && !e.shiftKey) {
+      e.preventDefault();
+      sendMessage();
+    }
+  });
+  
+  suggestedPrompts.forEach(prompt => {
+    prompt.addEventListener('click', function() {
+      userInput.value = this.textContent.trim();
+      sendMessage();
+    });
+  });
+  
+  // Functions
+  function sendMessage() {
+    const message = userInput.value.trim();
+    if (message === '' || isProcessing) return;
+    
+    // Add user message to UI
+    addMessageToUI('user', message);
+    
+    // Clear input
+    userInput.value = '';
+    
+    // Show processing indicator
+    isProcessing = true;
+    addProcessingIndicator();
+    
+    // Send to backend
+    processQuery(message);
+  }
+  
+  function addMessageToUI(role, content) {
+    const messageDiv = document.createElement('div');
+    messageDiv.className = `message ${role}-message`;
+    
+    const isUser = role === 'user';
+    const avatar = isUser ? '<i class="fas fa-user"></i>' : '<i class="fas fa-robot"></i>';
+    const name = isUser ? 'You' : 'SustainaTrend Co-Pilot';
+    const avatarColorClass = isUser ? 'bg-blue-100 dark:bg-blue-900 text-blue-700 dark:text-blue-300' : 'bg-emerald-100 dark:bg-emerald-900 text-emerald-700 dark:text-emerald-300';
+    const nameColorClass = isUser ? 'text-blue-700 dark:text-blue-400' : 'text-emerald-700 dark:text-emerald-400';
+    
+    messageDiv.innerHTML = `
+      <div class="flex items-start">
+        <div class="message-avatar flex-shrink-0 ${avatarColorClass} p-2 rounded-full">
+          ${avatar}
+        </div>
+        <div class="message-content ml-3 bg-white dark:bg-gray-800 p-3 rounded-lg shadow-sm">
+          <div class="font-semibold ${nameColorClass}">${name}</div>
+          <div class="mt-1 text-gray-800 dark:text-gray-200">
+            ${content}
+          </div>
+        </div>
+      </div>
+    `;
+    
+    chatMessages.appendChild(messageDiv);
+    chatMessages.scrollTop = chatMessages.scrollHeight;
+  }
+  
+  function addProcessingIndicator() {
+    const processingDiv = document.createElement('div');
+    processingDiv.id = 'widget-processing-indicator';
+    processingDiv.className = 'message assistant-message';
+    processingDiv.innerHTML = `
+      <div class="flex items-start">
+        <div class="message-avatar flex-shrink-0 bg-emerald-100 dark:bg-emerald-900 text-emerald-700 dark:text-emerald-300 p-2 rounded-full">
+          <i class="fas fa-robot"></i>
+        </div>
+        <div class="message-content ml-3 bg-white dark:bg-gray-800 p-3 rounded-lg shadow-sm">
+          <div class="font-semibold text-emerald-700 dark:text-emerald-400">SustainaTrend Co-Pilot</div>
+          <div class="mt-1 text-gray-800 dark:text-gray-200">
+            <div class="typing-indicator">
+              <span></span>
+              <span></span>
+              <span></span>
+            </div>
+          </div>
+        </div>
+      </div>
+    `;
+    
+    chatMessages.appendChild(processingDiv);
+    chatMessages.scrollTop = chatMessages.scrollHeight;
+  }
+  
+  function removeProcessingIndicator() {
+    const indicator = document.getElementById('widget-processing-indicator');
+    if (indicator) {
+      indicator.remove();
+    }
+  }
+  
+  async function fetchSuggestedPrompts() {
+    try {
+      const response = await fetch(`/api/copilot/suggested-prompts?context=widget&page=${window.location.pathname}&conversation_id=${conversationId || ''}`);
+      if (response.ok) {
+        const data = await response.json();
+        if (data.success && data.prompts && data.prompts.length) {
+          updateSuggestedPrompts(data.prompts);
+        }
+      }
+    } catch (error) {
+      console.error('Error fetching suggested prompts:', error);
+    }
+  }
+  
+  function updateSuggestedPrompts(prompts) {
+    const container = document.getElementById('widget-suggested-prompts');
+    const promptsDiv = document.createElement('div');
+    promptsDiv.className = 'flex space-x-2';
+    
+    prompts.slice(0, 4).forEach(prompt => {
+      const button = document.createElement('button');
+      button.className = 'widget-suggested-prompt flex-shrink-0 bg-emerald-50 dark:bg-emerald-900/30 hover:bg-emerald-100 dark:hover:bg-emerald-900/50 text-emerald-700 dark:text-emerald-300 py-1 px-3 rounded-full text-sm transition duration-300';
+      button.textContent = prompt;
+      
+      button.addEventListener('click', function() {
+        userInput.value = this.textContent.trim();
+        sendMessage();
+      });
+      
+      promptsDiv.appendChild(button);
+    });
+    
+    container.innerHTML = '';
+    container.appendChild(promptsDiv);
+  }
+  
+  async function processQuery(query) {
+    try {
+      const response = await fetch('/api/copilot/query', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          query,
+          context: 'widget',
+          page: window.location.pathname,
+          conversation_id: conversationId
+        })
+      });
+      
+      if (response.ok) {
+        const data = await response.json();
+        if (data.success) {
+          // Store conversation ID if this is a new conversation
+          if (!conversationId && data.conversation_id) {
+            conversationId = data.conversation_id;
+          }
+          
+          // Remove processing indicator
+          removeProcessingIndicator();
+          
+          // Add assistant response to UI
+          addMessageToUI('assistant', data.response || 'I apologize, but I couldn\'t generate a response at this time.');
+          
+          // Update suggested prompts for follow-up
+          fetchSuggestedPrompts();
+        } else {
+          handleError(data.error || 'Unknown error occurred');
+        }
+      } else {
+        handleError('Failed to process your request');
+      }
+    } catch (error) {
+      handleError('Network error occurred');
+      console.error('Error processing query:', error);
+    } finally {
+      isProcessing = false;
+    }
+  }
+  
+  function handleError(errorMessage) {
+    removeProcessingIndicator();
+    addMessageToUI('assistant', `<span class="text-red-500">Error: ${errorMessage}</span>`);
+  }
+});
+</script>
+
+<!-- Co-Pilot Widget Styles -->
+<style>
+/* Custom typing indicator for Co-Pilot */
+.typing-indicator {
+  display: flex;
+  align-items: center;
+}
+
+.typing-indicator span {
+  display: inline-block;
+  width: 6px;
+  height: 6px;
+  background-color: #9ca3af;
+  border-radius: 50%;
+  margin: 0 2px;
+  opacity: 0.6;
+  animation: typing 1.4s infinite ease-in-out both;
+}
+
+.typing-indicator span:nth-child(1) {
+  animation-delay: -0.32s;
+}
+
+.typing-indicator span:nth-child(2) {
+  animation-delay: -0.16s;
+}
+
+@keyframes typing {
+  0%, 80%, 100% { transform: scale(0.6); }
+  40% { transform: scale(1); }
+}
+
+/* Custom scrollbar for chat messages */
+#widget-chat-messages::-webkit-scrollbar {
+  width: 5px;
+}
+
+#widget-chat-messages::-webkit-scrollbar-thumb {
+  background-color: #d1d5db;
+  border-radius: 10px;
+}
+
+html.dark-mode #widget-chat-messages::-webkit-scrollbar-thumb {
+  background-color: #4b5563;
+}
+
+#widget-chat-messages::-webkit-scrollbar-track {
+  background: transparent;
+}
+</style>
 </body>
 </html>
