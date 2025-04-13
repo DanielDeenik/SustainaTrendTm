@@ -1,6 +1,0 @@
-run = "bash -c 'cd backend && python sustainability_api.py & cd frontend && python direct_app.py'"
-language = "python"
-entrypoint = "start-all.sh"
-hidden = false
-persistent = true
-wait_for_port = 5000

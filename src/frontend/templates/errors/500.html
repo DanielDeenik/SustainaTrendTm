@@ -1,0 +1,60 @@
+{% extends "base.html" %}
+
+{% block title %}Server Error - SustainaTrend{% endblock %}
+
+{% block content %}
+<div class="error-container">
+    <div class="error-content">
+        <h1>500 - Server Error</h1>
+        <p>Something went wrong on our end. We're working to fix the issue. Please try again later.</p>
+        <div class="error-actions">
+            <a href="{{ url_for('index') }}" class="btn btn-primary">Return to Dashboard</a>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block styles %}
+<style>
+.error-container {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    min-height: 60vh;
+    padding: 2rem;
+}
+
+.error-content {
+    text-align: center;
+    max-width: 600px;
+}
+
+.error-content h1 {
+    font-size: 3rem;
+    color: #2c3e50;
+    margin-bottom: 1rem;
+}
+
+.error-content p {
+    font-size: 1.2rem;
+    color: #7f8c8d;
+    margin-bottom: 2rem;
+}
+
+.error-actions {
+    margin-top: 2rem;
+}
+
+.btn-primary {
+    background-color: #16a085;
+    border-color: #16a085;
+    padding: 0.75rem 1.5rem;
+    font-size: 1.1rem;
+}
+
+.btn-primary:hover {
+    background-color: #1abc9c;
+    border-color: #1abc9c;
+}
+</style>
+{% endblock %} 

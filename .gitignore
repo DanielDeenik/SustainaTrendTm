@@ -1,0 +1,112 @@
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+build/
+develop-eggs/
+dist/
+downloads/
+eggs/
+.eggs/
+lib/
+lib64/
+parts/
+sdist/
+var/
+wheels/
+*.egg-info/
+.installed.cfg
+*.egg
+
+# Virtual Environment
+venv/
+env/
+ENV/
+
+# IDE
+.idea/
+.vscode/
+*.swp
+*.swo
+.DS_Store
+
+# Logs
+logs/
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# Local development
+.env
+.env.local
+.env.development.local
+.env.test.local
+.env.production.local
+
+# Database
+*.sqlite3
+*.db
+
+# Vector DB
+vector_db/
+
+# Uploads
+uploads/
+
+# Coverage
+.coverage
+coverage/
+htmlcov/
+
+# Cache
+.cache/
+.pytest_cache/
+.mypy_cache/
+
+# Temporary files
+*.tmp
+*.bak
+*.swp
+*~
+*.patch
+*.middleware
+
+# Distribution
+dist/
+build/
+
+# Documentation
+docs/_build/
+site/
+
+# Jupyter Notebook
+.ipynb_checkpoints
+
+# Node modules (if using any frontend frameworks)
+node_modules/
+
+# System Files
+.DS_Store
+Thumbs.db
+
+# Application specific
+app.log
+start_app.py
+test_sustainability_report.pdf
+verify_pinecone_indexes.py
+run_initialize_pinecone.py
+initialize_pinecone.py
+list_routes.py
+port_manager.py
+realestate_sustainability.py
+gemini_search.py
+gunicorn.conf.py
+benchmark_db.py
+company_search.py.bak
+ai_code_automation_example.py
+trend_virality_benchmarking.py
+storytelling_api.py
+story_operations.py 

@@ -1,0 +1,28 @@
+{% macro chart_card(title, chart_type, chart_id, col_size=12) %}
+<div class="col-md-{{ col_size }} mb-4">
+    <div class="card">
+        <div class="card-body">
+            <h5 class="card-title">{{ title }}</h5>
+            <canvas id="{{ chart_id }}" data-chart="{{ chart_type }}"></canvas>
+        </div>
+    </div>
+</div>
+{% endmacro %}
+
+{% macro chart_row(charts) %}
+<div class="row">
+    {% for chart in charts %}
+        {{ chart_card(**chart) }}
+    {% endfor %}
+</div>
+{% endmacro %}
+
+{% macro chart_scripts() %}
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // This will be handled by the main app.js
+    // Charts are initialized through the SustainaTrend.updateCharts() method
+});
+</script>
+{% endmacro %} 

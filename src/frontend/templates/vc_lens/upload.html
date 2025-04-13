@@ -1,0 +1,157 @@
+{% extends "base.html" %}
+
+{% block title %}Upload Document - VC Lens{% endblock %}
+
+{% block content %}
+<div class="container-fluid py-4">
+    <div class="row">
+        <div class="col-12">
+            <h1 class="h3 mb-4">Upload Document</h1>
+            <p class="text-muted">Upload startup documents, pitch decks, or investment theses for AI-powered analysis.</p>
+        </div>
+    </div>
+
+    <div class="row">
+        <div class="col-md-8">
+            <div class="card">
+                <div class="card-body">
+                    <form id="uploadForm" enctype="multipart/form-data">
+                        <div class="mb-3">
+                            <label for="document" class="form-label">Select Document</label>
+                            <input type="file" class="form-control" id="document" name="document" required>
+                            <div class="form-text">Supported formats: PDF, DOCX, PPTX, XLSX</div>
+                        </div>
+
+                        <div class="mb-3">
+                            <label for="documentType" class="form-label">Document Type</label>
+                            <select class="form-select" id="documentType" name="document_type" required>
+                                <option value="">Select a type...</option>
+                                <option value="pitch_deck">Pitch Deck</option>
+                                <option value="business_plan">Business Plan</option>
+                                <option value="financial_model">Financial Model</option>
+                                <option value="market_research">Market Research</option>
+                                <option value="investment_thesis">Investment Thesis</option>
+                            </select>
+                        </div>
+
+                        <div class="mb-3">
+                            <label for="companyName" class="form-label">Company Name</label>
+                            <input type="text" class="form-control" id="companyName" name="company_name" required>
+                        </div>
+
+                        <div class="mb-3">
+                            <label for="industry" class="form-label">Industry</label>
+                            <select class="form-select" id="industry" name="industry" required>
+                                <option value="">Select an industry...</option>
+                                <option value="clean_tech">Clean Tech</option>
+                                <option value="fintech">FinTech</option>
+                                <option value="healthtech">HealthTech</option>
+                                <option value="enterprise">Enterprise</option>
+                                <option value="consumer">Consumer</option>
+                                <option value="other">Other</option>
+                            </select>
+                        </div>
+
+                        <div class="mb-3">
+                            <label for="stage" class="form-label">Stage</label>
+                            <select class="form-select" id="stage" name="stage" required>
+                                <option value="">Select a stage...</option>
+                                <option value="seed">Seed</option>
+                                <option value="series_a">Series A</option>
+                                <option value="series_b">Series B</option>
+                                <option value="growth">Growth</option>
+                            </select>
+                        </div>
+
+                        <div class="mb-3">
+                            <label for="notes" class="form-label">Additional Notes</label>
+                            <textarea class="form-control" id="notes" name="notes" rows="3"></textarea>
+                        </div>
+
+                        <button type="submit" class="btn btn-primary">Upload and Process</button>
+                        <a href="{{ url_for('vc_lens.dashboard') }}" class="btn btn-secondary">Cancel</a>
+                    </form>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-md-4">
+            <div class="card">
+                <div class="card-header">
+                    <h5 class="card-title mb-0">Processing Status</h5>
+                </div>
+                <div class="card-body">
+                    <div id="processingStatus" class="d-none">
+                        <div class="progress mb-3">
+                            <div class="progress-bar progress-bar-striped progress-bar-animated" role="progressbar" style="width: 0%"></div>
+                        </div>
+                        <p id="statusMessage" class="text-muted">Processing document...</p>
+                    </div>
+                    <div id="uploadInstructions">
+                        <h6>Instructions</h6>
+                        <ul class="list-unstyled">
+                            <li>✓ Maximum file size: 50MB</li>
+                            <li>✓ Supported formats: PDF, DOCX, PPTX, XLSX</li>
+                            <li>✓ Ensure document is not password protected</li>
+                            <li>✓ Include all relevant sections and data</li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+    document.getElementById('uploadForm').addEventListener('submit', async (e) => {
+        e.preventDefault();
+        
+        const form = e.target;
+        const formData = new FormData(form);
+        
+        // Show processing status
+        document.getElementById('processingStatus').classList.remove('d-none');
+        document.getElementById('uploadInstructions').classList.add('d-none');
+        
+        try {
+            const response = await fetch('/vc-lens/upload', {
+                method: 'POST',
+                body: formData
+            });
+            
+            const data = await response.json();
+            
+            if (data.success) {
+                // Update progress bar to 100%
+                const progressBar = document.querySelector('.progress-bar');
+                progressBar.style.width = '100%';
+                progressBar.classList.remove('progress-bar-animated');
+                
+                // Show success message
+                document.getElementById('statusMessage').textContent = 'Document processed successfully!';
+                document.getElementById('statusMessage').classList.remove('text-muted');
+                document.getElementById('statusMessage').classList.add('text-success');
+                
+                // Redirect to analysis page after a short delay
+                setTimeout(() => {
+                    window.location.href = `/vc-lens/analyze/${data.doc_id}`;
+                }, 1500);
+            } else {
+                throw new Error(data.message || 'Failed to process document');
+            }
+        } catch (error) {
+            console.error('Error:', error);
+            
+            // Show error message
+            document.getElementById('statusMessage').textContent = error.message;
+            document.getElementById('statusMessage').classList.remove('text-muted');
+            document.getElementById('statusMessage').classList.add('text-danger');
+            
+            // Reset form
+            form.reset();
+        }
+    });
+</script>
+{% endblock %} 

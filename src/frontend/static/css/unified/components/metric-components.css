@@ -1,0 +1,348 @@
+/**
+ * Metric Components CSS
+ * Standardized styles for metric visualization components across the SustainaTrend™ platform
+ * Designed to match the standardized JavaScript architecture
+ */
+
+:root {
+  /* Metric type colors */
+  --metric-breeam-color: var(--chart-emissions-color, #10b981);
+  --metric-energy-color: var(--chart-energy-color, #0ea5e9);
+  --metric-carbon-color: var(--chart-waste-color, #64748b);
+  --metric-financial-color: var(--chart-governance-color, #e11d48);
+  
+  /* Status colors */
+  --metric-positive-color: var(--success-color, #2E7D32);
+  --metric-negative-color: var(--danger-color, #D32F2F);
+  --metric-neutral-color: var(--info-color, #0288D1);
+  
+  /* Threshold colors */
+  --metric-threshold-good: var(--success-color, #2E7D32);
+  --metric-threshold-moderate: var(--warning-color, #FFA000);
+  --metric-threshold-poor: var(--danger-color, #D32F2F);
+  
+  /* UI colors */
+  --metric-border-color: var(--border-color, #E0E0E0);
+  --metric-bg-color: var(--card-bg, #FFFFFF);
+  --metric-text-color: var(--text-color, #212121);
+  --metric-text-muted: var(--text-muted, #757575);
+}
+
+/* Base metric component */
+.metric-component {
+  border-radius: 8px;
+  overflow: hidden;
+  margin-bottom: 1.5rem;
+  border: 1px solid var(--metric-border-color);
+  box-shadow: 0 2px 10px rgba(0,0,0,0.05);
+  transition: all 0.3s ease;
+  background-color: var(--metric-bg-color);
+  color: var(--metric-text-color);
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+}
+
+.metric-component:hover {
+  box-shadow: 0 6px 16px rgba(0,0,0,0.1);
+  transform: translateY(-3px);
+}
+
+/* Metric header */
+.metric-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 1rem;
+  border-bottom: 1px solid var(--metric-border-color);
+}
+
+.metric-title {
+  font-weight: 600;
+  font-size: 1.125rem;
+  margin: 0;
+  display: flex;
+  align-items: center;
+}
+
+.metric-title i {
+  margin-right: 0.5rem;
+  opacity: 0.8;
+}
+
+/* Metric body */
+.metric-body {
+  padding: 1rem;
+  flex-grow: 1;
+  display: flex;
+  flex-direction: column;
+}
+
+/* Metric value display */
+.metric-value-container {
+  display: flex;
+  align-items: baseline;
+  margin-bottom: 0.5rem;
+}
+
+.metric-value {
+  font-size: 2rem;
+  font-weight: 700;
+  margin-right: 0.5rem;
+}
+
+.metric-unit {
+  font-size: 0.875rem;
+  color: var(--metric-text-muted);
+  font-weight: 500;
+}
+
+.metric-change {
+  display: flex;
+  align-items: center;
+  font-size: 0.875rem;
+  font-weight: 600;
+  margin-left: 0.75rem;
+}
+
+.metric-change.positive {
+  color: var(--metric-positive-color);
+}
+
+.metric-change.negative {
+  color: var(--metric-negative-color);
+}
+
+.metric-change.neutral {
+  color: var(--metric-neutral-color);
+}
+
+.metric-change i {
+  margin-right: 0.25rem;
+}
+
+/* Metric description */
+.metric-description {
+  font-size: 0.875rem;
+  color: var(--metric-text-muted);
+  margin-bottom: 1rem;
+}
+
+/* Metric type styling */
+.metric-component.breeam {
+  border-top: 4px solid var(--metric-breeam-color);
+}
+
+.metric-component.energy {
+  border-top: 4px solid var(--metric-energy-color);
+}
+
+.metric-component.carbon {
+  border-top: 4px solid var(--metric-carbon-color);
+}
+
+.metric-component.financial {
+  border-top: 4px solid var(--metric-financial-color);
+}
+
+/* Metric chart container */
+.metric-chart {
+  width: 100%;
+  height: 180px;
+  margin-top: auto;
+}
+
+/* Metric footer */
+.metric-footer {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 0.75rem 1rem;
+  background-color: rgba(0, 0, 0, 0.02);
+  border-top: 1px solid var(--metric-border-color);
+  font-size: 0.75rem;
+  color: var(--metric-text-muted);
+}
+
+.dark-mode .metric-footer {
+  background-color: rgba(255, 255, 255, 0.02);
+}
+
+/* Status tag styling */
+.metric-status {
+  padding: 0.25rem 0.5rem;
+  border-radius: 4px;
+  font-size: 0.75rem;
+  font-weight: 600;
+  display: inline-flex;
+  align-items: center;
+}
+
+.metric-status.good {
+  background-color: rgba(46, 125, 50, 0.1);
+  color: var(--metric-threshold-good);
+}
+
+.metric-status.moderate {
+  background-color: rgba(255, 160, 0, 0.1);
+  color: var(--metric-threshold-moderate);
+}
+
+.metric-status.poor {
+  background-color: rgba(211, 47, 47, 0.1);
+  color: var(--metric-threshold-poor);
+}
+
+.metric-status i {
+  margin-right: 0.25rem;
+}
+
+/* Metric interactive elements */
+.metric-actions {
+  display: flex;
+  gap: 0.5rem;
+  margin-top: 1rem;
+}
+
+.metric-action-btn {
+  border: none;
+  background: none;
+  color: var(--metric-text-muted);
+  cursor: pointer;
+  padding: 0.25rem;
+  border-radius: 4px;
+  transition: all 0.2s ease;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.metric-action-btn:hover {
+  background-color: rgba(0, 0, 0, 0.05);
+  color: var(--metric-text-color);
+}
+
+.dark-mode .metric-action-btn:hover {
+  background-color: rgba(255, 255, 255, 0.05);
+}
+
+/* Update animation */
+.metric-component.updated {
+  animation: highlight-metric 2s ease;
+}
+
+@keyframes highlight-metric {
+  0% { background-color: rgba(46, 125, 50, 0.1); }
+  100% { background-color: var(--metric-bg-color); }
+}
+
+/* Threshold indicators */
+.threshold-indicator {
+  height: 4px;
+  width: 100%;
+  background: linear-gradient(to right,
+    var(--metric-threshold-poor) 0%,
+    var(--metric-threshold-poor) 33%,
+    var(--metric-threshold-moderate) 33%,
+    var(--metric-threshold-moderate) 66%,
+    var(--metric-threshold-good) 66%,
+    var(--metric-threshold-good) 100%
+  );
+  margin-top: 0.5rem;
+  border-radius: 2px;
+  position: relative;
+}
+
+.threshold-marker {
+  position: absolute;
+  top: -5px;
+  width: 12px;
+  height: 12px;
+  background-color: var(--metric-text-color);
+  border-radius: 50%;
+  transform: translateX(-50%);
+  border: 2px solid white;
+  box-shadow: 0 0 4px rgba(0,0,0,0.3);
+}
+
+/* Linked metrics indicator */
+.related-metrics {
+  margin-top: 0.75rem;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+}
+
+.related-metric-tag {
+  font-size: 0.7rem;
+  padding: 0.2rem 0.5rem;
+  background-color: rgba(0,0,0,0.05);
+  border-radius: 4px;
+  display: inline-flex;
+  align-items: center;
+  color: var(--metric-text-muted);
+}
+
+.dark-mode .related-metric-tag {
+  background-color: rgba(255,255,255,0.05);
+}
+
+.related-metric-tag i {
+  margin-right: 0.25rem;
+  font-size: 0.6rem;
+}
+
+/* Metric grid layout */
+.metric-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+  gap: 1.5rem;
+  margin-bottom: 2rem;
+}
+
+/* Responsive adjustments */
+@media (max-width: 768px) {
+  .metric-grid {
+    grid-template-columns: 1fr;
+  }
+  
+  .metric-value {
+    font-size: 1.5rem;
+  }
+}
+
+/* Metric forecast section */
+.metric-forecast {
+  margin-top: 1rem;
+  padding-top: 0.75rem;
+  border-top: 1px dashed var(--metric-border-color);
+}
+
+.forecast-title {
+  font-size: 0.85rem;
+  font-weight: 600;
+  margin-bottom: 0.5rem;
+  display: flex;
+  align-items: center;
+}
+
+.forecast-title i {
+  margin-right: 0.25rem;
+  opacity: 0.7;
+}
+
+.forecast-value {
+  display: flex;
+  align-items: baseline;
+}
+
+.forecast-number {
+  font-size: 1.25rem;
+  font-weight: 700;
+  margin-right: 0.5rem;
+}
+
+.forecast-label {
+  font-size: 0.75rem;
+  color: var(--metric-text-muted);
+}

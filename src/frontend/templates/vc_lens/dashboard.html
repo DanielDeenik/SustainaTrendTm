@@ -1,0 +1,198 @@
+{% extends "base.html" %}
+
+{% block title %}VC Lens Dashboard - SustainaTrend{% endblock %}
+
+{% block content %}
+<div class="container-fluid py-4">
+    <div class="row">
+        <div class="col-12">
+            <h1 class="h3 mb-4">VC Lens Dashboard</h1>
+            <p class="text-muted">Analyze startup documents and assess portfolio fit using AI-powered insights.</p>
+        </div>
+    </div>
+
+    <!-- Quick Actions -->
+    <div class="row mb-4">
+        <div class="col-md-4">
+            <div class="card">
+                <div class="card-body">
+                    <h5 class="card-title">Upload Document</h5>
+                    <p class="card-text">Process and analyze startup documents, pitch decks, or investment theses.</p>
+                    <a href="{{ url_for('vc_lens.upload_document') }}" class="btn btn-primary">Upload</a>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-4">
+            <div class="card">
+                <div class="card-body">
+                    <h5 class="card-title">Search Documents</h5>
+                    <p class="card-text">Find similar documents and analyze patterns across your portfolio.</p>
+                    <a href="{{ url_for('vc_lens.search_documents') }}" class="btn btn-primary">Search</a>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-4">
+            <div class="card">
+                <div class="card-body">
+                    <h5 class="card-title">Portfolio Analysis</h5>
+                    <p class="card-text">Compare startups against your investment criteria and portfolio strategy.</p>
+                    <a href="#" class="btn btn-primary">Analyze</a>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Recent Documents -->
+    <div class="row mb-4">
+        <div class="col-12">
+            <div class="card">
+                <div class="card-header">
+                    <h5 class="card-title mb-0">Recent Documents</h5>
+                </div>
+                <div class="card-body">
+                    <div class="table-responsive">
+                        <table class="table table-hover">
+                            <thead>
+                                <tr>
+                                    <th>Document</th>
+                                    <th>Type</th>
+                                    <th>Uploaded By</th>
+                                    <th>Date</th>
+                                    <th>Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody id="recent-documents">
+                                <!-- Documents will be loaded dynamically -->
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Analysis Insights -->
+    <div class="row">
+        <div class="col-md-6">
+            <div class="card">
+                <div class="card-header">
+                    <h5 class="card-title mb-0">Industry Distribution</h5>
+                </div>
+                <div class="card-body">
+                    <canvas id="industryChart"></canvas>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-6">
+            <div class="card">
+                <div class="card-header">
+                    <h5 class="card-title mb-0">Stage Distribution</h5>
+                </div>
+                <div class="card-body">
+                    <canvas id="stageChart"></canvas>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script>
+    // Load recent documents
+    async function loadRecentDocuments() {
+        try {
+            const response = await fetch('/vc-lens/api/documents');
+            const data = await response.json();
+            
+            if (data.success) {
+                const tbody = document.getElementById('recent-documents');
+                tbody.innerHTML = '';
+                
+                data.documents.slice(0, 5).forEach(doc => {
+                    const row = document.createElement('tr');
+                    row.innerHTML = `
+                        <td>${doc.metadata.original_filename || 'Untitled'}</td>
+                        <td>${doc.metadata.document_type || 'Unknown'}</td>
+                        <td>${doc.metadata.uploaded_by || 'Unknown'}</td>
+                        <td>${new Date(doc.metadata.uploaded_at).toLocaleDateString()}</td>
+                        <td>
+                            <a href="/vc-lens/analyze/${doc.doc_id}" class="btn btn-sm btn-primary">Analyze</a>
+                            <a href="/vc-lens/portfolio-fit/${doc.doc_id}" class="btn btn-sm btn-secondary">Portfolio Fit</a>
+                        </td>
+                    `;
+                    tbody.appendChild(row);
+                });
+            }
+        } catch (error) {
+            console.error('Error loading recent documents:', error);
+        }
+    }
+
+    // Initialize charts
+    function initCharts() {
+        // Industry Distribution Chart
+        const industryCtx = document.getElementById('industryChart').getContext('2d');
+        new Chart(industryCtx, {
+            type: 'pie',
+            data: {
+                labels: ['Clean Tech', 'FinTech', 'HealthTech', 'Other'],
+                datasets: [{
+                    data: [30, 25, 20, 25],
+                    backgroundColor: [
+                        '#4CAF50',
+                        '#2196F3',
+                        '#9C27B0',
+                        '#FFC107'
+                    ]
+                }]
+            },
+            options: {
+                responsive: true,
+                plugins: {
+                    legend: {
+                        position: 'bottom'
+                    }
+                }
+            }
+        });
+
+        // Stage Distribution Chart
+        const stageCtx = document.getElementById('stageChart').getContext('2d');
+        new Chart(stageCtx, {
+            type: 'bar',
+            data: {
+                labels: ['Seed', 'Series A', 'Series B', 'Growth'],
+                datasets: [{
+                    label: 'Number of Startups',
+                    data: [12, 19, 8, 5],
+                    backgroundColor: '#4CAF50'
+                }]
+            },
+            options: {
+                responsive: true,
+                plugins: {
+                    legend: {
+                        display: false
+                    }
+                },
+                scales: {
+                    y: {
+                        beginAtZero: true,
+                        ticks: {
+                            stepSize: 1
+                        }
+                    }
+                }
+            }
+        });
+    }
+
+    // Initialize dashboard
+    document.addEventListener('DOMContentLoaded', () => {
+        loadRecentDocuments();
+        initCharts();
+    });
+</script>
+{% endblock %} 

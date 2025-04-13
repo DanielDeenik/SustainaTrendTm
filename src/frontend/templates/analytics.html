@@ -1,0 +1,92 @@
+{% extends "base.html" %}
+{% from "components/metric_card.html" import metric_row %}
+{% from "components/chart.html" import chart_row, chart_scripts %}
+{% from "components/status.html" import loader, error_notification, success_notification %}
+
+{% block title %}Analytics - SustainaTrend™{% endblock %}
+
+{% block content %}
+{{ loader() }}
+{{ error_notification() }}
+{{ success_notification() }}
+
+{# Metrics Row #}
+{{ metric_row([
+    {
+        "title": "Total Documents",
+        "metric_key": "total_docs",
+        "value": "0",
+        "color": "primary",
+        "icon": "bxs-file"
+    },
+    {
+        "title": "Analysis Complete",
+        "metric_key": "analysis_complete",
+        "value": "0",
+        "color": "success",
+        "icon": "bxs-check-circle"
+    },
+    {
+        "title": "Active Users",
+        "metric_key": "active_users",
+        "value": "0",
+        "color": "info",
+        "icon": "bxs-group"
+    },
+    {
+        "title": "API Calls",
+        "metric_key": "api_calls",
+        "value": "0",
+        "color": "warning",
+        "icon": "bxs-data"
+    }
+]) }}
+
+{# Charts Row #}
+{{ chart_row([
+    {
+        "title": "Analytics Trends",
+        "chart_type": "analytics",
+        "chart_id": "analyticsChart",
+        "col_size": 8
+    },
+    {
+        "title": "Document Types",
+        "chart_type": "document_types",
+        "chart_id": "documentTypesChart",
+        "col_size": 4
+    }
+]) }}
+
+{# Recent Activity #}
+<div class="row">
+    <div class="col-12">
+        <div class="card">
+            <div class="card-body">
+                <h5 class="card-title">Recent Activity</h5>
+                <div class="list-group">
+                    <a href="#" class="list-group-item list-group-item-action">
+                        <div class="d-flex w-100 justify-content-between">
+                            <h6 class="mb-1">Document Analysis</h6>
+                            <small>3 mins ago</small>
+                        </div>
+                        <p class="mb-1">Sustainability Report 2025</p>
+                    </a>
+                    <a href="#" class="list-group-item list-group-item-action">
+                        <div class="d-flex w-100 justify-content-between">
+                            <h6 class="mb-1">Data Import</h6>
+                            <small>1 hour ago</small>
+                        </div>
+                        <p class="mb-1">Q1 2025 Metrics</p>
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+{{ chart_scripts() }}
+<script src="{{ url_for('static', filename='js/app.js') }}"></script>
+{% endblock %} 

@@ -1,0 +1,479 @@
+/* 
+ * Strategy Hub 2025 Refresh Styles
+ * Core CSS for the interactive story-focused Strategy Hub
+ */
+
+/* Story Cards */
+.story-card {
+    position: relative;
+    border-radius: 0.75rem;
+    background: rgba(30, 32, 40, 0.6);
+    border: 1px solid rgba(255, 255, 255, 0.05);
+    transition: all 0.3s ease;
+    overflow: hidden;
+    min-height: 320px;
+}
+
+.story-card:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.2);
+}
+
+.story-card-header {
+    padding: 1.25rem 1.25rem 0.75rem;
+}
+
+.story-card-title {
+    font-size: 1.25rem;
+    font-weight: 600;
+    color: #fff;
+    margin-bottom: 0.5rem;
+}
+
+.story-card-category {
+    display: inline-block;
+    font-size: 0.75rem;
+    padding: 0.25rem 0.75rem;
+    border-radius: 20px;
+    background: rgba(0, 128, 128, 0.2);  /* Teal */
+    color: #008080; /* Teal */
+    margin-bottom: 0.5rem;
+}
+
+.story-card-visualization {
+    padding: 0.75rem 1.25rem;
+    height: 180px;
+    position: relative;
+}
+
+.story-card-narrative {
+    padding: 0.75rem 1.25rem;
+    font-size: 0.875rem;
+    color: rgba(255, 255, 255, 0.8);
+    max-height: 100px;
+    overflow: hidden;
+    position: relative;
+}
+
+.story-card-narrative:after {
+    content: '';
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    width: 100%;
+    height: 40px;
+    background: linear-gradient(to bottom, rgba(30, 32, 40, 0), rgba(30, 32, 40, 1));
+}
+
+/* Card Actions - Only visible on hover */
+.story-card-actions {
+    position: absolute;
+    top: 0.75rem;
+    right: 0.75rem;
+    opacity: 0;
+    transition: opacity 0.3s ease;
+}
+
+.story-card:hover .story-card-actions {
+    opacity: 1;
+}
+
+.story-card-action {
+    width: 32px;
+    height: 32px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 50%;
+    background: rgba(30, 32, 40, 0.8);
+    color: rgba(255, 255, 255, 0.7);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    margin-bottom: 0.5rem;
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+
+.story-card-action:hover {
+    background: rgba(0, 128, 128, 0.2); /* Teal */
+    color: #008080; /* Teal */
+}
+
+.story-card-expand {
+    position: absolute;
+    bottom: 0.75rem;
+    right: 0.75rem;
+    background: rgba(0, 128, 128, 0.2); /* Teal */
+    color: #008080; /* Teal */
+    border: none;
+    border-radius: 20px;
+    padding: 0.35rem 0.75rem;
+    font-size: 0.75rem;
+    font-weight: 500;
+    cursor: pointer;
+    opacity: 0;
+    transition: opacity 0.3s ease;
+}
+
+.story-card:hover .story-card-expand {
+    opacity: 1;
+}
+
+/* Template Cards */
+.template-card {
+    background: rgba(30, 32, 40, 0.6);
+    border-radius: 0.75rem;
+    border: 1px solid rgba(255, 255, 255, 0.05);
+    padding: 1.25rem;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    text-align: center;
+    min-height: 320px;
+}
+
+.template-card:hover {
+    background: rgba(30, 32, 40, 0.8);
+    transform: translateY(-3px);
+    box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
+}
+
+.template-card-icon {
+    width: 64px;
+    height: 64px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: rgba(0, 128, 128, 0.1); /* Teal */
+    color: #008080; /* Teal */
+    border-radius: 50%;
+    margin-bottom: 1rem;
+    font-size: 1.5rem;
+}
+
+.template-card-title {
+    font-size: 1.25rem;
+    font-weight: 600;
+    margin-bottom: 0.5rem;
+}
+
+.template-card-description {
+    font-size: 0.875rem;
+    color: rgba(255, 255, 255, 0.7);
+    margin-bottom: 1.5rem;
+}
+
+/* Filters area */
+.story-filters {
+    display: flex;
+    gap: 0.5rem;
+    flex-wrap: wrap;
+    margin-bottom: 1rem;
+}
+
+.story-filter {
+    padding: 0.35rem 0.75rem;
+    border-radius: 20px;
+    font-size: 0.75rem;
+    background: rgba(255, 255, 255, 0.05);
+    color: rgba(255, 255, 255, 0.8);
+    cursor: pointer;
+    transition: all 0.2s ease;
+    border: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.story-filter.active {
+    background: rgba(0, 128, 128, 0.2); /* Teal */
+    color: #008080; /* Teal */
+}
+
+.story-filter:hover:not(.active) {
+    background: rgba(255, 255, 255, 0.1);
+}
+
+/* Section styling */
+.hub-section {
+    margin-bottom: 2rem;
+}
+
+.hub-section-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 1rem;
+}
+
+.hub-section-title {
+    font-size: 1.25rem;
+    font-weight: 600;
+    margin: 0;
+}
+
+.hub-section-actions {
+    display: flex;
+    gap: 0.5rem;
+}
+
+/* Quick action buttons */
+.quick-action-btn {
+    padding: 0.5rem 1rem;
+    border-radius: 20px;
+    font-weight: 500;
+    display: inline-flex;
+    align-items: center;
+    font-size: 0.875rem;
+    transition: all 0.2s;
+    background: rgba(255, 255, 255, 0.05);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    color: rgba(255, 255, 255, 0.9);
+}
+
+.quick-action-btn:hover {
+    background: rgba(255, 255, 255, 0.1);
+    transform: translateY(-2px);
+}
+
+.quick-action-btn i {
+    margin-right: 0.5rem;
+}
+
+.quick-action-primary {
+    background: rgba(0, 128, 128, 0.2); /* Teal */
+    color: #008080; /* Teal */
+}
+
+.quick-action-primary:hover {
+    background: rgba(0, 128, 128, 0.3); /* Teal */
+}
+
+/* AI Copilot Floating Button */
+.ai-copilot-trigger {
+    position: fixed;
+    bottom: 2rem;
+    right: 2rem;
+    width: 60px;
+    height: 60px;
+    border-radius: 50%;
+    background: #008080; /* Teal */
+    color: #fff;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.5rem;
+    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.2);
+    cursor: pointer;
+    z-index: 1000;
+    transition: all 0.3s ease;
+}
+
+.ai-copilot-trigger:hover {
+    transform: scale(1.1);
+}
+
+/* Animation for co-pilot pulse */
+@keyframes pulse {
+    0% {
+        box-shadow: 0 0 0 0 rgba(0, 128, 128, 0.7); /* Teal */
+    }
+    70% {
+        box-shadow: 0 0 0 10px rgba(0, 128, 128, 0); /* Teal */
+    }
+    100% {
+        box-shadow: 0 0 0 0 rgba(0, 128, 128, 0); /* Teal */
+    }
+}
+
+.ai-copilot-pulse {
+    animation: pulse 2s infinite;
+}
+
+/* Story Grid Layout */
+.story-cards-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(350px, 1fr));
+    gap: 1.5rem;
+    margin-top: 1.5rem;
+}
+
+/* Enhanced AI Suggestion Styles */
+.ai-suggestion {
+    padding: 0.75rem;
+    margin-top: 0.5rem;
+    background: rgba(0, 128, 128, 0.1); /* Teal */
+    border: 1px solid rgba(0, 128, 128, 0.2); /* Teal */
+    border-radius: 0.5rem;
+    font-size: 0.85rem;
+    display: flex;
+    align-items: flex-start;
+}
+
+.ai-suggestion-icon {
+    color: #008080; /* Teal */
+    font-size: 1rem;
+    margin-right: 0.5rem;
+    margin-top: 0.1rem;
+}
+
+.ai-suggestion-content {
+    flex: 1;
+}
+
+.ai-suggestion-apply {
+    margin-top: 0.5rem;
+    font-size: 0.75rem;
+    padding: 0.2rem 0.5rem;
+    background: rgba(0, 128, 128, 0.3); /* Teal */
+    border: 1px solid rgba(0, 128, 128, 0.4); /* Teal */
+    color: #008080; /* Teal */
+    border-radius: 0.25rem;
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+
+.ai-suggestion-apply:hover {
+    background: rgba(0, 128, 128, 0.4); /* Teal */
+}
+
+/* Story Detail Styles for Modal */
+.story-detail-container {
+    padding: 1.5rem;
+}
+
+.story-detail-header {
+    margin-bottom: 1.5rem;
+}
+
+.story-detail-title {
+    font-size: 1.5rem;
+    font-weight: 600;
+    margin-bottom: 0.5rem;
+}
+
+.story-detail-meta {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.75rem;
+    font-size: 0.85rem;
+    color: rgba(255, 255, 255, 0.6);
+}
+
+.story-detail-category {
+    display: inline-block;
+    padding: 0.25rem 0.75rem;
+    border-radius: 20px;
+    background: rgba(0, 128, 128, 0.2); /* Teal */
+    color: #008080; /* Teal */
+}
+
+.story-detail-section {
+    margin-bottom: 1.5rem;
+}
+
+.story-detail-section-title {
+    font-size: 1.1rem;
+    font-weight: 600;
+    margin-bottom: 1rem;
+    display: flex;
+    align-items: center;
+}
+
+.story-detail-section-title i {
+    margin-right: 0.5rem;
+    color: #008080; /* Teal */
+}
+
+.story-detail-visualization {
+    margin-bottom: 1.5rem;
+    height: 300px;
+}
+
+.story-detail-insights {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+    gap: 1rem;
+    margin-bottom: 1.5rem;
+}
+
+.story-detail-insight {
+    background: rgba(30, 32, 40, 0.3);
+    border-radius: 0.5rem;
+    padding: 1rem;
+    border-left: 3px solid #008080; /* Teal */
+}
+
+.story-detail-insight-title {
+    font-weight: 600;
+    margin-bottom: 0.5rem;
+    color: #008080; /* Teal */
+}
+
+.story-detail-recommendations {
+    background: rgba(30, 32, 40, 0.3);
+    border-radius: 0.5rem;
+    padding: 1rem;
+}
+
+.story-detail-recommendation {
+    display: flex;
+    align-items: flex-start;
+    margin-bottom: 0.75rem;
+    padding-bottom: 0.75rem;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+}
+
+.story-detail-recommendation:last-child {
+    margin-bottom: 0;
+    padding-bottom: 0;
+    border-bottom: none;
+}
+
+.story-detail-recommendation-icon {
+    font-size: 1rem;
+    margin-right: 0.75rem;
+    color: #228B22; /* Forest Green */
+}
+
+.story-detail-recommendation-content {
+    flex: 1;
+}
+
+.story-detail-recommendation-title {
+    font-weight: 600;
+    margin-bottom: 0.25rem;
+}
+
+.story-detail-actions {
+    display: flex;
+    gap: 0.75rem;
+    margin-top: 1.5rem;
+}
+
+/* Responsive adjustments */
+@media (max-width: 768px) {
+    .story-cards-grid {
+        grid-template-columns: 1fr;
+    }
+    
+    .story-detail-insights {
+        grid-template-columns: 1fr;
+    }
+    
+    .hub-section-header {
+        flex-direction: column;
+        align-items: flex-start;
+    }
+    
+    .hub-section-actions {
+        margin-top: 0.75rem;
+    }
+    
+    .ai-copilot-trigger {
+        bottom: 1rem;
+        right: 1rem;
+        width: 50px;
+        height: 50px;
+        font-size: 1.25rem;
+    }
+}

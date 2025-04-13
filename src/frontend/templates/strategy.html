@@ -1,0 +1,124 @@
+{% extends "base.html" %}
+{% from "components/metric_card.html" import metric_row %}
+{% from "components/chart.html" import chart_row, chart_scripts %}
+{% from "components/status.html" import loader, error_notification, success_notification %}
+
+{% block title %}Strategy Hub - SustainaTrend™{% endblock %}
+
+{% block content %}
+{{ loader() }}
+{{ error_notification() }}
+{{ success_notification() }}
+
+{# Metrics Row #}
+{{ metric_row([
+    {
+        "title": "Active Strategies",
+        "metric_key": "active_strategies",
+        "value": "0",
+        "color": "primary",
+        "icon": "bxs-bulb"
+    },
+    {
+        "title": "Success Rate",
+        "metric_key": "success_rate",
+        "value": "0",
+        "unit": "%",
+        "color": "success",
+        "icon": "bxs-check-circle"
+    },
+    {
+        "title": "ROI",
+        "metric_key": "roi",
+        "value": "0",
+        "unit": "%",
+        "color": "info",
+        "icon": "bxs-chart"
+    }
+]) }}
+
+{# Charts Row #}
+{{ chart_row([
+    {
+        "title": "Strategy Performance",
+        "chart_type": "strategy_performance",
+        "chart_id": "strategyChart",
+        "col_size": 8
+    },
+    {
+        "title": "Recent Strategies",
+        "chart_type": "recent_strategies",
+        "chart_id": "recentStrategiesChart",
+        "col_size": 4
+    }
+]) }}
+
+{# Strategy Categories #}
+<div class="row">
+    <div class="col-12">
+        <div class="card">
+            <div class="card-body">
+                <h5 class="card-title">Strategy Categories</h5>
+                <div class="row">
+                    <div class="col-md-4">
+                        <div class="card mb-3">
+                            <div class="card-body">
+                                <h6 class="card-title">Environmental</h6>
+                                <ul class="list-group list-group-flush">
+                                    <li class="list-group-item d-flex justify-content-between align-items-center">
+                                        Carbon Reduction
+                                        <span class="badge bg-primary rounded-pill">4</span>
+                                    </li>
+                                    <li class="list-group-item d-flex justify-content-between align-items-center">
+                                        Waste Management
+                                        <span class="badge bg-primary rounded-pill">3</span>
+                                    </li>
+                                </ul>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-4">
+                        <div class="card mb-3">
+                            <div class="card-body">
+                                <h6 class="card-title">Social</h6>
+                                <ul class="list-group list-group-flush">
+                                    <li class="list-group-item d-flex justify-content-between align-items-center">
+                                        Community Impact
+                                        <span class="badge bg-success rounded-pill">2</span>
+                                    </li>
+                                    <li class="list-group-item d-flex justify-content-between align-items-center">
+                                        Employee Wellbeing
+                                        <span class="badge bg-success rounded-pill">3</span>
+                                    </li>
+                                </ul>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-4">
+                        <div class="card mb-3">
+                            <div class="card-body">
+                                <h6 class="card-title">Governance</h6>
+                                <ul class="list-group list-group-flush">
+                                    <li class="list-group-item d-flex justify-content-between align-items-center">
+                                        Compliance
+                                        <span class="badge bg-info rounded-pill">2</span>
+                                    </li>
+                                    <li class="list-group-item d-flex justify-content-between align-items-center">
+                                        Risk Management
+                                        <span class="badge bg-info rounded-pill">3</span>
+                                    </li>
+                                </ul>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+{{ chart_scripts() }}
+<script src="{{ url_for('static', filename='js/app.js') }}"></script>
+{% endblock %} 

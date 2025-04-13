@@ -1,0 +1,37 @@
+/**
+ * SustainaTrend Main Stylesheet
+ * 
+ * This file imports all CSS files in the correct order to maintain proper cascading.
+ */
+
+/* Base styles and variables */
+@import 'normalize.css';
+@import 'theme.css';
+
+/* Layout components */
+@import 'atomic-layout.css';
+@import 'atomic-navigation.css';
+@import 'dashboard-layout.css';
+
+/* UI Components */
+@import 'components/buttons.css';
+@import 'components/cards.css';
+@import 'components/forms.css';
+@import 'chart-components.css';
+@import 'metric-components.css';
+@import 'story-components.css';
+
+/* Feature-specific styles */
+@import 'trend-analysis.css';
+@import 'strategy-hub.css';
+@import 'sustainability-copilot.css';
+@import 'document-hub-redesign.css';
+@import 'features/trendsense.css';
+@import 'features/common.css';
+
+/* Theme variations */
+@import 'finchat-inspired.css';
+@import 'dark-theme.css';
+
+/* Responsive utilities */
+@import 'realtime-updates.css'; 

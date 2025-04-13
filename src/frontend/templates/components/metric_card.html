@@ -1,0 +1,32 @@
+{% macro metric_card(title, metric_key, value='0', unit='', change=None, color='primary', icon=None) %}
+<div class="card bg-light" data-metric="{{ metric_key }}">
+    <div class="card-body text-center">
+        <h6 class="card-title">{{ title }}</h6>
+        {% if icon %}
+        <i class='bx {{ icon }} text-{{ color }} mb-2' style="font-size: 1.5rem;"></i>
+        {% endif %}
+        <h2 class="text-{{ color }} metric-value">{{ value }}</h2>
+        {% if unit %}
+        <p class="text-muted">{{ unit }}</p>
+        {% endif %}
+        {% if change is not none %}
+        <p class="metric-change {% if change > 0 %}text-success{% elif change < 0 %}text-danger{% endif %}">
+            {{ '+' if change > 0 }}{{ change }}%
+        </p>
+        {% endif %}
+        <div class="progress">
+            <div class="progress-bar bg-{{ color }}" style="width: {{ value if value|float <= 100 else 100 }}%"></div>
+        </div>
+    </div>
+</div>
+{% endmacro %}
+
+{% macro metric_row(metrics) %}
+<div class="row">
+    {% for metric in metrics %}
+    <div class="col-md-{{ 12 // metrics|length }}">
+        {{ metric_card(**metric) }}
+    </div>
+    {% endfor %}
+</div>
+{% endmacro %} 

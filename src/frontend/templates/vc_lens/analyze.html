@@ -1,0 +1,276 @@
+{% extends "base.html" %}
+
+{% block title %}Document Analysis - VC Lens{% endblock %}
+
+{% block content %}
+<div class="container-fluid py-4">
+    <div class="row mb-4">
+        <div class="col-12">
+            <div class="d-flex justify-content-between align-items-center">
+                <div>
+                    <h1 class="h3 mb-2">{{ document.company_name }}</h1>
+                    <p class="text-muted mb-0">{{ document.document_type|title }} | {{ document.industry|title }} | {{ document.stage|title }}</p>
+                </div>
+                <div>
+                    <a href="{{ url_for('vc_lens.dashboard') }}" class="btn btn-outline-secondary me-2">
+                        <i class="fas fa-arrow-left"></i> Back to Dashboard
+                    </a>
+                    <button class="btn btn-primary" onclick="exportAnalysis()">
+                        <i class="fas fa-download"></i> Export Analysis
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="row">
+        <!-- Key Metrics -->
+        <div class="col-md-4 mb-4">
+            <div class="card h-100">
+                <div class="card-header">
+                    <h5 class="card-title mb-0">Key Metrics</h5>
+                </div>
+                <div class="card-body">
+                    <div class="mb-4">
+                        <h6 class="text-muted mb-2">Market Size</h6>
+                        <h3 class="mb-0">{{ analysis.market_size }}</h3>
+                        <small class="text-success">
+                            <i class="fas fa-arrow-up"></i> {{ analysis.market_growth }}% CAGR
+                        </small>
+                    </div>
+                    <div class="mb-4">
+                        <h6 class="text-muted mb-2">Valuation Range</h6>
+                        <h3 class="mb-0">{{ analysis.valuation_range }}</h3>
+                        <small class="text-muted">Based on comparable companies</small>
+                    </div>
+                    <div>
+                        <h6 class="text-muted mb-2">Risk Score</h6>
+                        <div class="d-flex align-items-center">
+                            <div class="progress flex-grow-1 me-2" style="height: 8px;">
+                                <div class="progress-bar bg-{{ analysis.risk_score_color }}" 
+                                     role="progressbar" 
+                                     style="width: {{ analysis.risk_score }}%"></div>
+                            </div>
+                            <span class="text-muted">{{ analysis.risk_score }}/100</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Competitive Analysis -->
+        <div class="col-md-8 mb-4">
+            <div class="card h-100">
+                <div class="card-header">
+                    <h5 class="card-title mb-0">Competitive Analysis</h5>
+                </div>
+                <div class="card-body">
+                    <canvas id="competitiveChart"></canvas>
+                </div>
+            </div>
+        </div>
+
+        <!-- Market Analysis -->
+        <div class="col-md-6 mb-4">
+            <div class="card h-100">
+                <div class="card-header">
+                    <h5 class="card-title mb-0">Market Analysis</h5>
+                </div>
+                <div class="card-body">
+                    <h6 class="text-muted mb-3">Key Market Trends</h6>
+                    <ul class="list-unstyled">
+                        {% for trend in analysis.market_trends %}
+                        <li class="mb-3">
+                            <div class="d-flex">
+                                <div class="flex-shrink-0">
+                                    <i class="fas fa-arrow-trend-up text-primary"></i>
+                                </div>
+                                <div class="flex-grow-1 ms-3">
+                                    <p class="mb-0">{{ trend.description }}</p>
+                                    <small class="text-muted">{{ trend.impact }}</small>
+                                </div>
+                            </div>
+                        </li>
+                        {% endfor %}
+                    </ul>
+                </div>
+            </div>
+        </div>
+
+        <!-- Financial Analysis -->
+        <div class="col-md-6 mb-4">
+            <div class="card h-100">
+                <div class="card-header">
+                    <h5 class="card-title mb-0">Financial Analysis</h5>
+                </div>
+                <div class="card-body">
+                    <canvas id="financialChart"></canvas>
+                    <div class="mt-3">
+                        <h6 class="text-muted mb-2">Key Financial Metrics</h6>
+                        <div class="table-responsive">
+                            <table class="table table-sm">
+                                <tbody>
+                                    <tr>
+                                        <td>Revenue Growth</td>
+                                        <td class="text-end">{{ analysis.financials.revenue_growth }}%</td>
+                                    </tr>
+                                    <tr>
+                                        <td>Gross Margin</td>
+                                        <td class="text-end">{{ analysis.financials.gross_margin }}%</td>
+                                    </tr>
+                                    <tr>
+                                        <td>CAC</td>
+                                        <td class="text-end">${{ analysis.financials.cac }}</td>
+                                    </tr>
+                                    <tr>
+                                        <td>LTV</td>
+                                        <td class="text-end">${{ analysis.financials.ltv }}</td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Investment Recommendation -->
+        <div class="col-12 mb-4">
+            <div class="card">
+                <div class="card-header">
+                    <h5 class="card-title mb-0">Investment Recommendation</h5>
+                </div>
+                <div class="card-body">
+                    <div class="row">
+                        <div class="col-md-8">
+                            <h6 class="text-muted mb-3">Summary</h6>
+                            <p>{{ analysis.recommendation.summary }}</p>
+                            
+                            <h6 class="text-muted mb-3">Key Strengths</h6>
+                            <ul class="list-unstyled">
+                                {% for strength in analysis.recommendation.strengths %}
+                                <li class="mb-2">
+                                    <i class="fas fa-check text-success me-2"></i>
+                                    {{ strength }}
+                                </li>
+                                {% endfor %}
+                            </ul>
+
+                            <h6 class="text-muted mb-3">Key Risks</h6>
+                            <ul class="list-unstyled">
+                                {% for risk in analysis.recommendation.risks %}
+                                <li class="mb-2">
+                                    <i class="fas fa-exclamation-triangle text-warning me-2"></i>
+                                    {{ risk }}
+                                </li>
+                                {% endfor %}
+                            </ul>
+                        </div>
+                        <div class="col-md-4">
+                            <div class="card bg-light">
+                                <div class="card-body text-center">
+                                    <h3 class="mb-3">{{ analysis.recommendation.score }}/10</h3>
+                                    <h6 class="text-muted mb-3">Investment Score</h6>
+                                    <div class="d-grid">
+                                        <button class="btn btn-primary" onclick="showDetailedAnalysis()">
+                                            View Detailed Analysis
+                                        </button>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script>
+    // Initialize Competitive Analysis Chart
+    const competitiveCtx = document.getElementById('competitiveChart').getContext('2d');
+    new Chart(competitiveCtx, {
+        type: 'radar',
+        data: {
+            labels: ['Market Share', 'Technology', 'Team', 'Financials', 'Growth', 'Innovation'],
+            datasets: [{
+                label: 'Company',
+                data: {{ analysis.competitive_analysis.company|tojson }},
+                fill: true,
+                backgroundColor: 'rgba(54, 162, 235, 0.2)',
+                borderColor: 'rgb(54, 162, 235)',
+                pointBackgroundColor: 'rgb(54, 162, 235)',
+                pointBorderColor: '#fff',
+                pointHoverBackgroundColor: '#fff',
+                pointHoverBorderColor: 'rgb(54, 162, 235)'
+            }, {
+                label: 'Industry Average',
+                data: {{ analysis.competitive_analysis.industry_avg|tojson }},
+                fill: true,
+                backgroundColor: 'rgba(255, 99, 132, 0.2)',
+                borderColor: 'rgb(255, 99, 132)',
+                pointBackgroundColor: 'rgb(255, 99, 132)',
+                pointBorderColor: '#fff',
+                pointHoverBackgroundColor: '#fff',
+                pointHoverBorderColor: 'rgb(255, 99, 132)'
+            }]
+        },
+        options: {
+            scales: {
+                r: {
+                    beginAtZero: true,
+                    max: 10
+                }
+            }
+        }
+    });
+
+    // Initialize Financial Chart
+    const financialCtx = document.getElementById('financialChart').getContext('2d');
+    new Chart(financialCtx, {
+        type: 'line',
+        data: {
+            labels: {{ analysis.financials.timeline|tojson }},
+            datasets: [{
+                label: 'Revenue',
+                data: {{ analysis.financials.revenue|tojson }},
+                borderColor: 'rgb(75, 192, 192)',
+                tension: 0.1
+            }, {
+                label: 'Projected',
+                data: {{ analysis.financials.projected_revenue|tojson }},
+                borderColor: 'rgb(75, 192, 192)',
+                borderDash: [5, 5],
+                tension: 0.1
+            }]
+        },
+        options: {
+            responsive: true,
+            plugins: {
+                title: {
+                    display: true,
+                    text: 'Revenue Projection'
+                }
+            },
+            scales: {
+                y: {
+                    beginAtZero: true
+                }
+            }
+        }
+    });
+
+    // Export Analysis Function
+    function exportAnalysis() {
+        window.location.href = `/vc-lens/export/${document.id}`;
+    }
+
+    // Show Detailed Analysis Function
+    function showDetailedAnalysis() {
+        window.location.href = `/vc-lens/detailed-analysis/${document.id}`;
+    }
+</script>
+{% endblock %} 

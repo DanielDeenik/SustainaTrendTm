@@ -1,0 +1,44 @@
+{% extends "base.html" %}
+{% from "components/metric_card.html" import metric_row %}
+{% from "components/chart.html" import chart_row, chart_scripts %}
+{% from "components/status.html" import status_card, loader, error_notification, success_notification %}
+
+{% block title %}Dashboard - SustainaTrend™{% endblock %}
+
+{% block content %}
+<div class="dashboard">
+    <h1>Welcome to SustainaTrend™ Intelligence Platform</h1>
+    <div class="dashboard-grid">
+        <div class="card">
+            <h2>Analytics</h2>
+            <p>View and analyze sustainability metrics</p>
+            <a href="{{ url_for('analytics.analytics_dashboard') }}" class="btn">View Analytics</a>
+        </div>
+        <div class="card">
+            <h2>Strategy</h2>
+            <p>Develop sustainability strategies</p>
+            <a href="{{ url_for('strategy.strategy_dashboard') }}" class="btn">View Strategy</a>
+        </div>
+        <div class="card">
+            <h2>Real Estate</h2>
+            <p>Manage real estate sustainability</p>
+            <a href="{{ url_for('realestate.realestate_dashboard') }}" class="btn">View Real Estate</a>
+        </div>
+        <div class="card">
+            <h2>VC Lens</h2>
+            <p>Investment opportunities analysis</p>
+            <a href="{{ url_for('vc_lens.vc_lens_dashboard') }}" class="btn">View VC Lens</a>
+        </div>
+        <div class="card">
+            <h2>Benchmarking</h2>
+            <p>Compare sustainability performance</p>
+            <a href="{{ url_for('benchmarking.benchmarking_dashboard') }}" class="btn">View Benchmarking</a>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+{{ chart_scripts() }}
+<script src="{{ url_for('static', filename='js/app.js') }}"></script>
+{% endblock %} 

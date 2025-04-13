@@ -1,0 +1,44 @@
+{% macro status_indicator(title, status='online', icon='bxs-server', color='success') %}
+<div class="status-item">
+    <i class='bx {{ icon }} text-{{ color }}'></i>
+    <span>{{ title }}</span>
+    {% if status != 'online' %}
+    <span class="badge bg-{{ 'warning' if status == 'pending' else 'danger' }}">
+        {{ status|title }}
+    </span>
+    {% endif %}
+</div>
+{% endmacro %}
+
+{% macro status_card(title, indicators) %}
+<div class="col-12 mb-4">
+    <div class="card">
+        <div class="card-body">
+            <h5 class="card-title">{{ title }}</h5>
+            <div id="status-indicators" class="d-flex gap-3">
+                {% for indicator in indicators %}
+                    {{ status_indicator(**indicator) }}
+                {% endfor %}
+            </div>
+        </div>
+    </div>
+</div>
+{% endmacro %}
+
+{% macro loader() %}
+<div class="loader" style="display: none;">
+    <div class="spinner-border text-primary" role="status">
+        <span class="visually-hidden">Loading...</span>
+    </div>
+</div>
+{% endmacro %}
+
+{% macro error_notification() %}
+<div class="error-notification alert alert-danger" style="display: none;" role="alert">
+</div>
+{% endmacro %}
+
+{% macro success_notification() %}
+<div class="success-notification alert alert-success" style="display: none;" role="alert">
+</div>
+{% endmacro %} 

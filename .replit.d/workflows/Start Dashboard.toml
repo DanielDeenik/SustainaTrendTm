@@ -1,4 +1,0 @@
-name = "Start Dashboard"
-command = "cd frontend && python app.py"
-wait_for_port = true
-port = 5000

@@ -1,9 +1,0 @@
-[workflow]
-name = "Storytelling Demo"
-entrypoint = "python run_initialize_pinecone.py && cd frontend && python app.py"
-icon = "storytelling.png"
-description = "Run the Storytelling Interface with Latent Concept Models (LCM)"
-onBoot = "pip install dotenv pinecone-client openai"
-show_logs = true
-always_lint = false
-wait_for_port = 5000
