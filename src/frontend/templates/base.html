@@ -5,286 +5,385 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>SustainaTrend™ Intelligence Platform</title>
-    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
-    <link href='https://unpkg.com/boxicons@2.1.4/css/boxicons.min.css' rel='stylesheet'>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <title>{% block title %}SustainaTrend™{% endblock %}</title>
+    
+    <!-- Font Awesome -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    
+    <!-- Chart.js for data visualization -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@3.9.1/dist/chart.min.js"></script>
+    
+    <!-- Finchat Dark Theme Base Styles -->
     <style>
         :root {
-            --sidebar-width: 280px;
-            --primary-color: #10B981;
-            --primary-dark: #059669;
-            --primary-light: #D1FAE5;
-            --secondary-color: #3B82F6;
-            --text-color: #1F2937;
-            --text-light: #6B7280;
-            --bg-color: #F9FAFB;
-            --sidebar-bg: #FFFFFF;
-            --hover-bg: #F3F4F6;
-            --card-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
-            --transition-speed: 0.3s;
+            /* Color Variables */
+            --fc-bg-primary: #121212;
+            --fc-bg-secondary: #1a1a1a;
+            --fc-bg-tertiary: #222222;
+            --fc-bg-hover: #2a2a2a;
+            --fc-bg-card: #1d1d1d;
+            --primary-rgb: 61, 213, 152;  /* #3dd598 - Green */
+            --fc-primary: rgb(var(--primary-rgb));
+            --fc-primary-hover: rgba(var(--primary-rgb), 0.9);
+            --fc-primary-light: rgba(var(--primary-rgb), 0.15);
+            --fc-positive: #3dd598;
+            --fc-negative: #ff6b81;
+            --fc-warning: #ffad63;
+            --fc-info: #34c3ff;
+            --fc-text-primary: #e4e6eb;
+            --fc-text-secondary: #a0a0a0;
+            --fc-text-muted: #666666;
+            --fc-border: #333333;
+            --fc-shadow: 0 4px 12px rgba(0, 0, 0, 0.5);
+            --fc-radius: 4px;
+            --fc-radius-lg: 8px;
+            
+            /* Spacing Variables */
+            --fc-spacing-xs: 4px;
+            --fc-spacing-sm: 8px;
+            --fc-spacing-md: 16px;
+            --fc-spacing-lg: 24px;
+            --fc-spacing-xl: 32px;
+            
+            /* Layout Variables */
+            --fc-sidebar-width: 240px;
+            --fc-sidebar-collapsed-width: 60px;
+            --fc-insights-width: 320px;
         }
-
-        body {
-            font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
-            background-color: var(--bg-color);
-            color: var(--text-color);
+        
+        /* Reset & Base Styles */
+        * {
             margin: 0;
             padding: 0;
-            min-height: 100vh;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+            background-color: var(--fc-bg-primary);
+            color: var(--fc-text-primary);
             line-height: 1.5;
-        }
-
-        .sidebar {
-            position: fixed;
-            left: 0;
-            top: 0;
-            bottom: 0;
-            width: var(--sidebar-width);
-            background-color: var(--sidebar-bg);
-            border-right: 1px solid rgba(0,0,0,0.05);
-            padding: 1.5rem 0;
-            z-index: 1000;
-            transition: all var(--transition-speed) ease;
-            box-shadow: var(--card-shadow);
-        }
-
-        .sidebar-header {
-            padding: 0 1.5rem 1.5rem;
-            border-bottom: 1px solid rgba(0,0,0,0.05);
-            margin-bottom: 1rem;
-        }
-
-        .sidebar-brand {
-            font-size: 1.5rem;
-            font-weight: 700;
-            color: var(--primary-color);
-            text-decoration: none;
-            display: flex;
-            align-items: center;
-            gap: 0.75rem;
-            padding: 0.5rem;
-            border-radius: 0.5rem;
-            transition: all var(--transition-speed) ease;
-        }
-
-        .sidebar-brand:hover {
-            background-color: var(--primary-light);
-            color: var(--primary-dark);
-        }
-
-        .sidebar-brand img {
-            height: 32px;
-            width: auto;
-            transition: transform var(--transition-speed) ease;
-        }
-
-        .sidebar-brand:hover img {
-            transform: scale(1.1);
-        }
-
-        .nav-item {
-            margin: 0.25rem 0.75rem;
-        }
-
-        .nav-link {
-            display: flex;
-            align-items: center;
-            padding: 0.875rem 1.25rem;
-            color: var(--text-color);
-            text-decoration: none;
-            transition: all var(--transition-speed) ease;
-            border-radius: 0.75rem;
-            font-weight: 500;
-            position: relative;
-            overflow: hidden;
-        }
-
-        .nav-link::before {
-            content: '';
-            position: absolute;
-            left: 0;
-            top: 0;
-            height: 100%;
-            width: 0;
-            background-color: var(--primary-light);
-            transition: width var(--transition-speed) ease;
-            z-index: -1;
-        }
-
-        .nav-link:hover::before {
-            width: 100%;
-        }
-
-        .nav-link:hover {
-            color: var(--primary-dark);
-            transform: translateX(4px);
-        }
-
-        .nav-link.active {
-            background-color: var(--primary-light);
-            color: var(--primary-dark);
-            font-weight: 600;
-        }
-
-        .nav-link i {
-            margin-right: 0.75rem;
-            font-size: 1.25rem;
-            transition: transform var(--transition-speed) ease;
-        }
-
-        .nav-link:hover i {
-            transform: scale(1.1);
-        }
-
-        .main-content {
-            margin-left: var(--sidebar-width);
-            padding: 2rem;
             min-height: 100vh;
-            transition: margin var(--transition-speed) ease;
         }
-
-        .card {
-            border: none;
-            border-radius: 1rem;
-            box-shadow: var(--card-shadow);
-            transition: all var(--transition-speed) ease;
-            background: var(--sidebar-bg);
-            overflow: hidden;
+        
+        /* Layout */
+        .finchat-layout {
+            display: flex;
+            min-height: 100vh;
         }
-
-        .card:hover {
-            transform: translateY(-4px);
-            box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
+        
+        /* Sidebar */
+        .finchat-sidebar {
+            width: var(--fc-sidebar-width);
+            background-color: var(--fc-bg-secondary);
+            border-right: 1px solid var(--fc-border);
+            position: fixed;
+            height: 100vh;
+            transition: width 0.2s ease;
+            z-index: 100;
         }
-
-        .card-title {
-            color: var(--text-color);
-            font-weight: 600;
-            margin-bottom: 1.5rem;
-            font-size: 1.25rem;
+        
+        .finchat-sidebar.collapsed {
+            width: var(--fc-sidebar-collapsed-width);
         }
-
-        .status-item {
+        
+        .finchat-logo {
+            padding: var(--fc-spacing-md);
             display: flex;
             align-items: center;
-            gap: 0.75rem;
-            padding: 0.75rem;
-            border-radius: 0.75rem;
-            background-color: var(--primary-light);
-            transition: all var(--transition-speed) ease;
+            gap: var(--fc-spacing-sm);
+            border-bottom: 1px solid var(--fc-border);
         }
-
-        .status-item:hover {
-            transform: translateX(4px);
-            background-color: var(--primary-color);
-            color: white;
+        
+        .finchat-logo-icon {
+            width: 32px;
+            height: 32px;
+            background-color: var(--fc-primary);
+            border-radius: var(--fc-radius);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: #000;
         }
-
-        .status-item i {
-            font-size: 1.25rem;
-            transition: transform var(--transition-speed) ease;
+        
+        .finchat-logo-text {
+            font-weight: 600;
+            font-size: 1.1rem;
         }
-
-        .status-item:hover i {
-            transform: scale(1.1);
+        
+        /* Navigation */
+        .finchat-nav {
+            padding: var(--fc-spacing-md) 0;
         }
-
-        .progress {
-            height: 0.5rem;
-            border-radius: 1rem;
-            background-color: var(--hover-bg);
-            overflow: hidden;
+        
+        .finchat-nav-section {
+            margin-bottom: var(--fc-spacing-lg);
         }
-
-        .progress-bar {
-            border-radius: 1rem;
-            background: linear-gradient(90deg, var(--primary-color), var(--secondary-color));
-            transition: width 1s ease;
+        
+        .finchat-nav-header {
+            padding: 0 var(--fc-spacing-md);
+            font-size: 0.8rem;
+            text-transform: uppercase;
+            color: var(--fc-text-secondary);
+            margin-bottom: var(--fc-spacing-sm);
         }
-
+        
+        .finchat-nav-item {
+            display: flex;
+            align-items: center;
+            padding: var(--fc-spacing-sm) var(--fc-spacing-md);
+            color: var(--fc-text-secondary);
+            text-decoration: none;
+            transition: all 0.2s;
+            gap: var(--fc-spacing-sm);
+        }
+        
+        .finchat-nav-item:hover {
+            background-color: var(--fc-bg-hover);
+            color: var(--fc-text-primary);
+        }
+        
+        .finchat-nav-item.active {
+            background-color: var(--fc-primary-light);
+            color: var(--fc-primary);
+        }
+        
+        .finchat-nav-icon {
+            width: 20px;
+            text-align: center;
+        }
+        
+        /* Main Content */
+        .finchat-main {
+            flex: 1;
+            margin-left: var(--fc-sidebar-width);
+            padding: var(--fc-spacing-lg);
+            transition: margin-left 0.2s ease;
+        }
+        
+        .finchat-main.expanded {
+            margin-left: var(--fc-sidebar-collapsed-width);
+        }
+        
+        /* Cards */
+        .finchat-card {
+            background-color: var(--fc-bg-card);
+            border-radius: var(--fc-radius-lg);
+            border: 1px solid var(--fc-border);
+            margin-bottom: var(--fc-spacing-lg);
+        }
+        
+        .finchat-card-header {
+            padding: var(--fc-spacing-md);
+            border-bottom: 1px solid var(--fc-border);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        
+        .finchat-card-title {
+            font-size: 0.95rem;
+            font-weight: 600;
+            margin: 0;
+            display: flex;
+            align-items: center;
+            gap: var(--fc-spacing-xs);
+        }
+        
+        .finchat-card-body {
+            padding: var(--fc-spacing-md);
+        }
+        
+        .finchat-card-footer {
+            padding: var(--fc-spacing-md);
+            border-top: 1px solid var(--fc-border);
+            display: flex;
+            justify-content: flex-end;
+            gap: var(--fc-spacing-sm);
+        }
+        
+        /* Buttons */
+        .finchat-button {
+            background-color: var(--fc-bg-tertiary);
+            color: var(--fc-text-primary);
+            border: 1px solid var(--fc-border);
+            border-radius: var(--fc-radius);
+            padding: 6px 12px;
+            font-size: 0.85rem;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+        
+        .finchat-button:hover {
+            background-color: var(--fc-bg-hover);
+            border-color: var(--fc-text-secondary);
+        }
+        
+        .finchat-button-primary {
+            background-color: var(--fc-primary);
+            color: #000;
+            border-color: var(--fc-primary);
+        }
+        
+        .finchat-button-primary:hover {
+            background-color: var(--fc-primary-hover);
+            border-color: var(--fc-primary-hover);
+        }
+        
+        /* Badges */
+        .finchat-badge {
+            background-color: var(--fc-bg-hover);
+            color: var(--fc-text-secondary);
+            font-size: 0.7rem;
+            padding: 2px 6px;
+            border-radius: 10px;
+        }
+        
+        .finchat-badge-primary {
+            background-color: var(--fc-primary-light);
+            color: var(--fc-primary);
+        }
+        
+        /* Tables */
+        .finchat-table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+        
+        .finchat-table th {
+            text-align: left;
+            padding: var(--fc-spacing-sm);
+            border-bottom: 1px solid var(--fc-border);
+            color: var(--fc-text-secondary);
+            font-weight: 500;
+            font-size: 0.8rem;
+        }
+        
+        .finchat-table td {
+            padding: var(--fc-spacing-sm);
+            border-bottom: 1px solid var(--fc-border);
+        }
+        
+        .finchat-table tr:last-child td {
+            border-bottom: none;
+        }
+        
+        .finchat-table tr:hover {
+            background-color: var(--fc-bg-hover);
+        }
+        
+        /* Charts */
+        .finchat-chart {
+            width: 100%;
+            height: 300px;
+            margin: var(--fc-spacing-md) 0;
+        }
+        
+        /* Responsive */
         @media (max-width: 768px) {
-            .sidebar {
+            .finchat-sidebar {
                 transform: translateX(-100%);
             }
             
-            .sidebar.show {
+            .finchat-sidebar.mobile-open {
                 transform: translateX(0);
             }
             
-            .main-content {
+            .finchat-main {
                 margin-left: 0;
             }
         }
-
-        /* Generative UI Elements */
-        .gradient-text {
-            background: linear-gradient(135deg, var(--primary-color), var(--secondary-color));
-            -webkit-background-clip: text;
-            -webkit-text-fill-color: transparent;
-            background-clip: text;
-        }
-
-        .glass-effect {
-            background: rgba(255, 255, 255, 0.7);
-            backdrop-filter: blur(10px);
-            -webkit-backdrop-filter: blur(10px);
-        }
-
-        .hover-scale {
-            transition: transform var(--transition-speed) ease;
-        }
-
-        .hover-scale:hover {
-            transform: scale(1.05);
-        }
-
-        .animated-border {
-            position: relative;
-            overflow: hidden;
-        }
-
-        .animated-border::after {
-            content: '';
-            position: absolute;
-            bottom: 0;
-            left: 0;
-            width: 100%;
-            height: 2px;
-            background: linear-gradient(90deg, var(--primary-color), var(--secondary-color));
-            transform: scaleX(0);
-            transform-origin: left;
-            transition: transform var(--transition-speed) ease;
-        }
-
-        .animated-border:hover::after {
-            transform: scaleX(1);
-        }
     </style>
+    
+    {% block extra_css %}{% endblock %}
 </head>
-<body>
-    <header>
-        <nav>
-            <div class="logo">SustainaTrend™</div>
-            <ul>
-                <li><a href="{{ url_for('analytics.analytics_dashboard') }}">Analytics</a></li>
-                <li><a href="{{ url_for('strategy.strategy_dashboard') }}">Strategy</a></li>
-                <li><a href="{{ url_for('realestate.realestate_dashboard') }}">Real Estate</a></li>
-                <li><a href="{{ url_for('vc_lens.vc_lens_dashboard') }}">VC Lens</a></li>
-                <li><a href="{{ url_for('benchmarking.benchmarking_dashboard') }}">Benchmarking</a></li>
-            </ul>
-        </nav>
-    </header>
-
-    <main>
-                {% block content %}{% endblock %}
-        </main>
+<body class="finchat-dark-theme">
+    <div class="finchat-layout">
+        <!-- Sidebar -->
+        <div class="finchat-sidebar">
+            <div class="finchat-logo">
+                <div class="finchat-logo-icon">
+                    <i class="fas fa-leaf"></i>
+                </div>
+                <div class="finchat-logo-text">SustainaTrend™</div>
+            </div>
+            
+            <nav class="finchat-nav">
+                <div class="finchat-nav-section">
+                    <div class="finchat-nav-header">Overview</div>
+                    
+                    <a href="/" class="finchat-nav-item {% if request.path == '/' %}active{% endif %}">
+                        <div class="finchat-nav-icon"><i class="fas fa-chart-line"></i></div>
+                        <div class="finchat-nav-text">Dashboard</div>
+                    </a>
+                    
+                    <a href="/trend-analysis" class="finchat-nav-item {% if request.path == '/trend-analysis' %}active{% endif %}">
+                        <div class="finchat-nav-icon"><i class="fas fa-chart-bar"></i></div>
+                        <div class="finchat-nav-text">Trend Analysis</div>
+                    </a>
+                    
+                    <a href="/analytics-dashboard" class="finchat-nav-item {% if request.path == '/analytics-dashboard' %}active{% endif %}">
+                        <div class="finchat-nav-icon"><i class="fas fa-chart-pie"></i></div>
+                        <div class="finchat-nav-text">Analytics</div>
+                    </a>
+                </div>
+                
+                <div class="finchat-nav-section">
+                    <div class="finchat-nav-header">Tools</div>
+                    
+                    <a href="/vc-lens" class="finchat-nav-item {% if request.path.startswith('/vc-lens') %}active{% endif %}">
+                        <div class="finchat-nav-icon"><i class="fas fa-search-dollar"></i></div>
+                        <div class="finchat-nav-text">VC Lens</div>
+                    </a>
+                    
+                    <a href="/strategy" class="finchat-nav-item {% if request.path.startswith('/strategy') %}active{% endif %}">
+                        <div class="finchat-nav-icon"><i class="fas fa-chess"></i></div>
+                        <div class="finchat-nav-text">Strategy Hub</div>
+                    </a>
+                    
+                    <a href="/realestate" class="finchat-nav-item {% if request.path.startswith('/realestate') %}active{% endif %}">
+                        <div class="finchat-nav-icon"><i class="fas fa-building"></i></div>
+                        <div class="finchat-nav-text">Real Estate</div>
+                    </a>
+                </div>
+            </nav>
+        </div>
         
-    <footer>
-        <p>&copy; 2024 SustainaTrend™ Intelligence Platform</p>
-    </footer>
-
-    <script src="{{ url_for('static', filename='js/app.js') }}"></script>
+        <!-- Main Content -->
+        <main class="finchat-main">
+            {% block content %}{% endblock %}
+        </main>
+    </div>
+    
+    <script>
+        // Sidebar toggle functionality
+        document.addEventListener('DOMContentLoaded', function() {
+            const sidebar = document.querySelector('.finchat-sidebar');
+            const main = document.querySelector('.finchat-main');
+            
+            // Add mobile menu button
+            const mobileMenuBtn = document.createElement('button');
+            mobileMenuBtn.className = 'finchat-button finchat-button-icon';
+            mobileMenuBtn.innerHTML = '<i class="fas fa-bars"></i>';
+            mobileMenuBtn.style.position = 'fixed';
+            mobileMenuBtn.style.top = '1rem';
+            mobileMenuBtn.style.left = '1rem';
+            mobileMenuBtn.style.zIndex = '1000';
+            document.body.appendChild(mobileMenuBtn);
+            
+            mobileMenuBtn.addEventListener('click', function() {
+                sidebar.classList.toggle('mobile-open');
+            });
+            
+            // Handle window resize
+            window.addEventListener('resize', function() {
+                if (window.innerWidth > 768) {
+                    sidebar.classList.remove('mobile-open');
+                }
+            });
+        });
+    </script>
+    
+    {% block extra_js %}{% endblock %}
 </body>
 </html> 

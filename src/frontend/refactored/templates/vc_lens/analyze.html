@@ -1,0 +1,410 @@
+{% extends "base.html" %}
+
+{% block title %}Document Analysis - VC Lens™{% endblock %}
+
+{% block content %}
+<div class="container-fluid py-4">
+    <!-- Header -->
+    <div class="row mb-4">
+        <div class="col-12">
+            <div class="d-flex justify-content-between align-items-center">
+                <div>
+                    <h1 class="h3 mb-2">Document Analysis</h1>
+                    <p class="text-muted mb-0">{{ company_name }} - {{ document_type|title }}</p>
+                </div>
+                <div class="d-flex gap-2">
+                    <a href="{{ url_for('vc_lens.portfolio_fit', document_id=document_id) }}" class="btn btn-primary">
+                        <i class="fas fa-chart-line me-2"></i>Portfolio Fit
+                    </a>
+                    <button onclick="window.print()" class="btn btn-outline-secondary">
+                        <i class="fas fa-print me-2"></i>Print Report
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="row">
+        <!-- Main Content -->
+        <div class="col-md-8">
+            <!-- Executive Summary -->
+            <div class="card mb-4">
+                <div class="card-header">
+                    <h5 class="card-title mb-0">Executive Summary</h5>
+                </div>
+                <div class="card-body">
+                    <div class="row">
+                        <div class="col-md-6">
+                            <h6 class="text-muted mb-3">Key Metrics</h6>
+                            <div class="list-group list-group-flush">
+                                <div class="list-group-item px-0">
+                                    <div class="d-flex justify-content-between align-items-center">
+                                        <span>Market Size</span>
+                                        <span class="badge bg-primary">{{ market_size }}</span>
+                                    </div>
+                                </div>
+                                <div class="list-group-item px-0">
+                                    <div class="d-flex justify-content-between align-items-center">
+                                        <span>Growth Rate</span>
+                                        <span class="badge bg-success">{{ growth_rate }}%</span>
+                                    </div>
+                                </div>
+                                <div class="list-group-item px-0">
+                                    <div class="d-flex justify-content-between align-items-center">
+                                        <span>Competition Level</span>
+                                        <span class="badge bg-{{ competition_level_color }}">{{ competition_level }}</span>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <h6 class="text-muted mb-3">Investment Highlights</h6>
+                            <ul class="list-unstyled">
+                                {% for highlight in investment_highlights %}
+                                <li class="mb-2">
+                                    <i class="fas fa-check text-success me-2"></i>
+                                    {{ highlight }}
+                                </li>
+                                {% endfor %}
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Detailed Analysis -->
+            <div class="accordion" id="analysisAccordion">
+                <!-- Market Analysis -->
+                <div class="accordion-item">
+                    <h2 class="accordion-header">
+                        <button class="accordion-button" type="button" data-bs-toggle="collapse" data-bs-target="#marketAnalysis">
+                            <i class="fas fa-chart-line text-primary me-2"></i>
+                            Market Analysis
+                        </button>
+                    </h2>
+                    <div id="marketAnalysis" class="accordion-collapse collapse show" data-bs-parent="#analysisAccordion">
+                        <div class="accordion-body">
+                            <div class="row">
+                                <div class="col-md-6">
+                                    <canvas id="marketSizeChart"></canvas>
+                                </div>
+                                <div class="col-md-6">
+                                    <h6 class="text-muted mb-3">Market Trends</h6>
+                                    <ul class="list-unstyled">
+                                        {% for trend in market_trends %}
+                                        <li class="mb-2">
+                                            <i class="fas fa-arrow-{{ trend.direction }} text-{{ trend.color }} me-2"></i>
+                                            {{ trend.description }}
+                                        </li>
+                                        {% endfor %}
+                                    </ul>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Financial Analysis -->
+                <div class="accordion-item">
+                    <h2 class="accordion-header">
+                        <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#financialAnalysis">
+                            <i class="fas fa-calculator text-success me-2"></i>
+                            Financial Analysis
+                        </button>
+                    </h2>
+                    <div id="financialAnalysis" class="accordion-collapse collapse" data-bs-parent="#analysisAccordion">
+                        <div class="accordion-body">
+                            <div class="row">
+                                <div class="col-md-6">
+                                    <canvas id="financialMetricsChart"></canvas>
+                                </div>
+                                <div class="col-md-6">
+                                    <h6 class="text-muted mb-3">Key Financial Metrics</h6>
+                                    <div class="table-responsive">
+                                        <table class="table table-sm">
+                                            <thead>
+                                                <tr>
+                                                    <th>Metric</th>
+                                                    <th>Value</th>
+                                                    <th>Industry Avg</th>
+                                                </tr>
+                                            </thead>
+                                            <tbody>
+                                                {% for metric in financial_metrics %}
+                                                <tr>
+                                                    <td>{{ metric.name }}</td>
+                                                    <td>{{ metric.value }}</td>
+                                                    <td>
+                                                        <span class="text-{{ metric.comparison_color }}">
+                                                            {{ metric.industry_avg }}
+                                                            <i class="fas fa-arrow-{{ metric.trend }}"></i>
+                                                        </span>
+                                                    </td>
+                                                </tr>
+                                                {% endfor %}
+                                            </tbody>
+                                        </table>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Team Analysis -->
+                <div class="accordion-item">
+                    <h2 class="accordion-header">
+                        <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#teamAnalysis">
+                            <i class="fas fa-users text-info me-2"></i>
+                            Team Analysis
+                        </button>
+                    </h2>
+                    <div id="teamAnalysis" class="accordion-collapse collapse" data-bs-parent="#analysisAccordion">
+                        <div class="accordion-body">
+                            <div class="row">
+                                <div class="col-md-6">
+                                    <canvas id="teamExperienceChart"></canvas>
+                                </div>
+                                <div class="col-md-6">
+                                    <h6 class="text-muted mb-3">Team Strengths</h6>
+                                    <div class="list-group list-group-flush">
+                                        {% for strength in team_strengths %}
+                                        <div class="list-group-item px-0">
+                                            <div class="d-flex align-items-start">
+                                                <div class="icon-circle bg-success bg-opacity-10 me-3">
+                                                    <i class="fas fa-check text-success"></i>
+                                                </div>
+                                                <div>
+                                                    <h6 class="mb-1">{{ strength.title }}</h6>
+                                                    <p class="text-muted mb-0">{{ strength.description }}</p>
+                                                </div>
+                                            </div>
+                                        </div>
+                                        {% endfor %}
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Risk Analysis -->
+                <div class="accordion-item">
+                    <h2 class="accordion-header">
+                        <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#riskAnalysis">
+                            <i class="fas fa-shield-alt text-warning me-2"></i>
+                            Risk Analysis
+                        </button>
+                    </h2>
+                    <div id="riskAnalysis" class="accordion-collapse collapse" data-bs-parent="#analysisAccordion">
+                        <div class="accordion-body">
+                            <div class="row">
+                                <div class="col-md-6">
+                                    <canvas id="riskProfileChart"></canvas>
+                                </div>
+                                <div class="col-md-6">
+                                    <h6 class="text-muted mb-3">Risk Factors</h6>
+                                    <div class="list-group list-group-flush">
+                                        {% for risk in risk_factors %}
+                                        <div class="list-group-item px-0">
+                                            <div class="d-flex align-items-start">
+                                                <div class="icon-circle bg-{{ risk.severity_color }} bg-opacity-10 me-3">
+                                                    <i class="fas fa-exclamation-triangle text-{{ risk.severity_color }}"></i>
+                                                </div>
+                                                <div>
+                                                    <h6 class="mb-1">{{ risk.title }}</h6>
+                                                    <p class="text-muted mb-0">{{ risk.description }}</p>
+                                                    <div class="mt-2">
+                                                        <span class="badge bg-{{ risk.severity_color }}">{{ risk.severity }}</span>
+                                                        <span class="badge bg-secondary">{{ risk.category }}</span>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </div>
+                                        {% endfor %}
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Sidebar -->
+        <div class="col-md-4">
+            <!-- AI Insights -->
+            <div class="card mb-4">
+                <div class="card-header">
+                    <h5 class="card-title mb-0">AI Insights</h5>
+                </div>
+                <div class="card-body">
+                    <div class="list-group list-group-flush">
+                        {% for insight in ai_insights %}
+                        <div class="list-group-item px-0">
+                            <div class="d-flex align-items-start">
+                                <div class="icon-circle bg-primary bg-opacity-10 me-3">
+                                    <i class="fas fa-lightbulb text-primary"></i>
+                                </div>
+                                <div>
+                                    <h6 class="mb-1">{{ insight.title }}</h6>
+                                    <p class="text-muted mb-0">{{ insight.description }}</p>
+                                </div>
+                            </div>
+                        </div>
+                        {% endfor %}
+                    </div>
+                </div>
+            </div>
+
+            <!-- Recommendations -->
+            <div class="card">
+                <div class="card-header">
+                    <h5 class="card-title mb-0">Recommendations</h5>
+                </div>
+                <div class="card-body">
+                    <div class="list-group list-group-flush">
+                        {% for recommendation in recommendations %}
+                        <div class="list-group-item px-0">
+                            <div class="d-flex align-items-start">
+                                <div class="icon-circle bg-{{ recommendation.priority_color }} bg-opacity-10 me-3">
+                                    <i class="fas fa-{{ recommendation.icon }} text-{{ recommendation.priority_color }}"></i>
+                                </div>
+                                <div>
+                                    <h6 class="mb-1">{{ recommendation.title }}</h6>
+                                    <p class="text-muted mb-0">{{ recommendation.description }}</p>
+                                    <div class="mt-2">
+                                        <span class="badge bg-{{ recommendation.priority_color }}">{{ recommendation.priority }}</span>
+                                        <span class="badge bg-secondary">{{ recommendation.category }}</span>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        {% endfor %}
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        // Market Size Chart
+        const marketSizeCtx = document.getElementById('marketSizeChart').getContext('2d');
+        new Chart(marketSizeCtx, {
+            type: 'bar',
+            data: {
+                labels: ['Current', '2025', '2030'],
+                datasets: [{
+                    label: 'Market Size ($B)',
+                    data: {{ market_size_data|tojson }},
+                    backgroundColor: 'rgba(54, 162, 235, 0.2)',
+                    borderColor: 'rgba(54, 162, 235, 1)',
+                    borderWidth: 1
+                }]
+            },
+            options: {
+                responsive: true,
+                plugins: {
+                    title: {
+                        display: true,
+                        text: 'Market Size Projection'
+                    }
+                }
+            }
+        });
+
+        // Financial Metrics Chart
+        const financialCtx = document.getElementById('financialMetricsChart').getContext('2d');
+        new Chart(financialCtx, {
+            type: 'radar',
+            data: {
+                labels: ['Revenue Growth', 'Gross Margin', 'Operating Margin', 'Cash Flow', 'Burn Rate'],
+                datasets: [{
+                    label: 'Company',
+                    data: {{ financial_metrics_data|tojson }},
+                    backgroundColor: 'rgba(75, 192, 192, 0.2)',
+                    borderColor: 'rgba(75, 192, 192, 1)',
+                    borderWidth: 1
+                }, {
+                    label: 'Industry Average',
+                    data: {{ industry_avg_data|tojson }},
+                    backgroundColor: 'rgba(255, 99, 132, 0.2)',
+                    borderColor: 'rgba(255, 99, 132, 1)',
+                    borderWidth: 1
+                }]
+            },
+            options: {
+                responsive: true,
+                plugins: {
+                    title: {
+                        display: true,
+                        text: 'Financial Metrics Comparison'
+                    }
+                }
+            }
+        });
+
+        // Team Experience Chart
+        const teamCtx = document.getElementById('teamExperienceChart').getContext('2d');
+        new Chart(teamCtx, {
+            type: 'doughnut',
+            data: {
+                labels: ['Technical', 'Business', 'Industry', 'Academic'],
+                datasets: [{
+                    data: {{ team_experience_data|tojson }},
+                    backgroundColor: [
+                        'rgba(54, 162, 235, 0.8)',
+                        'rgba(75, 192, 192, 0.8)',
+                        'rgba(255, 206, 86, 0.8)',
+                        'rgba(153, 102, 255, 0.8)'
+                    ]
+                }]
+            },
+            options: {
+                responsive: true,
+                plugins: {
+                    title: {
+                        display: true,
+                        text: 'Team Experience Distribution'
+                    }
+                }
+            }
+        });
+
+        // Risk Profile Chart
+        const riskCtx = document.getElementById('riskProfileChart').getContext('2d');
+        new Chart(riskCtx, {
+            type: 'radar',
+            data: {
+                labels: ['Market Risk', 'Technical Risk', 'Financial Risk', 'Team Risk', 'Competitive Risk'],
+                datasets: [{
+                    label: 'Risk Level',
+                    data: {{ risk_profile_data|tojson }},
+                    backgroundColor: 'rgba(255, 99, 132, 0.2)',
+                    borderColor: 'rgba(255, 99, 132, 1)',
+                    borderWidth: 1
+                }]
+            },
+            options: {
+                responsive: true,
+                plugins: {
+                    title: {
+                        display: true,
+                        text: 'Risk Profile'
+                    }
+                },
+                scales: {
+                    r: {
+                        beginAtZero: true,
+                        max: 10
+                    }
+                }
+            }
+        });
+    });
+</script>
+{% endblock %} 

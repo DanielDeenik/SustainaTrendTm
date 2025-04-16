@@ -1,0 +1,477 @@
+{% extends "base.html" %}
+
+{% block title %}Portfolio Fit Analysis - VC Lens™{% endblock %}
+
+{% block content %}
+<div class="container-fluid py-4">
+    <!-- Header -->
+    <div class="row mb-4">
+        <div class="col-12">
+            <div class="d-flex justify-content-between align-items-center">
+                <div>
+                    <h1 class="h3 mb-2">Portfolio Fit Analysis</h1>
+                    <p class="text-muted mb-0">{{ company_name }} - {{ document_type|title }}</p>
+                </div>
+                <div class="d-flex gap-2">
+                    <button onclick="window.print()" class="btn btn-outline-secondary">
+                        <i class="fas fa-print me-2"></i>Print Report
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="row">
+        <!-- Main Content -->
+        <div class="col-md-8">
+            <!-- Overall Fit Score -->
+            <div class="card mb-4">
+                <div class="card-body">
+                    <div class="row align-items-center">
+                        <div class="col-md-4 text-center">
+                            <div class="fit-score-circle mx-auto mb-3">
+                                <div class="fit-score-value">{{ overall_fit_score }}%</div>
+                                <div class="fit-score-label">Fit Score</div>
+                            </div>
+                            <div class="fit-score-category">
+                                <span class="badge bg-{{ fit_category_color }}">{{ fit_category }}</span>
+                            </div>
+                        </div>
+                        <div class="col-md-8">
+                            <h5 class="mb-3">Portfolio Alignment</h5>
+                            <div class="mb-3">
+                                <div class="d-flex justify-content-between mb-1">
+                                    <span>Strategic Fit</span>
+                                    <span>{{ strategic_fit }}%</span>
+                                </div>
+                                <div class="progress" style="height: 6px;">
+                                    <div class="progress-bar bg-success" role="progressbar" style="width: {{ strategic_fit }}%"></div>
+                                </div>
+                            </div>
+                            <div class="mb-3">
+                                <div class="d-flex justify-content-between mb-1">
+                                    <span>Market Synergy</span>
+                                    <span>{{ market_synergy }}%</span>
+                                </div>
+                                <div class="progress" style="height: 6px;">
+                                    <div class="progress-bar bg-info" role="progressbar" style="width: {{ market_synergy }}%"></div>
+                                </div>
+                            </div>
+                            <div class="mb-3">
+                                <div class="d-flex justify-content-between mb-1">
+                                    <span>Technology Alignment</span>
+                                    <span>{{ tech_alignment }}%</span>
+                                </div>
+                                <div class="progress" style="height: 6px;">
+                                    <div class="progress-bar bg-warning" role="progressbar" style="width: {{ tech_alignment }}%"></div>
+                                </div>
+                            </div>
+                            <div>
+                                <div class="d-flex justify-content-between mb-1">
+                                    <span>Team Compatibility</span>
+                                    <span>{{ team_compatibility }}%</span>
+                                </div>
+                                <div class="progress" style="height: 6px;">
+                                    <div class="progress-bar bg-primary" role="progressbar" style="width: {{ team_compatibility }}%"></div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Detailed Analysis -->
+            <div class="accordion" id="fitAnalysisAccordion">
+                <!-- Strategic Fit -->
+                <div class="accordion-item">
+                    <h2 class="accordion-header">
+                        <button class="accordion-button" type="button" data-bs-toggle="collapse" data-bs-target="#strategicFit">
+                            <i class="fas fa-chess text-success me-2"></i>
+                            Strategic Fit
+                        </button>
+                    </h2>
+                    <div id="strategicFit" class="accordion-collapse collapse show" data-bs-parent="#fitAnalysisAccordion">
+                        <div class="accordion-body">
+                            <div class="row">
+                                <div class="col-md-6">
+                                    <canvas id="strategicFitChart"></canvas>
+                                </div>
+                                <div class="col-md-6">
+                                    <h6 class="text-muted mb-3">Strategic Alignment</h6>
+                                    <div class="list-group list-group-flush">
+                                        {% for alignment in strategic_alignments %}
+                                        <div class="list-group-item px-0">
+                                            <div class="d-flex align-items-start">
+                                                <div class="icon-circle bg-success bg-opacity-10 me-3">
+                                                    <i class="fas fa-check text-success"></i>
+                                                </div>
+                                                <div>
+                                                    <h6 class="mb-1">{{ alignment.title }}</h6>
+                                                    <p class="text-muted mb-0">{{ alignment.description }}</p>
+                                                </div>
+                                            </div>
+                                        </div>
+                                        {% endfor %}
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Market Synergy -->
+                <div class="accordion-item">
+                    <h2 class="accordion-header">
+                        <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#marketSynergy">
+                            <i class="fas fa-chart-line text-info me-2"></i>
+                            Market Synergy
+                        </button>
+                    </h2>
+                    <div id="marketSynergy" class="accordion-collapse collapse" data-bs-parent="#fitAnalysisAccordion">
+                        <div class="accordion-body">
+                            <div class="row">
+                                <div class="col-md-6">
+                                    <canvas id="marketSynergyChart"></canvas>
+                                </div>
+                                <div class="col-md-6">
+                                    <h6 class="text-muted mb-3">Market Opportunities</h6>
+                                    <div class="list-group list-group-flush">
+                                        {% for opportunity in market_opportunities %}
+                                        <div class="list-group-item px-0">
+                                            <div class="d-flex align-items-start">
+                                                <div class="icon-circle bg-info bg-opacity-10 me-3">
+                                                    <i class="fas fa-lightbulb text-info"></i>
+                                                </div>
+                                                <div>
+                                                    <h6 class="mb-1">{{ opportunity.title }}</h6>
+                                                    <p class="text-muted mb-0">{{ opportunity.description }}</p>
+                                                    <div class="mt-2">
+                                                        <span class="badge bg-info">{{ opportunity.potential }}</span>
+                                                        <span class="badge bg-secondary">{{ opportunity.timeline }}</span>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </div>
+                                        {% endfor %}
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Technology Alignment -->
+                <div class="accordion-item">
+                    <h2 class="accordion-header">
+                        <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#techAlignment">
+                            <i class="fas fa-microchip text-warning me-2"></i>
+                            Technology Alignment
+                        </button>
+                    </h2>
+                    <div id="techAlignment" class="accordion-collapse collapse" data-bs-parent="#fitAnalysisAccordion">
+                        <div class="accordion-body">
+                            <div class="row">
+                                <div class="col-md-6">
+                                    <canvas id="techAlignmentChart"></canvas>
+                                </div>
+                                <div class="col-md-6">
+                                    <h6 class="text-muted mb-3">Technology Stack</h6>
+                                    <div class="list-group list-group-flush">
+                                        {% for tech in tech_stack %}
+                                        <div class="list-group-item px-0">
+                                            <div class="d-flex align-items-start">
+                                                <div class="icon-circle bg-warning bg-opacity-10 me-3">
+                                                    <i class="fas fa-code text-warning"></i>
+                                                </div>
+                                                <div>
+                                                    <h6 class="mb-1">{{ tech.name }}</h6>
+                                                    <p class="text-muted mb-0">{{ tech.description }}</p>
+                                                    <div class="mt-2">
+                                                        <span class="badge bg-warning">{{ tech.category }}</span>
+                                                        <span class="badge bg-secondary">{{ tech.maturity }}</span>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </div>
+                                        {% endfor %}
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Team Compatibility -->
+                <div class="accordion-item">
+                    <h2 class="accordion-header">
+                        <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#teamCompatibility">
+                            <i class="fas fa-users text-primary me-2"></i>
+                            Team Compatibility
+                        </button>
+                    </h2>
+                    <div id="teamCompatibility" class="accordion-collapse collapse" data-bs-parent="#fitAnalysisAccordion">
+                        <div class="accordion-body">
+                            <div class="row">
+                                <div class="col-md-6">
+                                    <canvas id="teamCompatibilityChart"></canvas>
+                                </div>
+                                <div class="col-md-6">
+                                    <h6 class="text-muted mb-3">Team Synergies</h6>
+                                    <div class="list-group list-group-flush">
+                                        {% for synergy in team_synergies %}
+                                        <div class="list-group-item px-0">
+                                            <div class="d-flex align-items-start">
+                                                <div class="icon-circle bg-primary bg-opacity-10 me-3">
+                                                    <i class="fas fa-handshake text-primary"></i>
+                                                </div>
+                                                <div>
+                                                    <h6 class="mb-1">{{ synergy.title }}</h6>
+                                                    <p class="text-muted mb-0">{{ synergy.description }}</p>
+                                                    <div class="mt-2">
+                                                        <span class="badge bg-primary">{{ synergy.type }}</span>
+                                                        <span class="badge bg-secondary">{{ synergy.impact }}</span>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </div>
+                                        {% endfor %}
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Sidebar -->
+        <div class="col-md-4">
+            <!-- Portfolio Impact -->
+            <div class="card mb-4">
+                <div class="card-header">
+                    <h5 class="card-title mb-0">Portfolio Impact</h5>
+                </div>
+                <div class="card-body">
+                    <div class="list-group list-group-flush">
+                        {% for impact in portfolio_impacts %}
+                        <div class="list-group-item px-0">
+                            <div class="d-flex align-items-start">
+                                <div class="icon-circle bg-{{ impact.color }} bg-opacity-10 me-3">
+                                    <i class="fas fa-{{ impact.icon }} text-{{ impact.color }}"></i>
+                                </div>
+                                <div>
+                                    <h6 class="mb-1">{{ impact.title }}</h6>
+                                    <p class="text-muted mb-0">{{ impact.description }}</p>
+                                    <div class="mt-2">
+                                        <span class="badge bg-{{ impact.color }}">{{ impact.magnitude }}</span>
+                                        <span class="badge bg-secondary">{{ impact.timeline }}</span>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        {% endfor %}
+                    </div>
+                </div>
+            </div>
+
+            <!-- Recommendations -->
+            <div class="card">
+                <div class="card-header">
+                    <h5 class="card-title mb-0">Investment Recommendations</h5>
+                </div>
+                <div class="card-body">
+                    <div class="list-group list-group-flush">
+                        {% for recommendation in investment_recommendations %}
+                        <div class="list-group-item px-0">
+                            <div class="d-flex align-items-start">
+                                <div class="icon-circle bg-{{ recommendation.priority_color }} bg-opacity-10 me-3">
+                                    <i class="fas fa-{{ recommendation.icon }} text-{{ recommendation.priority_color }}"></i>
+                                </div>
+                                <div>
+                                    <h6 class="mb-1">{{ recommendation.title }}</h6>
+                                    <p class="text-muted mb-0">{{ recommendation.description }}</p>
+                                    <div class="mt-2">
+                                        <span class="badge bg-{{ recommendation.priority_color }}">{{ recommendation.priority }}</span>
+                                        <span class="badge bg-secondary">{{ recommendation.category }}</span>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        {% endfor %}
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block styles %}
+<style>
+    .fit-score-circle {
+        width: 150px;
+        height: 150px;
+        border-radius: 50%;
+        background: linear-gradient(45deg, var(--bs-primary), var(--bs-success));
+        display: flex;
+        flex-direction: column;
+        justify-content: center;
+        align-items: center;
+        color: white;
+        box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+    }
+
+    .fit-score-value {
+        font-size: 2.5rem;
+        font-weight: bold;
+        line-height: 1;
+    }
+
+    .fit-score-label {
+        font-size: 0.875rem;
+        opacity: 0.9;
+    }
+
+    .icon-circle {
+        width: 32px;
+        height: 32px;
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+    }
+</style>
+{% endblock %}
+
+{% block scripts %}
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        // Strategic Fit Chart
+        const strategicCtx = document.getElementById('strategicFitChart').getContext('2d');
+        new Chart(strategicCtx, {
+            type: 'radar',
+            data: {
+                labels: ['Vision', 'Goals', 'Values', 'Growth', 'Innovation'],
+                datasets: [{
+                    label: 'Company',
+                    data: {{ strategic_fit_data|tojson }},
+                    backgroundColor: 'rgba(40, 167, 69, 0.2)',
+                    borderColor: 'rgba(40, 167, 69, 1)',
+                    borderWidth: 1
+                }, {
+                    label: 'Portfolio',
+                    data: {{ portfolio_strategic_data|tojson }},
+                    backgroundColor: 'rgba(23, 162, 184, 0.2)',
+                    borderColor: 'rgba(23, 162, 184, 1)',
+                    borderWidth: 1
+                }]
+            },
+            options: {
+                responsive: true,
+                plugins: {
+                    title: {
+                        display: true,
+                        text: 'Strategic Alignment'
+                    }
+                },
+                scales: {
+                    r: {
+                        beginAtZero: true,
+                        max: 100
+                    }
+                }
+            }
+        });
+
+        // Market Synergy Chart
+        const marketCtx = document.getElementById('marketSynergyChart').getContext('2d');
+        new Chart(marketCtx, {
+            type: 'bar',
+            data: {
+                labels: ['Market Size', 'Growth Rate', 'Competition', 'Customer Base', 'Distribution'],
+                datasets: [{
+                    label: 'Synergy Score',
+                    data: {{ market_synergy_data|tojson }},
+                    backgroundColor: 'rgba(23, 162, 184, 0.2)',
+                    borderColor: 'rgba(23, 162, 184, 1)',
+                    borderWidth: 1
+                }]
+            },
+            options: {
+                responsive: true,
+                plugins: {
+                    title: {
+                        display: true,
+                        text: 'Market Synergy Analysis'
+                    }
+                },
+                scales: {
+                    y: {
+                        beginAtZero: true,
+                        max: 100
+                    }
+                }
+            }
+        });
+
+        // Technology Alignment Chart
+        const techCtx = document.getElementById('techAlignmentChart').getContext('2d');
+        new Chart(techCtx, {
+            type: 'doughnut',
+            data: {
+                labels: ['Core Tech', 'Infrastructure', 'Tools', 'Platform', 'Integration'],
+                datasets: [{
+                    data: {{ tech_alignment_data|tojson }},
+                    backgroundColor: [
+                        'rgba(255, 193, 7, 0.8)',
+                        'rgba(23, 162, 184, 0.8)',
+                        'rgba(40, 167, 69, 0.8)',
+                        'rgba(0, 123, 255, 0.8)',
+                        'rgba(111, 66, 193, 0.8)'
+                    ]
+                }]
+            },
+            options: {
+                responsive: true,
+                plugins: {
+                    title: {
+                        display: true,
+                        text: 'Technology Stack Alignment'
+                    }
+                }
+            }
+        });
+
+        // Team Compatibility Chart
+        const teamCtx = document.getElementById('teamCompatibilityChart').getContext('2d');
+        new Chart(teamCtx, {
+            type: 'radar',
+            data: {
+                labels: ['Experience', 'Skills', 'Culture', 'Leadership', 'Innovation'],
+                datasets: [{
+                    label: 'Team Compatibility',
+                    data: {{ team_compatibility_data|tojson }},
+                    backgroundColor: 'rgba(0, 123, 255, 0.2)',
+                    borderColor: 'rgba(0, 123, 255, 1)',
+                    borderWidth: 1
+                }]
+            },
+            options: {
+                responsive: true,
+                plugins: {
+                    title: {
+                        display: true,
+                        text: 'Team Compatibility Analysis'
+                    }
+                },
+                scales: {
+                    r: {
+                        beginAtZero: true,
+                        max: 100
+                    }
+                }
+            }
+        });
+    });
+</script>
+{% endblock %} 

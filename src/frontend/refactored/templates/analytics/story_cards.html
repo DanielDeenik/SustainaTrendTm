@@ -1,0 +1,109 @@
+{% extends "base.html" %}
+
+{% block title %}Sustainability Stories - {{ super() }}{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+    <div class="row mb-4">
+        <div class="col">
+            <h1 class="h3 mb-4">Sustainability Stories</h1>
+        </div>
+    </div>
+
+    <!-- Stories Grid -->
+    <div class="row">
+        {% for story in stories %}
+            <div class="col-md-4 mb-4">
+                <div class="card h-100">
+                    {% if story.image_url %}
+                        <img src="{{ story.image_url }}" class="card-img-top" alt="{{ story.title }}">
+                    {% endif %}
+                    <div class="card-body">
+                        <h5 class="card-title">{{ story.title }}</h5>
+                        <p class="card-text">{{ story.summary }}</p>
+                        <div class="d-flex justify-content-between align-items-center">
+                            <span class="badge bg-{{ story.category_color|default('primary') }}">
+                                {{ story.category }}
+                            </span>
+                            <small class="text-muted">{{ story.date }}</small>
+                        </div>
+                    </div>
+                    <div class="card-footer bg-transparent">
+                        <div class="d-flex justify-content-between align-items-center">
+                            <div>
+                                <i class="bx bx-heart"></i> {{ story.likes|default(0) }}
+                                <i class="bx bx-share ms-2"></i> {{ story.shares|default(0) }}
+                            </div>
+                            <button class="btn btn-sm btn-outline-primary" 
+                                    onclick="showStoryDetails('{{ story._id }}')">
+                                Read More
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        {% else %}
+            <div class="col">
+                <div class="alert alert-info">
+                    No stories available at the moment.
+                </div>
+            </div>
+        {% endfor %}
+    </div>
+</div>
+
+<!-- Story Details Modal -->
+<div class="modal fade" id="storyModal" tabindex="-1" aria-labelledby="storyModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="storyModalLabel">Story Details</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body" id="storyModalBody">
+                Loading...
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+function showStoryDetails(storyId) {
+    const modal = new bootstrap.Modal(document.getElementById('storyModal'));
+    const modalBody = document.getElementById('storyModalBody');
+    
+    // Fetch story details
+    fetch(`/api/stories/${storyId}`)
+        .then(response => response.json())
+        .then(data => {
+            modalBody.innerHTML = `
+                <div class="story-detail">
+                    <h4>${data.title}</h4>
+                    <p class="text-muted">${data.date}</p>
+                    <div class="story-content">
+                        ${data.content}
+                    </div>
+                    <div class="mt-4">
+                        <h5>Impact Metrics</h5>
+                        <ul>
+                            ${data.metrics ? Object.entries(data.metrics).map(([key, value]) => 
+                                `<li><strong>${key}:</strong> ${value}</li>`
+                            ).join('') : 'No metrics available'}
+                        </ul>
+                    </div>
+                </div>
+            `;
+            modal.show();
+        })
+        .catch(error => {
+            modalBody.innerHTML = `<div class="alert alert-danger">Error loading story details: ${error.message}</div>`;
+            modal.show();
+        });
+}
+</script>
+{% endblock %} 

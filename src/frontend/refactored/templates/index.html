@@ -1,0 +1,82 @@
+{% extends "base.html" %}
+
+{% block title %}SustainaTrend™ Intelligence Platform{% endblock %}
+
+{% block content %}
+<div class="container">
+    <div class="row">
+        <div class="col-12">
+            <div class="card mb-4">
+                <div class="card-body">
+                    <h1 class="card-title">Welcome to SustainaTrend™</h1>
+                    <p class="lead">Transform your business with data-driven sustainability insights</p>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <div class="row">
+        <div class="col-md-4">
+            <div class="card mb-4">
+                <div class="card-body">
+                    <h5 class="card-title"><i class='bx bx-grid-alt'></i> Dashboard</h5>
+                    <p class="card-text">View your sustainability metrics and KPIs at a glance.</p>
+                    <a href="{{ url_for('main.dashboard') }}" class="btn btn-primary">Go to Dashboard</a>
+                </div>
+            </div>
+        </div>
+        
+        <div class="col-md-4">
+            <div class="card mb-4">
+                <div class="card-body">
+                    <h5 class="card-title"><i class='bx bx-line-chart'></i> Analytics</h5>
+                    <p class="card-text">Analyze trends and patterns in sustainability data.</p>
+                    <a href="{{ url_for('analytics.index') }}" class="btn btn-primary">View Analytics</a>
+                </div>
+            </div>
+        </div>
+        
+        <div class="col-md-4">
+            <div class="card mb-4">
+                <div class="card-body">
+                    <h5 class="card-title"><i class='bx bx-search-alt'></i> VC Lens</h5>
+                    <p class="card-text">Analyze companies through a venture capital perspective.</p>
+                    <a href="{{ url_for('vc_lens.index') }}" class="btn btn-primary">Open VC Lens</a>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <div class="row">
+        <div class="col-md-4">
+            <div class="card mb-4">
+                <div class="card-body">
+                    <h5 class="card-title"><i class='bx bx-bulb'></i> Strategy Hub</h5>
+                    <p class="card-text">Develop and analyze sustainability strategies.</p>
+                    <a href="{{ url_for('strategy.index') }}" class="btn btn-primary">Go to Strategy Hub</a>
+                </div>
+            </div>
+        </div>
+        
+        <div class="col-md-4">
+            <div class="card mb-4">
+                <div class="card-body">
+                    <h5 class="card-title"><i class='bx bx-building-house'></i> Real Estate</h5>
+                    <p class="card-text">Analyze sustainable real estate investments.</p>
+                    <a href="{{ url_for('realestate.index') }}" class="btn btn-primary">View Real Estate</a>
+                </div>
+            </div>
+        </div>
+        
+        <div class="col-md-4">
+            <div class="card mb-4">
+                <div class="card-body">
+                    <h5 class="card-title"><i class='bx bx-money'></i> Monetization</h5>
+                    <p class="card-text">Explore revenue opportunities from sustainability.</p>
+                    <a href="{{ url_for('monetization.index') }}" class="btn btn-primary">View Monetization</a>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %} 

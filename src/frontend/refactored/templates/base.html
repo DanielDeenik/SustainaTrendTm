@@ -1,0 +1,449 @@
+{% from "components/notifications.html" import flash_messages, notification_scripts %}
+{% from "components/trendsense.html" import render_status %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% block title %}{% endblock %}</title>
+    
+    <!-- Bootstrap CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    
+    <!-- Font Awesome -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    
+    <!-- Chart.js -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    
+    <!-- Custom CSS -->
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+    
+    <link href='https://unpkg.com/boxicons@2.1.4/css/boxicons.min.css' rel='stylesheet'>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    
+    <style>
+        :root {
+            --sidebar-width: 280px;
+            --primary-color: #10B981;
+            --primary-dark: #059669;
+            --primary-light: #D1FAE5;
+            --secondary-color: #3B82F6;
+            --text-color: #1F2937;
+            --text-light: #6B7280;
+            --bg-color: #F9FAFB;
+            --sidebar-bg: #FFFFFF;
+            --hover-bg: #F3F4F6;
+            --card-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+            --transition-speed: 0.3s;
+        }
+
+        body {
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background-color: var(--bg-color);
+            color: var(--text-color);
+            margin: 0;
+            padding: 0;
+            min-height: 100vh;
+            line-height: 1.5;
+        }
+
+        .sidebar {
+            position: fixed;
+            left: 0;
+            top: 0;
+            bottom: 0;
+            width: var(--sidebar-width);
+            background-color: var(--sidebar-bg);
+            border-right: 1px solid rgba(0,0,0,0.05);
+            padding: 1.5rem 0;
+            z-index: 1000;
+            transition: all var(--transition-speed) ease;
+            box-shadow: var(--card-shadow);
+        }
+
+        .sidebar-header {
+            padding: 0 1.5rem 1.5rem;
+            border-bottom: 1px solid rgba(0,0,0,0.05);
+            margin-bottom: 1rem;
+        }
+
+        .sidebar-brand {
+            font-size: 1.5rem;
+            font-weight: 700;
+            color: var(--primary-color);
+            text-decoration: none;
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+            padding: 0.5rem;
+            border-radius: 0.5rem;
+            transition: all var(--transition-speed) ease;
+        }
+
+        .sidebar-brand:hover {
+            background-color: var(--primary-light);
+            color: var(--primary-dark);
+        }
+
+        .sidebar-brand img {
+            height: 32px;
+            width: auto;
+            transition: transform var(--transition-speed) ease;
+        }
+
+        .sidebar-brand:hover img {
+            transform: scale(1.1);
+        }
+
+        .nav-item {
+            margin: 0.25rem 0.75rem;
+        }
+
+        .nav-link {
+            display: flex;
+            align-items: center;
+            padding: 0.875rem 1.25rem;
+            color: var(--text-color);
+            text-decoration: none;
+            transition: all var(--transition-speed) ease;
+            border-radius: 0.75rem;
+            font-weight: 500;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .nav-link::before {
+            content: '';
+            position: absolute;
+            left: 0;
+            top: 0;
+            height: 100%;
+            width: 0;
+            background-color: var(--primary-light);
+            transition: width var(--transition-speed) ease;
+            z-index: -1;
+        }
+
+        .nav-link:hover::before {
+            width: 100%;
+        }
+
+        .nav-link:hover {
+            color: var(--primary-dark);
+            transform: translateX(4px);
+        }
+
+        .nav-link.active {
+            background-color: var(--primary-light);
+            color: var(--primary-dark);
+            font-weight: 600;
+        }
+
+        .nav-link i {
+            margin-right: 0.75rem;
+            font-size: 1.25rem;
+            transition: transform var(--transition-speed) ease;
+        }
+
+        .nav-link:hover i {
+            transform: scale(1.1);
+        }
+
+        .main-content {
+            margin-left: var(--sidebar-width);
+            padding: 2rem;
+            min-height: 100vh;
+            transition: margin var(--transition-speed) ease;
+        }
+
+        .card {
+            border: none;
+            border-radius: 1rem;
+            box-shadow: var(--card-shadow);
+            transition: all var(--transition-speed) ease;
+            background: var(--sidebar-bg);
+            overflow: hidden;
+        }
+
+        .card:hover {
+            transform: translateY(-4px);
+            box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
+        }
+
+        .card-title {
+            color: var(--text-color);
+            font-weight: 600;
+            margin-bottom: 1.5rem;
+            font-size: 1.25rem;
+        }
+
+        .status-item {
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+            padding: 0.75rem;
+            border-radius: 0.75rem;
+            background-color: var(--primary-light);
+            transition: all var(--transition-speed) ease;
+        }
+
+        .status-item:hover {
+            transform: translateX(4px);
+            background-color: var(--primary-color);
+            color: white;
+        }
+
+        .status-item i {
+            font-size: 1.25rem;
+            transition: transform var(--transition-speed) ease;
+        }
+
+        .status-item:hover i {
+            transform: scale(1.1);
+        }
+
+        .progress {
+            height: 0.5rem;
+            border-radius: 1rem;
+            background-color: var(--hover-bg);
+            overflow: hidden;
+        }
+
+        .progress-bar {
+            background-color: var(--primary-color);
+            transition: width 0.5s ease;
+        }
+
+        .badge {
+            padding: 0.5rem 0.75rem;
+            border-radius: 0.5rem;
+            font-weight: 500;
+        }
+
+        .btn {
+            padding: 0.5rem 1rem;
+            border-radius: 0.5rem;
+            font-weight: 500;
+            transition: all var(--transition-speed) ease;
+        }
+
+        .btn-primary {
+            background-color: var(--primary-color);
+            border-color: var(--primary-color);
+        }
+
+        .btn-primary:hover {
+            background-color: var(--primary-dark);
+            border-color: var(--primary-dark);
+            transform: translateY(-2px);
+        }
+
+        .btn-outline-primary {
+            color: var(--primary-color);
+            border-color: var(--primary-color);
+        }
+
+        .btn-outline-primary:hover {
+            background-color: var(--primary-color);
+            color: white;
+            transform: translateY(-2px);
+        }
+
+        .table {
+            border-radius: 0.5rem;
+            overflow: hidden;
+        }
+
+        .table thead th {
+            background-color: var(--primary-light);
+            color: var(--primary-dark);
+            font-weight: 600;
+            border: none;
+        }
+
+        .table tbody tr:hover {
+            background-color: var(--hover-bg);
+        }
+
+        .alert {
+            border-radius: 0.5rem;
+            border: none;
+        }
+
+        .alert-success {
+            background-color: var(--primary-light);
+            color: var(--primary-dark);
+        }
+
+        .alert-danger {
+            background-color: #FEE2E2;
+            color: #DC2626;
+        }
+
+        .alert-warning {
+            background-color: #FEF3C7;
+            color: #D97706;
+        }
+
+        .alert-info {
+            background-color: #E0F2FE;
+            color: #0284C7;
+        }
+
+        .error-container {
+            padding: 3rem;
+            text-align: center;
+        }
+
+        .error-container h1 {
+            font-size: 6rem;
+            font-weight: 700;
+            margin-bottom: 1rem;
+        }
+
+        .error-container h2 {
+            font-size: 2rem;
+            font-weight: 600;
+            margin-bottom: 1rem;
+        }
+
+        .error-container p {
+            font-size: 1.25rem;
+            color: var(--text-light);
+            margin-bottom: 2rem;
+        }
+
+        @media (max-width: 768px) {
+            .sidebar {
+                transform: translateX(-100%);
+            }
+
+            .sidebar.active {
+                transform: translateX(0);
+            }
+
+            .main-content {
+                margin-left: 0;
+            }
+
+            .main-content.active {
+                margin-left: var(--sidebar-width);
+            }
+
+            .toggle-sidebar {
+                display: block;
+            }
+        }
+
+        .toggle-sidebar {
+            display: none;
+            position: fixed;
+            top: 1rem;
+            left: 1rem;
+            z-index: 1001;
+            background-color: var(--primary-color);
+            color: white;
+            border: none;
+            border-radius: 0.5rem;
+            padding: 0.5rem;
+            cursor: pointer;
+        }
+
+        .toggle-sidebar:hover {
+            background-color: var(--primary-dark);
+        }
+
+        .toggle-sidebar i {
+            font-size: 1.5rem;
+        }
+    </style>
+    
+    {% block styles %}{% endblock %}
+</head>
+<body>
+    <!-- Sidebar Toggle Button (Mobile) -->
+    <button class="toggle-sidebar" id="toggleSidebar">
+        <i class="bx bx-menu"></i>
+    </button>
+    
+    <!-- Sidebar -->
+    <div class="sidebar" id="sidebar">
+        <div class="sidebar-header">
+            <h2>SustainaTrend™</h2>
+        </div>
+        <nav class="sidebar-nav">
+            <ul>
+                <li>
+                    <a href="{{ url_for('main.dashboard') }}" class="nav-link {% if request.endpoint == 'main.dashboard' %}active{% endif %}">
+                        <i class='bx bxs-dashboard'></i>
+                        <span>Dashboard</span>
+                    </a>
+                </li>
+                <li>
+                    <a href="{{ url_for('analytics.dashboard') }}" class="nav-link {% if request.endpoint == 'analytics.dashboard' %}active{% endif %}">
+                        <i class='bx bx-line-chart'></i>
+                        <span>Analytics</span>
+                    </a>
+                </li>
+                <li>
+                    <a href="{{ url_for('vc_lens.index') }}" class="nav-link {% if request.endpoint == 'vc_lens.index' %}active{% endif %}">
+                        <i class='bx bx-search-alt'></i>
+                        <span>VC Lens</span>
+                    </a>
+                </li>
+                <li>
+                    <a href="{{ url_for('strategy.index') }}" class="nav-link {% if request.endpoint == 'strategy.index' %}active{% endif %}">
+                        <i class='bx bx-bulb'></i>
+                        <span>Strategy Hub</span>
+                    </a>
+                </li>
+                <li>
+                    <a href="{{ url_for('realestate.index') }}" class="nav-link {% if request.endpoint == 'realestate.index' %}active{% endif %}">
+                        <i class='bx bx-building-house'></i>
+                        <span>Real Estate</span>
+                    </a>
+                </li>
+            </ul>
+        </nav>
+    </div>
+    
+    <!-- Main Content -->
+    <div class="main-content" id="mainContent">
+        {{ flash_messages() }}
+        
+        {% block content %}{% endblock %}
+    </div>
+    
+    <!-- Bootstrap JS -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    
+    <!-- Sidebar Toggle Script -->
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            const toggleButton = document.getElementById('toggleSidebar');
+            const sidebar = document.getElementById('sidebar');
+            const mainContent = document.getElementById('mainContent');
+            
+            toggleButton.addEventListener('click', function() {
+                sidebar.classList.toggle('active');
+                mainContent.classList.toggle('active');
+            });
+            
+            // Close sidebar when clicking outside on mobile
+            document.addEventListener('click', function(event) {
+                if (window.innerWidth <= 768) {
+                    if (!sidebar.contains(event.target) && !toggleButton.contains(event.target)) {
+                        sidebar.classList.remove('active');
+                        mainContent.classList.remove('active');
+                    }
+                }
+            });
+        });
+    </script>
+    
+    {{ notification_scripts() }}
+    
+    {% block scripts %}{% endblock %}
+</body>
+</html> 

@@ -1,0 +1,334 @@
+{% extends "base.html" %}
+
+{% block title %}Trends Analysis - SustainaTrend™{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+    <div class="row mb-4">
+        <div class="col">
+            <h1 class="h3">Trends Analysis</h1>
+            <p class="text-muted">Analyze and track sustainability trends across different categories</p>
+        </div>
+    </div>
+
+    <!-- Filters -->
+    <div class="row mb-4">
+        <div class="col-md-3">
+            <div class="card">
+                <div class="card-body">
+                    <h5 class="card-title">Filters</h5>
+                    <form id="trendFilters">
+                        <div class="mb-3">
+                            <label for="categoryFilter" class="form-label">Category</label>
+                            <select class="form-select" id="categoryFilter">
+                                <option value="">All Categories</option>
+                                {% for category in categories %}
+                                <option value="{{ category }}">{{ category }}</option>
+                                {% endfor %}
+                            </select>
+                        </div>
+                        <div class="mb-3">
+                            <label for="timeframeFilter" class="form-label">Timeframe</label>
+                            <select class="form-select" id="timeframeFilter">
+                                <option value="7d">Last 7 Days</option>
+                                <option value="30d">Last 30 Days</option>
+                                <option value="90d">Last 90 Days</option>
+                                <option value="1y">Last Year</option>
+                            </select>
+                        </div>
+                        <button type="submit" class="btn btn-primary w-100">Apply Filters</button>
+                    </form>
+                </div>
+            </div>
+        </div>
+
+        <!-- Charts -->
+        <div class="col-md-9">
+            <div class="row">
+                <div class="col-md-6 mb-4">
+                    <div class="card h-100">
+                        <div class="card-body">
+                            <h5 class="card-title">Trend Growth</h5>
+                            <canvas id="trendGrowthChart"></canvas>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-6 mb-4">
+                    <div class="card h-100">
+                        <div class="card-body">
+                            <h5 class="card-title">Category Distribution</h5>
+                            <canvas id="categoryDistributionChart"></canvas>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Trends List -->
+    <div class="row">
+        <div class="col">
+            <div class="card">
+                <div class="card-body">
+                    <h5 class="card-title">Trending Topics</h5>
+                    <div class="table-responsive">
+                        <table class="table table-hover" id="trendsTable">
+                            <thead>
+                                <tr>
+                                    <th>Trend</th>
+                                    <th>Category</th>
+                                    <th>Growth Rate</th>
+                                    <th>Impact Score</th>
+                                    <th>Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for trend in trends %}
+                                <tr>
+                                    <td>{{ trend.name }}</td>
+                                    <td>{{ trend.category }}</td>
+                                    <td>
+                                        <span class="badge {% if trend.growth_rate > 0 %}bg-success{% else %}bg-danger{% endif %}">
+                                            {{ trend.growth_rate }}%
+                                        </span>
+                                    </td>
+                                    <td>
+                                        <div class="progress">
+                                            <div class="progress-bar" role="progressbar" 
+                                                 style="width: {{ trend.impact_score }}%"
+                                                 aria-valuenow="{{ trend.impact_score }}" 
+                                                 aria-valuemin="0" 
+                                                 aria-valuemax="100">
+                                                {{ trend.impact_score }}%
+                                            </div>
+                                        </div>
+                                    </td>
+                                    <td>
+                                        <button class="btn btn-sm btn-outline-primary view-trend" 
+                                                data-trend-id="{{ trend._id }}">
+                                            View Details
+                                        </button>
+                                    </td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Trend Details Modal -->
+<div class="modal fade" id="trendDetailsModal" tabindex="-1">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Trend Details</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <div id="trendDetailsContent"></div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // Initialize charts
+    const trendGrowthCtx = document.getElementById('trendGrowthChart').getContext('2d');
+    const categoryDistributionCtx = document.getElementById('categoryDistributionChart').getContext('2d');
+    
+    let trendGrowthChart = new Chart(trendGrowthCtx, {
+        type: 'line',
+        data: {
+            labels: [],
+            datasets: [{
+                label: 'Trend Growth',
+                data: [],
+                borderColor: 'rgb(75, 192, 192)',
+                tension: 0.1
+            }]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false
+        }
+    });
+    
+    let categoryDistributionChart = new Chart(categoryDistributionCtx, {
+        type: 'doughnut',
+        data: {
+            labels: [],
+            datasets: [{
+                data: [],
+                backgroundColor: [
+                    'rgb(255, 99, 132)',
+                    'rgb(54, 162, 235)',
+                    'rgb(255, 206, 86)',
+                    'rgb(75, 192, 192)',
+                    'rgb(153, 102, 255)'
+                ]
+            }]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false
+        }
+    });
+    
+    // Handle filter form submission
+    document.getElementById('trendFilters').addEventListener('submit', function(e) {
+        e.preventDefault();
+        const category = document.getElementById('categoryFilter').value;
+        const timeframe = document.getElementById('timeframeFilter').value;
+        
+        fetch(`/api/trends/data?category=${category}&timeframe=${timeframe}`)
+            .then(response => response.json())
+            .then(data => {
+                updateCharts(data);
+                updateTrendsTable(data.trends);
+            })
+            .catch(error => console.error('Error:', error));
+    });
+    
+    // Handle trend details view
+    document.querySelectorAll('.view-trend').forEach(button => {
+        button.addEventListener('click', function() {
+            const trendId = this.dataset.trendId;
+            fetch(`/api/trends/${trendId}`)
+                .then(response => response.json())
+                .then(data => {
+                    const modal = new bootstrap.Modal(document.getElementById('trendDetailsModal'));
+                    document.getElementById('trendDetailsContent').innerHTML = generateTrendDetailsHTML(data);
+                    modal.show();
+                })
+                .catch(error => console.error('Error:', error));
+        });
+    });
+    
+    function updateCharts(data) {
+        // Update trend growth chart
+        trendGrowthChart.data.labels = data.dates;
+        trendGrowthChart.data.datasets[0].data = data.growth_rates;
+        trendGrowthChart.update();
+        
+        // Update category distribution chart
+        categoryDistributionChart.data.labels = data.categories;
+        categoryDistributionChart.data.datasets[0].data = data.category_counts;
+        categoryDistributionChart.update();
+    }
+    
+    function updateTrendsTable(trends) {
+        const tbody = document.querySelector('#trendsTable tbody');
+        tbody.innerHTML = trends.map(trend => `
+            <tr>
+                <td>${trend.name}</td>
+                <td>${trend.category}</td>
+                <td>
+                    <span class="badge ${trend.growth_rate > 0 ? 'bg-success' : 'bg-danger'}">
+                        ${trend.growth_rate}%
+                    </span>
+                </td>
+                <td>
+                    <div class="progress">
+                        <div class="progress-bar" role="progressbar" 
+                             style="width: ${trend.impact_score}%"
+                             aria-valuenow="${trend.impact_score}" 
+                             aria-valuemin="0" 
+                             aria-valuemax="100">
+                            ${trend.impact_score}%
+                        </div>
+                    </div>
+                </td>
+                <td>
+                    <button class="btn btn-sm btn-outline-primary view-trend" 
+                            data-trend-id="${trend._id}">
+                        View Details
+                    </button>
+                </td>
+            </tr>
+        `).join('');
+    }
+    
+    function generateTrendDetailsHTML(trend) {
+        return `
+            <div class="trend-details">
+                <h4>${trend.name}</h4>
+                <p class="text-muted">${trend.description}</p>
+                
+                <div class="row mt-4">
+                    <div class="col-md-6">
+                        <h5>Key Metrics</h5>
+                        <ul class="list-group">
+                            <li class="list-group-item d-flex justify-content-between align-items-center">
+                                Growth Rate
+                                <span class="badge ${trend.growth_rate > 0 ? 'bg-success' : 'bg-danger'}">
+                                    ${trend.growth_rate}%
+                                </span>
+                            </li>
+                            <li class="list-group-item d-flex justify-content-between align-items-center">
+                                Impact Score
+                                <span class="badge bg-primary">${trend.impact_score}%</span>
+                            </li>
+                            <li class="list-group-item d-flex justify-content-between align-items-center">
+                                Market Size
+                                <span>$${trend.market_size}B</span>
+                            </li>
+                        </ul>
+                    </div>
+                    
+                    <div class="col-md-6">
+                        <h5>Related Metrics</h5>
+                        <canvas id="trendMetricsChart"></canvas>
+                    </div>
+                </div>
+                
+                <div class="mt-4">
+                    <h5>Analysis</h5>
+                    <p>${trend.analysis}</p>
+                </div>
+            </div>
+        `;
+    }
+});
+</script>
+{% endblock %}
+
+{% block styles %}
+<style>
+.card {
+    box-shadow: 0 0.125rem 0.25rem rgba(0, 0, 0, 0.075);
+}
+
+.progress {
+    height: 1.5rem;
+}
+
+.badge {
+    font-size: 0.875rem;
+    padding: 0.5em 0.75em;
+}
+
+.table th {
+    font-weight: 600;
+}
+
+.modal-dialog {
+    max-width: 800px;
+}
+
+.trend-details h4 {
+    margin-bottom: 1rem;
+}
+
+.trend-details .list-group-item {
+    padding: 0.75rem 1.25rem;
+}
+</style>
+{% endblock %} 

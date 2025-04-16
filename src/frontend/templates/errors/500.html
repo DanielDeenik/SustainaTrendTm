@@ -3,12 +3,13 @@
 {% block title %}Server Error - SustainaTrend{% endblock %}
 
 {% block content %}
-<div class="error-container">
-    <div class="error-content">
-        <h1>500 - Server Error</h1>
-        <p>Something went wrong on our end. We're working to fix the issue. Please try again later.</p>
-        <div class="error-actions">
-            <a href="{{ url_for('index') }}" class="btn btn-primary">Return to Dashboard</a>
+<div class="container mt-5">
+    <div class="row justify-content-center">
+        <div class="col-md-8 text-center">
+            <h1 class="display-1">500</h1>
+            <h2 class="mb-4">Server Error</h2>
+            <p class="lead mb-4">Something went wrong on our end. Please try again later or contact support if the problem persists.</p>
+            <a href="{{ url_for('main.index') }}" class="btn btn-primary">Return to Home</a>
         </div>
     </div>
 </div>

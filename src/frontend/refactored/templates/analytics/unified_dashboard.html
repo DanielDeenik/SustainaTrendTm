@@ -1,0 +1,143 @@
+{% extends "base.html" %}
+{% from "components/trendsense.html" import render_metric_card, render_trend_card %}
+
+{% block title %}Unified Analytics - {{ super() }}{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+    <div class="row mb-4">
+        <div class="col">
+            <h1 class="h3 mb-4">Unified Analytics Dashboard</h1>
+        </div>
+    </div>
+
+    <!-- Overview Cards -->
+    <div class="row mb-4">
+        <div class="col-md-3">
+            <div class="card">
+                <div class="card-body">
+                    <h5 class="card-title">Total Metrics</h5>
+                    <h2 class="mb-0">{{ metrics|length }}</h2>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="card">
+                <div class="card-body">
+                    <h5 class="card-title">Active Trends</h5>
+                    <h2 class="mb-0">{{ trends|length }}</h2>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="card">
+                <div class="card-body">
+                    <h5 class="card-title">Stories</h5>
+                    <h2 class="mb-0">{{ stories|length }}</h2>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="card">
+                <div class="card-body">
+                    <h5 class="card-title">Last Updated</h5>
+                    <p class="mb-0" id="lastUpdated">{{ metrics[0].timestamp if metrics else 'N/A' }}</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Metrics Section -->
+    <div class="row mb-4">
+        <div class="col">
+            <div class="card">
+                <div class="card-body">
+                    <h5 class="card-title">Sustainability Metrics</h5>
+                    <div class="row">
+                        {% for metric in metrics %}
+                            <div class="col-md-3">
+                                {{ render_metric_card(metric) }}
+                            </div>
+                        {% endfor %}
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Trends Section -->
+    <div class="row mb-4">
+        <div class="col">
+            <div class="card">
+                <div class="card-body">
+                    <h5 class="card-title">Sustainability Trends</h5>
+                    <div class="row">
+                        {% for trend in trends %}
+                            <div class="col-md-4">
+                                {{ render_trend_card(trend) }}
+                            </div>
+                        {% endfor %}
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Stories Section -->
+    <div class="row">
+        <div class="col">
+            <div class="card">
+                <div class="card-body">
+                    <h5 class="card-title">Recent Stories</h5>
+                    <div class="row">
+                        {% for story in stories %}
+                            <div class="col-md-4">
+                                <div class="card mb-4">
+                                    <div class="card-body">
+                                        <h5 class="card-title">{{ story.title }}</h5>
+                                        <p class="card-text">{{ story.summary }}</p>
+                                        <div class="d-flex justify-content-between align-items-center">
+                                            <span class="badge bg-primary">{{ story.category }}</span>
+                                            <small class="text-muted">{{ story.date }}</small>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        {% endfor %}
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // Update timestamp to local time
+    const timestamp = document.getElementById('lastUpdated');
+    if (timestamp.innerText !== 'N/A') {
+        const date = new Date(timestamp.innerText);
+        timestamp.innerText = date.toLocaleString();
+    }
+
+    // Fetch updated data every 5 minutes
+    setInterval(function() {
+        fetch('{{ url_for("analytics.get_data") }}')
+            .then(response => response.json())
+            .then(data => {
+                // Update dashboard with new data
+                updateDashboard(data);
+            })
+            .catch(error => console.error('Error fetching data:', error));
+    }, 300000);
+});
+
+function updateDashboard(data) {
+    // Implementation for updating dashboard with new data
+    console.log('Updating dashboard with:', data);
+}
+</script>
+{% endblock %} 

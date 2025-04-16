@@ -1,0 +1,766 @@
+{% extends "base.html" %}
+
+{% block title %}Strategy Hub - SustainaTrend™{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+    <div class="row">
+        <div class="col-12">
+            <div class="card mb-4">
+                <div class="card-header d-flex justify-content-between align-items-center">
+                    <h2 class="mb-0">Strategy Hub</h2>
+                    <div>
+                        <button class="btn btn-outline-primary" id="saveStrategyBtn">
+                            <i class="fas fa-save"></i> Save Strategy
+                        </button>
+                        <button class="btn btn-primary" id="generateReportBtn">
+                            <i class="fas fa-file-pdf"></i> Generate Report
+                        </button>
+                    </div>
+                </div>
+                <div class="card-body">
+                    <!-- Tab Navigation -->
+                    <ul class="nav nav-tabs" id="strategyTabs" role="tablist">
+                        <li class="nav-item" role="presentation">
+                            <button class="nav-link active" id="trends-tab" data-bs-toggle="tab" data-bs-target="#trends" type="button" role="tab" aria-controls="trends" aria-selected="true">
+                                <i class="fas fa-chart-line"></i> Trend Input
+                            </button>
+                        </li>
+                        <li class="nav-item" role="presentation">
+                            <button class="nav-link" id="modeling-tab" data-bs-toggle="tab" data-bs-target="#modeling" type="button" role="tab" aria-controls="modeling" aria-selected="false">
+                                <i class="fas fa-cube"></i> Strategy Modeling
+                            </button>
+                        </li>
+                        <li class="nav-item" role="presentation">
+                            <button class="nav-link" id="ai-tab" data-bs-toggle="tab" data-bs-target="#ai" type="button" role="tab" aria-controls="ai" aria-selected="false">
+                                <i class="fas fa-brain"></i> AI Suggestions
+                            </button>
+                        </li>
+                    </ul>
+                    
+                    <!-- Tab Content -->
+                    <div class="tab-content p-3" id="strategyTabContent">
+                        <!-- Trend Input Tab -->
+                        <div class="tab-pane fade show active" id="trends" role="tabpanel" aria-labelledby="trends-tab">
+                            <div class="row">
+                                <div class="col-md-8">
+                                    <div class="card mb-3">
+                                        <div class="card-header">
+                                            <h5 class="mb-0">Market Trends</h5>
+                                        </div>
+                                        <div class="card-body">
+                                            <div class="mb-3">
+                                                <label for="trendSearch" class="form-label">Search Trends</label>
+                                                <div class="input-group">
+                                                    <input type="text" class="form-control" id="trendSearch" placeholder="Search for trends...">
+                                                    <button class="btn btn-outline-secondary" type="button">
+                                                        <i class="fas fa-search"></i>
+                                                    </button>
+                                                </div>
+                                            </div>
+                                            <div class="trend-list">
+                                                <div class="trend-item p-2 mb-2 border rounded">
+                                                    <div class="d-flex justify-content-between align-items-center">
+                                                        <h6 class="mb-0">Renewable Energy Adoption</h6>
+                                                        <span class="badge bg-success">High Impact</span>
+                                                    </div>
+                                                    <p class="text-muted small mb-2">Increasing adoption of renewable energy technologies across industries</p>
+                                                    <div class="d-flex justify-content-between">
+                                                        <span class="text-muted small">Growth: 24% YoY</span>
+                                                        <button class="btn btn-sm btn-outline-primary add-trend" data-trend-id="1">Add to Strategy</button>
+                                                    </div>
+                                                </div>
+                                                <div class="trend-item p-2 mb-2 border rounded">
+                                                    <div class="d-flex justify-content-between align-items-center">
+                                                        <h6 class="mb-0">Circular Economy</h6>
+                                                        <span class="badge bg-warning">Medium Impact</span>
+                                                    </div>
+                                                    <p class="text-muted small mb-2">Shift towards circular economy models in manufacturing</p>
+                                                    <div class="d-flex justify-content-between">
+                                                        <span class="text-muted small">Growth: 18% YoY</span>
+                                                        <button class="btn btn-sm btn-outline-primary add-trend" data-trend-id="2">Add to Strategy</button>
+                                                    </div>
+                                                </div>
+                                                <div class="trend-item p-2 mb-2 border rounded">
+                                                    <div class="d-flex justify-content-between align-items-center">
+                                                        <h6 class="mb-0">ESG Reporting</h6>
+                                                        <span class="badge bg-info">Regulatory</span>
+                                                    </div>
+                                                    <p class="text-muted small mb-2">Increasing regulatory requirements for ESG reporting</p>
+                                                    <div class="d-flex justify-content-between">
+                                                        <span class="text-muted small">Growth: 32% YoY</span>
+                                                        <button class="btn btn-sm btn-outline-primary add-trend" data-trend-id="3">Add to Strategy</button>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="col-md-4">
+                                    <div class="card mb-3">
+                                        <div class="card-header">
+                                            <h5 class="mb-0">Selected Trends</h5>
+                                        </div>
+                                        <div class="card-body">
+                                            <div id="selectedTrends">
+                                                <p class="text-muted text-center">No trends selected yet</p>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div class="card">
+                                        <div class="card-header">
+                                            <h5 class="mb-0">Trend Impact Analysis</h5>
+                                        </div>
+                                        <div class="card-body">
+                                            <canvas id="trendImpactChart" height="200"></canvas>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <!-- Strategy Modeling Tab -->
+                        <div class="tab-pane fade" id="modeling" role="tabpanel" aria-labelledby="modeling-tab">
+                            <div class="row">
+                                <div class="col-md-4">
+                                    <div class="card mb-3">
+                                        <div class="card-header">
+                                            <h5 class="mb-0">Strategy Parameters</h5>
+                                        </div>
+                                        <div class="card-body">
+                                            <form id="strategyForm">
+                                                <div class="mb-3">
+                                                    <label for="industrySector" class="form-label">Industry Sector</label>
+                                                    <select class="form-select" id="industrySector">
+                                                        <option value="energy">Energy</option>
+                                                        <option value="tech">Technology</option>
+                                                        <option value="finance">Finance</option>
+                                                        <option value="manufacturing">Manufacturing</option>
+                                                        <option value="retail">Retail</option>
+                                                    </select>
+                                                </div>
+                                                <div class="mb-3">
+                                                    <label for="sustainabilityGoal" class="form-label">Sustainability Goal</label>
+                                                    <select class="form-select" id="sustainabilityGoal">
+                                                        <option value="emissions">Emissions Reduction</option>
+                                                        <option value="water">Water Conservation</option>
+                                                        <option value="waste">Waste Reduction</option>
+                                                        <option value="biodiversity">Biodiversity Protection</option>
+                                                    </select>
+                                                </div>
+                                                <div class="mb-3">
+                                                    <label for="investmentLevel" class="form-label">Investment Level</label>
+                                                    <input type="range" class="form-range" id="investmentLevel" min="1" max="5" step="1">
+                                                    <div class="d-flex justify-content-between">
+                                                        <span>Low</span>
+                                                        <span>Medium</span>
+                                                        <span>High</span>
+                                                    </div>
+                                                </div>
+                                                <div class="mb-3">
+                                                    <label for="timeHorizon" class="form-label">Time Horizon (Years)</label>
+                                                    <select class="form-select" id="timeHorizon">
+                                                        <option value="1">1 Year</option>
+                                                        <option value="3">3 Years</option>
+                                                        <option value="5" selected>5 Years</option>
+                                                        <option value="10">10 Years</option>
+                                                    </select>
+                                                </div>
+                                                <div class="mb-3">
+                                                    <label for="marketCondition" class="form-label">Market Condition</label>
+                                                    <select class="form-select" id="marketCondition">
+                                                        <option value="growth">Growth</option>
+                                                        <option value="stable">Stable</option>
+                                                        <option value="decline">Decline</option>
+                                                        <option value="volatile">Volatile</option>
+                                                    </select>
+                                                </div>
+                                                <button type="button" class="btn btn-primary w-100" id="runModelBtn">
+                                                    Run Model
+                                                </button>
+                                            </form>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="col-md-8">
+                                    <div class="card mb-3">
+                                        <div class="card-header">
+                                            <h5 class="mb-0">Strategy Model Results</h5>
+                                        </div>
+                                        <div class="card-body">
+                                            <div class="row mb-4">
+                                                <div class="col-md-4">
+                                                    <div class="card bg-dark text-white">
+                                                        <div class="card-body text-center">
+                                                            <h3 class="mb-0" id="roiValue">--</h3>
+                                                            <p class="text-muted mb-0">ROI</p>
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                                <div class="col-md-4">
+                                                    <div class="card bg-dark text-white">
+                                                        <div class="card-body text-center">
+                                                            <h3 class="mb-0" id="impactValue">--</h3>
+                                                            <p class="text-muted mb-0">Impact Score</p>
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                                <div class="col-md-4">
+                                                    <div class="card bg-dark text-white">
+                                                        <div class="card-body text-center">
+                                                            <h3 class="mb-0" id="riskValue">--</h3>
+                                                            <p class="text-muted mb-0">Risk Level</p>
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                            <div class="mb-4">
+                                                <h6>Strategy Timeline</h6>
+                                                <canvas id="timelineChart" height="100"></canvas>
+                                            </div>
+                                            <div class="mb-4">
+                                                <h6>Resource Allocation</h6>
+                                                <canvas id="resourceChart" height="200"></canvas>
+                                            </div>
+                                            <div>
+                                                <h6>Key Metrics</h6>
+                                                <div class="table-responsive">
+                                                    <table class="table table-sm table-dark">
+                                                        <thead>
+                                                            <tr>
+                                                                <th>Metric</th>
+                                                                <th>Year 1</th>
+                                                                <th>Year 3</th>
+                                                                <th>Year 5</th>
+                                                            </tr>
+                                                        </thead>
+                                                        <tbody id="metricsTable">
+                                                            <tr>
+                                                                <td>Cost Savings</td>
+                                                                <td>--</td>
+                                                                <td>--</td>
+                                                                <td>--</td>
+                                                            </tr>
+                                                            <tr>
+                                                                <td>Carbon Reduction</td>
+                                                                <td>--</td>
+                                                                <td>--</td>
+                                                                <td>--</td>
+                                                            </tr>
+                                                            <tr>
+                                                                <td>Market Share</td>
+                                                                <td>--</td>
+                                                                <td>--</td>
+                                                                <td>--</td>
+                                                            </tr>
+                                                        </tbody>
+                                                    </table>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <!-- AI Suggestions Tab -->
+                        <div class="tab-pane fade" id="ai" role="tabpanel" aria-labelledby="ai-tab">
+                            <div class="row">
+                                <div class="col-md-8">
+                                    <div class="card mb-3">
+                                        <div class="card-header">
+                                            <h5 class="mb-0">AI-Generated Strategy Insights</h5>
+                                        </div>
+                                        <div class="card-body">
+                                            <div class="mb-4">
+                                                <h6>Strategy Summary</h6>
+                                                <div class="p-3 bg-dark rounded" id="strategySummary">
+                                                    <p class="text-muted">Run the strategy model to generate AI insights.</p>
+                                                </div>
+                                            </div>
+                                            <div class="mb-4">
+                                                <h6>Opportunities</h6>
+                                                <div class="list-group" id="opportunitiesList">
+                                                    <div class="list-group-item bg-dark">
+                                                        <p class="text-muted">Run the strategy model to identify opportunities.</p>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                            <div class="mb-4">
+                                                <h6>Risks</h6>
+                                                <div class="list-group" id="risksList">
+                                                    <div class="list-group-item bg-dark">
+                                                        <p class="text-muted">Run the strategy model to identify risks.</p>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                            <div>
+                                                <h6>Recommendations</h6>
+                                                <div class="list-group" id="recommendationsList">
+                                                    <div class="list-group-item bg-dark">
+                                                        <p class="text-muted">Run the strategy model to generate recommendations.</p>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="col-md-4">
+                                    <div class="card mb-3">
+                                        <div class="card-header">
+                                            <h5 class="mb-0">Strategy Comparison</h5>
+                                        </div>
+                                        <div class="card-body">
+                                            <canvas id="comparisonChart" height="300"></canvas>
+                                        </div>
+                                    </div>
+                                    <div class="card">
+                                        <div class="card-header">
+                                            <h5 class="mb-0">Market Context</h5>
+                                        </div>
+                                        <div class="card-body">
+                                            <div class="mb-3">
+                                                <h6>Competitor Analysis</h6>
+                                                <div class="progress mb-2" style="height: 10px;">
+                                                    <div class="progress-bar bg-success" role="progressbar" style="width: 75%"></div>
+                                                </div>
+                                                <small class="text-muted">75% of competitors have implemented similar strategies</small>
+                                            </div>
+                                            <div class="mb-3">
+                                                <h6>Regulatory Environment</h6>
+                                                <div class="progress mb-2" style="height: 10px;">
+                                                    <div class="progress-bar bg-warning" role="progressbar" style="width: 60%"></div>
+                                                </div>
+                                                <small class="text-muted">60% alignment with current regulations</small>
+                                            </div>
+                                            <div>
+                                                <h6>Market Readiness</h6>
+                                                <div class="progress mb-2" style="height: 10px;">
+                                                    <div class="progress-bar bg-info" role="progressbar" style="width: 85%"></div>
+                                                </div>
+                                                <small class="text-muted">85% market readiness for this strategy</small>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        // Initialize charts
+        const trendImpactCtx = document.getElementById('trendImpactChart').getContext('2d');
+        const trendImpactChart = new Chart(trendImpactCtx, {
+            type: 'doughnut',
+            data: {
+                labels: ['High Impact', 'Medium Impact', 'Low Impact'],
+                datasets: [{
+                    data: [0, 0, 0],
+                    backgroundColor: [
+                        'rgba(40, 167, 69, 0.7)',
+                        'rgba(255, 193, 7, 0.7)',
+                        'rgba(108, 117, 125, 0.7)'
+                    ],
+                    borderColor: [
+                        'rgba(40, 167, 69, 1)',
+                        'rgba(255, 193, 7, 1)',
+                        'rgba(108, 117, 125, 1)'
+                    ],
+                    borderWidth: 1
+                }]
+            },
+            options: {
+                responsive: true,
+                plugins: {
+                    legend: {
+                        position: 'bottom'
+                    }
+                }
+            }
+        });
+
+        const timelineCtx = document.getElementById('timelineChart').getContext('2d');
+        const timelineChart = new Chart(timelineCtx, {
+            type: 'line',
+            data: {
+                labels: ['Year 1', 'Year 2', 'Year 3', 'Year 4', 'Year 5'],
+                datasets: [{
+                    label: 'Implementation Progress',
+                    data: [0, 0, 0, 0, 0],
+                    borderColor: 'rgba(0, 123, 255, 1)',
+                    backgroundColor: 'rgba(0, 123, 255, 0.1)',
+                    tension: 0.4,
+                    fill: true
+                }]
+            },
+            options: {
+                responsive: true,
+                plugins: {
+                    legend: {
+                        display: false
+                    }
+                },
+                scales: {
+                    y: {
+                        beginAtZero: true,
+                        max: 100
+                    }
+                }
+            }
+        });
+
+        const resourceCtx = document.getElementById('resourceChart').getContext('2d');
+        const resourceChart = new Chart(resourceCtx, {
+            type: 'bar',
+            data: {
+                labels: ['Technology', 'Operations', 'Marketing', 'R&D', 'Training'],
+                datasets: [{
+                    label: 'Resource Allocation (%)',
+                    data: [0, 0, 0, 0, 0],
+                    backgroundColor: [
+                        'rgba(0, 123, 255, 0.7)',
+                        'rgba(40, 167, 69, 0.7)',
+                        'rgba(255, 193, 7, 0.7)',
+                        'rgba(220, 53, 69, 0.7)',
+                        'rgba(108, 117, 125, 0.7)'
+                    ],
+                    borderColor: [
+                        'rgba(0, 123, 255, 1)',
+                        'rgba(40, 167, 69, 1)',
+                        'rgba(255, 193, 7, 1)',
+                        'rgba(220, 53, 69, 1)',
+                        'rgba(108, 117, 125, 1)'
+                    ],
+                    borderWidth: 1
+                }]
+            },
+            options: {
+                responsive: true,
+                plugins: {
+                    legend: {
+                        display: false
+                    }
+                },
+                scales: {
+                    y: {
+                        beginAtZero: true,
+                        max: 100
+                    }
+                }
+            }
+        });
+
+        const comparisonCtx = document.getElementById('comparisonChart').getContext('2d');
+        const comparisonChart = new Chart(comparisonCtx, {
+            type: 'radar',
+            data: {
+                labels: ['ROI', 'Impact', 'Risk', 'Feasibility', 'Innovation'],
+                datasets: [{
+                    label: 'Current Strategy',
+                    data: [0, 0, 0, 0, 0],
+                    backgroundColor: 'rgba(0, 123, 255, 0.2)',
+                    borderColor: 'rgba(0, 123, 255, 1)',
+                    pointBackgroundColor: 'rgba(0, 123, 255, 1)',
+                    pointBorderColor: '#fff',
+                    pointHoverBackgroundColor: '#fff',
+                    pointHoverBorderColor: 'rgba(0, 123, 255, 1)'
+                }, {
+                    label: 'Industry Average',
+                    data: [65, 70, 45, 60, 55],
+                    backgroundColor: 'rgba(108, 117, 125, 0.2)',
+                    borderColor: 'rgba(108, 117, 125, 1)',
+                    pointBackgroundColor: 'rgba(108, 117, 125, 1)',
+                    pointBorderColor: '#fff',
+                    pointHoverBackgroundColor: '#fff',
+                    pointHoverBorderColor: 'rgba(108, 117, 125, 1)'
+                }]
+            },
+            options: {
+                responsive: true,
+                scales: {
+                    r: {
+                        angleLines: {
+                            display: true
+                        },
+                        suggestedMin: 0,
+                        suggestedMax: 100
+                    }
+                }
+            }
+        });
+
+        // Add trend to selected trends
+        document.querySelectorAll('.add-trend').forEach(button => {
+            button.addEventListener('click', function() {
+                const trendId = this.getAttribute('data-trend-id');
+                const trendItem = this.closest('.trend-item');
+                const trendName = trendItem.querySelector('h6').textContent;
+                const trendImpact = trendItem.querySelector('.badge').textContent;
+                
+                const selectedTrends = document.getElementById('selectedTrends');
+                
+                // Check if trend is already selected
+                if (selectedTrends.querySelector(`[data-trend-id="${trendId}"]`)) {
+                    return;
+                }
+                
+                // Create new trend element
+                const newTrend = document.createElement('div');
+                newTrend.className = 'selected-trend p-2 mb-2 border rounded';
+                newTrend.setAttribute('data-trend-id', trendId);
+                newTrend.innerHTML = `
+                    <div class="d-flex justify-content-between align-items-center">
+                        <h6 class="mb-0">${trendName}</h6>
+                        <span class="badge ${getBadgeClass(trendImpact)}">${trendImpact}</span>
+                    </div>
+                    <div class="d-flex justify-content-end mt-2">
+                        <button class="btn btn-sm btn-outline-danger remove-trend">Remove</button>
+                    </div>
+                `;
+                
+                // Remove placeholder if it exists
+                const placeholder = selectedTrends.querySelector('.text-muted');
+                if (placeholder) {
+                    selectedTrends.removeChild(placeholder);
+                }
+                
+                // Add new trend
+                selectedTrends.appendChild(newTrend);
+                
+                // Add remove event listener
+                newTrend.querySelector('.remove-trend').addEventListener('click', function() {
+                    selectedTrends.removeChild(newTrend);
+                    
+                    // Add placeholder back if no trends selected
+                    if (selectedTrends.children.length === 0) {
+                        const placeholder = document.createElement('p');
+                        placeholder.className = 'text-muted text-center';
+                        placeholder.textContent = 'No trends selected yet';
+                        selectedTrends.appendChild(placeholder);
+                    }
+                    
+                    // Update chart
+                    updateTrendImpactChart();
+                });
+                
+                // Update chart
+                updateTrendImpactChart();
+            });
+        });
+        
+        // Run model button
+        document.getElementById('runModelBtn').addEventListener('click', function() {
+            // Get form values
+            const industrySector = document.getElementById('industrySector').value;
+            const sustainabilityGoal = document.getElementById('sustainabilityGoal').value;
+            const investmentLevel = document.getElementById('investmentLevel').value;
+            const timeHorizon = document.getElementById('timeHorizon').value;
+            const marketCondition = document.getElementById('marketCondition').value;
+            
+            // Validate inputs
+            if (document.querySelectorAll('.selected-trend').length === 0) {
+                alert('Please select at least one trend before running the model.');
+                return;
+            }
+            
+            // Simulate model running
+            this.disabled = true;
+            this.innerHTML = '<span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span> Running...';
+            
+            setTimeout(() => {
+                // Update model results
+                updateModelResults(industrySector, sustainabilityGoal, investmentLevel, timeHorizon, marketCondition);
+                
+                // Update AI insights
+                updateAIInsights(industrySector, sustainabilityGoal, investmentLevel, timeHorizon, marketCondition);
+                
+                // Reset button
+                this.disabled = false;
+                this.innerHTML = 'Run Model';
+                
+                // Switch to AI tab
+                document.getElementById('ai-tab').click();
+            }, 2000);
+        });
+        
+        // Helper functions
+        function getBadgeClass(impact) {
+            if (impact.includes('High')) return 'bg-success';
+            if (impact.includes('Medium')) return 'bg-warning';
+            if (impact.includes('Low')) return 'bg-secondary';
+            if (impact.includes('Regulatory')) return 'bg-info';
+            return 'bg-primary';
+        }
+        
+        function updateTrendImpactChart() {
+            const selectedTrends = document.querySelectorAll('.selected-trend');
+            const impactCounts = {
+                'High Impact': 0,
+                'Medium Impact': 0,
+                'Low Impact': 0
+            };
+            
+            selectedTrends.forEach(trend => {
+                const impact = trend.querySelector('.badge').textContent;
+                if (impact.includes('High')) impactCounts['High Impact']++;
+                else if (impact.includes('Medium')) impactCounts['Medium Impact']++;
+                else if (impact.includes('Low')) impactCounts['Low Impact']++;
+            });
+            
+            trendImpactChart.data.datasets[0].data = [
+                impactCounts['High Impact'],
+                impactCounts['Medium Impact'],
+                impactCounts['Low Impact']
+            ];
+            
+            trendImpactChart.update();
+        }
+        
+        function updateModelResults(industrySector, sustainabilityGoal, investmentLevel, timeHorizon, marketCondition) {
+            // Update ROI, Impact, and Risk values
+            document.getElementById('roiValue').textContent = `${Math.floor(15 + Math.random() * 20)}%`;
+            document.getElementById('impactValue').textContent = `${Math.floor(70 + Math.random() * 20)}`;
+            document.getElementById('riskValue').textContent = `${Math.floor(20 + Math.random() * 30)}`;
+            
+            // Update timeline chart
+            const timelineData = [];
+            for (let i = 0; i < 5; i++) {
+                timelineData.push(Math.floor(20 + (i * 15) + Math.random() * 10));
+            }
+            timelineChart.data.datasets[0].data = timelineData;
+            timelineChart.update();
+            
+            // Update resource chart
+            const resourceData = [
+                Math.floor(20 + Math.random() * 15),
+                Math.floor(25 + Math.random() * 15),
+                Math.floor(15 + Math.random() * 10),
+                Math.floor(20 + Math.random() * 15),
+                Math.floor(10 + Math.random() * 10)
+            ];
+            resourceChart.data.datasets[0].data = resourceData;
+            resourceChart.update();
+            
+            // Update metrics table
+            const metricsTable = document.getElementById('metricsTable');
+            const rows = metricsTable.querySelectorAll('tr');
+            
+            rows[0].querySelectorAll('td').forEach((cell, index) => {
+                if (index > 0) {
+                    cell.textContent = `$${Math.floor(100000 + Math.random() * 900000).toLocaleString()}`;
+                }
+            });
+            
+            rows[1].querySelectorAll('td').forEach((cell, index) => {
+                if (index > 0) {
+                    cell.textContent = `${Math.floor(1000 + Math.random() * 9000).toLocaleString()} tons`;
+                }
+            });
+            
+            rows[2].querySelectorAll('td').forEach((cell, index) => {
+                if (index > 0) {
+                    cell.textContent = `${Math.floor(5 + (index * 3) + Math.random() * 5)}%`;
+                }
+            });
+            
+            // Update comparison chart
+            comparisonChart.data.datasets[0].data = [
+                parseInt(document.getElementById('roiValue').textContent),
+                parseInt(document.getElementById('impactValue').textContent),
+                parseInt(document.getElementById('riskValue').textContent),
+                Math.floor(60 + Math.random() * 20),
+                Math.floor(50 + Math.random() * 30)
+            ];
+            comparisonChart.update();
+        }
+        
+        function updateAIInsights(industrySector, sustainabilityGoal, investmentLevel, timeHorizon, marketCondition) {
+            // Update strategy summary
+            document.getElementById('strategySummary').innerHTML = `
+                <p>Based on the selected trends and parameters, this strategy focuses on ${sustainabilityGoal.toLowerCase()} in the ${industrySector} sector over a ${timeHorizon}-year horizon. With a ${getInvestmentLevelText(investmentLevel)} investment level and ${marketCondition.toLowerCase()} market conditions, this approach is projected to deliver significant returns while addressing key sustainability challenges.</p>
+            `;
+            
+            // Update opportunities
+            const opportunitiesList = document.getElementById('opportunitiesList');
+            opportunitiesList.innerHTML = '';
+            
+            const opportunities = [
+                'New market segment targeting environmentally conscious consumers',
+                'Regulatory compliance advantage in upcoming policy changes',
+                'Operational efficiency improvements through sustainable practices',
+                'Enhanced brand reputation and customer loyalty',
+                'Access to green financing and investment opportunities'
+            ];
+            
+            opportunities.forEach(opportunity => {
+                const item = document.createElement('div');
+                item.className = 'list-group-item bg-dark';
+                item.innerHTML = `<i class="fas fa-check-circle text-success me-2"></i>${opportunity}`;
+                opportunitiesList.appendChild(item);
+            });
+            
+            // Update risks
+            const risksList = document.getElementById('risksList');
+            risksList.innerHTML = '';
+            
+            const risks = [
+                'Initial implementation costs may exceed projections',
+                'Regulatory changes could impact strategy effectiveness',
+                'Market adoption may be slower than anticipated',
+                'Competitive response to sustainability initiatives',
+                'Technology limitations in current sustainable solutions'
+            ];
+            
+            risks.forEach(risk => {
+                const item = document.createElement('div');
+                item.className = 'list-group-item bg-dark';
+                item.innerHTML = `<i class="fas fa-exclamation-triangle text-warning me-2"></i>${risk}`;
+                risksList.appendChild(item);
+            });
+            
+            // Update recommendations
+            const recommendationsList = document.getElementById('recommendationsList');
+            recommendationsList.innerHTML = '';
+            
+            const recommendations = [
+                'Implement a phased approach to minimize initial investment risk',
+                'Develop partnerships with technology providers to accelerate implementation',
+                'Create a comprehensive communication strategy to engage stakeholders',
+                'Establish clear metrics and KPIs to measure progress and adjust as needed',
+                'Consider a pilot program in a specific market segment before full rollout'
+            ];
+            
+            recommendations.forEach(recommendation => {
+                const item = document.createElement('div');
+                item.className = 'list-group-item bg-dark';
+                item.innerHTML = `<i class="fas fa-lightbulb text-info me-2"></i>${recommendation}`;
+                recommendationsList.appendChild(item);
+            });
+        }
+        
+        function getInvestmentLevelText(level) {
+            if (level <= 2) return 'low';
+            if (level <= 4) return 'medium';
+            return 'high';
+        }
+        
+        // Save strategy button
+        document.getElementById('saveStrategyBtn').addEventListener('click', function() {
+            alert('Strategy saved successfully!');
+        });
+        
+        // Generate report button
+        document.getElementById('generateReportBtn').addEventListener('click', function() {
+            alert('Report generation started. You will be notified when it is ready.');
+        });
+    });
+</script>
+{% endblock %} 

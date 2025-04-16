@@ -1,0 +1,52 @@
+{% extends "base.html" %}
+
+{% block title %}Real Estate - SustainaTrend™{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+    <div class="row">
+        <div class="col-12">
+            <h1 class="mb-4">Real Estate Dashboard</h1>
+        </div>
+    </div>
+    
+    <div class="row">
+        <div class="col-md-8">
+            <div class="card">
+                <div class="card-header">
+                    <h5 class="card-title">Property Overview</h5>
+                </div>
+                <div class="card-body">
+                    <div id="propertyChart"></div>
+                </div>
+            </div>
+        </div>
+        
+        <div class="col-md-4">
+            <div class="card">
+                <div class="card-header">
+                    <h5 class="card-title">Key Metrics</h5>
+                </div>
+                <div class="card-body">
+                    <div id="metricsChart"></div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // Initialize charts and load data
+    fetch('/real-estate/api/properties')
+        .then(response => response.json())
+        .then(data => {
+            // Update charts with data
+            console.log('Properties data loaded:', data);
+        })
+        .catch(error => console.error('Error loading properties:', error));
+});
+</script>
+{% endblock %} 

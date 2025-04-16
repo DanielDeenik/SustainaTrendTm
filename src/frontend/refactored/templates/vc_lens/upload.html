@@ -1,0 +1,391 @@
+{% extends "base.html" %}
+
+{% block title %}Upload Document - VC Lens™{% endblock %}
+
+{% block content %}
+<div class="container-fluid py-4">
+    <!-- Header -->
+    <div class="row mb-4">
+        <div class="col-12">
+            <div class="d-flex justify-content-between align-items-center">
+                <div>
+                    <h1 class="h3 mb-2">Upload Document</h1>
+                    <p class="text-muted mb-0">Analyze your investment documents with AI-powered insights</p>
+                </div>
+                <div>
+                    <a href="{{ url_for('vc_lens.index') }}" class="btn btn-outline-secondary">
+                        <i class="fas fa-arrow-left me-2"></i>Back to Dashboard
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="row">
+        <!-- Main Content -->
+        <div class="col-md-8">
+            <!-- Document Type Selection -->
+            <div class="card mb-4">
+                <div class="card-header">
+                    <h5 class="card-title mb-0">Document Type</h5>
+                </div>
+                <div class="card-body">
+                    <div class="row g-3">
+                        <div class="col-md-4">
+                            <div class="form-check card h-100">
+                                <div class="card-body">
+                                    <input class="form-check-input" type="radio" name="documentType" id="pitchDeck" value="pitch_deck" checked>
+                                    <label class="form-check-label h-100 d-flex flex-column" for="pitchDeck">
+                                        <i class="fas fa-file-powerpoint text-primary mb-2 fa-2x"></i>
+                                        <h6 class="mb-1">Pitch Deck</h6>
+                                        <p class="text-muted small mb-0">Company presentation and business plan</p>
+                                    </label>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-4">
+                            <div class="form-check card h-100">
+                                <div class="card-body">
+                                    <input class="form-check-input" type="radio" name="documentType" id="financialModel" value="financial_model">
+                                    <label class="form-check-label h-100 d-flex flex-column" for="financialModel">
+                                        <i class="fas fa-file-excel text-success mb-2 fa-2x"></i>
+                                        <h6 class="mb-1">Financial Model</h6>
+                                        <p class="text-muted small mb-0">Financial projections and metrics</p>
+                                    </label>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-4">
+                            <div class="form-check card h-100">
+                                <div class="card-body">
+                                    <input class="form-check-input" type="radio" name="documentType" id="marketResearch" value="market_research">
+                                    <label class="form-check-label h-100 d-flex flex-column" for="marketResearch">
+                                        <i class="fas fa-file-alt text-info mb-2 fa-2x"></i>
+                                        <h6 class="mb-1">Market Research</h6>
+                                        <p class="text-muted small mb-0">Market analysis and competitor research</p>
+                                    </label>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Company Information -->
+            <div class="card mb-4">
+                <div class="card-header">
+                    <h5 class="card-title mb-0">Company Information</h5>
+                </div>
+                <div class="card-body">
+                    <form id="companyForm">
+                        <div class="row g-3">
+                            <div class="col-md-6">
+                                <label for="companyName" class="form-label">Company Name</label>
+                                <input type="text" class="form-control" id="companyName" required>
+                            </div>
+                            <div class="col-md-6">
+                                <label for="industry" class="form-label">Industry</label>
+                                <select class="form-select" id="industry" required>
+                                    <option value="">Select industry</option>
+                                    <option value="clean_tech">Clean Technology</option>
+                                    <option value="healthcare">Healthcare</option>
+                                    <option value="fintech">FinTech</option>
+                                    <option value="enterprise">Enterprise Software</option>
+                                    <option value="consumer">Consumer</option>
+                                    <option value="other">Other</option>
+                                </select>
+                            </div>
+                            <div class="col-md-6">
+                                <label for="stage" class="form-label">Investment Stage</label>
+                                <select class="form-select" id="stage" required>
+                                    <option value="">Select stage</option>
+                                    <option value="seed">Seed</option>
+                                    <option value="series_a">Series A</option>
+                                    <option value="series_b">Series B</option>
+                                    <option value="growth">Growth</option>
+                                </select>
+                            </div>
+                            <div class="col-md-6">
+                                <label for="location" class="form-label">Location</label>
+                                <input type="text" class="form-control" id="location" required>
+                            </div>
+                        </div>
+                    </form>
+                </div>
+            </div>
+
+            <!-- Document Upload -->
+            <div class="card mb-4">
+                <div class="card-header">
+                    <h5 class="card-title mb-0">Upload Document</h5>
+                </div>
+                <div class="card-body">
+                    <form id="uploadForm" class="text-center">
+                        <div class="upload-area p-5 mb-4" id="dropZone">
+                            <i class="fas fa-cloud-upload-alt fa-3x text-primary mb-3"></i>
+                            <h5>Drag and drop your file here</h5>
+                            <p class="text-muted mb-3">or</p>
+                            <input type="file" class="d-none" id="fileInput" accept=".pdf,.ppt,.pptx,.xls,.xlsx,.doc,.docx">
+                            <button type="button" class="btn btn-primary" onclick="document.getElementById('fileInput').click()">
+                                Browse Files
+                            </button>
+                            <p class="text-muted small mt-3 mb-0">Supported formats: PDF, PowerPoint, Excel, Word</p>
+                        </div>
+                        <div id="filePreview" class="d-none">
+                            <div class="card">
+                                <div class="card-body">
+                                    <div class="d-flex align-items-center">
+                                        <div class="flex-shrink-0">
+                                            <i class="fas fa-file fa-2x text-primary"></i>
+                                        </div>
+                                        <div class="flex-grow-1 ms-3">
+                                            <h6 class="mb-1" id="fileName">document.pdf</h6>
+                                            <p class="text-muted small mb-0" id="fileSize">2.5 MB</p>
+                                        </div>
+                                        <button type="button" class="btn btn-link text-danger" onclick="removeFile()">
+                                            <i class="fas fa-times"></i>
+                                        </button>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </form>
+                </div>
+            </div>
+
+            <!-- Analysis Options -->
+            <div class="card">
+                <div class="card-header">
+                    <h5 class="card-title mb-0">Analysis Options</h5>
+                </div>
+                <div class="card-body">
+                    <div class="row g-3">
+                        <div class="col-md-6">
+                            <div class="form-check card h-100">
+                                <div class="card-body">
+                                    <input class="form-check-input" type="checkbox" id="marketAnalysis" checked>
+                                    <label class="form-check-label h-100 d-flex flex-column" for="marketAnalysis">
+                                        <i class="fas fa-chart-line text-primary mb-2 fa-2x"></i>
+                                        <h6 class="mb-1">Market Analysis</h6>
+                                        <p class="text-muted small mb-0">Market size, trends, and competition</p>
+                                    </label>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="form-check card h-100">
+                                <div class="card-body">
+                                    <input class="form-check-input" type="checkbox" id="financialAnalysis" checked>
+                                    <label class="form-check-label h-100 d-flex flex-column" for="financialAnalysis">
+                                        <i class="fas fa-calculator text-success mb-2 fa-2x"></i>
+                                        <h6 class="mb-1">Financial Analysis</h6>
+                                        <p class="text-muted small mb-0">Metrics, projections, and valuation</p>
+                                    </label>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="form-check card h-100">
+                                <div class="card-body">
+                                    <input class="form-check-input" type="checkbox" id="teamAnalysis" checked>
+                                    <label class="form-check-label h-100 d-flex flex-column" for="teamAnalysis">
+                                        <i class="fas fa-users text-info mb-2 fa-2x"></i>
+                                        <h6 class="mb-1">Team Analysis</h6>
+                                        <p class="text-muted small mb-0">Founder background and team capabilities</p>
+                                    </label>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="form-check card h-100">
+                                <div class="card-body">
+                                    <input class="form-check-input" type="checkbox" id="riskAnalysis" checked>
+                                    <label class="form-check-label h-100 d-flex flex-column" for="riskAnalysis">
+                                        <i class="fas fa-shield-alt text-warning mb-2 fa-2x"></i>
+                                        <h6 class="mb-1">Risk Analysis</h6>
+                                        <p class="text-muted small mb-0">Key risks and mitigation strategies</p>
+                                    </label>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Sidebar -->
+        <div class="col-md-4">
+            <!-- Recent Uploads -->
+            <div class="card mb-4">
+                <div class="card-header">
+                    <h5 class="card-title mb-0">Recent Uploads</h5>
+                </div>
+                <div class="card-body">
+                    <div class="list-group list-group-flush">
+                        {% for upload in recent_uploads %}
+                        <div class="list-group-item px-0">
+                            <div class="d-flex align-items-start">
+                                <div class="icon-circle bg-{{ upload.type_color }} bg-opacity-10 me-3">
+                                    <i class="fas fa-{{ upload.type_icon }} text-{{ upload.type_color }}"></i>
+                                </div>
+                                <div>
+                                    <h6 class="mb-1">{{ upload.company_name }}</h6>
+                                    <p class="text-muted small mb-0">{{ upload.document_type }}</p>
+                                    <p class="text-muted smaller mb-0">{{ upload.upload_date }}</p>
+                                </div>
+                            </div>
+                        </div>
+                        {% endfor %}
+                    </div>
+                </div>
+            </div>
+
+            <!-- Analysis Tips -->
+            <div class="card">
+                <div class="card-header">
+                    <h5 class="card-title mb-0">Analysis Tips</h5>
+                </div>
+                <div class="card-body">
+                    <div class="list-group list-group-flush">
+                        {% for tip in analysis_tips %}
+                        <div class="list-group-item px-0">
+                            <div class="d-flex align-items-start">
+                                <div class="icon-circle bg-primary bg-opacity-10 me-3">
+                                    <i class="fas fa-lightbulb text-primary"></i>
+                                </div>
+                                <div>
+                                    <h6 class="mb-1">{{ tip.title }}</h6>
+                                    <p class="text-muted small mb-0">{{ tip.description }}</p>
+                                </div>
+                            </div>
+                        </div>
+                        {% endfor %}
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block styles %}
+<style>
+    .upload-area {
+        border: 2px dashed var(--bs-border-color);
+        border-radius: var(--bs-border-radius);
+        transition: all 0.3s ease;
+    }
+
+    .upload-area.dragover {
+        border-color: var(--bs-primary);
+        background-color: rgba(var(--bs-primary-rgb), 0.05);
+    }
+
+    .form-check.card {
+        cursor: pointer;
+        transition: all 0.2s ease;
+    }
+
+    .form-check.card:hover {
+        border-color: var(--bs-primary);
+    }
+
+    .form-check-input:checked + .form-check-label .card {
+        border-color: var(--bs-primary);
+        background-color: rgba(var(--bs-primary-rgb), 0.05);
+    }
+
+    .icon-circle {
+        width: 32px;
+        height: 32px;
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+    }
+</style>
+{% endblock %}
+
+{% block scripts %}
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        const dropZone = document.getElementById('dropZone');
+        const fileInput = document.getElementById('fileInput');
+        const filePreview = document.getElementById('filePreview');
+        const fileName = document.getElementById('fileName');
+        const fileSize = document.getElementById('fileSize');
+
+        // Drag and drop handlers
+        ['dragenter', 'dragover', 'dragleave', 'drop'].forEach(eventName => {
+            dropZone.addEventListener(eventName, preventDefaults, false);
+        });
+
+        function preventDefaults(e) {
+            e.preventDefault();
+            e.stopPropagation();
+        }
+
+        ['dragenter', 'dragover'].forEach(eventName => {
+            dropZone.addEventListener(eventName, highlight, false);
+        });
+
+        ['dragleave', 'drop'].forEach(eventName => {
+            dropZone.addEventListener(eventName, unhighlight, false);
+        });
+
+        function highlight(e) {
+            dropZone.classList.add('dragover');
+        }
+
+        function unhighlight(e) {
+            dropZone.classList.remove('dragover');
+        }
+
+        dropZone.addEventListener('drop', handleDrop, false);
+
+        function handleDrop(e) {
+            const dt = e.dataTransfer;
+            const files = dt.files;
+            handleFiles(files);
+        }
+
+        fileInput.addEventListener('change', function() {
+            handleFiles(this.files);
+        });
+
+        function handleFiles(files) {
+            if (files.length > 0) {
+                const file = files[0];
+                displayFilePreview(file);
+            }
+        }
+
+        function displayFilePreview(file) {
+            fileName.textContent = file.name;
+            fileSize.textContent = formatFileSize(file.size);
+            filePreview.classList.remove('d-none');
+            dropZone.classList.add('d-none');
+        }
+
+        function removeFile() {
+            fileInput.value = '';
+            filePreview.classList.add('d-none');
+            dropZone.classList.remove('d-none');
+        }
+
+        function formatFileSize(bytes) {
+            if (bytes === 0) return '0 Bytes';
+            const k = 1024;
+            const sizes = ['Bytes', 'KB', 'MB', 'GB'];
+            const i = Math.floor(Math.log(bytes) / Math.log(k));
+            return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + ' ' + sizes[i];
+        }
+
+        // Form submission
+        document.getElementById('uploadForm').addEventListener('submit', function(e) {
+            e.preventDefault();
+            // Add your form submission logic here
+        });
+    });
+</script>
+{% endblock %} 

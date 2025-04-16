@@ -1,0 +1,33 @@
+from setuptools import setup, find_packages
+
+setup(
+    name="sustainatrend",
+    version="1.0.0",
+    packages=find_packages(),
+    install_requires=[
+        'flask',
+        'pymongo',
+        'python-dotenv',
+        'bcrypt',
+        'PyJWT',
+        'Flask-Session',
+        'Flask-Caching',
+        'requests',
+        'pandas',
+        'numpy',
+        'plotly',
+        'structlog',
+        'prometheus-client',
+        'Flask-Assets',
+        'Flask-RESTful',
+        'marshmallow',
+        'python-magic',
+        'Pillow',
+        'openai',
+        'transformers',
+        'psutil',
+        'gunicorn',
+        'waitress'
+    ],
+    python_requires='>=3.8',
+) 

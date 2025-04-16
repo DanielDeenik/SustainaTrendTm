@@ -1,0 +1,275 @@
+{% extends "base.html" %}
+
+{% block title %}Dashboard - SustainaTrend™{% endblock %}
+
+{% block content %}
+<div class="dashboard-container">
+    <!-- Header Section -->
+    <div class="dashboard-header">
+        <h1>Welcome to SustainaTrend™</h1>
+        <p class="subtitle">Your Sustainability Intelligence Platform</p>
+    </div>
+
+    <!-- Main Content Grid -->
+    <div class="dashboard-grid">
+        <!-- Recent Trends Section -->
+        <div class="dashboard-card">
+            <div class="card-header">
+                <h2>Recent Trends</h2>
+                <a href="{{ url_for('trends.index') }}" class="view-all">View All</a>
+            </div>
+            <div class="card-content">
+                {% if recent_trends %}
+                    <div class="trends-list">
+                        {% for trend in recent_trends %}
+                            <div class="trend-item">
+                                <div class="trend-header">
+                                    <h3>{{ trend.title }}</h3>
+                                    <span class="trend-date">{{ trend.created_at.strftime('%Y-%m-%d') }}</span>
+                                </div>
+                                <p class="trend-description">{{ trend.description[:200] }}...</p>
+                                <div class="trend-metrics">
+                                    <span class="metric">
+                                        <i class="fas fa-chart-line"></i>
+                                        Impact: {{ trend.impact_score }}
+                                    </span>
+                                    <span class="metric">
+                                        <i class="fas fa-clock"></i>
+                                        Timeframe: {{ trend.timeframe }}
+                                    </span>
+                                </div>
+                            </div>
+                        {% endfor %}
+                    </div>
+                {% else %}
+                    <p class="no-data">No recent trends available.</p>
+                {% endif %}
+            </div>
+        </div>
+
+        <!-- Portfolio Companies Section -->
+        <div class="dashboard-card">
+            <div class="card-header">
+                <h2>Portfolio Companies</h2>
+                <a href="{{ url_for('vc_lens.index') }}" class="view-all">View All</a>
+            </div>
+            <div class="card-content">
+                {% if portfolio_companies %}
+                    <div class="companies-grid">
+                        {% for company in portfolio_companies %}
+                            <div class="company-card">
+                                <div class="company-header">
+                                    <h3>{{ company.name }}</h3>
+                                    <span class="company-sector">{{ company.sector }}</span>
+                                </div>
+                                <div class="company-metrics">
+                                    <div class="metric">
+                                        <span class="label">ESG Score</span>
+                                        <span class="value">{{ company.esg_score }}</span>
+                                    </div>
+                                    <div class="metric">
+                                        <span class="label">Growth</span>
+                                        <span class="value">{{ company.growth_rate }}%</span>
+                                    </div>
+                                </div>
+                                <div class="company-actions">
+                                    <a href="{{ url_for('vc_lens.portfolio_fit', company_id=company._id) }}" 
+                                       class="btn btn-primary">Analyze Fit</a>
+                                </div>
+                            </div>
+                        {% endfor %}
+                    </div>
+                {% else %}
+                    <p class="no-data">No portfolio companies available.</p>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block styles %}
+<style>
+    .dashboard-container {
+        padding: var(--spacing-lg);
+    }
+
+    .dashboard-header {
+        margin-bottom: var(--spacing-xl);
+        text-align: center;
+    }
+
+    .dashboard-header h1 {
+        font-size: 2.5rem;
+        color: var(--color-primary);
+        margin-bottom: var(--spacing-sm);
+    }
+
+    .subtitle {
+        color: var(--color-text-secondary);
+        font-size: 1.2rem;
+    }
+
+    .dashboard-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+        gap: var(--spacing-lg);
+    }
+
+    .dashboard-card {
+        background: var(--color-surface);
+        border-radius: var(--border-radius);
+        box-shadow: var(--shadow-md);
+        overflow: hidden;
+    }
+
+    .card-header {
+        padding: var(--spacing-md);
+        border-bottom: 1px solid var(--color-border);
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+    }
+
+    .card-header h2 {
+        margin: 0;
+        font-size: 1.5rem;
+        color: var(--color-text-primary);
+    }
+
+    .view-all {
+        color: var(--color-primary);
+        text-decoration: none;
+        font-size: 0.9rem;
+    }
+
+    .card-content {
+        padding: var(--spacing-md);
+    }
+
+    .trends-list {
+        display: flex;
+        flex-direction: column;
+        gap: var(--spacing-md);
+    }
+
+    .trend-item {
+        padding: var(--spacing-md);
+        background: var(--color-surface-alt);
+        border-radius: var(--border-radius-sm);
+    }
+
+    .trend-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: var(--spacing-sm);
+    }
+
+    .trend-header h3 {
+        margin: 0;
+        font-size: 1.1rem;
+        color: var(--color-text-primary);
+    }
+
+    .trend-date {
+        color: var(--color-text-secondary);
+        font-size: 0.9rem;
+    }
+
+    .trend-description {
+        color: var(--color-text-secondary);
+        margin-bottom: var(--spacing-sm);
+    }
+
+    .trend-metrics {
+        display: flex;
+        gap: var(--spacing-md);
+    }
+
+    .metric {
+        display: flex;
+        align-items: center;
+        gap: var(--spacing-xs);
+        color: var(--color-text-secondary);
+        font-size: 0.9rem;
+    }
+
+    .companies-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+        gap: var(--spacing-md);
+    }
+
+    .company-card {
+        padding: var(--spacing-md);
+        background: var(--color-surface-alt);
+        border-radius: var(--border-radius-sm);
+    }
+
+    .company-header {
+        margin-bottom: var(--spacing-sm);
+    }
+
+    .company-header h3 {
+        margin: 0;
+        font-size: 1.1rem;
+        color: var(--color-text-primary);
+    }
+
+    .company-sector {
+        color: var(--color-text-secondary);
+        font-size: 0.9rem;
+    }
+
+    .company-metrics {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: var(--spacing-sm);
+        margin-bottom: var(--spacing-md);
+    }
+
+    .company-metrics .metric {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        text-align: center;
+    }
+
+    .company-metrics .label {
+        font-size: 0.8rem;
+        color: var(--color-text-secondary);
+    }
+
+    .company-metrics .value {
+        font-size: 1.2rem;
+        color: var(--color-primary);
+        font-weight: bold;
+    }
+
+    .company-actions {
+        display: flex;
+        justify-content: center;
+    }
+
+    .no-data {
+        text-align: center;
+        color: var(--color-text-secondary);
+        padding: var(--spacing-lg);
+    }
+
+    @media (max-width: 768px) {
+        .dashboard-container {
+            padding: var(--spacing-md);
+        }
+
+        .dashboard-grid {
+            grid-template-columns: 1fr;
+        }
+
+        .companies-grid {
+            grid-template-columns: 1fr;
+        }
+    }
+</style>
+{% endblock %} 

@@ -1,0 +1,63 @@
+{% extends "base.html" %}
+{% from "components/trendsense.html" import render_trend_card %}
+
+{% block title %}Sustainability Trends - {{ super() }}{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+    <div class="row mb-4">
+        <div class="col">
+            <h1 class="h3 mb-4">Sustainability Trends</h1>
+        </div>
+    </div>
+
+    <!-- Overview Section -->
+    <div class="row mb-4">
+        <div class="col">
+            <div class="card">
+                <div class="card-body">
+                    <h5 class="card-title">Trends Overview</h5>
+                    <p class="card-text">Explore the latest sustainability trends and their impact on business strategies.</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Trends Grid -->
+    <div class="row">
+        {% for trend in trends %}
+            <div class="col-md-4 mb-4">
+                {{ render_trend_card(trend) }}
+            </div>
+        {% else %}
+            <div class="col">
+                <div class="alert alert-info">
+                    No trends available at the moment.
+                </div>
+            </div>
+        {% endfor %}
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // Fetch updated data every 5 minutes
+    setInterval(function() {
+        fetch('{{ url_for("analytics.get_data") }}')
+            .then(response => response.json())
+            .then(data => {
+                // Update trends with new data
+                updateTrends(data.trends);
+            })
+            .catch(error => console.error('Error fetching data:', error));
+    }, 300000);
+});
+
+function updateTrends(trends) {
+    // Implementation for updating trends with new data
+    console.log('Updating trends with:', trends);
+}
+</script>
+{% endblock %} 

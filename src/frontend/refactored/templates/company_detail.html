@@ -1,0 +1,137 @@
+{% extends "base.html" %}
+{% from "components/trendsense.html" import render_metric_card %}
+
+{% block title %}Company - {{ company.name }} - {{ super() }}{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+    <div class="row mb-4">
+        <div class="col">
+            <h1 class="h3 mb-4">{{ company.name }}</h1>
+        </div>
+    </div>
+
+    <!-- Company Overview -->
+    <div class="row mb-4">
+        <div class="col-md-8">
+            <div class="card">
+                <div class="card-body">
+                    <h5 class="card-title">Company Overview</h5>
+                    <div class="row">
+                        <div class="col-md-4">
+                            {% if company.logo_url %}
+                                <img src="{{ company.logo_url }}" alt="{{ company.name }}" class="img-fluid mb-3">
+                            {% endif %}
+                        </div>
+                        <div class="col-md-8">
+                            <p class="card-text">{{ company.description }}</p>
+                            <div class="d-flex flex-wrap gap-2 mb-3">
+                                <span class="badge bg-{{ company.industry_color|default('primary') }}">
+                                    {{ company.industry }}
+                                </span>
+                                <span class="badge bg-secondary">{{ company.location }}</span>
+                                {% if company.website %}
+                                    <a href="{{ company.website }}" target="_blank" class="badge bg-info text-decoration-none">
+                                        Website
+                                    </a>
+                                {% endif %}
+                            </div>
+                            <div class="mt-3">
+                                <h6>Contact Information</h6>
+                                <p class="mb-1">
+                                    <i class="bx bx-envelope me-2"></i> {{ company.email|default('Not available') }}
+                                </p>
+                                <p class="mb-1">
+                                    <i class="bx bx-phone me-2"></i> {{ company.phone|default('Not available') }}
+                                </p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-4">
+            <div class="card">
+                <div class="card-body">
+                    <h5 class="card-title">Quick Stats</h5>
+                    <ul class="list-group list-group-flush">
+                        <li class="list-group-item d-flex justify-content-between align-items-center">
+                            Founded
+                            <span class="badge bg-primary rounded-pill">{{ company.founded_year|default('N/A') }}</span>
+                        </li>
+                        <li class="list-group-item d-flex justify-content-between align-items-center">
+                            Employees
+                            <span class="badge bg-primary rounded-pill">{{ company.employees|default('N/A') }}</span>
+                        </li>
+                        <li class="list-group-item d-flex justify-content-between align-items-center">
+                            Revenue
+                            <span class="badge bg-primary rounded-pill">{{ company.revenue|default('N/A') }}</span>
+                        </li>
+                        <li class="list-group-item d-flex justify-content-between align-items-center">
+                            Sustainability Score
+                            <span class="badge bg-success rounded-pill">{{ company.sustainability_score|default('N/A') }}</span>
+                        </li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Metrics Section -->
+    <div class="row mb-4">
+        <div class="col">
+            <div class="card">
+                <div class="card-body">
+                    <h5 class="card-title">Sustainability Metrics</h5>
+                    <div class="row">
+                        {% for metric in metrics %}
+                            <div class="col-md-3">
+                                {{ render_metric_card(metric) }}
+                            </div>
+                        {% else %}
+                            <div class="col">
+                                <div class="alert alert-info">
+                                    No metrics available for this company.
+                                </div>
+                            </div>
+                        {% endfor %}
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Stories Section -->
+    <div class="row">
+        <div class="col">
+            <div class="card">
+                <div class="card-body">
+                    <h5 class="card-title">Sustainability Stories</h5>
+                    <div class="row">
+                        {% for story in stories %}
+                            <div class="col-md-4">
+                                <div class="card mb-4">
+                                    <div class="card-body">
+                                        <h5 class="card-title">{{ story.title }}</h5>
+                                        <p class="card-text">{{ story.summary }}</p>
+                                        <div class="d-flex justify-content-between align-items-center">
+                                            <span class="badge bg-primary">{{ story.category }}</span>
+                                            <small class="text-muted">{{ story.date }}</small>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        {% else %}
+                            <div class="col">
+                                <div class="alert alert-info">
+                                    No stories available for this company.
+                                </div>
+                            </div>
+                        {% endfor %}
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %} 

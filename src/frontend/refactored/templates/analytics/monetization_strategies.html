@@ -1,0 +1,156 @@
+{% extends "base.html" %}
+{% from "components/trendsense.html" import render_metric_card %}
+
+{% block title %}Monetization Strategies - {{ super() }}{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+    <div class="row mb-4">
+        <div class="col">
+            <h1 class="h3 mb-4">Monetization Strategies</h1>
+        </div>
+    </div>
+
+    <!-- Overview Section -->
+    <div class="row mb-4">
+        <div class="col">
+            <div class="card">
+                <div class="card-body">
+                    <h5 class="card-title">Strategy Overview</h5>
+                    <p class="card-text">Explore various monetization strategies for sustainability initiatives and their potential impact on business performance.</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Strategies Section -->
+    <div class="row mb-4">
+        <div class="col">
+            <div class="card">
+                <div class="card-body">
+                    <h5 class="card-title">Available Strategies</h5>
+                    <div class="row">
+                        {% for strategy in strategies %}
+                            <div class="col-md-4 mb-4">
+                                <div class="card h-100">
+                                    <div class="card-body">
+                                        <h5 class="card-title">{{ strategy.title }}</h5>
+                                        <p class="card-text">{{ strategy.description }}</p>
+                                        <div class="d-flex justify-content-between align-items-center">
+                                            <span class="badge bg-{{ strategy.category_color|default('primary') }}">
+                                                {{ strategy.category }}
+                                            </span>
+                                            <small class="text-muted">{{ strategy.date }}</small>
+                                        </div>
+                                        {% if strategy.progress is defined %}
+                                            <div class="progress mt-3">
+                                                <div class="progress-bar" role="progressbar" style="width: {{ strategy.progress }}%"
+                                                     aria-valuenow="{{ strategy.progress }}" aria-valuemin="0" aria-valuemax="100">
+                                                    {{ strategy.progress }}%
+                                                </div>
+                                            </div>
+                                        {% endif %}
+                                    </div>
+                                    <div class="card-footer bg-transparent">
+                                        <button class="btn btn-sm btn-outline-primary w-100" 
+                                                onclick="showStrategyDetails('{{ strategy._id }}')">
+                                            View Details
+                                        </button>
+                                    </div>
+                                </div>
+                            </div>
+                        {% else %}
+                            <div class="col">
+                                <div class="alert alert-info">
+                                    No strategies available at the moment.
+                                </div>
+                            </div>
+                        {% endfor %}
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Metrics Section -->
+    <div class="row">
+        <div class="col">
+            <div class="card">
+                <div class="card-body">
+                    <h5 class="card-title">Impact Metrics</h5>
+                    <div class="row">
+                        {% for metric in metrics %}
+                            <div class="col-md-3">
+                                {{ render_metric_card(metric) }}
+                            </div>
+                        {% endfor %}
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Strategy Details Modal -->
+<div class="modal fade" id="strategyModal" tabindex="-1" aria-labelledby="strategyModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="strategyModalLabel">Strategy Details</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body" id="strategyModalBody">
+                Loading...
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+function showStrategyDetails(strategyId) {
+    const modal = new bootstrap.Modal(document.getElementById('strategyModal'));
+    const modalBody = document.getElementById('strategyModalBody');
+    
+    // Fetch strategy details
+    fetch(`/api/strategies/${strategyId}`)
+        .then(response => response.json())
+        .then(data => {
+            modalBody.innerHTML = `
+                <div class="strategy-detail">
+                    <h4>${data.title}</h4>
+                    <p class="text-muted">${data.date}</p>
+                    <div class="strategy-content">
+                        ${data.content}
+                    </div>
+                    <div class="mt-4">
+                        <h5>Implementation Steps</h5>
+                        <ol>
+                            ${data.steps ? data.steps.map(step => 
+                                `<li>${step}</li>`
+                            ).join('') : 'No implementation steps available'}
+                        </ol>
+                    </div>
+                    <div class="mt-4">
+                        <h5>Expected Impact</h5>
+                        <ul>
+                            ${data.impact ? Object.entries(data.impact).map(([key, value]) => 
+                                `<li><strong>${key}:</strong> ${value}</li>`
+                            ).join('') : 'No impact metrics available'}
+                        </ul>
+                    </div>
+                </div>
+            `;
+            modal.show();
+        })
+        .catch(error => {
+            modalBody.innerHTML = `<div class="alert alert-danger">Error loading strategy details: ${error.message}</div>`;
+            modal.show();
+        });
+}
+</script>
+{% endblock %} 

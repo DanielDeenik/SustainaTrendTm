@@ -2,7 +2,7 @@
 """
 Database Initialization Script
 
-This script initializes the MongoDB database with proper collections and indexes
+This script initializes the MongoDB database with the necessary collections and indexes
 for the SustainaTrend application.
 """
 
@@ -10,46 +10,32 @@ import os
 import sys
 import logging
 from datetime import datetime
-from pymongo import MongoClient, ASCENDING, DESCENDING
-from pymongo.errors import ConnectionFailure, ServerSelectionTimeoutError
+from typing import Dict, Any, List
 
-# Add src directory to Python path
-sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), '../..')))
+# Add the project root to the Python path
+sys.path.append(os.path.dirname(os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))))
+
+from src.frontend.services.mongodb_service import get_mongodb_service
 
 # Configure logging
 logging.basicConfig(
     level=logging.INFO,
-    format='%(asctime)s - %(name)s - %(levelname)s - %(message)s',
-    handlers=[
-        logging.FileHandler('logs/init_db.log'),
-        logging.StreamHandler()
-    ]
+    format='%(asctime)s - %(name)s - %(levelname)s - %(message)s'
 )
 logger = logging.getLogger(__name__)
 
 def connect_to_mongodb():
-    """Connect to MongoDB and return the database."""
+    """Connect to MongoDB and return the service instance."""
     try:
-        # Get MongoDB connection string from environment
-        mongo_uri = os.getenv("MONGODB_URI", "mongodb://localhost:27017/")
-        db_name = os.getenv("MONGO_DB_NAME", "sustainatrend")
-        
-        logger.info(f"Connecting to MongoDB at {mongo_uri}")
-        client = MongoClient(mongo_uri, serverSelectionTimeoutMS=5000)
-        
-        # Test connection
-        client.server_info()
+        service = get_mongodb_service()
         logger.info("Successfully connected to MongoDB")
-        
-        # Get database
-        db = client[db_name]
-        return db
-    except (ConnectionFailure, ServerSelectionTimeoutError) as e:
+        return service
+    except Exception as e:
         logger.error(f"Failed to connect to MongoDB: {e}")
         sys.exit(1)
 
 def create_collections(db):
-    """Create collections with proper schemas."""
+    """Create the necessary collections if they don't exist."""
     collections = [
         "metrics",
         "stories",
@@ -63,160 +49,168 @@ def create_collections(db):
     
     for collection in collections:
         if collection not in db.list_collection_names():
-            logger.info(f"Creating collection: {collection}")
             db.create_collection(collection)
+            logger.info(f"Created collection: {collection}")
         else:
             logger.info(f"Collection already exists: {collection}")
 
 def create_indexes(db):
-    """Create indexes for collections."""
-    # Metrics collection indexes
-    db.metrics.create_index([("category", ASCENDING)])
-    db.metrics.create_index([("timestamp", DESCENDING)])
-    db.metrics.create_index([("name", ASCENDING)])
-    
-    # Stories collection indexes
-    db.stories.create_index([("category", ASCENDING)])
-    db.stories.create_index([("timestamp", DESCENDING)])
-    db.stories.create_index([("title", ASCENDING)])
-    
-    # Trends collection indexes
-    db.trends.create_index([("category", ASCENDING)])
-    db.trends.create_index([("timestamp", DESCENDING)])
-    db.trends.create_index([("name", ASCENDING)])
-    
-    # Strategies collection indexes
-    db.strategies.create_index([("title", ASCENDING)])
-    db.strategies.create_index([("potential_revenue", ASCENDING)])
-    
-    # Companies collection indexes
-    db.companies.create_index([("name", ASCENDING)])
-    db.companies.create_index([("ticker", ASCENDING)])
-    db.companies.create_index([("sector", ASCENDING)])
-    
-    # Users collection indexes
-    db.users.create_index([("email", ASCENDING)], unique=True)
-    db.users.create_index([("username", ASCENDING)], unique=True)
-    
-    # Portfolios collection indexes
-    db.portfolios.create_index([("user_id", ASCENDING)])
-    db.portfolios.create_index([("company_id", ASCENDING)])
-    
-    # Assessments collection indexes
-    db.assessments.create_index([("company_id", ASCENDING)])
-    db.assessments.create_index([("timestamp", DESCENDING)])
-    
-    logger.info("Created indexes for all collections")
+    """Create indexes for the collections."""
+    try:
+        # Drop existing indexes except _id
+        for collection in db.list_collection_names():
+            db[collection].drop_indexes()
+            logger.info(f"Dropped existing indexes for collection: {collection}")
+        
+        # Metrics collection indexes
+        db.metrics.create_index([("timestamp", -1)])
+        db.metrics.create_index([("category", 1)])
+        
+        # Stories collection indexes
+        db.stories.create_index([("timestamp", -1)])
+        db.stories.create_index([("type", 1)])
+        db.stories.create_index([("category", 1)])
+        
+        # Trends collection indexes
+        db.trends.create_index([("timestamp", -1)])
+        db.trends.create_index([("category", 1)])
+        db.trends.create_index([("impact_score", -1)])
+        
+        # Strategies collection indexes
+        db.strategies.create_index([("timestamp", -1)])
+        db.strategies.create_index([("category", 1)])
+        db.strategies.create_index([("roi", -1)])
+        
+        # Companies collection indexes
+        db.companies.create_index([("name", 1)], unique=True)
+        db.companies.create_index([("industry", 1)])
+        db.companies.create_index([("sustainability_score", -1)])
+        
+        # Users collection indexes
+        db.users.create_index([("email", 1)], unique=True)
+        db.users.create_index([("username", 1)], unique=True)
+        
+        # Portfolios collection indexes
+        db.portfolios.create_index([("user_id", 1)])
+        db.portfolios.create_index([("timestamp", -1)])
+        
+        # Assessments collection indexes
+        db.assessments.create_index([("company_id", 1)])
+        db.assessments.create_index([("timestamp", -1)])
+        db.assessments.create_index([("category", 1)])
+        
+        logger.info("Successfully created all indexes")
+    except Exception as e:
+        logger.error(f"Error creating indexes: {e}")
+        raise
 
 def insert_sample_data(db):
-    """Insert sample data into collections."""
-    # Sample metrics
-    metrics = [
-        {
-            "name": "Carbon Emissions 1",
-            "category": "Carbon Emissions",
-            "value": 75.5,
-            "unit": "tons",
-            "timestamp": datetime.now(),
-            "trend": [
-                {"date": "2023-01-01", "value": 80.0},
-                {"date": "2023-02-01", "value": 78.5},
-                {"date": "2023-03-01", "value": 77.0},
-                {"date": "2023-04-01", "value": 75.5}
-            ],
-            "change": -5.6,
-            "change_type": "positive"
-        },
-        {
-            "name": "Energy Efficiency 1",
-            "category": "Energy Efficiency",
-            "value": 85.2,
-            "unit": "%",
-            "timestamp": datetime.now(),
-            "trend": [
-                {"date": "2023-01-01", "value": 80.0},
-                {"date": "2023-02-01", "value": 82.0},
-                {"date": "2023-03-01", "value": 83.5},
-                {"date": "2023-04-01", "value": 85.2}
-            ],
-            "change": 6.5,
-            "change_type": "positive"
-        }
-    ]
-    
-    # Sample stories
-    stories = [
-        {
-            "id": "story-1",
-            "title": "Carbon Emissions Reduction Initiative",
-            "content": "Our organization has successfully reduced carbon emissions by 15% through implementation of energy-efficient technologies and practices.",
-            "category": "Carbon Emissions",
-            "tags": ["climate action", "carbon reduction", "energy efficiency"],
-            "metrics": ["Carbon Emissions 1", "Energy Efficiency 1"],
-            "timestamp": datetime.now().isoformat(),
-            "author": "Sustainability Team",
-            "image_url": "/static/images/story-1.jpg",
-            "impact_score": 85.5
-        }
-    ]
-    
-    # Sample trends
-    trends = [
-        {
-            "id": "trend-1",
-            "name": "Carbon Neutrality Pledges",
-            "category": "Climate Action",
-            "virality_score": 87,
-            "sentiment": 0.78,
-            "mentions": 1458,
-            "description": "Companies pledging to achieve carbon neutrality by 2030",
-            "impact_statement": "High potential for emissions reduction",
-            "category_display": "Climate Action",
-            "timeframe": "Long-term trend",
-            "timestamp": datetime.now().isoformat(),
-            "sources": ["News Articles", "Corporate Reports", "Social Media"],
-            "momentum": "increasing"
-        }
-    ]
-    
-    # Sample strategies
-    strategies = [
-        {
-            "title": "Carbon Credit Trading Platform",
-            "description": "Develop a marketplace for trading verified carbon credits, connecting sustainability-focused companies with offset providers.",
-            "potential_revenue": "High",
-            "implementation_complexity": "Medium",
-            "time_to_market": "6-12 months",
-            "key_metrics": ["Transaction Volume", "User Growth", "Verification Rate"],
-            "estimated_roi": "35-45%"
-        }
-    ]
-    
-    # Insert sample data
+    """Insert sample data into the collections if they are empty."""
+    # Sample metrics data
     if db.metrics.count_documents({}) == 0:
-        db.metrics.insert_many(metrics)
-        logger.info(f"Inserted {len(metrics)} sample metrics")
+        sample_metrics = {
+            "environmental": {
+                "carbon_emissions": 75.5,
+                "renewable_energy": 45.2,
+                "waste_reduction": 60.8
+            },
+            "social": {
+                "employee_satisfaction": 85.3,
+                "community_engagement": 78.9,
+                "diversity_score": 82.1
+            },
+            "governance": {
+                "board_diversity": 65.4,
+                "transparency_score": 88.7,
+                "ethics_compliance": 92.3
+            },
+            "timestamp": datetime.now()
+        }
+        db.metrics.insert_one(sample_metrics)
+        logger.info("Inserted sample metrics data")
     
+    # Sample stories data
     if db.stories.count_documents({}) == 0:
-        db.stories.insert_many(stories)
-        logger.info(f"Inserted {len(stories)} sample stories")
+        sample_stories = [
+            {
+                "type": "environmental",
+                "title": "Renewable Energy Initiative",
+                "content": "Company X achieved 100% renewable energy usage across all facilities.",
+                "metrics": {
+                    "energy_savings": 45.2,
+                    "carbon_reduction": 30.5
+                },
+                "timestamp": datetime.now()
+            },
+            {
+                "type": "social",
+                "title": "Community Development Program",
+                "content": "Implemented new community development initiatives in local areas.",
+                "metrics": {
+                    "community_impact": 78.9,
+                    "employee_engagement": 85.3
+                },
+                "timestamp": datetime.now()
+            }
+        ]
+        db.stories.insert_many(sample_stories)
+        logger.info("Inserted sample stories data")
     
+    # Sample trends data
     if db.trends.count_documents({}) == 0:
-        db.trends.insert_many(trends)
-        logger.info(f"Inserted {len(trends)} sample trends")
+        sample_trends = [
+            {
+                "name": "Circular Economy",
+                "description": "Growing adoption of circular economy principles in manufacturing",
+                "impact_score": 85.5,
+                "category": "environmental",
+                "timestamp": datetime.now()
+            },
+            {
+                "name": "Social Impact Investing",
+                "description": "Increasing focus on social impact in investment decisions",
+                "impact_score": 78.3,
+                "category": "social",
+                "timestamp": datetime.now()
+            }
+        ]
+        db.trends.insert_many(sample_trends)
+        logger.info("Inserted sample trends data")
     
+    # Sample strategies data
     if db.strategies.count_documents({}) == 0:
-        db.strategies.insert_many(strategies)
-        logger.info(f"Inserted {len(strategies)} sample strategies")
+        sample_strategies = [
+            {
+                "name": "Green Product Line",
+                "description": "Launch eco-friendly product line with sustainable materials",
+                "potential_revenue": 1500000,
+                "implementation_cost": 500000,
+                "roi": 200,
+                "category": "product",
+                "timestamp": datetime.now()
+            },
+            {
+                "name": "Carbon Offset Program",
+                "description": "Implement carbon offset program for supply chain",
+                "potential_revenue": 800000,
+                "implementation_cost": 300000,
+                "roi": 167,
+                "category": "operational",
+                "timestamp": datetime.now()
+            }
+        ]
+        db.strategies.insert_many(sample_strategies)
+        logger.info("Inserted sample strategies data")
 
 def main():
     """Main function to initialize the database."""
     try:
         # Create logs directory if it doesn't exist
-        os.makedirs('logs', exist_ok=True)
+        os.makedirs("logs", exist_ok=True)
         
         # Connect to MongoDB
-        db = connect_to_mongodb()
+        service = connect_to_mongodb()
+        db = service.db
         
         # Create collections
         create_collections(db)
@@ -228,9 +222,13 @@ def main():
         insert_sample_data(db)
         
         logger.info("Database initialization completed successfully")
+        
     except Exception as e:
-        logger.error(f"Error initializing database: {e}")
+        logger.error(f"Database initialization failed: {e}")
         sys.exit(1)
+    finally:
+        # Close MongoDB connections
+        service.close()
 
 if __name__ == "__main__":
     main() 

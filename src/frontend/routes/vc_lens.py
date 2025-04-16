@@ -19,17 +19,20 @@ mongodb_service = MongoDBService()
 # Import Gemini/Google AI functionality if available
 try:
     from ..utils.gemini_search import GeminiSearchController
-            gemini_available = True
-        except ImportError:
-            gemini_available = False
-            # Define a placeholder GeminiSearchController
-            class GeminiSearchController:
-                def __init__(self):
-                    pass
+    gemini_controller = GeminiSearchController()
+    gemini_available = True
+except ImportError:
+    gemini_available = False
+    # Define a placeholder GeminiSearchController
+    class GeminiSearchController:
+        def __init__(self):
+            pass
+    gemini_controller = None
 
 # Import VC Lens Service
 try:
     from src.backend.services.vc_lens_service import VCLensService
+    vc_lens_service = VCLensService()
 except ImportError:
     # Create a simple mock if the service is not available
     class VCLensService:
@@ -41,6 +44,7 @@ except ImportError:
         
         def search_similar(self, query, limit=5):
             return []
+    vc_lens_service = VCLensService()
 
 # Configure logging
 logger = logging.getLogger(__name__)
@@ -48,55 +52,62 @@ logger = logging.getLogger(__name__)
 # Create blueprint
 vc_lens_bp = Blueprint('vc_lens', __name__, url_prefix='/vc-lens')
 
-# Initialize VC Lens service
-vc_lens_service = VCLensService()
-
-# Initialize Gemini controller if available
-gemini_controller = None
-if gemini_available:
-    try:
-        gemini_controller = GeminiSearchController()
-    except Exception as e:
-        print(f"Error initializing Gemini controller: {e}")
-
-# Helper functions for MongoDB operations
+# Helper functions
 def get_metrics():
-    """Get metrics from MongoDB using the unified service"""
+    """Get sustainability metrics from MongoDB."""
     try:
-        return mongodb_service.find_documents("metrics", {}, limit=100)
+        db = get_database()
+        metrics = list(db.sustainability_metrics.find())
+        return metrics
     except Exception as e:
-        logger.error(f"Error getting metrics: {e}")
+        logger.error(f"Error fetching metrics: {e}")
         return []
 
 def get_metrics_by_category(category):
-    """Get metrics by category from MongoDB using the unified service"""
+    """Get sustainability metrics by category from MongoDB."""
     try:
-        return mongodb_service.find_documents("metrics", {"category": category}, limit=100)
+        db = get_database()
+        metrics = list(db.sustainability_metrics.find({"category": category}))
+        return metrics
     except Exception as e:
-        logger.error(f"Error getting metrics by category: {e}")
+        logger.error(f"Error fetching metrics by category: {e}")
         return []
 
 def get_trends():
-    """Get trends from MongoDB using the unified service"""
+    """Get sustainability trends from MongoDB."""
     try:
-        return mongodb_service.find_documents("trends", {}, limit=50)
+        db = get_database()
+        trends = list(db.trends.find())
+        return trends
     except Exception as e:
-        logger.error(f"Error getting trends: {e}")
+        logger.error(f"Error fetching trends: {e}")
         return []
 
 def get_trending_categories():
-    """Get trending categories from MongoDB using the unified service"""
+    """Get trending categories from MongoDB."""
     try:
-        trends = mongodb_service.find_documents("trends", {}, limit=50)
-        categories = set()
-        for trend in trends:
-            if "category" in trend:
-                categories.add(trend["category"])
-        return list(categories)
+        db = get_database()
+        categories = list(db.trends.aggregate([
+            {"$group": {"_id": "$category", "count": {"$sum": 1}, "growth_rate": {"$avg": "$growth_rate"}}},
+            {"$project": {"name": "$_id", "count": 1, "growth_rate": 1, "description": {"$concat": ["Trending in ", "$_id"]}}},
+            {"$sort": {"count": -1}},
+            {"$limit": 6}
+        ]))
+        return categories
     except Exception as e:
-        logger.error(f"Error getting trending categories: {e}")
+        logger.error(f"Error fetching trending categories: {e}")
         return []
 
+def get_stories_collection():
+    """Get stories collection from MongoDB."""
+    try:
+        db = get_database()
+        return db.stories
+    except Exception as e:
+        logger.error(f"Error getting stories collection: {e}")
+        return None
+
+# Routes
 @vc_lens_bp.route('/')
 def index():
     """VC-Lens™ main page"""
@@ -106,7 +117,7 @@ def index():
     try:
         trending_categories = get_trending_categories()
     except Exception as e:
-        print(f"Error fetching trending categories: {e}")
+        logger.error(f"Error fetching trending categories: {e}")
     
     # Get sample recent stories to display as examples
     recent_stories = []
@@ -115,13 +126,13 @@ def index():
         if stories_collection:
             recent_stories = list(stories_collection.find().sort('created_at', -1).limit(4))
     except Exception as e:
-        print(f"Error fetching recent stories: {e}")
+        logger.error(f"Error fetching recent stories: {e}")
     
     # Check if Gemini AI is available
     ai_available = gemini_controller is not None
     
     return render_template(
-        'vc_lens/index.html',
+        'vc_lens.html',
         active_nav='vc_lens',
         trending_categories=trending_categories,
         recent_stories=recent_stories,

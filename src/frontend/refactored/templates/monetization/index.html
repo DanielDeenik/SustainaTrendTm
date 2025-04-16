@@ -1,0 +1,59 @@
+{% extends "base.html" %}
+
+{% block title %}Monetization - SustainaTrend™{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+    <div class="row">
+        <div class="col-12">
+            <h1 class="mb-4">Monetization Dashboard</h1>
+        </div>
+    </div>
+    
+    <div class="row">
+        <div class="col-md-8">
+            <div class="card">
+                <div class="card-header">
+                    <h5 class="card-title">Revenue Overview</h5>
+                </div>
+                <div class="card-body">
+                    <div id="revenueChart"></div>
+                </div>
+            </div>
+        </div>
+        
+        <div class="col-md-4">
+            <div class="card">
+                <div class="card-header">
+                    <h5 class="card-title">Key Metrics</h5>
+                </div>
+                <div class="card-body">
+                    <div id="metricsChart"></div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // Load revenue data
+    fetch('/monetization/api/revenue')
+        .then(response => response.json())
+        .then(data => {
+            console.log('Revenue data loaded:', data);
+        })
+        .catch(error => console.error('Error loading revenue:', error));
+    
+    // Load metrics data
+    fetch('/monetization/api/metrics')
+        .then(response => response.json())
+        .then(data => {
+            console.log('Metrics data loaded:', data);
+        })
+        .catch(error => console.error('Error loading metrics:', error));
+});
+</script>
+{% endblock %} 

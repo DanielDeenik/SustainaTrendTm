@@ -1,0 +1,124 @@
+{% extends "base.html" %}
+
+{% block title %}VC Lens™ - SustainaTrend{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+    <div class="row">
+        <div class="col-12">
+            <div class="card mb-4">
+                <div class="card-header d-flex justify-content-between align-items-center">
+                    <h2 class="mb-0">VC Lens™</h2>
+                    <div>
+                        <a href="{{ url_for('vc_lens.upload_document') }}" class="btn btn-primary">
+                            <i class="fas fa-upload me-2"></i>Upload Document
+                        </a>
+                    </div>
+                </div>
+                <div class="card-body">
+                    <div class="row">
+                        <div class="col-md-6">
+                            <div class="card h-100">
+                                <div class="card-header">
+                                    <h3 class="mb-0">Portfolio Analysis</h3>
+                                </div>
+                                <div class="card-body">
+                                    <p class="card-text">Analyze your portfolio companies' sustainability metrics and impact.</p>
+                                    <a href="{{ url_for('vc_lens.startup_assessment') }}" class="btn btn-outline-primary">
+                                        <i class="fas fa-chart-line me-2"></i>Start Analysis
+                                    </a>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="card h-100">
+                                <div class="card-header">
+                                    <h3 class="mb-0">Document Search</h3>
+                                </div>
+                                <div class="card-body">
+                                    <p class="card-text">Search through your uploaded documents using AI-powered semantic search.</p>
+                                    <a href="{{ url_for('vc_lens.search_documents') }}" class="btn btn-outline-primary">
+                                        <i class="fas fa-search me-2"></i>Search Documents
+                                    </a>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    {% if trending_categories %}
+    <div class="row">
+        <div class="col-12">
+            <div class="card mb-4">
+                <div class="card-header">
+                    <h3 class="mb-0">Trending Categories</h3>
+                </div>
+                <div class="card-body">
+                    <div class="row">
+                        {% for category in trending_categories %}
+                        <div class="col-md-4 mb-3">
+                            <div class="card h-100">
+                                <div class="card-body">
+                                    <h5 class="card-title">{{ category.name }}</h5>
+                                    <p class="card-text">{{ category.description }}</p>
+                                    <div class="d-flex justify-content-between align-items-center">
+                                        <span class="badge bg-primary">{{ category.count }} companies</span>
+                                        <span class="badge bg-success">{{ category.growth_rate }}% growth</span>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        {% endfor %}
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    {% endif %}
+
+    {% if recent_stories %}
+    <div class="row">
+        <div class="col-12">
+            <div class="card mb-4">
+                <div class="card-header">
+                    <h3 class="mb-0">Recent Stories</h3>
+                </div>
+                <div class="card-body">
+                    <div class="row">
+                        {% for story in recent_stories %}
+                        <div class="col-md-6 mb-3">
+                            <div class="card h-100">
+                                <div class="card-body">
+                                    <h5 class="card-title">{{ story.title }}</h5>
+                                    <p class="card-text">{{ story.content[:200] }}...</p>
+                                    <div class="d-flex justify-content-between align-items-center">
+                                        <small class="text-muted">{{ story.created_at.strftime('%Y-%m-%d') }}</small>
+                                        <div>
+                                            <span class="badge bg-info me-2">{{ story.views }} views</span>
+                                            <span class="badge bg-success">{{ story.likes }} likes</span>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        {% endfor %}
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    {% endif %}
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+    // Add any page-specific JavaScript here
+    document.addEventListener('DOMContentLoaded', function() {
+        // Initialize any components or event listeners
+    });
+</script>
+{% endblock %} 

@@ -1,0 +1,226 @@
+{% extends "base.html" %}
+
+{% block title %}VC Lens™ Dashboard - SustainaTrend{% endblock %}
+
+{% block content %}
+<div class="container-fluid py-4">
+    <div class="row">
+        <div class="col-12">
+            <div class="d-flex justify-content-between align-items-center mb-4">
+                <div>
+                    <h1 class="h3 mb-2">VC Lens™ Dashboard</h1>
+                    <p class="text-muted mb-0">Analyze startup documents and assess portfolio fit using AI-powered insights.</p>
+                </div>
+                <div>
+                    <a href="{{ url_for('vc_lens.upload_document') }}" class="btn btn-primary">
+                        <i class="fas fa-upload me-2"></i>Upload Document
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Quick Actions -->
+    <div class="row mb-4">
+        <div class="col-md-4">
+            <div class="card h-100">
+                <div class="card-body">
+                    <h5 class="card-title">Document Analysis</h5>
+                    <p class="card-text">Process and analyze startup documents, pitch decks, or investment theses.</p>
+                    <a href="{{ url_for('vc_lens.analyze_document') }}" class="btn btn-outline-primary">
+                        <i class="fas fa-search me-2"></i>Analyze
+                    </a>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-4">
+            <div class="card h-100">
+                <div class="card-body">
+                    <h5 class="card-title">Portfolio Fit</h5>
+                    <p class="card-text">Compare startups against your investment criteria and portfolio strategy.</p>
+                    <a href="{{ url_for('vc_lens.portfolio_fit') }}" class="btn btn-outline-primary">
+                        <i class="fas fa-chart-line me-2"></i>Compare
+                    </a>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-4">
+            <div class="card h-100">
+                <div class="card-body">
+                    <h5 class="card-title">Market Insights</h5>
+                    <p class="card-text">Get AI-powered market insights and trend analysis for your portfolio.</p>
+                    <a href="{{ url_for('vc_lens.market_insights') }}" class="btn btn-outline-primary">
+                        <i class="fas fa-lightbulb me-2"></i>Insights
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Recent Documents -->
+    <div class="row mb-4">
+        <div class="col-12">
+            <div class="card">
+                <div class="card-header d-flex justify-content-between align-items-center">
+                    <h5 class="card-title mb-0">Recent Documents</h5>
+                    <a href="{{ url_for('vc_lens.all_documents') }}" class="btn btn-sm btn-outline-primary">View All</a>
+                </div>
+                <div class="card-body">
+                    <div class="table-responsive">
+                        <table class="table table-hover">
+                            <thead>
+                                <tr>
+                                    <th>Document</th>
+                                    <th>Type</th>
+                                    <th>Company</th>
+                                    <th>Uploaded By</th>
+                                    <th>Date</th>
+                                    <th>Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody id="recent-documents">
+                                <!-- Documents will be loaded dynamically -->
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Analysis Insights -->
+    <div class="row">
+        <div class="col-md-6">
+            <div class="card h-100">
+                <div class="card-header">
+                    <h5 class="card-title mb-0">Industry Distribution</h5>
+                </div>
+                <div class="card-body">
+                    <canvas id="industryChart"></canvas>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-6">
+            <div class="card h-100">
+                <div class="card-header">
+                    <h5 class="card-title mb-0">Stage Distribution</h5>
+                </div>
+                <div class="card-body">
+                    <canvas id="stageChart"></canvas>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        // Load recent documents
+        async function loadRecentDocuments() {
+            try {
+                const response = await fetch('{{ url_for("vc_lens.get_documents") }}');
+                const data = await response.json();
+                
+                if (data.success) {
+                    const tbody = document.getElementById('recent-documents');
+                    tbody.innerHTML = '';
+                    
+                    data.documents.slice(0, 5).forEach(doc => {
+                        const row = document.createElement('tr');
+                        row.innerHTML = `
+                            <td>${doc.metadata.original_filename || 'Untitled'}</td>
+                            <td>${doc.metadata.document_type || 'Unknown'}</td>
+                            <td>${doc.metadata.company_name || 'Unknown'}</td>
+                            <td>${doc.metadata.uploaded_by || 'Unknown'}</td>
+                            <td>${new Date(doc.metadata.uploaded_at).toLocaleDateString()}</td>
+                            <td>
+                                <div class="btn-group">
+                                    <a href="{{ url_for("vc_lens.analyze_document", doc_id="") }}${doc.doc_id}" 
+                                       class="btn btn-sm btn-primary">
+                                        <i class="fas fa-search"></i>
+                                    </a>
+                                    <a href="{{ url_for("vc_lens.portfolio_fit", doc_id="") }}${doc.doc_id}" 
+                                       class="btn btn-sm btn-secondary">
+                                        <i class="fas fa-chart-line"></i>
+                                    </a>
+                                </div>
+                            </td>
+                        `;
+                        tbody.appendChild(row);
+                    });
+                }
+            } catch (error) {
+                console.error('Error loading recent documents:', error);
+            }
+        }
+
+        // Initialize charts
+        function initCharts() {
+            // Industry Distribution Chart
+            const industryCtx = document.getElementById('industryChart').getContext('2d');
+            new Chart(industryCtx, {
+                type: 'pie',
+                data: {
+                    labels: ['Clean Tech', 'FinTech', 'HealthTech', 'Enterprise', 'Consumer', 'Other'],
+                    datasets: [{
+                        data: [30, 25, 15, 10, 10, 10],
+                        backgroundColor: [
+                            '#4CAF50',
+                            '#2196F3',
+                            '#9C27B0',
+                            '#FFC107',
+                            '#FF5722',
+                            '#607D8B'
+                        ]
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    plugins: {
+                        legend: {
+                            position: 'bottom'
+                        }
+                    }
+                }
+            });
+
+            // Stage Distribution Chart
+            const stageCtx = document.getElementById('stageChart').getContext('2d');
+            new Chart(stageCtx, {
+                type: 'bar',
+                data: {
+                    labels: ['Seed', 'Series A', 'Series B', 'Growth'],
+                    datasets: [{
+                        label: 'Number of Startups',
+                        data: [12, 19, 8, 5],
+                        backgroundColor: '#4CAF50'
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    plugins: {
+                        legend: {
+                            display: false
+                        }
+                    },
+                    scales: {
+                        y: {
+                            beginAtZero: true,
+                            ticks: {
+                                stepSize: 1
+                            }
+                        }
+                    }
+                }
+            });
+        }
+
+        // Initialize dashboard
+        loadRecentDocuments();
+        initCharts();
+    });
+</script>
+{% endblock %} 

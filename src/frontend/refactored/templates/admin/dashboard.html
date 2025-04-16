@@ -1,0 +1,152 @@
+{% extends "base.html" %}
+
+{% block title %}Admin Dashboard - SustainaTrend{% endblock %}
+
+{% block content %}
+<div class="container mt-4">
+    <h1 class="mb-4">System Administration Dashboard</h1>
+    
+    <!-- System Metrics -->
+    <div class="row mb-4">
+        <div class="col-md-4">
+            <div class="card">
+                <div class="card-body">
+                    <h5 class="card-title">CPU Usage</h5>
+                    <div class="progress">
+                        <div class="progress-bar" role="progressbar" style="width: {{ cpu_percent }}%">
+                            {{ cpu_percent }}%
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-4">
+            <div class="card">
+                <div class="card-body">
+                    <h5 class="card-title">Memory Usage</h5>
+                    <div class="progress">
+                        <div class="progress-bar" role="progressbar" style="width: {{ memory_percent }}%">
+                            {{ memory_percent }}%
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-4">
+            <div class="card">
+                <div class="card-body">
+                    <h5 class="card-title">Disk Usage</h5>
+                    <div class="progress">
+                        <div class="progress-bar" role="progressbar" style="width: {{ disk_percent }}%">
+                            {{ disk_percent }}%
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- MongoDB Status -->
+    <div class="row mb-4">
+        <div class="col-12">
+            <div class="card">
+                <div class="card-body">
+                    <h5 class="card-title">MongoDB Connection</h5>
+                    <p class="card-text">
+                        Status: 
+                        <span class="badge {% if mongo_status == 'Connected' %}bg-success{% else %}bg-danger{% endif %}">
+                            {{ mongo_status }}
+                        </span>
+                    </p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- API Endpoints Status -->
+    <div class="row">
+        <div class="col-12">
+            <div class="card">
+                <div class="card-body">
+                    <h5 class="card-title">API Endpoints Status</h5>
+                    <div class="table-responsive">
+                        <table class="table">
+                            <thead>
+                                <tr>
+                                    <th>Endpoint</th>
+                                    <th>Status</th>
+                                    <th>Response Time</th>
+                                    <th>Last Check</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for endpoint, status in api_status.items() %}
+                                <tr>
+                                    <td>{{ endpoint }}</td>
+                                    <td>
+                                        <span class="badge {% if status.status == 'healthy' %}bg-success{% else %}bg-danger{% endif %}">
+                                            {{ status.status }}
+                                        </span>
+                                    </td>
+                                    <td>{{ status.response_time }}</td>
+                                    <td>{{ status.last_check|default('N/A') }}</td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+{% block scripts %}
+<script>
+    // Refresh metrics every 30 seconds
+    setInterval(function() {
+        fetch('/admin/metrics')
+            .then(response => response.json())
+            .then(data => {
+                // Update metrics display
+                updateMetrics(data);
+            })
+            .catch(error => console.error('Error fetching metrics:', error));
+    }, 30000);
+
+    function updateMetrics(data) {
+        // Update CPU usage
+        document.querySelector('.cpu-progress').style.width = data.system.cpu.percent + '%';
+        document.querySelector('.cpu-percent').textContent = data.system.cpu.percent + '%';
+        
+        // Update memory usage
+        document.querySelector('.memory-progress').style.width = data.system.memory.percent + '%';
+        document.querySelector('.memory-percent').textContent = data.system.memory.percent + '%';
+        
+        // Update disk usage
+        document.querySelector('.disk-progress').style.width = data.system.disk.percent + '%';
+        document.querySelector('.disk-percent').textContent = data.system.disk.percent + '%';
+        
+        // Update API status
+        updateApiStatus(data.api.endpoints);
+    }
+
+    function updateApiStatus(endpoints) {
+        for (const [endpoint, status] of Object.entries(endpoints)) {
+            const row = document.querySelector(`tr[data-endpoint="${endpoint}"]`);
+            if (row) {
+                const statusBadge = row.querySelector('.status-badge');
+                statusBadge.className = `badge ${status.status === 'healthy' ? 'bg-success' : 'bg-danger'}`;
+                statusBadge.textContent = status.status;
+                
+                const responseTime = row.querySelector('.response-time');
+                responseTime.textContent = status.response_time;
+                
+                const lastCheck = row.querySelector('.last-check');
+                lastCheck.textContent = new Date().toLocaleTimeString();
+            }
+        }
+    }
+</script>
+{% endblock %}
+{% endblock %} 
