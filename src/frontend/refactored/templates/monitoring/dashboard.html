@@ -1,0 +1,220 @@
+{% extends "base.html" %}
+
+{% block title %}Monitoring Dashboard - SustainaTrend™{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+    <h1 class="h3 mb-4 text-gray-800">Monitoring Dashboard</h1>
+    
+    <!-- Overall System Status -->
+    <div class="row">
+        <div class="col-xl-12 col-md-12 mb-4">
+            <div class="card border-left-primary shadow h-100 py-2">
+                <div class="card-body">
+                    <div class="row no-gutters align-items-center">
+                        <div class="col mr-2">
+                            <div class="text-xs font-weight-bold text-primary text-uppercase mb-1">
+                                Overall System Status
+                            </div>
+                            <div class="h5 mb-0 font-weight-bold text-gray-800" id="system-status">
+                                Loading...
+                            </div>
+                        </div>
+                        <div class="col-auto">
+                            <i class="fas fa-server fa-2x text-gray-300"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Services Status -->
+    <div class="row">
+        <!-- MongoDB Status -->
+        <div class="col-xl-4 col-md-6 mb-4">
+            <div class="card border-left-success shadow h-100 py-2">
+                <div class="card-body">
+                    <div class="row no-gutters align-items-center">
+                        <div class="col mr-2">
+                            <div class="text-xs font-weight-bold text-success text-uppercase mb-1">
+                                MongoDB Status
+                            </div>
+                            <div class="h5 mb-0 font-weight-bold text-gray-800" id="mongodb-status">
+                                Loading...
+                            </div>
+                        </div>
+                        <div class="col-auto">
+                            <i class="fas fa-database fa-2x text-gray-300"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- API Status -->
+        <div class="col-xl-4 col-md-6 mb-4">
+            <div class="card border-left-info shadow h-100 py-2">
+                <div class="card-body">
+                    <div class="row no-gutters align-items-center">
+                        <div class="col mr-2">
+                            <div class="text-xs font-weight-bold text-info text-uppercase mb-1">
+                                API Status
+                            </div>
+                            <div class="h5 mb-0 font-weight-bold text-gray-800" id="api-status">
+                                Loading...
+                            </div>
+                        </div>
+                        <div class="col-auto">
+                            <i class="fas fa-code fa-2x text-gray-300"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- System Metrics -->
+        <div class="col-xl-4 col-md-6 mb-4">
+            <div class="card border-left-warning shadow h-100 py-2">
+                <div class="card-body">
+                    <div class="row no-gutters align-items-center">
+                        <div class="col mr-2">
+                            <div class="text-xs font-weight-bold text-warning text-uppercase mb-1">
+                                System Metrics
+                            </div>
+                            <div class="h5 mb-0 font-weight-bold text-gray-800" id="system-metrics">
+                                Loading...
+                            </div>
+                        </div>
+                        <div class="col-auto">
+                            <i class="fas fa-chart-line fa-2x text-gray-300"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Metrics Chart -->
+    <div class="row">
+        <div class="col-xl-12 col-lg-12">
+            <div class="card shadow mb-4">
+                <div class="card-header py-3 d-flex flex-row align-items-center justify-content-between">
+                    <h6 class="m-0 font-weight-bold text-primary">System Metrics Over Time</h6>
+                </div>
+                <div class="card-body">
+                    <div class="chart-area">
+                        <canvas id="metricsChart"></canvas>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Chart.js -->
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+<script>
+// Initialize metrics chart
+let metricsChart;
+const metricsData = {
+    labels: [],
+    datasets: [
+        {
+            label: 'CPU Usage (%)',
+            data: [],
+            borderColor: 'rgb(75, 192, 192)',
+            tension: 0.1
+        },
+        {
+            label: 'Memory Usage (%)',
+            data: [],
+            borderColor: 'rgb(255, 99, 132)',
+            tension: 0.1
+        }
+    ]
+};
+
+// Update dashboard data
+function updateDashboard() {
+    fetch('/monitoring/api/health')
+        .then(response => response.json())
+        .then(data => {
+            // Update system status
+            document.getElementById('system-status').textContent = data.health.status;
+            document.getElementById('system-status').className = 
+                `h5 mb-0 font-weight-bold ${data.health.status === 'healthy' ? 'text-success' : 'text-danger'}`;
+            
+            // Update MongoDB status
+            document.getElementById('mongodb-status').textContent = 
+                data.mongodb.connected ? 'Connected' : 'Disconnected';
+            document.getElementById('mongodb-status').className = 
+                `h5 mb-0 font-weight-bold ${data.mongodb.connected ? 'text-success' : 'text-danger'}`;
+            
+            // Update API status
+            document.getElementById('api-status').textContent = data.api.status;
+            document.getElementById('api-status').className = 
+                `h5 mb-0 font-weight-bold ${data.api.status === 'healthy' ? 'text-success' : 'text-danger'}`;
+            
+            // Update system metrics
+            const metrics = data.system;
+            document.getElementById('system-metrics').innerHTML = `
+                CPU: ${metrics.cpu_percent}%<br>
+                Memory: ${metrics.memory_percent}%<br>
+                Disk: ${metrics.disk_percent}%
+            `;
+            
+            // Update chart data
+            updateChartData(metrics);
+        })
+        .catch(error => {
+            console.error('Error updating dashboard:', error);
+        });
+}
+
+// Update chart data
+function updateChartData(metrics) {
+    const now = new Date();
+    const timeStr = now.toLocaleTimeString();
+    
+    // Add new data point
+    metricsData.labels.push(timeStr);
+    metricsData.datasets[0].data.push(metrics.cpu_percent);
+    metricsData.datasets[1].data.push(metrics.memory_percent);
+    
+    // Keep only last 10 data points
+    if (metricsData.labels.length > 10) {
+        metricsData.labels.shift();
+        metricsData.datasets[0].data.shift();
+        metricsData.datasets[1].data.shift();
+    }
+    
+    // Update chart
+    if (metricsChart) {
+        metricsChart.update();
+    } else {
+        // Create new chart
+        const ctx = document.getElementById('metricsChart').getContext('2d');
+        metricsChart = new Chart(ctx, {
+            type: 'line',
+            data: metricsData,
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                scales: {
+                    y: {
+                        beginAtZero: true,
+                        max: 100
+                    }
+                }
+            }
+        });
+    }
+}
+
+// Update dashboard every 30 seconds
+updateDashboard();
+setInterval(updateDashboard, 30000);
+</script>
+{% endblock %} 

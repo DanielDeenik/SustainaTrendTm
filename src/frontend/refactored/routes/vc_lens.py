@@ -11,10 +11,8 @@ from datetime import datetime, timedelta
 import random
 from werkzeug.utils import secure_filename
 import logging
-
-# Import MongoDB service
-from ..services.mongodb_service import MongoDBService, get_database, verify_connection
-mongodb_service = MongoDBService()
+from src.frontend.refactored.services.mongodb_service import mongodb_service
+from src.frontend.refactored.services.config_service import config_service
 
 # Import Gemini/Google AI functionality if available
 try:
@@ -56,8 +54,8 @@ vc_lens_bp = Blueprint('vc_lens', __name__, url_prefix='/vc-lens')
 def get_metrics():
     """Get sustainability metrics from MongoDB."""
     try:
-        db = get_database()
-        metrics = list(db.sustainability_metrics.find())
+        # Use the singleton MongoDB service instance
+        metrics = mongodb_service.find_many('sustainability_metrics', query={})
         return metrics
     except Exception as e:
         logger.error(f"Error fetching metrics: {e}")
@@ -66,8 +64,8 @@ def get_metrics():
 def get_metrics_by_category(category):
     """Get sustainability metrics by category from MongoDB."""
     try:
-        db = get_database()
-        metrics = list(db.sustainability_metrics.find({"category": category}))
+        # Use the singleton MongoDB service instance
+        metrics = mongodb_service.find_many('sustainability_metrics', query={"category": category})
         return metrics
     except Exception as e:
         logger.error(f"Error fetching metrics by category: {e}")
@@ -76,8 +74,8 @@ def get_metrics_by_category(category):
 def get_trends():
     """Get sustainability trends from MongoDB."""
     try:
-        db = get_database()
-        trends = list(db.trends.find())
+        # Use the singleton MongoDB service instance
+        trends = mongodb_service.find_many('trends', query={})
         return trends
     except Exception as e:
         logger.error(f"Error fetching trends: {e}")
@@ -86,8 +84,9 @@ def get_trends():
 def get_trending_categories():
     """Get trending categories from MongoDB."""
     try:
-        db = get_database()
-        categories = list(db.trends.aggregate([
+        # Use the singleton MongoDB service instance
+        collection = mongodb_service.get_collection('trends')
+        categories = list(collection.aggregate([
             {"$group": {"_id": "$category", "count": {"$sum": 1}, "growth_rate": {"$avg": "$growth_rate"}}},
             {"$project": {"name": "$_id", "count": 1, "growth_rate": 1, "description": {"$concat": ["Trending in ", "$_id"]}}},
             {"$sort": {"count": -1}},
@@ -101,8 +100,8 @@ def get_trending_categories():
 def get_stories_collection():
     """Get stories collection from MongoDB."""
     try:
-        db = get_database()
-        return db.stories
+        # Use the singleton MongoDB service instance
+        return mongodb_service.get_collection('stories')
     except Exception as e:
         logger.error(f"Error getting stories collection: {e}")
         return None
@@ -110,34 +109,183 @@ def get_stories_collection():
 # Routes
 @vc_lens_bp.route('/')
 def index():
-    """VC-Lens™ main page"""
-    
-    # Get trending categories for portfolio mapping
-    trending_categories = []
+    """Render the VC Lens dashboard."""
     try:
-        trending_categories = get_trending_categories()
+        # Use the singleton MongoDB service instance
+        mongodb = mongodb_service
+        
+        # Fetch portfolio companies
+        companies = mongodb.find_many('portfolio_companies', query={}, sort=[('name', 1)])
+        
+        # Fetch investment metrics
+        metrics = {
+            'total_companies': len(companies),
+            'total_investment': sum(company.get('investment_amount', 0) for company in companies),
+            'average_roi': sum(company.get('roi', 0) for company in companies) / len(companies) if companies else 0
+        }
+        
+        return render_template('vc_lens/dashboard.html',
+                             companies=companies,
+                             metrics=metrics)
     except Exception as e:
-        logger.error(f"Error fetching trending categories: {e}")
-    
-    # Get sample recent stories to display as examples
-    recent_stories = []
+        logger.error(f"Error in VC Lens dashboard: {str(e)}")
+        return render_template('errors/500.html'), 500
+
+@vc_lens_bp.route('/api/companies')
+def get_companies():
+    """API endpoint for portfolio companies."""
     try:
-        stories_collection = get_stories_collection()
-        if stories_collection:
-            recent_stories = list(stories_collection.find().sort('created_at', -1).limit(4))
+        # Use the singleton MongoDB service instance
+        mongodb = mongodb_service
+        
+        # Get filter parameters
+        sector = request.args.get('sector')
+        stage = request.args.get('stage')
+        limit = int(request.args.get('limit', 100))
+        
+        # Build query
+        query = {}
+        if sector:
+            query['sector'] = sector
+        if stage:
+            query['stage'] = stage
+        
+        # Get companies
+        companies = mongodb.find_many('portfolio_companies', query=query, sort=[('name', 1)], limit=limit)
+        
+        return jsonify(companies)
     except Exception as e:
-        logger.error(f"Error fetching recent stories: {e}")
-    
-    # Check if Gemini AI is available
-    ai_available = gemini_controller is not None
-    
-    return render_template(
-        'vc_lens/index.html',
-        active_nav='vc_lens',
-        trending_categories=trending_categories,
-        recent_stories=recent_stories,
-        ai_available=ai_available
-    )
+        logger.error(f"Error getting companies: {str(e)}")
+        return jsonify({'error': str(e)}), 500
+
+@vc_lens_bp.route('/api/metrics')
+def get_metrics():
+    """API endpoint for investment metrics."""
+    try:
+        # Use the singleton MongoDB service instance
+        mongodb = mongodb_service
+        
+        # Get filter parameters
+        sector = request.args.get('sector')
+        stage = request.args.get('stage')
+        
+        # Build query
+        query = {}
+        if sector:
+            query['sector'] = sector
+        if stage:
+            query['stage'] = stage
+        
+        # Get companies
+        companies = mongodb.find_many('portfolio_companies', query=query)
+        
+        # Calculate metrics
+        metrics = {
+            'total_companies': len(companies),
+            'total_investment': sum(company.get('investment_amount', 0) for company in companies),
+            'average_roi': sum(company.get('roi', 0) for company in companies) / len(companies) if companies else 0,
+            'sector_distribution': {},
+            'stage_distribution': {}
+        }
+        
+        # Calculate distributions
+        for company in companies:
+            # Sector distribution
+            sector = company.get('sector', 'Unknown')
+            if sector not in metrics['sector_distribution']:
+                metrics['sector_distribution'][sector] = 0
+            metrics['sector_distribution'][sector] += 1
+            
+            # Stage distribution
+            stage = company.get('stage', 'Unknown')
+            if stage not in metrics['stage_distribution']:
+                metrics['stage_distribution'][stage] = 0
+            metrics['stage_distribution'][stage] += 1
+        
+        return jsonify(metrics)
+    except Exception as e:
+        logger.error(f"Error getting metrics: {str(e)}")
+        return jsonify({'error': str(e)}), 500
+
+@vc_lens_bp.route('/api/company/<company_id>')
+def get_company(company_id):
+    """API endpoint for company details."""
+    try:
+        # Use the singleton MongoDB service instance
+        mongodb = mongodb_service
+        
+        # Get company details
+        company = mongodb.find_one('portfolio_companies', query={'_id': company_id})
+        
+        if not company:
+            return jsonify({'error': 'Company not found'}), 404
+        
+        # Get company metrics
+        metrics = mongodb.get_company_metrics(company_id)
+        
+        return jsonify({
+            'company': company,
+            'metrics': metrics
+        })
+    except Exception as e:
+        logger.error(f"Error getting company details: {str(e)}")
+        return jsonify({'error': str(e)}), 500
+
+@vc_lens_bp.route('/api/trends')
+def get_trends():
+    """API endpoint for investment trends."""
+    try:
+        # Use the singleton MongoDB service instance
+        mongodb = mongodb_service
+        
+        # Get filter parameters
+        timeframe = request.args.get('timeframe', '30d')
+        limit = int(request.args.get('limit', 20))
+        
+        # Calculate date range
+        end_date = datetime.now()
+        if timeframe == '7d':
+            start_date = end_date - timedelta(days=7)
+        elif timeframe == '30d':
+            start_date = end_date - timedelta(days=30)
+        elif timeframe == '90d':
+            start_date = end_date - timedelta(days=90)
+        else:  # 1y
+            start_date = end_date - timedelta(days=365)
+        
+        # Get trends
+        trends = mongodb.get_trends(
+            start_date=start_date,
+            end_date=end_date,
+            limit=limit
+        )
+        
+        return jsonify(trends)
+    except Exception as e:
+        logger.error(f"Error getting trends: {str(e)}")
+        return jsonify({'error': str(e)}), 500
+
+@vc_lens_bp.route('/api/benchmarks')
+def get_benchmarks():
+    """API endpoint for industry benchmarks."""
+    try:
+        # Use the singleton MongoDB service instance
+        mongodb = mongodb_service
+        
+        # Get filter parameters
+        sector = request.args.get('sector')
+        stage = request.args.get('stage')
+        
+        # Get benchmarks
+        benchmarks = mongodb.find_many('benchmarks', query={
+            'sector': sector,
+            'stage': stage
+        })
+        
+        return jsonify(benchmarks)
+    except Exception as e:
+        logger.error(f"Error getting benchmarks: {str(e)}")
+        return jsonify({'error': str(e)}), 500
 
 @vc_lens_bp.route('/upload', methods=['GET', 'POST'])
 def upload_document():

@@ -2,7 +2,7 @@
 Strategy routes for the SustainaTrend™ Platform.
 """
 from flask import Blueprint, render_template, jsonify, request
-from src.frontend.refactored.services.mongodb_service import get_mongodb_service
+from src.frontend.refactored.services.mongodb_service import mongodb_service
 import logging
 
 strategy_bp = Blueprint('strategy', __name__, url_prefix='/strategy')
@@ -20,8 +20,9 @@ def index():
 def get_insights():
     """Get strategy insights data."""
     try:
-        db = get_mongodb_service()
-        insights = list(db.strategy.insights.find())
+        if not mongodb_service.is_connected():
+            return jsonify({'error': 'Database not connected'}), 503
+        insights = mongodb_service.find('strategy.insights', {})
         return jsonify(insights)
     except Exception as e:
         logging.error(f"Error fetching strategy insights: {str(e)}")
@@ -31,8 +32,9 @@ def get_insights():
 def get_models():
     """Get strategy models data."""
     try:
-        db = get_mongodb_service()
-        models = list(db.strategy.models.find())
+        if not mongodb_service.is_connected():
+            return jsonify({'error': 'Database not connected'}), 503
+        models = mongodb_service.find('strategy.models', {})
         return jsonify(models)
     except Exception as e:
         logging.error(f"Error fetching strategy models: {str(e)}")

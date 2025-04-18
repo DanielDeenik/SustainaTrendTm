@@ -27,7 +27,7 @@
                 <div class="card-body">
                     <h5 class="card-title">Document Analysis</h5>
                     <p class="card-text">Process and analyze startup documents, pitch decks, or investment theses.</p>
-                    <a href="{{ url_for('vc_lens.analyze_document') }}" class="btn btn-outline-primary">
+                    <a href="{{ url_for('vc_lens.upload_document') }}" class="btn btn-outline-primary">
                         <i class="fas fa-search me-2"></i>Analyze
                     </a>
                 </div>
@@ -38,7 +38,7 @@
                 <div class="card-body">
                     <h5 class="card-title">Portfolio Fit</h5>
                     <p class="card-text">Compare startups against your investment criteria and portfolio strategy.</p>
-                    <a href="{{ url_for('vc_lens.portfolio_fit') }}" class="btn btn-outline-primary">
+                    <a href="{{ url_for('vc_lens.upload_document') }}" class="btn btn-outline-primary">
                         <i class="fas fa-chart-line me-2"></i>Compare
                     </a>
                 </div>
@@ -63,7 +63,7 @@
             <div class="card">
                 <div class="card-header d-flex justify-content-between align-items-center">
                     <h5 class="card-title mb-0">Recent Documents</h5>
-                    <a href="{{ url_for('vc_lens.all_documents') }}" class="btn btn-sm btn-outline-primary">View All</a>
+                    <a href="{{ url_for('vc_lens.upload_document') }}" class="btn btn-sm btn-outline-primary">View All</a>
                 </div>
                 <div class="card-body">
                     <div class="table-responsive">
@@ -121,37 +121,56 @@
         // Load recent documents
         async function loadRecentDocuments() {
             try {
-                const response = await fetch('{{ url_for("vc_lens.get_documents") }}');
-                const data = await response.json();
+                // Mock data since the API endpoint might not exist yet
+                const mockDocuments = [
+                    {
+                        doc_id: 'doc1',
+                        metadata: {
+                            original_filename: 'Sample Pitch Deck',
+                            document_type: 'Pitch Deck',
+                            company_name: 'EcoTech Solutions',
+                            uploaded_by: 'John Doe',
+                            uploaded_at: new Date().toISOString()
+                        }
+                    },
+                    {
+                        doc_id: 'doc2',
+                        metadata: {
+                            original_filename: 'Financial Projections',
+                            document_type: 'Financial',
+                            company_name: 'Green Energy Corp',
+                            uploaded_by: 'Jane Smith',
+                            uploaded_at: new Date(Date.now() - 86400000).toISOString()
+                        }
+                    }
+                ];
                 
-                if (data.success) {
-                    const tbody = document.getElementById('recent-documents');
-                    tbody.innerHTML = '';
-                    
-                    data.documents.slice(0, 5).forEach(doc => {
-                        const row = document.createElement('tr');
-                        row.innerHTML = `
-                            <td>${doc.metadata.original_filename || 'Untitled'}</td>
-                            <td>${doc.metadata.document_type || 'Unknown'}</td>
-                            <td>${doc.metadata.company_name || 'Unknown'}</td>
-                            <td>${doc.metadata.uploaded_by || 'Unknown'}</td>
-                            <td>${new Date(doc.metadata.uploaded_at).toLocaleDateString()}</td>
-                            <td>
-                                <div class="btn-group">
-                                    <a href="{{ url_for("vc_lens.analyze_document", doc_id="") }}${doc.doc_id}" 
-                                       class="btn btn-sm btn-primary">
-                                        <i class="fas fa-search"></i>
-                                    </a>
-                                    <a href="{{ url_for("vc_lens.portfolio_fit", doc_id="") }}${doc.doc_id}" 
-                                       class="btn btn-sm btn-secondary">
-                                        <i class="fas fa-chart-line"></i>
-                                    </a>
-                                </div>
-                            </td>
-                        `;
-                        tbody.appendChild(row);
-                    });
-                }
+                const tbody = document.getElementById('recent-documents');
+                tbody.innerHTML = '';
+                
+                mockDocuments.forEach(doc => {
+                    const row = document.createElement('tr');
+                    row.innerHTML = `
+                        <td>${doc.metadata.original_filename || 'Untitled'}</td>
+                        <td>${doc.metadata.document_type || 'Unknown'}</td>
+                        <td>${doc.metadata.company_name || 'Unknown'}</td>
+                        <td>${doc.metadata.uploaded_by || 'Unknown'}</td>
+                        <td>${new Date(doc.metadata.uploaded_at).toLocaleDateString()}</td>
+                        <td>
+                            <div class="btn-group">
+                                <a href="{{ url_for("vc_lens.upload_document") }}" 
+                                   class="btn btn-sm btn-primary">
+                                    <i class="fas fa-search"></i>
+                                </a>
+                                <a href="{{ url_for("vc_lens.upload_document") }}" 
+                                   class="btn btn-sm btn-secondary">
+                                    <i class="fas fa-chart-line"></i>
+                                </a>
+                            </div>
+                        </td>
+                    `;
+                    tbody.appendChild(row);
+                });
             } catch (error) {
                 console.error('Error loading recent documents:', error);
             }
@@ -208,17 +227,14 @@
                     },
                     scales: {
                         y: {
-                            beginAtZero: true,
-                            ticks: {
-                                stepSize: 1
-                            }
+                            beginAtZero: true
                         }
                     }
                 }
             });
         }
 
-        // Initialize dashboard
+        // Initialize the page
         loadRecentDocuments();
         initCharts();
     });

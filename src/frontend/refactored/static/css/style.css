@@ -6,9 +6,10 @@
 }
 
 body {
-    font-family: Arial, sans-serif;
+    font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
     line-height: 1.6;
-    color: #333;
+    color: #1F2937;
+    background-color: #F9FAFB;
 }
 
 header {
@@ -54,4 +55,114 @@ footer {
     position: fixed;
     bottom: 0;
     width: 100%;
+}
+
+/* Monitoring Dashboard Styles */
+.monitoring-dashboard {
+    padding: 2rem;
+}
+
+.status-card {
+    background: white;
+    border-radius: 1rem;
+    box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+    padding: 1.5rem;
+    margin-bottom: 1.5rem;
+}
+
+.status-card h5 {
+    color: #1F2937;
+    font-weight: 600;
+    margin-bottom: 1rem;
+}
+
+.status-indicator {
+    display: inline-flex;
+    align-items: center;
+    padding: 0.5rem 1rem;
+    border-radius: 0.5rem;
+    font-weight: 500;
+}
+
+.status-indicator.healthy {
+    background-color: #D1FAE5;
+    color: #059669;
+}
+
+.status-indicator.warning {
+    background-color: #FEF3C7;
+    color: #D97706;
+}
+
+.status-indicator.error {
+    background-color: #FEE2E2;
+    color: #DC2626;
+}
+
+.metrics-chart {
+    background: white;
+    border-radius: 1rem;
+    box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+    padding: 1.5rem;
+    margin-top: 2rem;
+}
+
+.service-status {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    padding: 0.75rem;
+    border-radius: 0.5rem;
+    background-color: #F3F4F6;
+    margin-bottom: 0.5rem;
+}
+
+.service-status i {
+    font-size: 1.25rem;
+}
+
+.service-status.healthy i {
+    color: #059669;
+}
+
+.service-status.warning i {
+    color: #D97706;
+}
+
+.service-status.error i {
+    color: #DC2626;
+}
+
+/* Navigation */
+.nav-link {
+    color: #1F2937;
+    text-decoration: none;
+    padding: 0.5rem 1rem;
+    border-radius: 0.5rem;
+    transition: all 0.3s ease;
+}
+
+.nav-link:hover {
+    background-color: #F3F4F6;
+    color: #059669;
+}
+
+.nav-link.active {
+    background-color: #D1FAE5;
+    color: #059669;
+}
+
+/* Responsive Design */
+@media (max-width: 768px) {
+    .monitoring-dashboard {
+        padding: 1rem;
+    }
+    
+    .status-card {
+        padding: 1rem;
+    }
+    
+    .metrics-chart {
+        padding: 1rem;
+    }
 } 

@@ -2,7 +2,7 @@
 Monetization routes for the SustainaTrend™ Platform.
 """
 from flask import Blueprint, render_template, jsonify, request
-from src.frontend.refactored.services.mongodb_service import get_mongodb_service
+from src.frontend.refactored.services.mongodb_service import mongodb_service
 import logging
 
 monetization_bp = Blueprint('monetization', __name__, url_prefix='/monetization')
@@ -20,8 +20,9 @@ def index():
 def get_revenue():
     """Get revenue data."""
     try:
-        db = get_mongodb_service()
-        revenue = list(db.monetization.revenue.find())
+        if not mongodb_service.is_connected():
+            return jsonify({'error': 'Database not connected'}), 503
+        revenue = mongodb_service.find('monetization.revenue', {})
         return jsonify(revenue)
     except Exception as e:
         logging.error(f"Error fetching revenue data: {str(e)}")
@@ -31,8 +32,9 @@ def get_revenue():
 def get_metrics():
     """Get monetization metrics."""
     try:
-        db = get_mongodb_service()
-        metrics = list(db.monetization.metrics.find())
+        if not mongodb_service.is_connected():
+            return jsonify({'error': 'Database not connected'}), 503
+        metrics = mongodb_service.find('monetization.metrics', {})
         return jsonify(metrics)
     except Exception as e:
         logging.error(f"Error fetching monetization metrics: {str(e)}")

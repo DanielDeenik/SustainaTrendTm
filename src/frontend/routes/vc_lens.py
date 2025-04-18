@@ -33,7 +33,7 @@ except ImportError:
 try:
     from src.backend.services.vc_lens_service import VCLensService
     vc_lens_service = VCLensService()
-except ImportError:
+    except ImportError:
     # Create a simple mock if the service is not available
     class VCLensService:
         def __init__(self):
@@ -53,7 +53,7 @@ logger = logging.getLogger(__name__)
 vc_lens_bp = Blueprint('vc_lens', __name__, url_prefix='/vc-lens')
 
 # Helper functions
-def get_metrics():
+        def get_metrics():
     """Get sustainability metrics from MongoDB."""
     try:
         db = get_database()
@@ -61,9 +61,9 @@ def get_metrics():
         return metrics
     except Exception as e:
         logger.error(f"Error fetching metrics: {e}")
-        return []
-
-def get_metrics_by_category(category):
+            return []
+        
+        def get_metrics_by_category(category):
     """Get sustainability metrics by category from MongoDB."""
     try:
         db = get_database()
@@ -71,9 +71,9 @@ def get_metrics_by_category(category):
         return metrics
     except Exception as e:
         logger.error(f"Error fetching metrics by category: {e}")
-        return []
+            return []
 
-def get_trends():
+        def get_trends():
     """Get sustainability trends from MongoDB."""
     try:
         db = get_database()
@@ -81,9 +81,9 @@ def get_trends():
         return trends
     except Exception as e:
         logger.error(f"Error fetching trends: {e}")
-        return []
-
-def get_trending_categories():
+            return []
+        
+        def get_trending_categories():
     """Get trending categories from MongoDB."""
     try:
         db = get_database()
@@ -96,7 +96,7 @@ def get_trending_categories():
         return categories
     except Exception as e:
         logger.error(f"Error fetching trending categories: {e}")
-        return []
+            return []
 
 def get_stories_collection():
     """Get stories collection from MongoDB."""

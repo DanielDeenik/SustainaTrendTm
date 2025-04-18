@@ -91,18 +91,15 @@ The application follows a modular architecture with the following components:
 
 To start the application manually, run:
 
-```
+```bash
 python run.py
 ```
 
 ### Windows Shortcuts
 
-The repository includes several batch files for Windows users:
+The repository includes a batch file for Windows users:
 
-- `start_sustainatrend.bat` - Starts the application
-- `create_desktop_shortcut.bat` - Creates a desktop shortcut
-- `setup_autostart.bat` - Sets up the application to start automatically with Windows
-- `install_service.bat` - Installs the application as a Windows service (requires NSSM)
+- `start_sustainatrend.bat` - Starts the application using the unified entry point
 
 ## Automatic Startup Options
 

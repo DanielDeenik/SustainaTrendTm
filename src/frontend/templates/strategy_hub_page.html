@@ -9,33 +9,33 @@
             <div class="card mb-4">
                 <div class="card-header d-flex justify-content-between align-items-center">
                     <h2 class="mb-0">Strategy Hub™</h2>
-                    <div>
+                <div>
                         <button class="btn btn-primary" id="generateStrategyBtn">
                             <i class="fas fa-magic me-2"></i>Generate Strategy
-                        </button>
-                    </div>
-                </div>
-                <div class="card-body">
+                </button>
+            </div>
+        </div>
+                            <div class="card-body">
                     <div class="row">
-                        <div class="col-md-6">
+                    <div class="col-md-6">
                             <div class="card h-100">
                                 <div class="card-header">
                                     <h3 class="mb-0">Strategy Modeling</h3>
-                                </div>
-                                <div class="card-body">
+    </div>
+    <div class="card-body">
                                     <form id="strategyModelForm">
-                                        <div class="mb-3">
+                    <div class="mb-3">
                                             <label for="industry" class="form-label">Industry Sector</label>
                                             <select class="form-select" id="industry" name="industry" required>
                                                 <option value="">Select Industry</option>
-                                                <option value="technology">Technology</option>
-                                                <option value="energy">Energy</option>
-                                                <option value="transportation">Transportation</option>
-                                                <option value="agriculture">Agriculture</option>
+                    <option value="technology">Technology</option>
+                    <option value="energy">Energy</option>
+                    <option value="transportation">Transportation</option>
+                    <option value="agriculture">Agriculture</option>
                                                 <option value="manufacturing">Manufacturing</option>
-                                            </select>
-                                        </div>
-                                        <div class="mb-3">
+                </select>
+            </div>
+            <div class="mb-3">
                                             <label for="sustainabilityGoals" class="form-label">Sustainability Goals</label>
                                             <select class="form-select" id="sustainabilityGoals" name="sustainabilityGoals" multiple required>
                                                 <option value="carbon_reduction">Carbon Reduction</option>
@@ -43,67 +43,67 @@
                                                 <option value="waste_reduction">Waste Reduction</option>
                                                 <option value="water_conservation">Water Conservation</option>
                                                 <option value="biodiversity">Biodiversity</option>
-                                            </select>
-                                        </div>
-                                        <div class="mb-3">
+                </select>
+            </div>
+            <div class="mb-3">
                                             <label for="investmentLevel" class="form-label">Investment Level</label>
                                             <select class="form-select" id="investmentLevel" name="investmentLevel" required>
                                                 <option value="low">Low</option>
                                                 <option value="medium">Medium</option>
                                                 <option value="high">High</option>
                                             </select>
-                                        </div>
-                                        <div class="mb-3">
+            </div>
+            <div class="mb-3">
                                             <label for="timeHorizon" class="form-label">Time Horizon</label>
                                             <select class="form-select" id="timeHorizon" name="timeHorizon" required>
                                                 <option value="short">Short Term (1-2 years)</option>
                                                 <option value="medium">Medium Term (3-5 years)</option>
                                                 <option value="long">Long Term (5+ years)</option>
-                                            </select>
-                                        </div>
+                </select>
+            </div>
                                         <button type="submit" class="btn btn-primary">
                                             <i class="fas fa-chart-line me-2"></i>Model Strategy
-                                        </button>
-                                    </form>
-                                </div>
-                            </div>
-                        </div>
+                </button>
+        </form>
+                </div>
+            </div>
+                </div>
                         <div class="col-md-6">
                             <div class="card h-100">
                                 <div class="card-header">
                                     <h3 class="mb-0">Strategy Visualization</h3>
-                                </div>
+            </div>
                                 <div class="card-body">
                                     <canvas id="strategyChart"></canvas>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </div>
-    </div>
-
-    <div class="row">
-        <div class="col-12">
-            <div class="card mb-4">
-                <div class="card-header">
-                    <h3 class="mb-0">AI Insights</h3>
-                </div>
-                <div class="card-body">
-                    <div id="aiInsights" class="row">
-                        <!-- AI insights will be dynamically populated here -->
-                    </div>
-                </div>
             </div>
         </div>
     </div>
 </div>
+                    </div>
+                </div>
+            </div>
+                    </div>
+
+                <div class="row">
+        <div class="col-12">
+            <div class="card mb-4">
+                <div class="card-header">
+                    <h3 class="mb-0">AI Insights</h3>
+                            </div>
+                    <div class="card-body">
+                    <div id="aiInsights" class="row">
+                        <!-- AI insights will be dynamically populated here -->
+                            </div>
+                            </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
 {% endblock %}
 
 {% block scripts %}
 <script>
-    document.addEventListener('DOMContentLoaded', function() {
+document.addEventListener('DOMContentLoaded', function() {
         // Initialize Chart.js
         const ctx = document.getElementById('strategyChart').getContext('2d');
         const strategyChart = new Chart(ctx, {
@@ -136,7 +136,7 @@
 
         // Handle form submission
         document.getElementById('strategyModelForm').addEventListener('submit', function(e) {
-            e.preventDefault();
+                    e.preventDefault();
             // Add form submission logic here
         });
 
@@ -144,6 +144,6 @@
         document.getElementById('generateStrategyBtn').addEventListener('click', function() {
             // Add strategy generation logic here
         });
-    });
-</script>
+        });
+    </script>
 {% endblock %}

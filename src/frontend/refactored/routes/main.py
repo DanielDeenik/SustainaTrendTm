@@ -7,7 +7,8 @@ dashboard, and other core pages.
 
 from flask import Blueprint, render_template, jsonify, request, redirect, url_for, flash, current_app
 import logging
-from src.frontend.refactored.services.mongodb_service import MongoDBService
+from src.frontend.refactored.services.mongodb_service import mongodb_service
+from src.frontend.refactored.services.config_service import config_service
 
 # Configure logger
 logger = logging.getLogger(__name__)
@@ -24,19 +25,21 @@ def index():
 def dashboard():
     """Render the main dashboard page."""
     try:
-        # Get MongoDB service
-        mongodb = current_app.mongodb
+        # Use the singleton MongoDB service instance
+        mongodb = mongodb_service
         
         # Fetch recent trends
-        recent_trends = mongodb.find_many(
+        recent_trends = mongodb.find(
             'trends',
+            query={},
             sort=[('created_at', -1)],
             limit=5
         )
         
         # Fetch portfolio companies
-        portfolio_companies = mongodb.find_many(
+        portfolio_companies = mongodb.find(
             'portfolio_companies',
+            query={},
             sort=[('name', 1)]
         )
         
@@ -53,17 +56,20 @@ def dashboard():
 def health_check():
     """API endpoint for health check."""
     try:
+        # Use the singleton MongoDB service instance
+        mongodb = mongodb_service
+        
         # Check MongoDB connection
-        mongodb = current_app.mongodb
-        mongodb.client.server_info()
+        mongodb_status = 'healthy' if mongodb.is_connected() else 'unhealthy'
         
         return jsonify({
             'status': 'healthy',
-            'mongodb': 'connected',
-            'version': current_app.config['VERSION']
+            'mongodb_status': mongodb_status,
+            'version': config_service.get('VERSION', '1.0.0'),
+            'environment': 'development' if config_service.is_debug() else 'production'
         })
     except Exception as e:
-        logger.error(f"Health check failed: {str(e)}")
+        logger.error(f"Error in health check: {str(e)}")
         return jsonify({
             'status': 'unhealthy',
             'error': str(e)
@@ -71,31 +77,36 @@ def health_check():
 
 @main_bp.route('/api/metrics')
 def get_metrics():
-    """API endpoint for fetching key metrics."""
+    """API endpoint for application metrics."""
     try:
-        mongodb = current_app.mongodb
+        # Use the singleton MongoDB service instance
+        mongodb = mongodb_service
         
-        # Fetch metrics from different collections
-        portfolio_metrics = mongodb.find_many('portfolio_companies')
-        trend_metrics = mongodb.find_many('trends')
-        story_metrics = mongodb.find_many('stories')
+        # Get metrics from MongoDB
+        metrics = {
+            'trends_count': len(mongodb.find('trends', query={})),
+            'companies_count': len(mongodb.find('portfolio_companies', query={})),
+            'strategies_count': len(mongodb.find('strategies', query={}))
+        }
         
-        return jsonify({
-            'portfolio_count': len(portfolio_metrics),
-            'trend_count': len(trend_metrics),
-            'story_count': len(story_metrics)
-        })
+        return jsonify(metrics)
     except Exception as e:
-        logger.error(f"Error fetching metrics: {str(e)}")
-        return jsonify({'error': str(e)}), 500
+        logger.error(f"Error getting metrics: {str(e)}")
+        return jsonify({
+            'error': str(e)
+        }), 500
 
 @main_bp.route('/companies')
 def companies():
     """Render the companies page."""
     try:
-        mongodb = MongoDBService()
-        companies = mongodb.get_collection('companies').find()
-        return render_template('companies.html', title='Companies', companies=list(companies))
+        # Use the singleton MongoDB service instance
+        mongodb = mongodb_service
+        
+        # Fetch all companies
+        companies = mongodb.find('portfolio_companies', query={}, sort=[('name', 1)])
+        
+        return render_template('companies.html', companies=companies)
     except Exception as e:
         logger.error(f"Error rendering companies page: {str(e)}")
         return render_template('errors/500.html'), 500
@@ -104,9 +115,13 @@ def companies():
 def trends():
     """Render the trends page."""
     try:
-        mongodb = MongoDBService()
-        trends = mongodb.get_collection('trends').find()
-        return render_template('trends.html', title='Sustainability Trends', trends=list(trends))
+        # Use the singleton MongoDB service instance
+        mongodb = mongodb_service
+        
+        # Fetch all trends
+        trends = mongodb.find('trends', query={}, sort=[('created_at', -1)])
+        
+        return render_template('trends.html', trends=trends)
     except Exception as e:
         logger.error(f"Error rendering trends page: {str(e)}")
         return render_template('errors/500.html'), 500
@@ -115,9 +130,13 @@ def trends():
 def strategies():
     """Render the strategies page."""
     try:
-        mongodb = MongoDBService()
-        strategies = mongodb.get_collection('strategies').find()
-        return render_template('strategies.html', title='Monetization Strategies', strategies=list(strategies))
+        # Use the singleton MongoDB service instance
+        mongodb = mongodb_service
+        
+        # Fetch all strategies
+        strategies = mongodb.find('strategies', query={}, sort=[('name', 1)])
+        
+        return render_template('strategies.html', strategies=strategies)
     except Exception as e:
         logger.error(f"Error rendering strategies page: {str(e)}")
         return render_template('errors/500.html'), 500
@@ -126,21 +145,26 @@ def strategies():
 def company_detail(company_id):
     """Render the company detail page."""
     try:
-        mongodb = MongoDBService()
-        company = mongodb.get_collection('companies').find_one({'_id': company_id})
+        # Use the singleton MongoDB service instance
+        mongodb = mongodb_service
+        
+        # Fetch company details
+        company = mongodb.find('portfolio_companies', {'_id': company_id}, limit=1)
         if not company:
-            flash('Company not found', 'error')
-            return redirect(url_for('main.companies'))
-            
-        metrics = mongodb.get_collection('metrics').find({'company_id': company_id})
-        stories = mongodb.get_collection('stories').find({'company_id': company_id})
+            logger.warning(f"Company not found: {company_id}")
+            return render_template('errors/404.html'), 404
+        
+        # Fetch related trends
+        related_trends = mongodb.find(
+            'trends',
+            query={'companies': company_id},
+            sort=[('created_at', -1)]
+        )
         
         return render_template(
             'company_detail.html',
-            title=f'Company - {company["name"]}',
-            company=company,
-            metrics=list(metrics),
-            stories=list(stories)
+            company=company[0] if company else None,
+            related_trends=related_trends
         )
     except Exception as e:
         logger.error(f"Error rendering company detail page: {str(e)}")
@@ -149,17 +173,9 @@ def company_detail(company_id):
 @main_bp.route('/about')
 def about():
     """Render the about page."""
-    try:
-        return render_template('about.html', title='About SustainaTrend™')
-    except Exception as e:
-        logger.error(f"Error rendering about page: {str(e)}")
-        return render_template('errors/500.html'), 500
+    return render_template('about.html')
 
 @main_bp.route('/contact')
 def contact():
     """Render the contact page."""
-    try:
-        return render_template('contact.html', title='Contact Us')
-    except Exception as e:
-        logger.error(f"Error rendering contact page: {str(e)}")
-        return render_template('errors/500.html'), 500 
+    return render_template('contact.html') 

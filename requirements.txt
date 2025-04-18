@@ -4,11 +4,11 @@ Werkzeug==2.2.0
 Flask-Session==0.6.0
 
 # Database
-pymongo==4.6.2
+pymongo==4.5.0
 motor==3.3.2
 dnspython>=1.16.0
 
-# Environment and Configuration
+# Configuration
 python-dotenv==0.19.0
 python-decouple==3.8
 
@@ -16,7 +16,7 @@ python-decouple==3.8
 bcrypt==4.1.2
 Flask-Caching==2.1.0
 
-# Utilities
+# Data Processing
 requests==2.31.0
 pandas==2.2.0
 numpy==1.26.3
@@ -27,11 +27,11 @@ lxml==5.1.0
 # Visualization
 plotly==5.18.0
 
-# Logging and Monitoring
+# Monitoring
 structlog==24.1.0
 prometheus-client==0.19.0
 
-# Asset Management
+# Assets
 Flask-Assets==2.1.0
 cssmin==0.2.0
 jsmin==3.0.1
@@ -48,11 +48,11 @@ Pillow==10.2.0
 openai==1.12.0
 transformers==4.37.2
 
-# Server
+# System
 psutil==5.9.8
 gunicorn==21.2.0
 
-# Testing
+# Development
 pytest==6.2.5
 black==21.7b0
 flake8==3.9.2

@@ -1,0 +1,42 @@
+{% macro render_status_indicator(status) %}
+<span class="status-indicator {{ status }}">
+    {% if status == 'healthy' %}
+        <i class="fas fa-check-circle"></i>
+    {% elif status == 'warning' %}
+        <i class="fas fa-exclamation-triangle"></i>
+    {% else %}
+        <i class="fas fa-times-circle"></i>
+    {% endif %}
+    {{ status|title }}
+</span>
+{% endmacro %}
+
+{% macro render_service_status(service_name, status) %}
+<div class="service-status {{ status }}">
+    <i class="fas {% if status == 'healthy' %}fa-check-circle{% elif status == 'warning' %}fa-exclamation-triangle{% else %}fa-times-circle{% endif %}"></i>
+    <span>{{ service_name }}</span>
+</div>
+{% endmacro %}
+
+{% macro render_metrics_chart() %}
+<div class="metrics-chart">
+    <canvas id="metrics-chart"></canvas>
+</div>
+{% endmacro %}
+
+{% macro render_startup_config(config) %}
+<div class="startup-config">
+    <div class="config-item">
+        <strong>OS Type:</strong> {{ config.os_type }}
+    </div>
+    <div class="config-item">
+        <strong>Startup Directory:</strong> {{ config.startup_dir }}
+    </div>
+    <div class="config-item">
+        <strong>Application Path:</strong> {{ config.app_path }}
+    </div>
+    <div class="config-item">
+        <strong>Configured:</strong> {{ 'Yes' if config.is_configured else 'No' }}
+    </div>
+</div>
+{% endmacro %} 

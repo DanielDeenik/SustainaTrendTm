@@ -5,7 +5,7 @@ from flask import Blueprint, jsonify, request, current_app
 import logging
 from datetime import datetime
 import json
-from src.frontend.refactored.services.mongodb_service import MongoDBService
+from src.frontend.refactored.services.mongodb_service import mongodb_service
 
 # Configure logger
 logger = logging.getLogger(__name__)
@@ -17,14 +17,16 @@ api_bp = Blueprint('api', __name__, url_prefix='/api')
 def health_check():
     """Check the health of the application and MongoDB connection."""
     try:
-        mongodb = current_app.mongodb
-        is_connected = mongodb.is_connected()
+        is_connected = mongodb_service.is_connected()
         return jsonify({
             'status': 'healthy' if is_connected else 'degraded',
-            'mongodb': 'connected' if is_connected else 'disconnected'
+            'mongodb_status': 'connected' if is_connected else 'disconnected',
+            'timestamp': datetime.now().isoformat(),
+            'version': '1.0.0',
+            'environment': 'development'
         })
     except Exception as e:
-        current_app.logger.error(f"Health check failed: {str(e)}")
+        logger.error(f"Health check failed: {str(e)}")
         return jsonify({
             'status': 'unhealthy',
             'error': str(e)
@@ -34,96 +36,63 @@ def health_check():
 def get_metrics():
     """Get key metrics from different collections."""
     try:
-        mongodb = current_app.mongodb
         metrics = {
-            'trends': mongodb.get_metrics('trends'),
-            'stories': mongodb.get_metrics('stories'),
-            'portfolio': mongodb.get_metrics('portfolio')
+            'trends': mongodb_service.find('trends', limit=5),
+            'stories': mongodb_service.find('stories', limit=5),
+            'portfolio': mongodb_service.find('portfolio_companies', limit=5)
         }
         return jsonify(metrics)
     except Exception as e:
-        current_app.logger.error(f"Error fetching metrics: {str(e)}")
-        return jsonify({'error': 'Internal server error'}), 500
+        logger.error(f"Error fetching metrics: {str(e)}")
+        return jsonify({'error': str(e)}), 500
 
 @api_bp.route('/trends/categories')
 def get_trend_categories():
     """Get trending categories."""
     try:
-        mongodb = current_app.mongodb
-        categories = mongodb.get_trending_categories()
-        return jsonify({'categories': categories})
+        trends = mongodb_service.find('trends', limit=10)
+        categories = list(set(trend['category'] for trend in trends))
+        return jsonify(categories)
     except Exception as e:
-        current_app.logger.error(f"Error fetching trend categories: {str(e)}")
-        return jsonify({'error': 'Internal server error'}), 500
+        logger.error(f"Error fetching trend categories: {str(e)}")
+        return jsonify({'error': str(e)}), 500
 
 @api_bp.route('/portfolio/companies')
 def get_portfolio_companies():
-    """Get portfolio companies with optional filtering."""
+    """Get portfolio companies."""
     try:
-        mongodb = current_app.mongodb
-        sector = request.args.get('sector')
-        companies = mongodb.get_portfolio_companies(sector=sector)
-        return jsonify({'companies': companies})
+        companies = mongodb_service.find('portfolio_companies', limit=10)
+        return jsonify(companies)
     except Exception as e:
-        current_app.logger.error(f"Error fetching portfolio companies: {str(e)}")
-        return jsonify({'error': 'Internal server error'}), 500
+        logger.error(f"Error fetching portfolio companies: {str(e)}")
+        return jsonify({'error': str(e)}), 500
 
 @api_bp.route('/stories/recent')
 def get_recent_stories():
-    """Get recent stories with optional limit."""
+    """Get recent stories."""
     try:
-        mongodb = current_app.mongodb
-        limit = request.args.get('limit', default=5, type=int)
-        stories = mongodb.get_stories(limit=limit)
-        return jsonify({'stories': stories})
+        stories = mongodb_service.find('stories', limit=5)
+        return jsonify(stories)
     except Exception as e:
-        current_app.logger.error(f"Error fetching recent stories: {str(e)}")
-        return jsonify({'error': 'Internal server error'}), 500
+        logger.error(f"Error fetching recent stories: {str(e)}")
+        return jsonify({'error': str(e)}), 500
 
 @api_bp.route('/strategies')
 def get_strategies():
-    """Get monetization strategies."""
+    """Get strategies."""
     try:
-        # Mock data for demonstration
-        strategies = [
-            {
-                'name': 'Carbon Credits',
-                'potential_revenue': 500000,
-                'implementation_cost': 100000,
-                'roi': 400
-            },
-            {
-                'name': 'Sustainable Products',
-                'potential_revenue': 1000000,
-                'implementation_cost': 200000,
-                'roi': 400
-            }
-        ]
+        strategies = mongodb_service.find('strategy.insights', limit=5)
         return jsonify(strategies)
     except Exception as e:
-        logger.error(f"Error getting strategies: {str(e)}")
+        logger.error(f"Error fetching strategies: {str(e)}")
         return jsonify({'error': str(e)}), 500
 
 @api_bp.route('/companies')
 def get_companies():
-    """Get company data."""
+    """Get companies."""
     try:
-        # Mock data for demonstration
-        companies = [
-            {
-                'name': 'EcoTech Solutions',
-                'sustainability_score': 85,
-                'industry': 'Technology',
-                'location': 'Amsterdam'
-            },
-            {
-                'name': 'GreenEnergy Corp',
-                'sustainability_score': 92,
-                'industry': 'Energy',
-                'location': 'Berlin'
-            }
-        ]
+        companies = mongodb_service.find('portfolio_companies', limit=10)
         return jsonify(companies)
     except Exception as e:
-        logger.error(f"Error getting companies: {str(e)}")
+        logger.error(f"Error fetching companies: {str(e)}")
         return jsonify({'error': str(e)}), 500 

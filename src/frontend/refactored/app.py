@@ -5,21 +5,26 @@ import os
 import sys
 import logging
 import traceback
+import atexit
 from logging.handlers import RotatingFileHandler
 from flask import Flask, jsonify, render_template, redirect, url_for, request
-from dotenv import load_dotenv
 from datetime import datetime
 from waitress import serve
 from flask_session import Session
-from src.frontend.refactored.services.mongodb_service import MongoDBService
+from src.frontend.refactored.services.mongodb_service import mongodb_service
+from src.frontend.refactored.services.config_service import config_service
 from src.frontend.refactored.routes import main, analytics, vc_lens, realestate, strategy, monetization
+from src.frontend.refactored.services.monitoring_service import monitoring_service
+from src.frontend.refactored.routes.analytics import analytics_bp
+from src.frontend.refactored.routes.vc_lens import vc_lens_bp
+from src.frontend.refactored.routes.monitoring import monitoring_bp
 
 # Add the project root to the Python path
 project_root = os.path.abspath(os.path.join(os.path.dirname(__file__), '..', '..', '..'))
 sys.path.insert(0, project_root)
 
-# Load environment variables
-load_dotenv()
+# Configure module-level logger
+logger = logging.getLogger(__name__)
 
 # Configure logging
 def setup_logging():
@@ -60,9 +65,9 @@ def setup_logging():
     root_logger.addHandler(console_handler)
     
     # Log application startup
-    logging.info("SustainaTrend™ application starting up")
+    logger.info("SustainaTrend™ application starting up")
 
-def create_app():
+def create_app(config=None):
     """Create and configure the Flask application."""
     app = Flask(__name__,
                 template_folder=os.path.join(os.path.dirname(__file__), 'templates'),
@@ -70,29 +75,41 @@ def create_app():
     
     # Configure logging
     setup_logging()
-    logger = logging.getLogger(__name__)
     
-    # Configure app
-    app.config.update(
-        SECRET_KEY=os.getenv('SECRET_KEY', 'your-secret-key-here'),
-        SESSION_TYPE='filesystem',
-        MONGODB_URI=os.getenv('MONGODB_URI'),
-        ADMIN_KEY=os.getenv('ADMIN_KEY', 'dev-admin-key'),
-        VERSION='1.0.0',
-        DEBUG=os.getenv('FLASK_ENV') == 'development',
-        HOST=os.getenv('HOST', '127.0.0.1'),
-        PORT=int(os.getenv('PORT', 5000)),
-        MAX_CONTENT_LENGTH=16 * 1024 * 1024  # 16MB max file size
-    )
+    # Load configuration
+    if config is None:
+        config = os.getenv('FLASK_CONFIG', 'development')
+    app.config.from_object(f'config.{config.capitalize()}Config')
+    
+    # Ensure upload folder exists
+    os.makedirs(app.config['UPLOAD_FOLDER'], exist_ok=True)
     
     # Initialize extensions
     Session(app)
     
+    # Add template filters
+    @app.template_filter('format_number')
+    def format_number(value):
+        """Format a number with commas and optional decimal places."""
+        try:
+            if isinstance(value, (int, float)):
+                return f"{value:,.2f}".rstrip('0').rstrip('.')
+            return value
+        except:
+            return value
+    
     # Initialize MongoDB service
     try:
-        mongodb = MongoDBService()
-        app.mongodb = mongodb
-        logger.info("MongoDB service initialized successfully")
+        # Use the singleton instance from the mongodb_service module
+        app.mongodb = mongodb_service
+        
+        # Register shutdown hook to close MongoDB connection
+        atexit.register(mongodb_service.close)
+        
+        if not mongodb_service.is_connected():
+            logger.warning("MongoDB service not connected. Check configuration.")
+        else:
+            logger.info("MongoDB service initialized and connected successfully")
     except Exception as e:
         logger.error(f"Failed to initialize MongoDB service: {str(e)}")
         logger.error(traceback.format_exc())
@@ -100,11 +117,12 @@ def create_app():
     
     # Register blueprints
     app.register_blueprint(main.main_bp)
-    app.register_blueprint(analytics.analytics_bp)
-    app.register_blueprint(vc_lens.vc_lens_bp)
+    app.register_blueprint(analytics_bp)
+    app.register_blueprint(vc_lens_bp)
     app.register_blueprint(realestate.realestate_bp)
     app.register_blueprint(strategy.strategy_bp)
     app.register_blueprint(monetization.monetization_bp)
+    app.register_blueprint(monitoring_bp)
     
     # Request logging middleware
     @app.before_request
@@ -164,18 +182,19 @@ def run_app():
     """Run the application using the appropriate server."""
     setup_logging()
     app = create_app()
-    host = app.config['HOST']
-    port = app.config['PORT']
-    debug = app.config['DEBUG']
+    host = config_service.get_host()
+    port = config_service.get_port()
+    debug = config_service.is_debug()
     
-    logging.info(f"Starting server on {host}:{port} (debug={debug})")
+    logger.info(f"Starting server on {host}:{port} (debug={debug})")
     
     if debug:
-        # Use Flask's development server in debug mode
+        # Development server
         app.run(host=host, port=port, debug=True)
     else:
-        # Use Waitress for production
-        serve(app, host=host, port=port)
+        # Production server (Waitress)
+        logger.info("Starting production server (Waitress)")
+        serve(app, host=host, port=port, threads=4)
 
 if __name__ == '__main__':
     run_app() 

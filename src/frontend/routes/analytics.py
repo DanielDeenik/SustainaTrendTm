@@ -70,34 +70,34 @@ class AnalyticsRoute(BaseRoute):
             
         @self.blueprint.route('/dashboard')
         @self.handle_errors
-        def dashboard():
-            """Unified dashboard page combining sustainability metrics and key indicators"""
+def dashboard():
+    """Unified dashboard page combining sustainability metrics and key indicators"""
             try:
-                logger.info("Dashboard route called")
-                nav_context = get_context_for_template()
+    logger.info("Dashboard route called")
+    nav_context = get_context_for_template()
                 metrics = get_metrics()
                 formatted_metrics = self.format_metrics(metrics)
                 trends = get_trends()
                 stories = get_stories()
                 
                 return self.render_template(
-                    "finchat_dark_dashboard.html", 
-                    page_title="Sustainability Intelligence Dashboard",
-                    template_type="dashboard",
-                    metrics=metrics,
-                    metrics_json=formatted_metrics,
+        "finchat_dark_dashboard.html", 
+        page_title="Sustainability Intelligence Dashboard",
+        template_type="dashboard",
+        metrics=metrics,
+        metrics_json=formatted_metrics,
                     trends=trends,
                     stories=stories,
                     timestamp=datetime.now(),
                     **nav_context
-                )
+    )
             except Exception as e:
                 logger.error(f"Error in dashboard route: {e}")
                 return self.render_template("errors/500.html", error=str(e)), 500
 
         @self.blueprint.route('/monetization-strategies')
         @self.handle_errors
-        def monetization_strategies_dashboard():
+def monetization_strategies_dashboard():
             """Enhanced strategy hub with monetization insights"""
             try:
                 logger.info("Monetization strategies dashboard route called")
@@ -117,18 +117,18 @@ class AnalyticsRoute(BaseRoute):
 
         @self.blueprint.route('/story-cards')
         @self.handle_errors
-        def story_cards():
+def story_cards():
             """Present sustainability storytelling"""
             try:
-                logger.info("Story cards route called")
-                nav_context = get_context_for_template()
+    logger.info("Story cards route called")
+    nav_context = get_context_for_template()
                 stories = get_stories()
                 
                 return self.render_template(
                     "story_cards.html",
                     page_title="Sustainability Stories",
-                    template_type="stories",
-                    stories=stories,
+        template_type="stories",
+        stories=stories,
                     **nav_context
                 )
             except Exception as e:

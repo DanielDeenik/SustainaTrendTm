@@ -80,7 +80,7 @@ async def get_metrics():
                 "timestamp": datetime.now().isoformat()
             }
         ]
-        return metrics
+            return metrics
     except Exception as e:
         error_traceback = traceback.format_exc()
         logger.error(f"Failed to fetch metrics: {str(e)}")
